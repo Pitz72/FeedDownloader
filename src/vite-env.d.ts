@@ -10,6 +10,14 @@ interface Window {
         getDownloadedEpisodes: () => Promise<string[]>;
         onDownloadProgress: (callback: (event: any, data: any) => void) => () => void;
         removeDownloadProgressListener: () => void;
+        chooseFolder: () => Promise<string | null>;
+        getDownloadPath: () => Promise<string>;
+        setDownloadPath: (path: string) => Promise<void>;
+        stopBatch: () => Promise<void>;
+        showInFolder: (podcastTitle: string, title: string) => Promise<void>;
+        removeDownloadedEpisode: (guid: string) => Promise<void>;
+        resetDownloadHistory: () => Promise<void>;
+        getHelpContent: (lang: string) => Promise<string>;
     };
     electron: {
         ipcRenderer: {

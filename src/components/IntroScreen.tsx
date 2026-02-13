@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, BookOpen } from 'lucide-react';
+import { HelpModal } from './HelpModal';
 import GB from 'country-flag-icons/react/3x2/GB';
 import IT from 'country-flag-icons/react/3x2/IT';
 import FR from 'country-flag-icons/react/3x2/FR';
@@ -63,6 +64,8 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
         { code: 'zh', Flag: CN, label: '中文' },
     ];
 
+    const [isHelpOpen, setIsHelpOpen] = useState(false);
+
     return (
         <motion.div
             variants={containerVariants}
@@ -72,6 +75,18 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
             className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0b1120] text-white overflow-hidden"
         >
             <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none"></div>
+
+            {/* Help Button - Absolute Top Right */}
+            <motion.button
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1 }}
+                onClick={() => setIsHelpOpen(true)}
+                className="absolute top-6 right-6 p-2 text-gray-400 hover:text-white transition-colors z-50"
+                title={t('help.title', 'User Guide')}
+            >
+                <BookOpen size={24} />
+            </motion.button>
 
             {/* Logo */}
             <motion.img
@@ -140,6 +155,8 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
         </motion.div>
     );
 };

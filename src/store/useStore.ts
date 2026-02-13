@@ -31,6 +31,7 @@ export interface AppState {
     startBatch: (total: number) => void;
     incrementBatch: () => void;
     resetBatch: () => void;
+    stopBatch: () => Promise<void>;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -62,4 +63,8 @@ export const useStore = create<AppState>((set) => ({
         };
     }),
     resetBatch: () => set({ batchTotal: 0, batchCompleted: 0, isBatchDownloading: false }),
+    stopBatch: async () => {
+        set({ isBatchDownloading: false, batchTotal: 0, batchCompleted: 0 });
+        await window.api.stopBatch();
+    }
 }));

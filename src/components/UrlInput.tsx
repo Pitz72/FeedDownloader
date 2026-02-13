@@ -15,7 +15,6 @@ export const UrlInput: React.FC = () => {
         if (!url) return;
         setLoading(true);
         try {
-            // @ts-ignore
             const feed = await window.api.parseFeed(url);
             console.log("Parsed feed:", feed);
 
@@ -24,7 +23,6 @@ export const UrlInput: React.FC = () => {
             setCurrentFeed(fullFeed);
 
             // Save to library automatically
-            // @ts-ignore
             await window.api.addFeed(fullFeed);
             // toast.show(`Feed caricato: ${feed.title}`, 'success');
         } catch (error) {
@@ -40,10 +38,8 @@ export const UrlInput: React.FC = () => {
             <div className="flex gap-2 p-4 glass-card">
                 <button
                     onClick={async () => {
-                        // @ts-ignore
                         const path = await window.api.chooseFolder();
                         if (path) {
-                            // @ts-ignore
                             await window.api.setDownloadPath(path);
                             // toast.show(t('toast.folder_selected', { path }), 'success');
                             toast.show(`Cartella download: ${path}`, 'success');

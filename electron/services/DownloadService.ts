@@ -2,7 +2,26 @@ import axios from 'axios';
 import fs from 'fs-extra';
 
 export class DownloadService {
-    async downloadFile(url: string, outputPath: string, onProgress: (loaded: number, total: number) => void) {
+    async downloadFile(url: string, outputPath: string, onProgress: (loaded: number, total: number) => void, attempts = 3) {
+        for (let i = 0; i < attempts; i++) {
+            try {
+                await this.attemptDownload(url, outputPath, onProgress);
+                return; // Success
+            } catch (error) {
+                console.error(`Download attempt ${i + 1} failed:`, error);
+
+                // Cleanup partial file
+                await fs.remove(outputPath).catch(() => { });
+
+                if (i === attempts - 1) throw error; // Throw on last attempt
+
+                // Backoff 1s
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+        }
+    }
+
+    private async attemptDownload(url: string, outputPath: string, onProgress: (loaded: number, total: number) => void) {
         const writer = fs.createWriteStream(outputPath);
 
         try {
@@ -29,7 +48,7 @@ export class DownloadService {
                 writer.on('error', reject);
             });
         } catch (error) {
-            console.error('Download failed:', error);
+            writer.close();
             throw error;
         }
     }

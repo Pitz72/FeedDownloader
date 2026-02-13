@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { useStore, AppState } from '../store/useStore';
-import { Library, Trash2, Podcast } from 'lucide-react';
+import { Library, Trash2, Podcast, Settings } from 'lucide-react';
 import clsx from 'clsx';
 import { useToast } from '../context/ToastContext';
 import { useTranslation } from 'react-i18next';
 import pkg from '../../package.json';
+import { SettingsModal } from './SettingsModal';
 
 export const Sidebar: React.FC = () => {
     const [feeds, setFeeds] = useState<any[]>([]);
     const { currentFeed, setCurrentFeed } = useStore((state: AppState) => state);
     const toast = useToast();
     const { t } = useTranslation();
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     const loadFeeds = async () => {
         try {
@@ -57,6 +59,13 @@ export const Sidebar: React.FC = () => {
                     <Library size={24} className="text-blue-400" />
                     Libreria
                 </h2>
+                <button
+                    onClick={() => setIsSettingsOpen(true)}
+                    className="text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10"
+                    title={t('settings.title', 'Settings')}
+                >
+                    <Settings size={20} />
+                </button>
             </div>
 
             <div className="flex-1 overflow-y-auto px-4 space-y-2">
@@ -113,6 +122,8 @@ export const Sidebar: React.FC = () => {
             <div className="p-4 border-t border-white/10">
                 <p className="text-xs text-center text-gray-600">v{pkg.version}</p>
             </div>
+
+            <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
         </div>
     );
 };

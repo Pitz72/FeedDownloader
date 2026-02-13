@@ -54,4 +54,14 @@ export class LibraryService {
     getDownloadedEpisodes(): string[] {
         return (this.store.get('downloads') as string[]) || [];
     }
+
+    removeDownloadedEpisode(guid: string) {
+        const downloads = (this.store.get('downloads') as string[]) || [];
+        const newDownloads = downloads.filter(id => id !== guid);
+        this.store.set('downloads', newDownloads);
+    }
+
+    resetDownloadHistory() {
+        this.store.set('downloads', []);
+    }
 }

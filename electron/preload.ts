@@ -16,5 +16,10 @@ contextBridge.exposeInMainWorld('api', {
     const subscription = (_event: any, data: any) => callback(_event, data);
     ipcRenderer.on('download-progress', subscription);
     return () => ipcRenderer.removeListener('download-progress', subscription);
-  }
+  },
+  stopBatch: () => ipcRenderer.invoke('stop-batch'),
+  showInFolder: (podcastTitle: string, title: string) => ipcRenderer.invoke('show-in-folder', { podcastTitle, title }),
+  removeDownloadedEpisode: (guid: string) => ipcRenderer.invoke('remove-history-item', guid),
+  resetDownloadHistory: () => ipcRenderer.invoke('reset-history'),
+  getHelpContent: (lang: string) => ipcRenderer.invoke('get-help-content', lang)
 })

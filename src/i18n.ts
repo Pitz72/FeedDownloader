@@ -26,6 +26,11 @@ i18n
             zh: { translation: zh },
         },
         fallbackLng: 'en',
+        detection: {
+            order: ['localStorage', 'navigator'],
+            caches: ['localStorage'],
+            lookupLocalStorage: 'i18nextLng',
+        },
         interpolation: {
             escapeValue: false,
         },

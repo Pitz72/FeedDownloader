@@ -20,7 +20,8 @@ function AppContent() {
       // console.log("Progress:", data);
       updateDownload(data);
 
-      if (data.completed) {
+      // Increment batch if completed OR error
+      if (data.completed || data.error) {
         incrementBatch();
       }
     });
@@ -64,13 +65,13 @@ function AppContent() {
 }
 
 function App() {
-  const [showIntro, setShowIntro] = useState(true);
+  const [appStarted, setAppStarted] = useState(false);
 
   return (
     <ToastProvider>
       <AnimatePresence mode="wait">
-        {showIntro ? (
-          <IntroScreen key="intro" onComplete={() => setShowIntro(false)} />
+        {!appStarted ? (
+          <IntroScreen key="intro" onComplete={() => setAppStarted(true)} />
         ) : (
           <AppContent key="app" />
         )}

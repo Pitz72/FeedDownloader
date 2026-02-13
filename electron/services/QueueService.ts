@@ -18,4 +18,8 @@ export class QueueService {
     get size() {
         return this.queue.size;
     }
+
+    clear() {
+        this.queue.clear();
+    }
 }

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useStore, AppState } from '../store/useStore';
-import { Download, Check, RefreshCw, FolderOpen, DownloadCloud } from 'lucide-react';
+import { Download, Check, RefreshCw, FolderOpen, DownloadCloud, RotateCcw, Search } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import { useTranslation } from 'react-i18next';
 import { Virtuoso } from 'react-virtuoso';
@@ -12,11 +12,11 @@ export const EpisodeList: React.FC = () => {
     const toast = useToast();
     const [downloadedGuids, setDownloadedGuids] = useState<string[]>([]);
     const { t } = useTranslation();
+    const [searchQuery, setSearchQuery] = useState('');
 
     // Refresh downloaded status
     const fetchDownloaded = async () => {
         try {
-            // @ts-ignore
             const guids = await window.api.getDownloadedEpisodes();
             setDownloadedGuids(guids);
         } catch (e) {
@@ -30,6 +30,18 @@ export const EpisodeList: React.FC = () => {
         const interval = setInterval(fetchDownloaded, 3000);
         return () => clearInterval(interval);
     }, []);
+
+    const filteredEpisodes = useMemo(() => {
+        if (!currentFeed) return [];
+        if (!searchQuery) return currentFeed.episodes;
+
+        const lowerQuery = searchQuery.toLowerCase();
+        return currentFeed.episodes.filter((ep: any) =>
+            (ep.title && ep.title.toLowerCase().includes(lowerQuery)) ||
+            (ep.description && ep.description.toLowerCase().includes(lowerQuery)) ||
+            (ep.contentSnippet && ep.contentSnippet.toLowerCase().includes(lowerQuery))
+        );
+    }, [currentFeed, searchQuery]);
 
     if (!currentFeed) return null;
 
@@ -48,7 +60,6 @@ export const EpisodeList: React.FC = () => {
         // Use proper GUID or fallback to URL/Title hash if needed
         const guid = episode.guid || url;
 
-        // @ts-ignore
         window.api.startDownload({
             url,
             title: episode.title,
@@ -60,9 +71,9 @@ export const EpisodeList: React.FC = () => {
     };
 
     const handleDownloadAll = () => {
-        if (!confirm(t('confirm.mass_download', { count: currentFeed.episodes.length }))) return;
+        if (!confirm(t('confirm.mass_download', { count: filteredEpisodes.length }))) return;
 
-        const episodesToDownload = currentFeed.episodes.filter((episode: any) => {
+        const episodesToDownload = filteredEpisodes.filter((episode: any) => {
             let url = episode.enclosure?.url || (episode.enclosures && episode.enclosures[0]?.url);
             const guid = episode.guid || url;
             return !downloadedGuids.includes(guid);
@@ -82,14 +93,20 @@ export const EpisodeList: React.FC = () => {
     };
 
     const handleChangeFolder = async () => {
-        // @ts-ignore
         const path = await window.api.chooseFolder();
         if (path) {
-            // @ts-ignore
             await window.api.setDownloadPath(path);
             toast.show(t('toast.folder_selected', { path }), 'success');
         }
     };
+
+    const handleResetStatus = async (guid: string) => {
+        if (confirm(t('confirm.reset_status', "Vuoi segnare questo episodio come NON scaricato? (Il file rimarrà su disco)"))) {
+            await window.api.removeDownloadedEpisode(guid);
+            await fetchDownloaded();
+            toast.show(t('toast.status_reset', "Stato ripristinato"), 'success');
+        }
+    }
 
     const imageUrl = typeof currentFeed.image === 'string'
         ? currentFeed.image
@@ -120,8 +137,26 @@ export const EpisodeList: React.FC = () => {
                         {Math.round((status.loaded / status.total) * 100)}%
                     </div>
                 ) : isCompleted ? (
-                    <div className="text-green-500 flex items-center gap-1" title={t('episodes.downloaded')}>
-                        <Check size={20} />
+                    <div className="flex items-center gap-2 group/actions">
+                        {/* Hidden by default, visible on hover/group-hover */}
+                        <button
+                            onClick={() => handleResetStatus(guid)}
+                            className="p-1.5 text-gray-500 hover:text-orange-400 hover:bg-white/10 rounded-lg transition-colors opacity-0 group-hover/actions:opacity-100"
+                            title={t('episodes.reset_status', "Dimentica download")}
+                        >
+                            <RotateCcw size={18} />
+                        </button>
+
+                        <button
+                            onClick={() => window.api.showInFolder(currentFeed.title, episode.title)}
+                            className="p-1.5 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                            title={t('episodes.open_folder')}
+                        >
+                            <FolderOpen size={18} />
+                        </button>
+                        <div className="text-green-500 flex items-center gap-1" title={t('episodes.downloaded')}>
+                            <Check size={20} />
+                        </div>
                     </div>
                 ) : (
                     <button
@@ -170,12 +205,26 @@ export const EpisodeList: React.FC = () => {
                             {t('episodes.count', { count: currentFeed.episodes.length })}
                         </span>
                     </div>
+
+                    {/* Search Bar */}
+                    <div className="mt-4 relative max-w-sm">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Search size={16} className="text-gray-500" />
+                        </div>
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder={t('episodes.filter', 'Filtra episodi...')}
+                            className="block w-full pl-10 pr-3 py-2 border border-white/10 rounded-lg leading-5 bg-black/20 text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
+                        />
+                    </div>
                 </div>
             </div>
 
             <Virtuoso
                 useWindowScroll
-                data={currentFeed.episodes}
+                data={filteredEpisodes}
                 itemContent={renderEpisodeRow}
             />
         </div>

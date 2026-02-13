@@ -59,12 +59,8 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
             baseDir = path.join(app.getPath('documents'), 'FeedDownloader', 'downloads');
         }
 
-        // Sanitize using proper library
-        const sanitizedPodcast = sanitize(podcastTitle);
-        const sanitizedTitle = sanitize(title);
-
-        const targetDir = path.join(baseDir, sanitizedPodcast);
-        const targetFile = path.join(targetDir, `${sanitizedTitle}.mp3`);
+        const targetFile = getSafePath(baseDir, podcastTitle, title);
+        const targetDir = path.dirname(targetFile);
 
         // Ensure directory exists
         await fs.ensureDir(targetDir);
@@ -129,4 +125,93 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         libraryService.setDownloadPath(path);
         return true;
     });
+
+    ipcMain.handle('stop-batch', async () => {
+        queueService.clear();
+        return true;
+    });
+
+    ipcMain.handle('show-in-folder', async (_, { podcastTitle, title }) => {
+        let baseDir = libraryService.getDownloadPath();
+        if (!baseDir) {
+            baseDir = path.join(app.getPath('documents'), 'FeedDownloader', 'downloads');
+        }
+        const safePath = getSafePath(baseDir, podcastTitle, title);
+
+        // Use verify logic: if file doesn't exist, maybe try to open folder?
+        // But requested is showItemInFolder
+        import('electron').then(({ shell }) => {
+            shell.showItemInFolder(safePath);
+        });
+    });
+
+    ipcMain.handle('get-help-content', async (_, lang: string) => {
+        const langMap: { [key: string]: string } = {
+            'it': 'README_MASTER.md', // Master is Italian
+            'en': 'README_EN.md',
+            'fr': 'README_FR.md',
+            'de': 'README_DE.md',
+            'es': 'README_ES.md',
+            'pt': 'README_PT.md',
+            'ru': 'README_RU.md',
+            'zh': 'README_CN.md'
+        };
+
+        const fileName = langMap[lang] || 'README_EN.md';
+
+        let resourcePath;
+        if (app.isPackaged) {
+            resourcePath = path.join(process.resourcesPath, fileName);
+        } else {
+            // In dev, usually root is 2 levels up from dist-electron/main.js? 
+            // We need project root.
+            resourcePath = path.join(app.getAppPath(), fileName);
+        }
+
+        try {
+            if (await fs.pathExists(resourcePath)) {
+                return await fs.readFile(resourcePath, 'utf-8');
+            } else {
+                // Fallback to EN if specific lang file missing
+                const fallbackPath = app.isPackaged
+                    ? path.join(process.resourcesPath, 'README_EN.md')
+                    : path.join(app.getAppPath(), 'README_EN.md');
+
+                if (await fs.pathExists(fallbackPath)) {
+                    return await fs.readFile(fallbackPath, 'utf-8');
+                }
+                return "# Error\nHelp file not found.";
+            }
+        } catch (error) {
+            console.error("Failed to read help file", error);
+            return "# Error\nFailed to load help documentation.";
+        }
+    });
+}
+
+function getSafePath(baseDir: string, podcastTitle: string, episodeTitle: string): string {
+    const sanitizedPodcast = sanitize(podcastTitle);
+    let sanitizedTitle = sanitize(episodeTitle);
+
+    // Windows MAX_PATH safe limit
+    const MAX_PATH = 250;
+    const ext = '.mp3';
+
+    // Calculate current length: baseDir + \ + podcast + \ + title + .mp3
+    // We assume 2 separators
+    const folderPath = path.join(baseDir, sanitizedPodcast);
+    const separators = 1; // backslash before title
+
+    const occupied = folderPath.length + separators + ext.length;
+    const available = MAX_PATH - occupied;
+
+    if (available < 1) {
+        // Extreme edge case: path is too long even for 1 char title. 
+        // We truncate podcast title? For now just truncate title to minimal.
+        sanitizedTitle = sanitizedTitle.substring(0, 5);
+    } else if (sanitizedTitle.length > available) {
+        sanitizedTitle = sanitizedTitle.substring(0, available);
+    }
+
+    return path.join(folderPath, `${sanitizedTitle}${ext}`);
 }
