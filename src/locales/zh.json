@@ -1,0 +1,37 @@
+{
+    "app": {
+        "title": "Runtime FeedDownloader Pro",
+        "slogan": "归档播客的最强大方式。",
+        "start": "开始",
+        "language": "语言"
+    },
+    "sidebar": {
+        "my_feeds": "我的订阅",
+        "invalid_date": "未知日期"
+    },
+    "input": {
+        "placeholder": "输入播客 RSS URL...",
+        "analyze": "分析"
+    },
+    "episodes": {
+        "count": "{{count}} 集",
+        "download_all": "全部下载",
+        "change_folder": "更改文件夹",
+        "download": "下载",
+        "downloaded": "已下载"
+    },
+    "progress": {
+        "downloading": "下载中...",
+        "dont_close": "请勿关闭应用程序"
+    },
+    "toast": {
+        "download_started": "下载已开始...",
+        "mass_download_started": "批量下载已开始...",
+        "no_audio": "未找到音频文件",
+        "all_downloaded": "所有剧集已下载！",
+        "folder_selected": "下载文件夹: {{path}}"
+    },
+    "confirm": {
+        "mass_download": "您真的要下载所有 {{count}} 集吗？"
+    }
+}

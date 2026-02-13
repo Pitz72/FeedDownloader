@@ -1,0 +1,37 @@
+{
+    "app": {
+        "title": "Runtime FeedDownloader Pro",
+        "slogan": "La façon la plus puissante d'archiver vos podcasts.",
+        "start": "Démarrer",
+        "language": "Langue"
+    },
+    "sidebar": {
+        "my_feeds": "Mes Flux",
+        "invalid_date": "Date Inconnue"
+    },
+    "input": {
+        "placeholder": "Entrez l'URL RSS du podcast...",
+        "analyze": "Analyser"
+    },
+    "episodes": {
+        "count": "{{count}} Épisodes",
+        "download_all": "Tout Télécharger",
+        "change_folder": "Changer Dossier",
+        "download": "Télécharger",
+        "downloaded": "Téléchargé"
+    },
+    "progress": {
+        "downloading": "Téléchargement...",
+        "dont_close": "Ne fermez pas l'application"
+    },
+    "toast": {
+        "download_started": "Téléchargement démarré...",
+        "mass_download_started": "Téléchargement en masse démarré...",
+        "no_audio": "Aucun fichier audio trouvé",
+        "all_downloaded": "Tous les épisodes déjà téléchargés!",
+        "folder_selected": "Dossier de téléchargement: {{path}}"
+    },
+    "confirm": {
+        "mass_download": "Voulez-vous vraiment télécharger tous les {{count}} épisodes?"
+    }
+}

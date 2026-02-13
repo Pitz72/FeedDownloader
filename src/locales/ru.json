@@ -1,0 +1,37 @@
+{
+    "app": {
+        "title": "Runtime FeedDownloader Pro",
+        "slogan": "Самый мощный способ архивировать ваши подкасты.",
+        "start": "Начать",
+        "language": "Язык"
+    },
+    "sidebar": {
+        "my_feeds": "Мои ленты",
+        "invalid_date": "Неизвестная дата"
+    },
+    "input": {
+        "placeholder": "Введите RSS URL...",
+        "analyze": "Анализировать"
+    },
+    "episodes": {
+        "count": "{{count}} Эпизодов",
+        "download_all": "Скачать все",
+        "change_folder": "Сменить папку",
+        "download": "Скачать",
+        "downloaded": "Скачано"
+    },
+    "progress": {
+        "downloading": "Загрузка...",
+        "dont_close": "Не закрывайте приложение"
+    },
+    "toast": {
+        "download_started": "Загрузка началась...",
+        "mass_download_started": "Пакетная загрузка началась...",
+        "no_audio": "Аудиофайл не найден",
+        "all_downloaded": "Все эпизоды уже скачаны!",
+        "folder_selected": "Папка загрузки: {{path}}"
+    },
+    "confirm": {
+        "mass_download": "Вы действительно хотите скачать все {{count}} эпизодов?"
+    }
+}
