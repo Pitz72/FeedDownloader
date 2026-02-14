@@ -33,5 +33,23 @@
     },
     "confirm": {
         "mass_download": "Do you really want to download all {{count}} episodes?"
+    },
+    "help": {
+        "title": "User Guide",
+        "read_manual": "READ MANUAL"
+    },
+    "settings": {
+        "title": "Settings",
+        "general": "General",
+        "language": "Language",
+        "storage": "Storage",
+        "download_path": "Download Path",
+        "data": "Data & Portability",
+        "import_opml": "Import Feeds (OPML)",
+        "export_opml": "Export Feeds (OPML)",
+        "export_csv": "Export Inventory (CSV)",
+        "danger_zone": "Danger Zone",
+        "reset_db": "Reset Download History",
+        "confirm_reset": "Are you sure? This will clear all download progress marks. Files will not be deleted."
     }
 }

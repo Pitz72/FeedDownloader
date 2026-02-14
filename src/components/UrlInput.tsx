@@ -13,6 +13,11 @@ export const UrlInput: React.FC = () => {
 
     const handleAnalyze = async () => {
         if (!url) return;
+        if (!navigator.onLine) {
+            toast.show(t('toast.offline_error', 'Nessuna connessione internet'), 'error');
+            return;
+        }
+
         setLoading(true);
         try {
             const feed = await window.api.parseFeed(url);
@@ -25,9 +30,14 @@ export const UrlInput: React.FC = () => {
             // Save to library automatically
             await window.api.addFeed(fullFeed);
             // toast.show(`Feed caricato: ${feed.title}`, 'success');
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            toast.show("Impossibile analizzare il feed. Controlla l'URL.", 'error');
+            let msg = "Impossibile analizzare il feed.";
+            if (error.message.includes('INVALID_FEED_TYPE')) msg = "URL non valido: Sembra una pagina web, non un feed RSS.";
+            else if (error.message.includes('Network Error')) msg = "Errore di rete. Controlla la connessione.";
+            else if (error.message.includes('404')) msg = "Feed non trovato (404).";
+
+            toast.show(msg, 'error');
         } finally {
             setLoading(false);
         }

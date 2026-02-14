@@ -1,7 +1,7 @@
 {
   "name": "runtime-feeddownloader-pro",
   "private": true,
-  "version": "0.2.1",
+  "version": "0.3.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -28,6 +28,7 @@
     "clsx": "^2.1.1",
     "country-flag-icons": "^1.6.13",
     "electron-store": "^11.0.2",
+    "fast-xml-parser": "^5.3.5",
     "framer-motion": "^12.34.0",
     "fs-extra": "^11.3.3",
     "i18next": "^25.8.6",
@@ -87,6 +88,22 @@
     "win": {
       "target": "nsis",
       "icon": "public/icon.ico"
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "build/icon.icns",
+      "category": "public.app-category.utilities"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "icon": "build/icons",
+      "category": "Utility"
     },
     "nsis": {
       "oneClick": false,

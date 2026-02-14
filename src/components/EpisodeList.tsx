@@ -64,7 +64,8 @@ export const EpisodeList: React.FC = () => {
             url,
             title: episode.title,
             podcastTitle: currentFeed.title,
-            guid
+            guid,
+            pubDate: episode.pubDate || episode.isoDate
         });
 
         if (!silent) toast.show(t('toast.download_started'), 'info');
@@ -111,6 +112,8 @@ export const EpisodeList: React.FC = () => {
     const imageUrl = typeof currentFeed.image === 'string'
         ? currentFeed.image
         : currentFeed.image?.url;
+
+    const isOnline = navigator.onLine;
 
     const renderEpisodeRow = (_index: number, episode: any) => {
         // Check status
@@ -161,10 +164,11 @@ export const EpisodeList: React.FC = () => {
                 ) : (
                     <button
                         onClick={() => handleDownload(episode)}
-                        className="p-2 hover:bg-white/10 rounded-full transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
-                        title={t('episodes.download')}
+                        disabled={!isOnline}
+                        className={`p-2 rounded-full transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 ${!isOnline ? 'cursor-not-allowed opacity-50' : 'hover:bg-white/10'}`}
+                        title={isOnline ? t('episodes.download') : t('toast.offline_error', 'Offline')}
                     >
-                        <Download size={20} className="text-gray-300" />
+                        <Download size={20} className={isOnline ? "text-gray-300" : "text-gray-600"} />
                     </button>
                 )}
             </div>
@@ -195,7 +199,10 @@ export const EpisodeList: React.FC = () => {
 
                         <button
                             onClick={handleDownloadAll}
-                            className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm transition-colors"
+                            disabled={!isOnline}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors ${!isOnline
+                                ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                                : 'bg-blue-600 hover:bg-blue-500 text-white'}`}
                         >
                             <DownloadCloud size={16} />
                             {t('episodes.download_all')}

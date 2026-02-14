@@ -8,6 +8,9 @@ Ao contrário dos reprodutores padrão, este software é otimizado para download
 ## Características Principais
 - **Motor "Database-First":** O sistema lembra o que você baixou independentemente dos arquivos no disco.
 - **Download em Lote:** Baixe centenas de episódios com um clique, com gestão inteligente da fila.
+- **Portabilidade de Dados:** Importe e exporte os seus feeds através do padrão OPML. Gere relatórios CSV detalhados do seu arquivo.
+- **Segurança Avançada:** Sistema anticorrupção para discos cheios, modo offline inteligente e validação de feeds de entrada.
+- **Ajuda Integrada:** Guia do usuário completo acessível diretamente dentro da aplicação.
 - **Smart Truncate:** Renomeia automaticamente os arquivos para evitar erros de comprimento de caminho no Windows.
 - **Resiliência:** Tenta novamente os downloads automaticamente se a conexão cair.
 - **Desempenho:** Lida com feeds com milhares de episódios sem lentidão.
@@ -18,8 +21,11 @@ Ao contrário dos reprodutores padrão, este software é otimizado para download
 3.  **Baixar:** Use o botão "Baixar Tudo" para o arquivo inteiro ou baixe episódios individuais manualmente.
 4.  **Gerenciar:** Use as Configurações (ícone de engrenagem) para gerenciar o idioma ou redefinir o banco de dados.
 
-## Requisitos
-- Windows 10/11 (64 bits)
+## Requisitos do Sistema
+O software é multiplataforma e roda nativamente em:
+- **Windows**: 10/11 (64 bits)
+- **macOS**: 11.0 (Big Sur) ou superior (Intel e Apple Silicon)
+- **Linux**: Distribuições modernas (Ubuntu, Debian, Fedora) via AppImage ou .deb
 - Conexão ativa com a Internet
 
 *Desenvolvido com tecnologia Electron & React para garantir desempenho e estabilidade.*

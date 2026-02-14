@@ -53,7 +53,7 @@ export const Sidebar: React.FC = () => {
     };
 
     return (
-        <div className="w-64 bg-black/40 border-r border-white/10 flex flex-col h-screen backdrop-blur-xl sticky top-0 shrink-0">
+        <div className="w-80 bg-black/40 border-r border-white/10 flex flex-col h-screen backdrop-blur-xl sticky top-0 shrink-0">
             <div className="p-6 flex items-center justify-between">
                 <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400 flex items-center gap-2">
                     <Library size={24} className="text-blue-400" />

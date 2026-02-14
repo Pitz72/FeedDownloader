@@ -52,7 +52,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         return libraryService.getDownloadedEpisodes();
     });
 
-    ipcMain.handle(IPC_CHANNELS.START_DOWNLOAD, async (_, { url, title, podcastTitle, guid }: { url: string; title: string; podcastTitle: string; guid: string }) => {
+    ipcMain.handle(IPC_CHANNELS.START_DOWNLOAD, async (_, { url, title, podcastTitle, guid, pubDate }: { url: string; title: string; podcastTitle: string; guid: string; pubDate?: string }) => {
         // Determine download path
         let baseDir = libraryService.getDownloadPath();
         if (!baseDir) {
@@ -84,6 +84,16 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                 // Mark as downloaded in library
                 if (guid) {
                     libraryService.markAsDownloaded(guid);
+
+                    // Add to Archive (Details)
+                    libraryService.addArchiveEntry({
+                        guid,
+                        title,
+                        podcastTitle,
+                        pubDate: pubDate || new Date().toISOString(),
+                        downloadedAt: new Date().toISOString(),
+                        filename: path.basename(targetFile)
+                    });
                 }
 
                 // Send complete event
@@ -107,6 +117,57 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         });
 
         return { status: 'queued' };
+    });
+
+    ipcMain.handle('import-opml', async () => {
+        const result = await dialog.showOpenDialog(mainWindow, {
+            properties: ['openFile'],
+            filters: [{ name: 'OPML/XML', extensions: ['opml', 'xml'] }]
+        });
+        if (result.canceled || result.filePaths.length === 0) return { count: 0 };
+
+        try {
+            const content = await fs.readFile(result.filePaths[0], 'utf-8');
+            const count = await libraryService.importOPML(content);
+            return { count };
+        } catch (error) {
+            console.error('Import failed', error);
+            throw error;
+        }
+    });
+
+    ipcMain.handle('export-opml', async () => {
+        const result = await dialog.showSaveDialog(mainWindow, {
+            defaultPath: 'feeds.opml',
+            filters: [{ name: 'OPML', extensions: ['opml'] }]
+        });
+        if (result.canceled || !result.filePath) return false;
+
+        try {
+            const content = libraryService.exportOPML();
+            await fs.writeFile(result.filePath, content, 'utf-8');
+            return true;
+        } catch (error) {
+            console.error('Export failed', error);
+            throw error;
+        }
+    });
+
+    ipcMain.handle('export-archive-csv', async () => {
+        const result = await dialog.showSaveDialog(mainWindow, {
+            defaultPath: 'archive_report.csv',
+            filters: [{ name: 'CSV', extensions: ['csv'] }]
+        });
+        if (result.canceled || !result.filePath) return false;
+
+        try {
+            const content = libraryService.exportArchiveCSV();
+            await fs.writeFile(result.filePath, content, 'utf-8');
+            return true;
+        } catch (error) {
+            console.error('Export CSV failed', error);
+            throw error;
+        }
     });
 
     ipcMain.handle(IPC_CHANNELS.CHOOSE_FOLDER, async () => {

@@ -40,6 +40,7 @@ function createWindow() {
     show: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
+    ...(process.platform === 'darwin' ? { titleBarStyle: 'hidden' } : {}),
     webPreferences: {
       preload: path.join(__dirname, 'preload.mjs'),
     },

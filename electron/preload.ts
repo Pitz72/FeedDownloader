@@ -21,5 +21,8 @@ contextBridge.exposeInMainWorld('api', {
   showInFolder: (podcastTitle: string, title: string) => ipcRenderer.invoke('show-in-folder', { podcastTitle, title }),
   removeDownloadedEpisode: (guid: string) => ipcRenderer.invoke('remove-history-item', guid),
   resetDownloadHistory: () => ipcRenderer.invoke('reset-history'),
-  getHelpContent: (lang: string) => ipcRenderer.invoke('get-help-content', lang)
+  getHelpContent: (lang: string) => ipcRenderer.invoke('get-help-content', lang),
+  importOPML: () => ipcRenderer.invoke('import-opml'),
+  exportOPML: () => ipcRenderer.invoke('export-opml'),
+  exportArchiveCSV: () => ipcRenderer.invoke('export-archive-csv')
 })

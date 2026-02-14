@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { X, FolderOpen, AlertTriangle, BookOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HelpModal } from './HelpModal';
+import { useStore, AppState } from '../store/useStore';
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -14,6 +15,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     const [downloadPath, setDownloadPath] = useState('');
     const [confirmReset, setConfirmReset] = useState(false);
     const [isHelpOpen, setIsHelpOpen] = useState(false);
+    const isBatchDownloading = useStore((state: AppState) => state.isBatchDownloading);
 
     useEffect(() => {
         if (isOpen) {
@@ -128,6 +130,47 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                 </div>
                             </div>
 
+                            {/* Data & Portability */}
+                            <div className="space-y-3">
+                                <h3 className="text-sm font-medium text-blue-400 uppercase tracking-wider">{t('settings.data', 'Data & Portability')}</h3>
+                                <div className="grid grid-cols-1 gap-2">
+                                    <button
+                                        onClick={async () => {
+                                            const res = await window.api.importOPML();
+                                            if (res && res.count > 0) {
+                                                // Ideally toast success
+                                                alert(`Imported ${res.count} feeds`);
+                                                window.location.reload();
+                                            }
+                                        }}
+                                        className="flex items-center gap-2 bg-white/5 hover:bg-white/10 p-2 rounded-lg text-sm text-gray-300 transition-colors"
+                                    >
+                                        <FolderOpen size={16} />
+                                        {t('settings.import_opml', 'Import Feeds (OPML)')}
+                                    </button>
+                                    <button
+                                        onClick={async () => {
+                                            const ok = await window.api.exportOPML();
+                                            if (ok) alert(t('toast.export_success', 'Export successful'));
+                                        }}
+                                        className="flex items-center gap-2 bg-white/5 hover:bg-white/10 p-2 rounded-lg text-sm text-gray-300 transition-colors"
+                                    >
+                                        <FolderOpen size={16} />
+                                        {t('settings.export_opml', 'Export Feeds (OPML)')}
+                                    </button>
+                                    <button
+                                        onClick={async () => {
+                                            const ok = await window.api.exportArchiveCSV();
+                                            if (ok) alert(t('toast.export_success', 'Export successful'));
+                                        }}
+                                        className="flex items-center gap-2 bg-white/5 hover:bg-white/10 p-2 rounded-lg text-sm text-gray-300 transition-colors"
+                                    >
+                                        <FolderOpen size={16} />
+                                        {t('settings.export_csv', 'Export Inventory (CSV)')}
+                                    </button>
+                                </div>
+                            </div>
+
                             {/* Maintenance */}
                             <div className="space-y-3">
                                 <h3 className="text-sm font-medium text-red-400 uppercase tracking-wider">{t('settings.danger_zone', 'Danger Zone')}</h3>
@@ -135,7 +178,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                 {!confirmReset ? (
                                     <button
                                         onClick={() => setConfirmReset(true)}
-                                        className="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-500 rounded-lg px-4 py-3 transition-colors text-sm font-medium"
+                                        disabled={isBatchDownloading}
+                                        className={`w-full flex items-center justify-center gap-2 border rounded-lg px-4 py-3 transition-colors text-sm font-medium ${isBatchDownloading
+                                            ? 'bg-gray-800 border-gray-700 text-gray-500 cursor-not-allowed'
+                                            : 'bg-red-500/10 hover:bg-red-500/20 border-red-500/30 text-red-500'
+                                            }`}
+                                        title={isBatchDownloading ? "Cannot reset while downloading" : ""}
                                     >
                                         <AlertTriangle size={18} />
                                         {t('settings.reset_db', 'Reset Download History')}

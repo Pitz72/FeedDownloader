@@ -31,6 +31,19 @@ function AppContent() {
     };
   }, [updateDownload, incrementBatch]);
 
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -40,11 +53,25 @@ function AppContent() {
     >
       <div className="fixed inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none z-0"></div>
 
+      {/* Offline Banner */}
+      <AnimatePresence>
+        {!isOnline && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="bg-red-600/90 text-white text-center text-sm py-1 font-medium z-50 fixed top-0 left-0 right-0 backdrop-blur-sm"
+          >
+            {t('toast.offline_error', 'Nessuna connessione internet')}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Sidebar */}
       <Sidebar />
 
       {/* Main Content */}
-      <div className="relative z-10 flex-1 flex flex-col min-h-screen">
+      <div className={`relative z-10 flex-1 flex flex-col min-h-screen ${!isOnline ? 'mt-8' : ''}`}> {/* Adjust for banner */}
         <div className="flex-1 p-8">
           <header className="text-center mb-12">
             <h1 className="text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600 mb-4">
@@ -55,7 +82,9 @@ function AppContent() {
             </p>
           </header>
 
-          <UrlInput />
+          <div className={!isOnline ? "opacity-50 pointer-events-none grayscale" : ""}>
+            <UrlInput />
+          </div>
           <EpisodeList />
           <GlobalProgressBar />
         </div>

@@ -33,5 +33,23 @@
     },
     "confirm": {
         "mass_download": "Vuoi davvero scaricare tutti i {{count}} episodi?"
+    },
+    "help": {
+        "title": "Guida Utente",
+        "read_manual": "LEGGI LA GUIDA"
+    },
+    "settings": {
+        "title": "Impostazioni",
+        "general": "Generale",
+        "language": "Lingua",
+        "storage": "Archiviazione",
+        "download_path": "Percorso Download",
+        "data": "Dati & Portabilità",
+        "import_opml": "Importa Feed (OPML)",
+        "export_opml": "Esporta Feed (OPML)",
+        "export_csv": "Esporta Inventario (CSV)",
+        "danger_zone": "Zona Pericolo",
+        "reset_db": "Resetta Storico Download",
+        "confirm_reset": "Sei sicuro? Questo cancellerà tutti i segni di spunta verdi. I file non verranno eliminati."
     }
 }

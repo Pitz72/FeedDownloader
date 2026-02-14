@@ -6,7 +6,7 @@ interface Window {
         getFeeds: () => Promise<any[]>;
         addFeed: (feed: any) => Promise<any[]>;
         removeFeed: (url: string) => Promise<any[]>;
-        startDownload: (data: { url: string; title: string; podcastTitle: string; guid: string }) => Promise<any>;
+        startDownload: (data: { url: string; title: string; podcastTitle: string; guid: string; pubDate?: string }) => Promise<any>;
         getDownloadedEpisodes: () => Promise<string[]>;
         onDownloadProgress: (callback: (event: any, data: any) => void) => () => void;
         removeDownloadProgressListener: () => void;
@@ -18,6 +18,9 @@ interface Window {
         removeDownloadedEpisode: (guid: string) => Promise<void>;
         resetDownloadHistory: () => Promise<void>;
         getHelpContent: (lang: string) => Promise<string>;
+        importOPML: () => Promise<{ count: number }>;
+        exportOPML: () => Promise<boolean>;
+        exportArchiveCSV: () => Promise<boolean>;
     };
     electron: {
         ipcRenderer: {

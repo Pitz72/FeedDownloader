@@ -8,7 +8,7 @@ import IT from 'country-flag-icons/react/3x2/IT';
 import FR from 'country-flag-icons/react/3x2/FR';
 import DE from 'country-flag-icons/react/3x2/DE';
 import ES from 'country-flag-icons/react/3x2/ES';
-import BR from 'country-flag-icons/react/3x2/BR'; // Portuguese
+import PT from 'country-flag-icons/react/3x2/PT'; // Portuguese
 import RU from 'country-flag-icons/react/3x2/RU';
 import CN from 'country-flag-icons/react/3x2/CN';
 
@@ -59,7 +59,7 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
         { code: 'fr', Flag: FR, label: 'Français' },
         { code: 'de', Flag: DE, label: 'Deutsch' },
         { code: 'es', Flag: ES, label: 'Español' },
-        { code: 'pt', Flag: BR, label: 'Português' },
+        { code: 'pt', Flag: PT, label: 'Português' },
         { code: 'ru', Flag: RU, label: 'Русский' },
         { code: 'zh', Flag: CN, label: '中文' },
     ];
@@ -75,18 +75,6 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
             className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0b1120] text-white overflow-hidden"
         >
             <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none"></div>
-
-            {/* Help Button - Absolute Top Right */}
-            <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1 }}
-                onClick={() => setIsHelpOpen(true)}
-                className="absolute top-6 right-6 p-2 text-gray-400 hover:text-white transition-colors z-50"
-                title={t('help.title', 'User Guide')}
-            >
-                <BookOpen size={24} />
-            </motion.button>
 
             {/* Logo */}
             <motion.img
@@ -144,14 +132,24 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
                         </div>
 
                         {/* Start Button */}
-                        <button
-                            onClick={onComplete}
-                            className="group relative px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full font-bold text-lg shadow-lg hover:shadow-blue-500/50 transition-all hover:scale-105 active:scale-95 flex items-center gap-2 overflow-hidden"
-                        >
-                            <span className="relative z-10">{t('app.start')}</span>
-                            <ChevronRight className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform" />
-                            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 rounded-full"></div>
-                        </button>
+                        <div className="flex flex-col gap-4 w-full items-center">
+                            <button
+                                onClick={onComplete}
+                                className="group relative px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full font-bold text-lg shadow-lg hover:shadow-blue-500/50 transition-all hover:scale-105 active:scale-95 flex items-center gap-2 overflow-hidden w-64 justify-center"
+                            >
+                                <span className="relative z-10">{t('app.start')}</span>
+                                <ChevronRight className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform" />
+                                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 rounded-full"></div>
+                            </button>
+
+                            <button
+                                onClick={() => setIsHelpOpen(true)}
+                                className="px-8 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full font-medium text-gray-300 hover:text-white transition-all flex items-center gap-2 w-64 justify-center"
+                            >
+                                <BookOpen className="w-5 h-5" />
+                                <span>{t('help.read_manual', 'LEGGI LA GUIDA')}</span>
+                            </button>
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>

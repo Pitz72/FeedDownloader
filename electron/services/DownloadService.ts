@@ -7,7 +7,12 @@ export class DownloadService {
             try {
                 await this.attemptDownload(url, outputPath, onProgress);
                 return; // Success
-            } catch (error) {
+            } catch (error: any) {
+                // Critical Errors - Do not retry
+                if (error.code === 'ENOSPC') throw new Error("DISK_FULL: No space left on device.");
+                if (error.code === 'EPERM' || error.code === 'EACCES') throw new Error("PERMISSION_DENIED: Access denied to write file.");
+                if (error.message === 'DISK_FULL') throw error;
+
                 console.error(`Download attempt ${i + 1} failed:`, error);
 
                 // Cleanup partial file
@@ -45,7 +50,11 @@ export class DownloadService {
 
             return new Promise<void>((resolve, reject) => {
                 writer.on('finish', () => resolve());
-                writer.on('error', reject);
+                writer.on('error', (err: any) => {
+                    // Normalize error codes
+                    if (err.code === 'ENOSPC') reject(new Error('DISK_FULL'));
+                    else reject(err);
+                });
             });
         } catch (error) {
             writer.close();
