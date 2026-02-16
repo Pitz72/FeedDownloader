@@ -2,12 +2,13 @@
     "app": {
         "title": "Runtime FeedDownloader Pro",
         "slogan": "归档播客的最强大方式。",
-        "start": "开始",
+        "start": "启动应用程序",
         "language": "语言"
     },
     "sidebar": {
         "my_feeds": "我的订阅",
-        "invalid_date": "未知日期"
+        "invalid_date": "未知日期",
+        "no_feeds": "没有保存的订阅。添加一个开始。"
     },
     "input": {
         "placeholder": "输入播客 RSS URL...",
@@ -18,7 +19,9 @@
         "download_all": "全部下载",
         "change_folder": "更改文件夹",
         "download": "下载",
-        "downloaded": "已下载"
+        "downloaded": "已下载",
+        "open_folder": "打开文件夹",
+        "reset_status": "清除下载标记"
     },
     "progress": {
         "downloading": "下载中...",
@@ -27,11 +30,42 @@
     "toast": {
         "download_started": "下载已开始...",
         "mass_download_started": "批量下载已开始...",
+        "feed_removed": "订阅已删除",
+        "feed_error": "加载订阅时出错",
+        "status_reset": "状态已重置",
         "no_audio": "未找到音频文件",
         "all_downloaded": "所有剧集已下载！",
-        "folder_selected": "下载文件夹: {{path}}"
+        "folder_selected": "下载文件夹: {{path}}",
+        "offline_error": "离线"
     },
     "confirm": {
-        "mass_download": "您真的要下载所有 {{count}} 集吗？"
+        "mass_download": "您真的要下载所有 {{count}} 集吗？",
+        "remove_feed": "您确定要删除此订阅吗？",
+        "reset_status": "您想将此剧集标记为未下载吗？（文件将保留在磁盘上）"
+    },
+    "settings": {
+        "title": "设置",
+        "general": "常规",
+        "language": "语言",
+        "storage": "存储",
+        "download_path": "下载路径",
+        "data": "数据与便携性",
+        "import_opml": "导入订阅 (OPML)",
+        "export_opml": "导出订阅 (OPML)",
+        "export_csv": "导出清单 (CSV)",
+        "danger_zone": "危险区域",
+        "reset_db": "重置下载历史",
+        "confirm_reset": "您确定吗？这将清除所有下载进度标记。文件不会被删除。",
+        "import_success": "成功导入 {{count}} 个订阅",
+        "export_success": "导出成功",
+        "reset_tooltip_downloading": "下载时无法重置",
+        "import_error": "未导入订阅或导入时出错"
+    },
+    "help": {
+        "title": "用户指南",
+        "read_manual": "阅读手册",
+        "loading": "正在加载文档...",
+        "error_loading": "无法加载文档",
+        "footer_love": "由 Runtime 倾情打造"
     }
 }

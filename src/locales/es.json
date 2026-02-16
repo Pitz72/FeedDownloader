@@ -2,12 +2,13 @@
     "app": {
         "title": "Runtime FeedDownloader Pro",
         "slogan": "La forma más potente de archivar tus podcasts.",
-        "start": "Iniciar",
+        "start": "Iniciar aplicación",
         "language": "Idioma"
     },
     "sidebar": {
         "my_feeds": "Mis Feeds",
-        "invalid_date": "Fecha Desconocida"
+        "invalid_date": "Fecha Desconocida",
+        "no_feeds": "No hay feeds guardados. Añade uno para empezar."
     },
     "input": {
         "placeholder": "Introducir URL RSS...",
@@ -43,12 +44,26 @@
         "reset_status": "¿Quieres marcar este episodio como NO descargado? (El archivo permanecerá en el disco)"
     },
     "settings": {
+        "title": "Ajustes",
+        "general": "General",
+        "language": "Idioma",
+        "storage": "Almacenamiento",
+        "download_path": "Ruta de descarga",
+        "data": "Datos y Portabilidad",
+        "import_opml": "Importar Feeds (OPML)",
+        "export_opml": "Exportar Feeds (OPML)",
+        "export_csv": "Exportar Inventario (CSV)",
+        "danger_zone": "Zona de Peligro",
+        "reset_db": "Restablecer historial de descargas",
+        "confirm_reset": "¿Estás seguro? Esto borrará todas las marcas de descarga. Los archivos no se eliminarán.",
         "import_success": "Importados {{count}} feeds con éxito",
         "export_success": "Exportación completada con éxito",
         "reset_tooltip_downloading": "No se puede restablecer durante la descarga",
         "import_error": "No se importaron feeds o hubo un error durante la importación"
     },
     "help": {
+        "title": "Guía de Usuario",
+        "read_manual": "LEER MANUAL",
         "loading": "Cargando documentación...",
         "error_loading": "No se pudo cargar la documentación",
         "footer_love": "Creado con amor por Runtime"

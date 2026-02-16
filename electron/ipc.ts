@@ -192,6 +192,16 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         return true;
     });
 
+    ipcMain.handle('remove-history-item', async (_, guid: string) => {
+        libraryService.removeDownloadedEpisode(guid);
+        return true;
+    });
+
+    ipcMain.handle('reset-history', async () => {
+        libraryService.resetDownloadHistory();
+        return true;
+    });
+
     ipcMain.handle('show-in-folder', async (_, { podcastTitle, title }) => {
         let baseDir = libraryService.getDownloadPath();
         if (!baseDir) {

@@ -2,12 +2,13 @@
     "app": {
         "title": "Runtime FeedDownloader Pro",
         "slogan": "La façon la plus puissante d'archiver vos podcasts.",
-        "start": "Démarrer",
+        "start": "Démarrer l'application",
         "language": "Langue"
     },
     "sidebar": {
         "my_feeds": "Mes Flux",
-        "invalid_date": "Date Inconnue"
+        "invalid_date": "Date Inconnue",
+        "no_feeds": "Aucun flux enregistré. Ajoutez-en un pour commencer."
     },
     "input": {
         "placeholder": "Entrez l'URL RSS du podcast...",
@@ -18,7 +19,9 @@
         "download_all": "Tout Télécharger",
         "change_folder": "Changer Dossier",
         "download": "Télécharger",
-        "downloaded": "Téléchargé"
+        "downloaded": "Téléchargé",
+        "open_folder": "Ouvrir le dossier",
+        "reset_status": "Oublier le téléchargement"
     },
     "progress": {
         "downloading": "Téléchargement...",
@@ -27,11 +30,42 @@
     "toast": {
         "download_started": "Téléchargement démarré...",
         "mass_download_started": "Téléchargement en masse démarré...",
+        "feed_removed": "Flux supprimé",
+        "feed_error": "Erreur lors du chargement du flux",
+        "status_reset": "Statut réinitialisé",
         "no_audio": "Aucun fichier audio trouvé",
         "all_downloaded": "Tous les épisodes déjà téléchargés!",
-        "folder_selected": "Dossier de téléchargement: {{path}}"
+        "folder_selected": "Dossier de téléchargement: {{path}}",
+        "offline_error": "Hors ligne"
     },
     "confirm": {
-        "mass_download": "Voulez-vous vraiment télécharger tous les {{count}} épisodes?"
+        "mass_download": "Voulez-vous vraiment télécharger tous les {{count}} épisodes?",
+        "remove_feed": "Êtes-vous sûr de vouloir supprimer ce flux?",
+        "reset_status": "Voulez-vous marquer cet épisode comme NON téléchargé ? (Le fichier restera sur le disque)"
+    },
+    "settings": {
+        "title": "Paramètres",
+        "general": "Général",
+        "language": "Langue",
+        "storage": "Stockage",
+        "download_path": "Chemin de téléchargement",
+        "data": "Données & Portabilité",
+        "import_opml": "Importer des flux (OPML)",
+        "export_opml": "Exporter des flux (OPML)",
+        "export_csv": "Exporter l'inventaire (CSV)",
+        "danger_zone": "Zone de danger",
+        "reset_db": "Réinitialiser l'historique",
+        "confirm_reset": "Êtes-vous sûr ? Cela effacera tous les marqueurs de téléchargement. Les fichiers ne seront pas supprimés.",
+        "import_success": "Importation de {{count}} flux réussie",
+        "export_success": "Exportation réussie",
+        "reset_tooltip_downloading": "Impossible de réinitialiser pendant le téléchargement",
+        "import_error": "Aucun flux importé ou erreur d'importation"
+    },
+    "help": {
+        "title": "Guide de l'utilisateur",
+        "read_manual": "LIRE LE MANUEL",
+        "loading": "Chargement de la documentation...",
+        "error_loading": "Impossible de charger la documentation",
+        "footer_love": "Créé avec amour par Runtime"
     }
 }

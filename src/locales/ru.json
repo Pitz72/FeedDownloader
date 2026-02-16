@@ -2,12 +2,13 @@
     "app": {
         "title": "Runtime FeedDownloader Pro",
         "slogan": "Самый мощный способ архивировать ваши подкасты.",
-        "start": "Начать",
+        "start": "Запустить приложение",
         "language": "Язык"
     },
     "sidebar": {
         "my_feeds": "Мои ленты",
-        "invalid_date": "Неизвестная дата"
+        "invalid_date": "Неизвестная дата",
+        "no_feeds": "Нет сохраненных лент. Добавьте одну, чтобы начать."
     },
     "input": {
         "placeholder": "Введите RSS URL...",
@@ -18,7 +19,9 @@
         "download_all": "Скачать все",
         "change_folder": "Сменить папку",
         "download": "Скачать",
-        "downloaded": "Скачано"
+        "downloaded": "Скачано",
+        "open_folder": "Открыть папку",
+        "reset_status": "Забыть о загрузке"
     },
     "progress": {
         "downloading": "Загрузка...",
@@ -27,11 +30,42 @@
     "toast": {
         "download_started": "Загрузка началась...",
         "mass_download_started": "Пакетная загрузка началась...",
+        "feed_removed": "Лента удалена",
+        "feed_error": "Ошибка при загрузке ленты",
+        "status_reset": "Статус сброшен",
         "no_audio": "Аудиофайл не найден",
         "all_downloaded": "Все эпизоды уже скачаны!",
-        "folder_selected": "Папка загрузки: {{path}}"
+        "folder_selected": "Папка загрузки: {{path}}",
+        "offline_error": "Оффлайн"
     },
     "confirm": {
-        "mass_download": "Вы действительно хотите скачать все {{count}} эпизодов?"
+        "mass_download": "Вы действительно хотите скачать все {{count}} эпизодов?",
+        "remove_feed": "Вы уверены, что хотите удалить эту ленту?",
+        "reset_status": "Вы хотите отметить этот эпизод как НЕ загруженный? (Файл останется на диске)"
+    },
+    "settings": {
+        "title": "Настройки",
+        "general": "Общие",
+        "language": "Язык",
+        "storage": "Хранилище",
+        "download_path": "Путь загрузки",
+        "data": "Данные и перенос",
+        "import_opml": "Импорт лент (OPML)",
+        "export_opml": "Экспорт лент (OPML)",
+        "export_csv": "Экспорт инвентаря (CSV)",
+        "danger_zone": "Опасная зона",
+        "reset_db": "Сбросить историю загрузок",
+        "confirm_reset": "Вы уверены? Это очистит все отметки о загрузке. Файлы не будут удалены.",
+        "import_success": "Успешно импортировано лент: {{count}}",
+        "export_success": "Экспорт успешно завершен",
+        "reset_tooltip_downloading": "Невозможно сбросить во время загрузки",
+        "import_error": "Ленты не импортированы или произошла ошибка"
+    },
+    "help": {
+        "title": "Руководство пользователя",
+        "read_manual": "ЧИТАТЬ РУКОВОДСТВО",
+        "loading": "Загрузка документации...",
+        "error_loading": "Не удалось загрузить документацию",
+        "footer_love": "Создано с любовью от Runtime"
     }
 }

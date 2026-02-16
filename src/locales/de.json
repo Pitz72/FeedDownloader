@@ -2,12 +2,13 @@
     "app": {
         "title": "Runtime FeedDownloader Pro",
         "slogan": "Der leistungsstärkste Weg, Ihre Podcasts zu archivieren.",
-        "start": "Starten",
+        "start": "Anwendung Starten",
         "language": "Sprache"
     },
     "sidebar": {
         "my_feeds": "Meine Feeds",
-        "invalid_date": "Unbekanntes Datum"
+        "invalid_date": "Unbekanntes Datum",
+        "no_feeds": "Keine Feeds gespeichert. Fügen Sie einen hinzu, um zu beginnen."
     },
     "input": {
         "placeholder": "Podcast RSS URL eingeben...",
@@ -18,7 +19,9 @@
         "download_all": "Alle Herunterladen",
         "change_folder": "Ordner Ändern",
         "download": "Herunterladen",
-        "downloaded": "Heruntergeladen"
+        "downloaded": "Heruntergeladen",
+        "open_folder": "Ordner öffnen",
+        "reset_status": "Download vergessen"
     },
     "progress": {
         "downloading": "Herunterladen...",
@@ -27,11 +30,42 @@
     "toast": {
         "download_started": "Download gestartet...",
         "mass_download_started": "Massendownload gestartet...",
+        "feed_removed": "Feed entfernt",
+        "feed_error": "Fehler beim Laden des Feeds",
+        "status_reset": "Status zurückgesetzt",
         "no_audio": "Keine Audiodatei gefunden",
         "all_downloaded": "Alle Episoden bereits heruntergeladen!",
-        "folder_selected": "Download-Ordner: {{path}}"
+        "folder_selected": "Download-Ordner: {{path}}",
+        "offline_error": "Offline"
     },
     "confirm": {
-        "mass_download": "Möchten Sie wirklich alle {{count}} Episoden herunterladen?"
+        "mass_download": "Möchten Sie wirklich alle {{count}} Episoden herunterladen?",
+        "remove_feed": "Sind Sie sicher, dass Sie diesen Feed entfernen möchten?",
+        "reset_status": "Möchten Sie diese Episode als NICHT heruntergeladen markieren? (Die Datei bleibt auf der Festplatte)"
+    },
+    "settings": {
+        "title": "Einstellungen",
+        "general": "Allgemein",
+        "language": "Sprache",
+        "storage": "Speicher",
+        "download_path": "Download-Pfad",
+        "data": "Daten & Portabilität",
+        "import_opml": "Feeds importieren (OPML)",
+        "export_opml": "Feeds exportieren (OPML)",
+        "export_csv": "Inventar exportieren (CSV)",
+        "danger_zone": "Gefahrenzone",
+        "reset_db": "Download-Verlauf zurücksetzen",
+        "confirm_reset": "Sind Sie sicher? Dies löscht alle Download-Markierungen. Dateien werden nicht gelöscht.",
+        "import_success": "{{count}} Feeds erfolgreich importiert",
+        "export_success": "Export erfolgreich abgeschlossen",
+        "reset_tooltip_downloading": "Zurücksetzen während des Downloads nicht möglich",
+        "import_error": "Keine Feeds importiert oder Fehler beim Import"
+    },
+    "help": {
+        "title": "Benutzerhandbuch",
+        "read_manual": "HANDBUCH LESEN",
+        "loading": "Dokumentation wird geladen...",
+        "error_loading": "Dokumentation konnte nicht geladen werden",
+        "footer_love": "Mit Liebe von Runtime erstellt"
     }
 }
