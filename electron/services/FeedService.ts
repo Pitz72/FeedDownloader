@@ -38,6 +38,11 @@ export class FeedService {
       // 2. Parse
       const feed: any = await this.parser.parseURL(url);
 
+      // Fix for Anchor.fm / iTunes feeds where image is in 'itunes.image'
+      if (!feed.image && feed.itunes && feed.itunes.image) {
+        feed.image = feed.itunes.image;
+      }
+
       // Map 'items' to 'episodes' for UI consistency
       feed.episodes = feed.items.map((item: any) => ({
         title: item.title,

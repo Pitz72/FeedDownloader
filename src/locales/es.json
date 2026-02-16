@@ -18,7 +18,9 @@
         "download_all": "Descargar Todo",
         "change_folder": "Cambiar Carpeta",
         "download": "Descargar",
-        "downloaded": "Descargado"
+        "downloaded": "Descargado",
+        "open_folder": "Abrir Carpeta",
+        "reset_status": "Olvidar descarga"
     },
     "progress": {
         "downloading": "Descargando...",
@@ -27,11 +29,28 @@
     "toast": {
         "download_started": "Descarga iniciada...",
         "mass_download_started": "Descarga masiva iniciada...",
+        "feed_removed": "Feed eliminado",
+        "feed_error": "Error al cargar el feed",
+        "status_reset": "Estado restablecido",
         "no_audio": "No se encontró archivo de audio",
         "all_downloaded": "¡Todos los episodios ya descargados!",
-        "folder_selected": "Carpeta de descarga: {{path}}"
+        "folder_selected": "Carpeta de descarga: {{path}}",
+        "offline_error": "Desconectado"
     },
     "confirm": {
-        "mass_download": "¿Realmente quieres descargar todos los {{count}} episodios?"
+        "mass_download": "¿Realmente quieres descargar todos los {{count}} episodios?",
+        "remove_feed": "¿Estás seguro de que quieres eliminar este feed?",
+        "reset_status": "¿Quieres marcar este episodio como NO descargado? (El archivo permanecerá en el disco)"
+    },
+    "settings": {
+        "import_success": "Importados {{count}} feeds con éxito",
+        "export_success": "Exportación completada con éxito",
+        "reset_tooltip_downloading": "No se puede restablecer durante la descarga",
+        "import_error": "No se importaron feeds o hubo un error durante la importación"
+    },
+    "help": {
+        "loading": "Cargando documentación...",
+        "error_loading": "No se pudo cargar la documentación",
+        "footer_love": "Creado con amor por Runtime"
     }
 }

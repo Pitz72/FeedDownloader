@@ -15,7 +15,8 @@ export class DownloadService {
 
                 console.error(`Download attempt ${i + 1} failed:`, error);
 
-                // Cleanup partial file
+                // Cleanup partial file (check both .part and final just in case)
+                await fs.remove(`${outputPath}.part`).catch(() => { });
                 await fs.remove(outputPath).catch(() => { });
 
                 if (i === attempts - 1) throw error; // Throw on last attempt
@@ -27,7 +28,8 @@ export class DownloadService {
     }
 
     private async attemptDownload(url: string, outputPath: string, onProgress: (loaded: number, total: number) => void) {
-        const writer = fs.createWriteStream(outputPath);
+        const tempPath = `${outputPath}.part`;
+        const writer = fs.createWriteStream(tempPath);
 
         try {
             const response = await axios({
@@ -49,8 +51,19 @@ export class DownloadService {
             response.data.pipe(writer);
 
             return new Promise<void>((resolve, reject) => {
-                writer.on('finish', () => resolve());
-                writer.on('error', (err: any) => {
+                writer.on('finish', async () => {
+                    try {
+                        // Rename .part to final
+                        await fs.rename(tempPath, outputPath);
+                        resolve();
+                    } catch (e) {
+                        reject(e);
+                    }
+                });
+                writer.on('error', async (err: any) => {
+                    // Cleanup .part file
+                    await fs.remove(tempPath).catch(() => { });
+
                     // Normalize error codes
                     if (err.code === 'ENOSPC') reject(new Error('DISK_FULL'));
                     else reject(err);
@@ -58,6 +71,8 @@ export class DownloadService {
             });
         } catch (error) {
             writer.close();
+            // Cleanup .part file on catch
+            await fs.remove(tempPath).catch(() => { });
             throw error;
         }
     }

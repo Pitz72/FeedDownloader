@@ -35,20 +35,20 @@ export const Sidebar: React.FC = () => {
             const feed = await window.api.parseFeed(feedUrl);
             setCurrentFeed({ ...feed, url: feedUrl });
         } catch (e) {
-            toast.show("Errore durante il caricamento del feed", 'error');
+            toast.show(t('toast.feed_error'), 'error');
         }
     };
 
     const handleRemoveFeed = async (e: React.MouseEvent, url: string) => {
         e.stopPropagation();
-        if (confirm("Sei sicuro di voler rimuovere questo feed?")) {
+        if (confirm(t('confirm.remove_feed'))) {
             await window.api.removeFeed(url);
             loadFeeds();
             if (currentFeed?.url === url) {
                 // @ts-ignore
                 setCurrentFeed(null);
             }
-            toast.show("Feed rimosso", 'success');
+            toast.show(t('toast.feed_removed'), 'success');
         }
     };
 
@@ -57,7 +57,7 @@ export const Sidebar: React.FC = () => {
             <div className="p-6 flex items-center justify-between">
                 <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400 flex items-center gap-2">
                     <Library size={24} className="text-blue-400" />
-                    Libreria
+                    {t('sidebar.my_feeds', 'Libreria')}
                 </h2>
                 <button
                     onClick={() => setIsSettingsOpen(true)}
@@ -68,10 +68,10 @@ export const Sidebar: React.FC = () => {
                 </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-4 space-y-2">
+            <div className="flex-1 overflow-y-auto px-4 space-y-2 custom-scrollbar">
                 {feeds.length === 0 && (
                     <div className="text-center text-gray-500 mt-10 text-sm">
-                        Nessun feed salvato. <br /> Aggiungine uno per iniziare.
+                        {t('sidebar.no_feeds')}
                     </div>
                 )}
 
@@ -103,7 +103,7 @@ export const Sidebar: React.FC = () => {
                                 {isValidDate ? (
                                     <p className="text-xs text-gray-500 truncate">{date.toLocaleDateString()}</p>
                                 ) : (
-                                    <p className="text-xs text-gray-500 truncate">{t('sidebar.invalidDate')}</p>
+                                    <p className="text-xs text-gray-500 truncate">{t('sidebar.invalid_date')}</p>
                                 )}
                             </div>
 

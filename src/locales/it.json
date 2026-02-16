@@ -7,7 +7,8 @@
     },
     "sidebar": {
         "my_feeds": "I Miei Feed",
-        "invalid_date": "Data Sconosciuta"
+        "invalid_date": "Data Sconosciuta",
+        "no_feeds": "Nessun feed salvato. Aggiungine uno per iniziare."
     },
     "input": {
         "placeholder": "Inserisci URL RSS del podcast...",
@@ -18,7 +19,9 @@
         "download_all": "Scarica Tutto",
         "change_folder": "Cambia Cartella",
         "download": "Scarica",
-        "downloaded": "Scaricato"
+        "downloaded": "Scaricato",
+        "open_folder": "Apri Cartella",
+        "reset_status": "Dimentica download"
     },
     "progress": {
         "downloading": "Download in corso...",
@@ -27,16 +30,18 @@
     "toast": {
         "download_started": "Download avviato...",
         "mass_download_started": "Avvio download di massa...",
+        "feed_removed": "Feed rimosso",
+        "feed_error": "Errore durante il caricamento del feed",
+        "status_reset": "Stato ripristinato",
         "no_audio": "Nessun file audio trovato",
         "all_downloaded": "Tutti gli episodi sono già stati scaricati!",
-        "folder_selected": "Cartella download: {{path}}"
+        "folder_selected": "Cartella download: {{path}}",
+        "offline_error": "Offline"
     },
     "confirm": {
-        "mass_download": "Vuoi davvero scaricare tutti i {{count}} episodi?"
-    },
-    "help": {
-        "title": "Guida Utente",
-        "read_manual": "LEGGI LA GUIDA"
+        "mass_download": "Vuoi davvero scaricare tutti i {{count}} episodi?",
+        "remove_feed": "Sei sicuro di voler rimuovere questo feed?",
+        "reset_status": "Vuoi segnare questo episodio come NON scaricato? (Il file rimarrà su disco)"
     },
     "settings": {
         "title": "Impostazioni",
@@ -50,6 +55,17 @@
         "export_csv": "Esporta Inventario (CSV)",
         "danger_zone": "Zona Pericolo",
         "reset_db": "Resetta Storico Download",
-        "confirm_reset": "Sei sicuro? Questo cancellerà tutti i segni di spunta verdi. I file non verranno eliminati."
+        "confirm_reset": "Sei sicuro? Questo cancellerà tutti i segni di spunta verdi. I file non verranno eliminati.",
+        "import_success": "Importati {{count}} feed con successo",
+        "export_success": "Esportazione completata con successo",
+        "reset_tooltip_downloading": "Impossibile resettare durante il download",
+        "import_error": "Nessun feed importato o errore durante l'importazione"
+    },
+    "help": {
+        "title": "Guida Utente",
+        "read_manual": "LEGGI LA GUIDA",
+        "loading": "Caricamento documentazione...",
+        "error_loading": "Impossibile caricare la documentazione",
+        "footer_love": "Creato con amore da Runtime"
     }
 }

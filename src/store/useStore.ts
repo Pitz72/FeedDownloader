@@ -53,7 +53,14 @@ export const useStore = create<AppState>((set) => ({
     batchCompleted: 0,
     isBatchDownloading: false,
 
-    startBatch: (total) => set({ batchTotal: total, batchCompleted: 0, isBatchDownloading: true }),
+    startBatch: (total) => set((state) => {
+        if (state.isBatchDownloading) {
+            // If already downloading, add to the total
+            return { batchTotal: state.batchTotal + total };
+        }
+        // Otherwise start fresh
+        return { batchTotal: total, batchCompleted: 0, isBatchDownloading: true };
+    }),
     incrementBatch: () => set((state) => {
         const newCompleted = state.batchCompleted + 1;
         const isFinished = newCompleted >= state.batchTotal;

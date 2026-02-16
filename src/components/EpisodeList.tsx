@@ -102,10 +102,10 @@ export const EpisodeList: React.FC = () => {
     };
 
     const handleResetStatus = async (guid: string) => {
-        if (confirm(t('confirm.reset_status', "Vuoi segnare questo episodio come NON scaricato? (Il file rimarrà su disco)"))) {
+        if (confirm(t('confirm.reset_status'))) {
             await window.api.removeDownloadedEpisode(guid);
             await fetchDownloaded();
-            toast.show(t('toast.status_reset', "Stato ripristinato"), 'success');
+            toast.show(t('toast.status_reset'), 'success');
         }
     }
 

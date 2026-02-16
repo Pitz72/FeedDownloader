@@ -29,7 +29,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
             setContent(text);
         } catch (error) {
             console.error("Failed to load help", error);
-            setContent("# Error\nCould not load documentation.");
+            setContent("# " + t('common.error', 'Error') + "\n" + t('help.error_loading'));
         } finally {
             setLoading(false);
         }
@@ -79,7 +79,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
                         <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
                             {loading ? (
                                 <div className="flex justify-center items-center h-full text-gray-400">
-                                    Loading...
+                                    {t('help.loading')}
                                 </div>
                             ) : (
                                 <div className="prose prose-invert prose-blue max-w-none">
@@ -103,7 +103,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
 
                         {/* Footer */}
                         <div className="p-4 border-t border-white/10 bg-black/20 text-center text-xs text-gray-500 shrink-0">
-                            Create with love by Runtime
+                            {t('help.footer_love')}
                         </div>
                     </motion.div>
                 </div>

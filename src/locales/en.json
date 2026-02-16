@@ -7,7 +7,8 @@
     },
     "sidebar": {
         "my_feeds": "My Feeds",
-        "invalid_date": "Unknown Date"
+        "invalid_date": "Unknown Date",
+        "no_feeds": "No feeds saved. Add one to start."
     },
     "input": {
         "placeholder": "Enter podcast RSS URL...",
@@ -18,7 +19,9 @@
         "download_all": "Download All",
         "change_folder": "Change Folder",
         "download": "Download",
-        "downloaded": "Downloaded"
+        "downloaded": "Downloaded",
+        "open_folder": "Open Folder",
+        "reset_status": "Forget download"
     },
     "progress": {
         "downloading": "Downloading...",
@@ -27,16 +30,18 @@
     "toast": {
         "download_started": "Download started...",
         "mass_download_started": "Batch download started...",
+        "feed_removed": "Feed removed",
+        "feed_error": "Error loading feed",
+        "status_reset": "Status reset",
         "no_audio": "No audio file found",
         "all_downloaded": "All episodes already downloaded!",
-        "folder_selected": "Download folder: {{path}}"
+        "folder_selected": "Download folder: {{path}}",
+        "offline_error": "Offline"
     },
     "confirm": {
-        "mass_download": "Do you really want to download all {{count}} episodes?"
-    },
-    "help": {
-        "title": "User Guide",
-        "read_manual": "READ MANUAL"
+        "mass_download": "Do you really want to download all {{count}} episodes?",
+        "remove_feed": "Are you sure you want to remove this feed?",
+        "reset_status": "Do you want to mark this episode as NOT downloaded? (The file will remain on disk)"
     },
     "settings": {
         "title": "Settings",
@@ -50,6 +55,17 @@
         "export_csv": "Export Inventory (CSV)",
         "danger_zone": "Danger Zone",
         "reset_db": "Reset Download History",
-        "confirm_reset": "Are you sure? This will clear all download progress marks. Files will not be deleted."
+        "confirm_reset": "Are you sure? This will clear all download progress marks. Files will not be deleted.",
+        "import_success": "Imported {{count}} feeds successfully",
+        "export_success": "Export completed successfully",
+        "reset_tooltip_downloading": "Cannot reset while downloading",
+        "import_error": "No feeds imported or error during import"
+    },
+    "help": {
+        "title": "User Guide",
+        "read_manual": "READ MANUAL",
+        "loading": "Loading documentation...",
+        "error_loading": "Could not load documentation",
+        "footer_love": "Created with love by Runtime"
     }
 }

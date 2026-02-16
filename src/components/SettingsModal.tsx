@@ -4,6 +4,7 @@ import { X, FolderOpen, AlertTriangle, BookOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HelpModal } from './HelpModal';
 import { useStore, AppState } from '../store/useStore';
+import { useToast } from '../context/ToastContext';
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -12,6 +13,7 @@ interface SettingsModalProps {
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     const { t, i18n } = useTranslation();
+    const toast = useToast();
     const [downloadPath, setDownloadPath] = useState('');
     const [confirmReset, setConfirmReset] = useState(false);
     const [isHelpOpen, setIsHelpOpen] = useState(false);
@@ -138,9 +140,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                         onClick={async () => {
                                             const res = await window.api.importOPML();
                                             if (res && res.count > 0) {
-                                                // Ideally toast success
-                                                alert(`Imported ${res.count} feeds`);
-                                                window.location.reload();
+                                                toast.show(t('settings.import_success', { count: res.count }), 'success');
+                                                setTimeout(() => window.location.reload(), 1500);
+                                            } else {
+                                                toast.show(t('settings.import_error'), 'error');
                                             }
                                         }}
                                         className="flex items-center gap-2 bg-white/5 hover:bg-white/10 p-2 rounded-lg text-sm text-gray-300 transition-colors"
@@ -151,7 +154,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                     <button
                                         onClick={async () => {
                                             const ok = await window.api.exportOPML();
-                                            if (ok) alert(t('toast.export_success', 'Export successful'));
+                                            if (ok) toast.show(t('settings.export_success'), 'success');
                                         }}
                                         className="flex items-center gap-2 bg-white/5 hover:bg-white/10 p-2 rounded-lg text-sm text-gray-300 transition-colors"
                                     >
@@ -161,7 +164,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                     <button
                                         onClick={async () => {
                                             const ok = await window.api.exportArchiveCSV();
-                                            if (ok) alert(t('toast.export_success', 'Export successful'));
+                                            if (ok) toast.show(t('settings.export_success'), 'success');
                                         }}
                                         className="flex items-center gap-2 bg-white/5 hover:bg-white/10 p-2 rounded-lg text-sm text-gray-300 transition-colors"
                                     >
@@ -183,7 +186,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                             ? 'bg-gray-800 border-gray-700 text-gray-500 cursor-not-allowed'
                                             : 'bg-red-500/10 hover:bg-red-500/20 border-red-500/30 text-red-500'
                                             }`}
-                                        title={isBatchDownloading ? "Cannot reset while downloading" : ""}
+                                        title={isBatchDownloading ? t('settings.reset_tooltip_downloading') : ""}
                                     >
                                         <AlertTriangle size={18} />
                                         {t('settings.reset_db', 'Reset Download History')}
