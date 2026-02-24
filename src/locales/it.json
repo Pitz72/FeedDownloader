@@ -8,7 +8,9 @@
     "sidebar": {
         "my_feeds": "I Miei Feed",
         "invalid_date": "Data Sconosciuta",
-        "no_feeds": "Nessun feed salvato. Aggiungine uno per iniziare."
+        "no_feeds": "Nessun feed salvato. Aggiungine uno per iniziare.",
+        "untitled": "Senza Titolo",
+        "remove": "Rimuovi"
     },
     "input": {
         "placeholder": "Inserisci URL RSS del podcast...",
@@ -21,11 +23,17 @@
         "download": "Scarica",
         "downloaded": "Scaricato",
         "open_folder": "Apri Cartella",
-        "reset_status": "Dimentica download"
+        "reset_status": "Dimentica download",
+        "filter": "Filtra episodi...",
+        "date_filter": "Filtro Data",
+        "from": "Da",
+        "to": "A"
     },
     "progress": {
         "downloading": "Download in corso...",
-        "dont_close": "Non chiudere l'applicazione"
+        "dont_close": "Non chiudere l'applicazione",
+        "completed": "Completato!",
+        "stop": "Ferma download"
     },
     "toast": {
         "download_started": "Download avviato...",
@@ -36,12 +44,23 @@
         "no_audio": "Nessun file audio trovato",
         "all_downloaded": "Tutti gli episodi sono già stati scaricati!",
         "folder_selected": "Cartella download: {{path}}",
-        "offline_error": "Offline"
+        "offline_error": "Offline",
+        "parse_error": "Impossibile analizzare il feed.",
+        "invalid_feed": "URL non valido: è una pagina web, non un feed RSS.",
+        "network_error": "Errore di rete. Controlla la connessione.",
+        "feed_not_found": "Feed non trovato (404)."
     },
     "confirm": {
         "mass_download": "Vuoi davvero scaricare tutti i {{count}} episodi?",
+        "mass_download_title": "Download di Massa",
         "remove_feed": "Sei sicuro di voler rimuovere questo feed?",
+        "remove_feed_title": "Rimuovi Feed",
         "reset_status": "Vuoi segnare questo episodio come NON scaricato? (Il file rimarrà su disco)"
+    },
+    "common": {
+        "cancel": "Annulla",
+        "confirm": "Conferma",
+        "clear": "Pulisci"
     },
     "settings": {
         "title": "Impostazioni",
@@ -59,7 +78,13 @@
         "import_success": "Importati {{count}} feed con successo",
         "export_success": "Esportazione completata con successo",
         "reset_tooltip_downloading": "Impossibile resettare durante il download",
-        "import_error": "Nessun feed importato o errore durante l'importazione"
+        "import_error": "Nessun feed importato o errore durante l'importazione",
+        "concurrency": "Download Paralleli",
+        "concurrency_hint": "Numero di download simultanei",
+        "stats": "Statistiche Archivio",
+        "stats_files": "File Scaricati",
+        "stats_podcasts": "Podcast",
+        "stats_range": "Periodo archivio"
     },
     "help": {
         "title": "Guida Utente",

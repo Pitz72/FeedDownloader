@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, FolderOpen, AlertTriangle, BookOpen } from 'lucide-react';
+import { X, FolderOpen, AlertTriangle, BookOpen, Upload, Download, FileSpreadsheet, Settings2, BarChart3 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HelpModal } from './HelpModal';
 import { useStore, AppState } from '../store/useStore';
 import { useToast } from '../context/ToastContext';
+import type { ArchiveStats } from '../types';
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -17,6 +18,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     const [downloadPath, setDownloadPath] = useState('');
     const [confirmReset, setConfirmReset] = useState(false);
     const [isHelpOpen, setIsHelpOpen] = useState(false);
+    const [concurrency, setConcurrency] = useState(3);
+    const [archiveStats, setArchiveStats] = useState<ArchiveStats | null>(null);
     const isBatchDownloading = useStore((state: AppState) => state.isBatchDownloading);
 
     useEffect(() => {
@@ -28,6 +31,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     const loadSettings = async () => {
         const path = await window.api.getDownloadPath();
         setDownloadPath(path || 'Default');
+        const conc = await window.api.getConcurrency();
+        setConcurrency(conc);
+        const stats = await window.api.getArchiveStats();
+        setArchiveStats(stats);
     };
 
     const handleChangeFolder = async () => {
@@ -40,7 +47,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
     const handleResetDatabase = async () => {
         await window.api.resetDownloadHistory();
-        window.location.reload(); // Simple way to refresh everything
+        setConfirmReset(false);
+        window.location.reload();
+    };
+
+    const handleConcurrencyChange = async (n: number) => {
+        setConcurrency(n);
+        await window.api.setConcurrency(n);
     };
 
     const changeLanguage = (lang: string) => {
@@ -70,28 +83,28 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                         onClick={onClose}
                     />
                     <motion.div
-                        className="bg-gray-900 border border-white/10 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative z-10"
+                        className="bg-gray-900 border border-white/10 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative z-10 max-h-[90vh] flex flex-col"
                         variants={modalVariants}
                         initial="hidden"
                         animate="visible"
                         exit="hidden"
                     >
                         {/* Header */}
-                        <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
-                            <h2 className="text-xl font-bold text-white">{t('settings.title', 'Settings')}</h2>
+                        <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5 shrink-0">
+                            <h2 className="text-xl font-bold text-white">{t('settings.title')}</h2>
                             <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
                                 <X size={24} />
                             </button>
                         </div>
 
-                        {/* Body */}
-                        <div className="p-6 space-y-8">
+                        {/* Body (scrollable) */}
+                        <div className="p-6 space-y-8 overflow-y-auto custom-scrollbar">
 
-                            {/* Language List */}
+                            {/* Language */}
                             <div className="space-y-3">
-                                <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider">{t('settings.general', 'General')}</h3>
+                                <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider">{t('settings.general')}</h3>
                                 <div className="space-y-2">
-                                    <label className="block text-sm text-gray-300">{t('settings.language', 'Language')}</label>
+                                    <label className="block text-sm text-gray-300">{t('settings.language')}</label>
                                     <select
                                         value={i18n.language}
                                         onChange={(e) => changeLanguage(e.target.value)}
@@ -109,11 +122,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                 </div>
                             </div>
 
-                            {/* Paths */}
+                            {/* Download Settings */}
                             <div className="space-y-3">
-                                <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider">{t('settings.storage', 'Storage')}</h3>
+                                <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                                    <Settings2 size={14} />
+                                    {t('settings.storage')}
+                                </h3>
                                 <div className="space-y-2">
-                                    <label className="block text-sm text-gray-300">{t('settings.download_path', 'Download Path')}</label>
+                                    <label className="block text-sm text-gray-300">{t('settings.download_path')}</label>
                                     <div className="flex gap-2">
                                         <input
                                             type="text"
@@ -130,11 +146,56 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                         </button>
                                     </div>
                                 </div>
+
+                                {/* Concurrency (v0.4.0) */}
+                                <div className="space-y-2 mt-4">
+                                    <label className="block text-sm text-gray-300">{t('settings.concurrency', 'Parallel Downloads')}</label>
+                                    <div className="flex gap-2">
+                                        {[1, 3, 5].map(n => (
+                                            <button
+                                                key={n}
+                                                onClick={() => handleConcurrencyChange(n)}
+                                                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${concurrency === n
+                                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/30'
+                                                    : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
+                                                    }`}
+                                            >
+                                                {n}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <p className="text-xs text-gray-500">{t('settings.concurrency_hint', 'Number of simultaneous downloads')}</p>
+                                </div>
                             </div>
+
+                            {/* Archive Stats (v0.4.0) */}
+                            {archiveStats && archiveStats.totalFiles > 0 && (
+                                <div className="space-y-3">
+                                    <h3 className="text-sm font-medium text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+                                        <BarChart3 size={14} />
+                                        {t('settings.stats', 'Archive Statistics')}
+                                    </h3>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="bg-white/5 border border-white/10 rounded-lg p-3">
+                                            <p className="text-2xl font-bold text-white">{archiveStats.totalFiles}</p>
+                                            <p className="text-xs text-gray-400">{t('settings.stats_files', 'Files Downloaded')}</p>
+                                        </div>
+                                        <div className="bg-white/5 border border-white/10 rounded-lg p-3">
+                                            <p className="text-2xl font-bold text-white">{archiveStats.totalPodcasts}</p>
+                                            <p className="text-xs text-gray-400">{t('settings.stats_podcasts', 'Podcasts')}</p>
+                                        </div>
+                                    </div>
+                                    {archiveStats.oldestDate && (
+                                        <p className="text-xs text-gray-500">
+                                            {t('settings.stats_range', 'Archive range')}: {new Date(archiveStats.oldestDate).toLocaleDateString()} — {archiveStats.newestDate ? new Date(archiveStats.newestDate).toLocaleDateString() : '—'}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
 
                             {/* Data & Portability */}
                             <div className="space-y-3">
-                                <h3 className="text-sm font-medium text-blue-400 uppercase tracking-wider">{t('settings.data', 'Data & Portability')}</h3>
+                                <h3 className="text-sm font-medium text-blue-400 uppercase tracking-wider">{t('settings.data')}</h3>
                                 <div className="grid grid-cols-1 gap-2">
                                     <button
                                         onClick={async () => {
@@ -148,8 +209,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                         }}
                                         className="flex items-center gap-2 bg-white/5 hover:bg-white/10 p-2 rounded-lg text-sm text-gray-300 transition-colors"
                                     >
-                                        <FolderOpen size={16} />
-                                        {t('settings.import_opml', 'Import Feeds (OPML)')}
+                                        <Upload size={16} className="text-green-400" />
+                                        {t('settings.import_opml')}
                                     </button>
                                     <button
                                         onClick={async () => {
@@ -158,8 +219,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                         }}
                                         className="flex items-center gap-2 bg-white/5 hover:bg-white/10 p-2 rounded-lg text-sm text-gray-300 transition-colors"
                                     >
-                                        <FolderOpen size={16} />
-                                        {t('settings.export_opml', 'Export Feeds (OPML)')}
+                                        <Download size={16} className="text-blue-400" />
+                                        {t('settings.export_opml')}
                                     </button>
                                     <button
                                         onClick={async () => {
@@ -168,15 +229,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                         }}
                                         className="flex items-center gap-2 bg-white/5 hover:bg-white/10 p-2 rounded-lg text-sm text-gray-300 transition-colors"
                                     >
-                                        <FolderOpen size={16} />
-                                        {t('settings.export_csv', 'Export Inventory (CSV)')}
+                                        <FileSpreadsheet size={16} className="text-purple-400" />
+                                        {t('settings.export_csv')}
                                     </button>
                                 </div>
                             </div>
 
-                            {/* Maintenance */}
+                            {/* Danger Zone */}
                             <div className="space-y-3">
-                                <h3 className="text-sm font-medium text-red-400 uppercase tracking-wider">{t('settings.danger_zone', 'Danger Zone')}</h3>
+                                <h3 className="text-sm font-medium text-red-400 uppercase tracking-wider">{t('settings.danger_zone')}</h3>
 
                                 {!confirmReset ? (
                                     <button
@@ -189,12 +250,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                         title={isBatchDownloading ? t('settings.reset_tooltip_downloading') : ""}
                                     >
                                         <AlertTriangle size={18} />
-                                        {t('settings.reset_db', 'Reset Download History')}
+                                        {t('settings.reset_db')}
                                     </button>
                                 ) : (
                                     <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 animate-pulse">
                                         <p className="text-red-400 text-sm mb-3 text-center font-medium">
-                                            {t('settings.confirm_reset', 'Are you sure? This will clear all download progress marks. Files will not be deleted.')}
+                                            {t('settings.confirm_reset')}
                                         </p>
                                         <div className="flex gap-2">
                                             <button
@@ -222,7 +283,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                 >
                                     <span className="flex items-center gap-2">
                                         <BookOpen size={18} className="text-blue-400" />
-                                        {t('help.title', 'User Guide')}
+                                        {t('help.title')}
                                     </span>
                                     <div className="text-xs bg-white/10 px-2 py-1 rounded text-gray-500">
                                         README

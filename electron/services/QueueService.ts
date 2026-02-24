@@ -22,4 +22,12 @@ export class QueueService {
     clear() {
         this.queue.clear();
     }
+
+    setConcurrency(n: number) {
+        this.queue.concurrency = n;
+    }
+
+    get concurrency() {
+        return this.queue.concurrency;
+    }
 }

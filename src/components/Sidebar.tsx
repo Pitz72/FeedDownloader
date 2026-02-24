@@ -6,6 +6,7 @@ import { useToast } from '../context/ToastContext';
 import { useTranslation } from 'react-i18next';
 import pkg from '../../package.json';
 import { SettingsModal } from './SettingsModal';
+import { ConfirmModal } from './ConfirmModal';
 
 export const Sidebar: React.FC = () => {
     const [feeds, setFeeds] = useState<any[]>([]);
@@ -13,6 +14,11 @@ export const Sidebar: React.FC = () => {
     const toast = useToast();
     const { t } = useTranslation();
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+    // ConfirmModal state
+    const [confirmState, setConfirmState] = useState<{ isOpen: boolean; url: string }>({
+        isOpen: false, url: ''
+    });
 
     const loadFeeds = async () => {
         try {
@@ -25,12 +31,17 @@ export const Sidebar: React.FC = () => {
 
     useEffect(() => {
         loadFeeds();
-        // Poll for changes or setup an event listener if possible
-        const interval = setInterval(loadFeeds, 2000);
-        return () => clearInterval(interval);
+        // Push event instead of polling (v0.4.0)
+        const removeListener = window.api.onFeedsUpdated((_event, updatedFeeds) => {
+            setFeeds(updatedFeeds);
+        });
+        return () => removeListener();
     }, []);
 
     const handleSelectFeed = async (feedUrl: string) => {
+        // Skip re-fetch if it's the same feed already loaded
+        if (currentFeed?.url === feedUrl) return;
+
         try {
             const feed = await window.api.parseFeed(feedUrl);
             setCurrentFeed({ ...feed, url: feedUrl });
@@ -39,17 +50,19 @@ export const Sidebar: React.FC = () => {
         }
     };
 
-    const handleRemoveFeed = async (e: React.MouseEvent, url: string) => {
+    const handleRemoveFeed = (e: React.MouseEvent, url: string) => {
         e.stopPropagation();
-        if (confirm(t('confirm.remove_feed'))) {
-            await window.api.removeFeed(url);
-            loadFeeds();
-            if (currentFeed?.url === url) {
-                // @ts-ignore
-                setCurrentFeed(null);
-            }
-            toast.show(t('toast.feed_removed'), 'success');
+        setConfirmState({ isOpen: true, url });
+    };
+
+    const confirmRemoveFeed = async () => {
+        const url = confirmState.url;
+        setConfirmState({ isOpen: false, url: '' });
+        await window.api.removeFeed(url);
+        if (currentFeed?.url === url) {
+            setCurrentFeed(null);
         }
+        toast.show(t('toast.feed_removed'), 'success');
     };
 
     return (
@@ -62,7 +75,7 @@ export const Sidebar: React.FC = () => {
                 <button
                     onClick={() => setIsSettingsOpen(true)}
                     className="text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10"
-                    title={t('settings.title', 'Settings')}
+                    title={t('settings.title')}
                 >
                     <Settings size={20} />
                 </button>
@@ -99,7 +112,7 @@ export const Sidebar: React.FC = () => {
                                 )}
                             </div>
                             <div className="min-w-0 flex-1">
-                                <h3 className="font-medium truncate text-sm">{feed.title || 'Senza titolo'}</h3>
+                                <h3 className="font-medium truncate text-sm">{feed.title || t('sidebar.untitled', 'Untitled')}</h3>
                                 {isValidDate ? (
                                     <p className="text-xs text-gray-500 truncate">{date.toLocaleDateString()}</p>
                                 ) : (
@@ -110,7 +123,7 @@ export const Sidebar: React.FC = () => {
                             <button
                                 onClick={(e) => handleRemoveFeed(e, feed.url)}
                                 className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-500/20 hover:text-red-400 rounded transition-all"
-                                title="Rimuovi"
+                                title={t('sidebar.remove', 'Remove')}
                             >
                                 <Trash2 size={14} />
                             </button>
@@ -124,6 +137,14 @@ export const Sidebar: React.FC = () => {
             </div>
 
             <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+            <ConfirmModal
+                isOpen={confirmState.isOpen}
+                title={t('confirm.remove_feed_title', 'Remove Feed')}
+                message={t('confirm.remove_feed')}
+                variant="danger"
+                onConfirm={confirmRemoveFeed}
+                onCancel={() => setConfirmState({ isOpen: false, url: '' })}
+            />
         </div>
     );
 };

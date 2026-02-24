@@ -60,7 +60,6 @@ function createWindow() {
   })
 
   // Show window when ready to avoid flickering
-  // Show window when ready to avoid flickering
   win.once('ready-to-show', () => {
     win?.maximize();
     win?.show();

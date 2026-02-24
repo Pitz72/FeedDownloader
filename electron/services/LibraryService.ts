@@ -16,6 +16,13 @@ interface ArchiveEntry {
     filename?: string;
 }
 
+interface ArchiveStats {
+    totalFiles: number;
+    totalPodcasts: number;
+    oldestDate: string | null;
+    newestDate: string | null;
+}
+
 export class LibraryService {
     private store: Store;
 
@@ -59,7 +66,6 @@ export class LibraryService {
     // Archive / CSV Support
     addArchiveEntry(entry: ArchiveEntry) {
         const archive = (this.store.get('archive') as ArchiveEntry[]) || [];
-        // Check if already in archive to avoid duplicates
         if (!archive.find(e => e.guid === entry.guid)) {
             archive.push(entry);
             this.store.set('archive', archive);
@@ -68,10 +74,8 @@ export class LibraryService {
 
     exportArchiveCSV(): string {
         const archive = (this.store.get('archive') as ArchiveEntry[]) || [];
-        // Header
         let csv = "Podcast,Episode Title,Publish Date,Downloaded At,GUID\n";
 
-        // Rows
         archive.forEach(entry => {
             const row = [
                 `"${entry.podcastTitle.replace(/"/g, '""')}"`,
@@ -100,8 +104,6 @@ export class LibraryService {
         const newDownloads = downloads.filter(id => id !== guid);
         this.store.set('downloads', newDownloads);
 
-        // Also remove from archive if present?
-        // Ideally yes, to keep sync.
         const archive = (this.store.get('archive') as ArchiveEntry[]) || [];
         const newArchive = archive.filter(e => e.guid !== guid);
         this.store.set('archive', newArchive);
@@ -110,6 +112,37 @@ export class LibraryService {
     resetDownloadHistory() {
         this.store.set('downloads', []);
         this.store.set('archive', []);
+    }
+
+    // Concurrency settings
+    getConcurrency(): number {
+        return (this.store.get('concurrency') as number) || 3;
+    }
+
+    setConcurrency(n: number) {
+        this.store.set('concurrency', Math.max(1, Math.min(n, 10)));
+    }
+
+    // Archive Statistics
+    getArchiveStats(): ArchiveStats {
+        const archive = (this.store.get('archive') as ArchiveEntry[]) || [];
+
+        if (archive.length === 0) {
+            return { totalFiles: 0, totalPodcasts: 0, oldestDate: null, newestDate: null };
+        }
+
+        const podcasts = new Set(archive.map(e => e.podcastTitle));
+        const dates = archive
+            .map(e => e.downloadedAt)
+            .filter(d => d)
+            .sort();
+
+        return {
+            totalFiles: archive.length,
+            totalPodcasts: podcasts.size,
+            oldestDate: dates[0] || null,
+            newestDate: dates[dates.length - 1] || null,
+        };
     }
 
     // OPML Support
@@ -123,7 +156,6 @@ export class LibraryService {
             if (Array.isArray(node)) {
                 node.forEach(child => traverse(child));
             } else if (typeof node === 'object') {
-                // Check if it's a feed outline
                 if (node.xmlUrl) {
                     this.addFeed({
                         url: node.xmlUrl,
@@ -133,7 +165,6 @@ export class LibraryService {
                     count++;
                 }
 
-                // Check for children
                 if (node.outline) {
                     traverse(node.outline);
                 }

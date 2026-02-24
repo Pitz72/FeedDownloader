@@ -2,46 +2,65 @@
     "app": {
         "title": "Runtime FeedDownloader Pro",
         "slogan": "Der leistungsstärkste Weg, Ihre Podcasts zu archivieren.",
-        "start": "Anwendung Starten",
+        "start": "Anwendung starten",
         "language": "Sprache"
     },
     "sidebar": {
         "my_feeds": "Meine Feeds",
         "invalid_date": "Unbekanntes Datum",
-        "no_feeds": "Keine Feeds gespeichert. Fügen Sie einen hinzu, um zu beginnen."
+        "no_feeds": "Keine Feeds gespeichert. Fügen Sie einen hinzu, um zu beginnen.",
+        "untitled": "Ohne Titel",
+        "remove": "Entfernen"
     },
     "input": {
-        "placeholder": "Podcast RSS URL eingeben...",
+        "placeholder": "Podcast-RSS-URL eingeben...",
         "analyze": "Analysieren"
     },
     "episodes": {
         "count": "{{count}} Episoden",
-        "download_all": "Alle Herunterladen",
-        "change_folder": "Ordner Ändern",
+        "download_all": "Alle herunterladen",
+        "change_folder": "Ordner ändern",
         "download": "Herunterladen",
         "downloaded": "Heruntergeladen",
         "open_folder": "Ordner öffnen",
-        "reset_status": "Download vergessen"
+        "reset_status": "Download vergessen",
+        "filter": "Episoden filtern...",
+        "date_filter": "Datumsfilter",
+        "from": "Von",
+        "to": "Bis"
     },
     "progress": {
-        "downloading": "Herunterladen...",
-        "dont_close": "Schließen Sie die Anwendung nicht"
+        "downloading": "Wird heruntergeladen...",
+        "dont_close": "Schließen Sie die Anwendung nicht",
+        "completed": "Abgeschlossen!",
+        "stop": "Download stoppen"
     },
     "toast": {
         "download_started": "Download gestartet...",
-        "mass_download_started": "Massendownload gestartet...",
+        "mass_download_started": "Massen-Download gestartet...",
         "feed_removed": "Feed entfernt",
         "feed_error": "Fehler beim Laden des Feeds",
         "status_reset": "Status zurückgesetzt",
         "no_audio": "Keine Audiodatei gefunden",
         "all_downloaded": "Alle Episoden bereits heruntergeladen!",
         "folder_selected": "Download-Ordner: {{path}}",
-        "offline_error": "Offline"
+        "offline_error": "Offline",
+        "parse_error": "Feed konnte nicht analysiert werden.",
+        "invalid_feed": "Ungültige URL: Dies ist eine Webseite, kein RSS-Feed.",
+        "network_error": "Netzwerkfehler. Überprüfen Sie Ihre Verbindung.",
+        "feed_not_found": "Feed nicht gefunden (404)."
     },
     "confirm": {
         "mass_download": "Möchten Sie wirklich alle {{count}} Episoden herunterladen?",
+        "mass_download_title": "Massen-Download",
         "remove_feed": "Sind Sie sicher, dass Sie diesen Feed entfernen möchten?",
+        "remove_feed_title": "Feed entfernen",
         "reset_status": "Möchten Sie diese Episode als NICHT heruntergeladen markieren? (Die Datei bleibt auf der Festplatte)"
+    },
+    "common": {
+        "cancel": "Abbrechen",
+        "confirm": "Bestätigen",
+        "clear": "Löschen"
     },
     "settings": {
         "title": "Einstellungen",
@@ -55,17 +74,23 @@
         "export_csv": "Inventar exportieren (CSV)",
         "danger_zone": "Gefahrenzone",
         "reset_db": "Download-Verlauf zurücksetzen",
-        "confirm_reset": "Sind Sie sicher? Dies löscht alle Download-Markierungen. Dateien werden nicht gelöscht.",
+        "confirm_reset": "Sind Sie sicher? Alle Download-Markierungen werden gelöscht. Dateien werden nicht entfernt.",
         "import_success": "{{count}} Feeds erfolgreich importiert",
         "export_success": "Export erfolgreich abgeschlossen",
         "reset_tooltip_downloading": "Zurücksetzen während des Downloads nicht möglich",
-        "import_error": "Keine Feeds importiert oder Fehler beim Import"
+        "import_error": "Keine Feeds importiert oder Fehler beim Import",
+        "concurrency": "Parallele Downloads",
+        "concurrency_hint": "Anzahl gleichzeitiger Downloads",
+        "stats": "Archiv-Statistiken",
+        "stats_files": "Heruntergeladene Dateien",
+        "stats_podcasts": "Podcasts",
+        "stats_range": "Archivzeitraum"
     },
     "help": {
         "title": "Benutzerhandbuch",
         "read_manual": "HANDBUCH LESEN",
         "loading": "Dokumentation wird geladen...",
         "error_loading": "Dokumentation konnte nicht geladen werden",
-        "footer_love": "Mit Liebe von Runtime erstellt"
+        "footer_love": "Mit Liebe erstellt von Runtime"
     }
 }

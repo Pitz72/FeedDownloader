@@ -14,28 +14,22 @@ export const UrlInput: React.FC = () => {
     const handleAnalyze = async () => {
         if (!url) return;
         if (!navigator.onLine) {
-            toast.show(t('toast.offline_error', 'Nessuna connessione internet'), 'error');
+            toast.show(t('toast.offline_error'), 'error');
             return;
         }
 
         setLoading(true);
         try {
             const feed = await window.api.parseFeed(url);
-            console.log("Parsed feed:", feed);
-
-            // Enrich feed with URL
             const fullFeed = { ...feed, url };
             setCurrentFeed(fullFeed);
-
-            // Save to library automatically
             await window.api.addFeed(fullFeed);
-            // toast.show(`Feed caricato: ${feed.title}`, 'success');
         } catch (error: any) {
             console.error(error);
-            let msg = "Impossibile analizzare il feed.";
-            if (error.message.includes('INVALID_FEED_TYPE')) msg = "URL non valido: Sembra una pagina web, non un feed RSS.";
-            else if (error.message.includes('Network Error')) msg = "Errore di rete. Controlla la connessione.";
-            else if (error.message.includes('404')) msg = "Feed non trovato (404).";
+            let msg = t('toast.parse_error', 'Could not parse the feed.');
+            if (error.message?.includes('INVALID_FEED_TYPE')) msg = t('toast.invalid_feed', 'Invalid URL: this is a webpage, not an RSS feed.');
+            else if (error.message?.includes('Network Error')) msg = t('toast.network_error', 'Network error. Check your connection.');
+            else if (error.message?.includes('404')) msg = t('toast.feed_not_found', 'Feed not found (404).');
 
             toast.show(msg, 'error');
         } finally {
@@ -51,8 +45,7 @@ export const UrlInput: React.FC = () => {
                         const path = await window.api.chooseFolder();
                         if (path) {
                             await window.api.setDownloadPath(path);
-                            // toast.show(t('toast.folder_selected', { path }), 'success');
-                            toast.show(`Cartella download: ${path}`, 'success');
+                            toast.show(t('toast.folder_selected', { path }), 'success');
                         }
                     }}
                     className="p-3 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors"

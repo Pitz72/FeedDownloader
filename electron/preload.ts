@@ -1,7 +1,6 @@
 import { ipcRenderer, contextBridge } from 'electron'
 
-// --------- Expose some API to the Renderer process ---------
-// --------- Expose some API to the Renderer process ---------
+// --------- Expose API to the Renderer process ---------
 contextBridge.exposeInMainWorld('api', {
   parseFeed: (url: string) => ipcRenderer.invoke('parse-feed', url),
   getFeeds: () => ipcRenderer.invoke('get-feeds'),
@@ -24,5 +23,29 @@ contextBridge.exposeInMainWorld('api', {
   getHelpContent: (lang: string) => ipcRenderer.invoke('get-help-content', lang),
   importOPML: () => ipcRenderer.invoke('import-opml'),
   exportOPML: () => ipcRenderer.invoke('export-opml'),
-  exportArchiveCSV: () => ipcRenderer.invoke('export-archive-csv')
+  exportArchiveCSV: () => ipcRenderer.invoke('export-archive-csv'),
+
+  // v0.4.0 — Push events
+  onFeedsUpdated: (callback: (event: any, feeds: any[]) => void) => {
+    const subscription = (_event: any, feeds: any[]) => callback(_event, feeds);
+    ipcRenderer.on('feeds-updated', subscription);
+    return () => ipcRenderer.removeListener('feeds-updated', subscription);
+  },
+  onDownloadsUpdated: (callback: (event: any, guids: string[]) => void) => {
+    const subscription = (_event: any, guids: string[]) => callback(_event, guids);
+    ipcRenderer.on('downloads-updated', subscription);
+    return () => ipcRenderer.removeListener('downloads-updated', subscription);
+  },
+  onBatchCompleted: (callback: (event: any, data: { total: number }) => void) => {
+    const subscription = (_event: any, data: { total: number }) => callback(_event, data);
+    ipcRenderer.on('batch-completed', subscription);
+    return () => ipcRenderer.removeListener('batch-completed', subscription);
+  },
+
+  // v0.4.0 — Concurrency
+  getConcurrency: () => ipcRenderer.invoke('get-concurrency'),
+  setConcurrency: (n: number) => ipcRenderer.invoke('set-concurrency', n),
+
+  // v0.4.0 — Archive Stats
+  getArchiveStats: () => ipcRenderer.invoke('get-archive-stats'),
 })

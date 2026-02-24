@@ -3,7 +3,7 @@ import { UrlInput } from './components/UrlInput';
 import { EpisodeList } from './components/EpisodeList';
 import { Sidebar } from './components/Sidebar';
 import { GlobalProgressBar } from './components/GlobalProgressBar';
-import { IntroScreen } from './components/IntroScreen'; // Import IntroScreen
+import { IntroScreen } from './components/IntroScreen';
 import { useStore, AppState } from './store/useStore';
 import { ToastProvider } from './context/ToastContext';
 import { useTranslation } from 'react-i18next';
@@ -15,20 +15,13 @@ function AppContent() {
   const { t } = useTranslation();
 
   useEffect(() => {
-    // Listen for download progress
     const removeListener = window.api.onDownloadProgress((_event, data) => {
-      // console.log("Progress:", data);
       updateDownload(data);
-
-      // Increment batch if completed OR error
       if (data.completed || data.error) {
         incrementBatch();
       }
     });
-
-    return () => {
-      removeListener();
-    };
+    return () => removeListener();
   }, [updateDownload, incrementBatch]);
 
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -51,7 +44,7 @@ function AppContent() {
       transition={{ duration: 1 }}
       className="flex min-h-screen bg-gradient-to-br from-gray-900 to-black text-white font-sans selection:bg-blue-500/30"
     >
-      <div className="fixed inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none z-0"></div>
+      <div className="fixed inset-0 bg-[url('./noise.svg')] opacity-20 pointer-events-none z-0"></div>
 
       {/* Offline Banner */}
       <AnimatePresence>
@@ -62,7 +55,7 @@ function AppContent() {
             exit={{ height: 0, opacity: 0 }}
             className="bg-red-600/90 text-white text-center text-sm py-1 font-medium z-50 fixed top-0 left-0 right-0 backdrop-blur-sm"
           >
-            {t('toast.offline_error', 'Nessuna connessione internet')}
+            {t('toast.offline_error')}
           </motion.div>
         )}
       </AnimatePresence>
@@ -71,7 +64,7 @@ function AppContent() {
       <Sidebar />
 
       {/* Main Content */}
-      <div className={`relative z-10 flex-1 flex flex-col min-h-screen ${!isOnline ? 'mt-8' : ''}`}> {/* Adjust for banner */}
+      <div className={`relative z-10 flex-1 flex flex-col min-h-screen ${!isOnline ? 'mt-8' : ''}`}>
         <div className="flex-1 p-8">
           <header className="text-center mb-12">
             <h1 className="text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600 mb-4">

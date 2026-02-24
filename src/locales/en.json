@@ -8,7 +8,9 @@
     "sidebar": {
         "my_feeds": "My Feeds",
         "invalid_date": "Unknown Date",
-        "no_feeds": "No feeds saved. Add one to start."
+        "no_feeds": "No feeds saved. Add one to start.",
+        "untitled": "Untitled",
+        "remove": "Remove"
     },
     "input": {
         "placeholder": "Enter podcast RSS URL...",
@@ -21,11 +23,17 @@
         "download": "Download",
         "downloaded": "Downloaded",
         "open_folder": "Open Folder",
-        "reset_status": "Forget download"
+        "reset_status": "Forget download",
+        "filter": "Filter episodes...",
+        "date_filter": "Date Filter",
+        "from": "From",
+        "to": "To"
     },
     "progress": {
         "downloading": "Downloading...",
-        "dont_close": "Do not close the application"
+        "dont_close": "Do not close the application",
+        "completed": "Completed!",
+        "stop": "Stop download"
     },
     "toast": {
         "download_started": "Download started...",
@@ -36,12 +44,23 @@
         "no_audio": "No audio file found",
         "all_downloaded": "All episodes already downloaded!",
         "folder_selected": "Download folder: {{path}}",
-        "offline_error": "Offline"
+        "offline_error": "Offline",
+        "parse_error": "Could not parse the feed.",
+        "invalid_feed": "Invalid URL: this is a webpage, not an RSS feed.",
+        "network_error": "Network error. Check your connection.",
+        "feed_not_found": "Feed not found (404)."
     },
     "confirm": {
         "mass_download": "Do you really want to download all {{count}} episodes?",
+        "mass_download_title": "Batch Download",
         "remove_feed": "Are you sure you want to remove this feed?",
+        "remove_feed_title": "Remove Feed",
         "reset_status": "Do you want to mark this episode as NOT downloaded? (The file will remain on disk)"
+    },
+    "common": {
+        "cancel": "Cancel",
+        "confirm": "Confirm",
+        "clear": "Clear"
     },
     "settings": {
         "title": "Settings",
@@ -59,7 +78,13 @@
         "import_success": "Imported {{count}} feeds successfully",
         "export_success": "Export completed successfully",
         "reset_tooltip_downloading": "Cannot reset while downloading",
-        "import_error": "No feeds imported or error during import"
+        "import_error": "No feeds imported or error during import",
+        "concurrency": "Parallel Downloads",
+        "concurrency_hint": "Number of simultaneous downloads",
+        "stats": "Archive Statistics",
+        "stats_files": "Files Downloaded",
+        "stats_podcasts": "Podcasts",
+        "stats_range": "Archive range"
     },
     "help": {
         "title": "User Guide",

@@ -1,70 +1,95 @@
 {
     "app": {
         "title": "Runtime FeedDownloader Pro",
-        "slogan": "A maneira mais poderosa de arquivar seus podcasts.",
-        "start": "Iniciar Aplicativo",
+        "slogan": "A forma mais poderosa de arquivar os seus podcasts.",
+        "start": "Iniciar Aplicação",
         "language": "Idioma"
     },
     "sidebar": {
         "my_feeds": "Meus Feeds",
         "invalid_date": "Data Desconhecida",
-        "no_feeds": "Nenhum feed salvo. Adicione um para começar."
+        "no_feeds": "Nenhum feed guardado. Adicione um para começar.",
+        "untitled": "Sem Título",
+        "remove": "Remover"
     },
     "input": {
-        "placeholder": "Inserir URL RSS...",
+        "placeholder": "Introduza URL RSS do podcast...",
         "analyze": "Analisar"
     },
     "episodes": {
         "count": "{{count}} Episódios",
-        "download_all": "Baixar Tudo",
-        "change_folder": "Alterar Pasta",
-        "download": "Baixar",
-        "downloaded": "Baixado",
+        "download_all": "Descarregar Tudo",
+        "change_folder": "Mudar Pasta",
+        "download": "Descarregar",
+        "downloaded": "Descarregado",
         "open_folder": "Abrir Pasta",
-        "reset_status": "Esquecer download"
+        "reset_status": "Esquecer descarga",
+        "filter": "Filtrar episódios...",
+        "date_filter": "Filtro por Data",
+        "from": "De",
+        "to": "Até"
     },
     "progress": {
-        "downloading": "Baixando...",
-        "dont_close": "Não feche o aplicativo"
+        "downloading": "A descarregar...",
+        "dont_close": "Não feche a aplicação",
+        "completed": "Concluído!",
+        "stop": "Parar descarga"
     },
     "toast": {
-        "download_started": "Download iniciado...",
-        "mass_download_started": "Download em massa iniciado...",
+        "download_started": "Descarga iniciada...",
+        "mass_download_started": "Descarga em massa iniciada...",
         "feed_removed": "Feed removido",
         "feed_error": "Erro ao carregar o feed",
-        "status_reset": "Status redefinido",
-        "no_audio": "Nenhum arquivo de áudio encontrado",
-        "all_downloaded": "Todos os episódios já baixados!",
-        "folder_selected": "Pasta de download: {{path}}",
-        "offline_error": "Offline"
+        "status_reset": "Estado reposto",
+        "no_audio": "Nenhum ficheiro de áudio encontrado",
+        "all_downloaded": "Todos os episódios já descarregados!",
+        "folder_selected": "Pasta de descarga: {{path}}",
+        "offline_error": "Offline",
+        "parse_error": "Não foi possível analisar o feed.",
+        "invalid_feed": "URL inválida: é uma página web, não um feed RSS.",
+        "network_error": "Erro de rede. Verifique a sua conexão.",
+        "feed_not_found": "Feed não encontrado (404)."
     },
     "confirm": {
-        "mass_download": "Você realmente quer baixar todos os {{count}} episódios?",
-        "remove_feed": "Tem certeza de que deseja remover este feed?",
-        "reset_status": "Deseja marcar este episódio como NÃO baixado? (O arquivo permanecerá no disco)"
+        "mass_download": "Quer mesmo descarregar todos os {{count}} episódios?",
+        "mass_download_title": "Descarga em Massa",
+        "remove_feed": "Tem a certeza de que quer remover este feed?",
+        "remove_feed_title": "Remover Feed",
+        "reset_status": "Quer marcar este episódio como NÃO descarregado? (O ficheiro permanecerá no disco)"
+    },
+    "common": {
+        "cancel": "Cancelar",
+        "confirm": "Confirmar",
+        "clear": "Limpar"
     },
     "settings": {
-        "title": "Configurações",
+        "title": "Definições",
         "general": "Geral",
         "language": "Idioma",
         "storage": "Armazenamento",
-        "download_path": "Caminho de Download",
+        "download_path": "Caminho de Descarga",
         "data": "Dados e Portabilidade",
         "import_opml": "Importar Feeds (OPML)",
         "export_opml": "Exportar Feeds (OPML)",
         "export_csv": "Exportar Inventário (CSV)",
         "danger_zone": "Zona de Perigo",
-        "reset_db": "Redefinir Histórico de Downloads",
-        "confirm_reset": "Tem certeza? Isso limpará todas as marcas de download. Os arquivos não serão excluídos.",
+        "reset_db": "Repor Histórico de Descargas",
+        "confirm_reset": "Tem a certeza? Isto irá limpar todas as marcas de progresso. Os ficheiros não serão eliminados.",
         "import_success": "{{count}} feeds importados com sucesso",
         "export_success": "Exportação concluída com sucesso",
-        "reset_tooltip_downloading": "Não é possível redefinir durante o download",
-        "import_error": "Nenhum feed importado ou erro na importação"
+        "reset_tooltip_downloading": "Não é possível repor durante a descarga",
+        "import_error": "Nenhum feed importado ou erro durante a importação",
+        "concurrency": "Descargas Paralelas",
+        "concurrency_hint": "Número de descargas simultâneas",
+        "stats": "Estatísticas do Arquivo",
+        "stats_files": "Ficheiros Descarregados",
+        "stats_podcasts": "Podcasts",
+        "stats_range": "Período do arquivo"
     },
     "help": {
-        "title": "Guia do Usuário",
+        "title": "Guia do Utilizador",
         "read_manual": "LER MANUAL",
-        "loading": "Carregando documentação...",
+        "loading": "A carregar documentação...",
         "error_loading": "Não foi possível carregar a documentação",
         "footer_love": "Criado com amor pela Runtime"
     }

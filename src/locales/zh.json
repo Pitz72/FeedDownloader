@@ -1,14 +1,16 @@
 {
     "app": {
         "title": "Runtime FeedDownloader Pro",
-        "slogan": "归档播客的最强大方式。",
-        "start": "启动应用程序",
+        "slogan": "存档播客的最强大方式。",
+        "start": "启动应用",
         "language": "语言"
     },
     "sidebar": {
         "my_feeds": "我的订阅",
         "invalid_date": "未知日期",
-        "no_feeds": "没有保存的订阅。添加一个开始。"
+        "no_feeds": "没有保存的订阅。添加一个开始使用。",
+        "untitled": "无标题",
+        "remove": "删除"
     },
     "input": {
         "placeholder": "输入播客 RSS URL...",
@@ -21,11 +23,17 @@
         "download": "下载",
         "downloaded": "已下载",
         "open_folder": "打开文件夹",
-        "reset_status": "清除下载标记"
+        "reset_status": "忘记下载",
+        "filter": "搜索剧集...",
+        "date_filter": "日期筛选",
+        "from": "从",
+        "to": "至"
     },
     "progress": {
         "downloading": "下载中...",
-        "dont_close": "请勿关闭应用程序"
+        "dont_close": "请勿关闭应用",
+        "completed": "已完成！",
+        "stop": "停止下载"
     },
     "toast": {
         "download_started": "下载已开始...",
@@ -34,14 +42,25 @@
         "feed_error": "加载订阅时出错",
         "status_reset": "状态已重置",
         "no_audio": "未找到音频文件",
-        "all_downloaded": "所有剧集已下载！",
-        "folder_selected": "下载文件夹: {{path}}",
-        "offline_error": "离线"
+        "all_downloaded": "所有剧集均已下载！",
+        "folder_selected": "下载文件夹：{{path}}",
+        "offline_error": "离线",
+        "parse_error": "无法解析订阅。",
+        "invalid_feed": "无效 URL：这是一个网页，不是 RSS 订阅。",
+        "network_error": "网络错误。请检查您的连接。",
+        "feed_not_found": "订阅未找到 (404)。"
     },
     "confirm": {
-        "mass_download": "您真的要下载所有 {{count}} 集吗？",
+        "mass_download": "您确定要下载全部 {{count}} 集吗？",
+        "mass_download_title": "批量下载",
         "remove_feed": "您确定要删除此订阅吗？",
+        "remove_feed_title": "删除订阅",
         "reset_status": "您想将此剧集标记为未下载吗？（文件将保留在磁盘上）"
+    },
+    "common": {
+        "cancel": "取消",
+        "confirm": "确认",
+        "clear": "清除"
     },
     "settings": {
         "title": "设置",
@@ -49,23 +68,29 @@
         "language": "语言",
         "storage": "存储",
         "download_path": "下载路径",
-        "data": "数据与便携性",
+        "data": "数据与可移植性",
         "import_opml": "导入订阅 (OPML)",
         "export_opml": "导出订阅 (OPML)",
         "export_csv": "导出清单 (CSV)",
         "danger_zone": "危险区域",
         "reset_db": "重置下载历史",
-        "confirm_reset": "您确定吗？这将清除所有下载进度标记。文件不会被删除。",
+        "confirm_reset": "您确定吗？这将清除所有下载标记。文件不会被删除。",
         "import_success": "成功导入 {{count}} 个订阅",
-        "export_success": "导出成功",
-        "reset_tooltip_downloading": "下载时无法重置",
-        "import_error": "未导入订阅或导入时出错"
+        "export_success": "导出成功完成",
+        "reset_tooltip_downloading": "下载期间无法重置",
+        "import_error": "未导入任何订阅或导入时出错",
+        "concurrency": "并行下载",
+        "concurrency_hint": "同时下载数量",
+        "stats": "存档统计",
+        "stats_files": "已下载文件",
+        "stats_podcasts": "播客",
+        "stats_range": "存档期间"
     },
     "help": {
         "title": "用户指南",
         "read_manual": "阅读手册",
         "loading": "正在加载文档...",
         "error_loading": "无法加载文档",
-        "footer_love": "由 Runtime 倾情打造"
+        "footer_love": "由 Runtime 用心创建"
     }
 }

@@ -2,16 +2,18 @@
     "app": {
         "title": "Runtime FeedDownloader Pro",
         "slogan": "La forma más potente de archivar tus podcasts.",
-        "start": "Iniciar aplicación",
+        "start": "Iniciar Aplicación",
         "language": "Idioma"
     },
     "sidebar": {
         "my_feeds": "Mis Feeds",
         "invalid_date": "Fecha Desconocida",
-        "no_feeds": "No hay feeds guardados. Añade uno para empezar."
+        "no_feeds": "No hay feeds guardados. Añade uno para empezar.",
+        "untitled": "Sin Título",
+        "remove": "Eliminar"
     },
     "input": {
-        "placeholder": "Introducir URL RSS...",
+        "placeholder": "Introduce URL RSS del podcast...",
         "analyze": "Analizar"
     },
     "episodes": {
@@ -21,11 +23,17 @@
         "download": "Descargar",
         "downloaded": "Descargado",
         "open_folder": "Abrir Carpeta",
-        "reset_status": "Olvidar descarga"
+        "reset_status": "Olvidar descarga",
+        "filter": "Filtrar episodios...",
+        "date_filter": "Filtro por Fecha",
+        "from": "Desde",
+        "to": "Hasta"
     },
     "progress": {
         "downloading": "Descargando...",
-        "dont_close": "No cierre la aplicación"
+        "dont_close": "No cierres la aplicación",
+        "completed": "¡Completado!",
+        "stop": "Detener descarga"
     },
     "toast": {
         "download_started": "Descarga iniciada...",
@@ -36,30 +44,47 @@
         "no_audio": "No se encontró archivo de audio",
         "all_downloaded": "¡Todos los episodios ya descargados!",
         "folder_selected": "Carpeta de descarga: {{path}}",
-        "offline_error": "Desconectado"
+        "offline_error": "Sin conexión",
+        "parse_error": "No se pudo analizar el feed.",
+        "invalid_feed": "URL no válida: es una página web, no un feed RSS.",
+        "network_error": "Error de red. Verifica tu conexión.",
+        "feed_not_found": "Feed no encontrado (404)."
     },
     "confirm": {
-        "mass_download": "¿Realmente quieres descargar todos los {{count}} episodios?",
+        "mass_download": "¿Realmente quieres descargar los {{count}} episodios?",
+        "mass_download_title": "Descarga Masiva",
         "remove_feed": "¿Estás seguro de que quieres eliminar este feed?",
-        "reset_status": "¿Quieres marcar este episodio como NO descargado? (El archivo permanecerá en el disco)"
+        "remove_feed_title": "Eliminar Feed",
+        "reset_status": "¿Quieres marcar este episodio como NO descargado? (El archivo permanecerá en disco)"
+    },
+    "common": {
+        "cancel": "Cancelar",
+        "confirm": "Confirmar",
+        "clear": "Limpiar"
     },
     "settings": {
-        "title": "Ajustes",
+        "title": "Configuración",
         "general": "General",
         "language": "Idioma",
         "storage": "Almacenamiento",
-        "download_path": "Ruta de descarga",
+        "download_path": "Ruta de Descarga",
         "data": "Datos y Portabilidad",
         "import_opml": "Importar Feeds (OPML)",
         "export_opml": "Exportar Feeds (OPML)",
         "export_csv": "Exportar Inventario (CSV)",
         "danger_zone": "Zona de Peligro",
-        "reset_db": "Restablecer historial de descargas",
-        "confirm_reset": "¿Estás seguro? Esto borrará todas las marcas de descarga. Los archivos no se eliminarán.",
-        "import_success": "Importados {{count}} feeds con éxito",
+        "reset_db": "Restablecer Historial de Descargas",
+        "confirm_reset": "¿Estás seguro? Esto borrará todas las marcas de progreso. Los archivos no se eliminarán.",
+        "import_success": "{{count}} feeds importados con éxito",
         "export_success": "Exportación completada con éxito",
         "reset_tooltip_downloading": "No se puede restablecer durante la descarga",
-        "import_error": "No se importaron feeds o hubo un error durante la importación"
+        "import_error": "Ningún feed importado o error durante la importación",
+        "concurrency": "Descargas Paralelas",
+        "concurrency_hint": "Número de descargas simultáneas",
+        "stats": "Estadísticas del Archivo",
+        "stats_files": "Archivos Descargados",
+        "stats_podcasts": "Podcasts",
+        "stats_range": "Rango del archivo"
     },
     "help": {
         "title": "Guía de Usuario",

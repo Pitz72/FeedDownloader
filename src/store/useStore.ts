@@ -1,20 +1,5 @@
 import { create } from 'zustand';
-
-export interface Feed {
-    url: string;
-    title: string;
-    image?: string | { url: string };
-    description?: string;
-    episodes: any[];
-}
-
-export interface DownloadProgress {
-    url: string;
-    loaded: number;
-    total: number;
-    completed?: boolean;
-    error?: boolean;
-}
+import type { Feed, DownloadProgress } from '../types';
 
 export interface AppState {
     currentFeed: Feed | null;
@@ -55,10 +40,8 @@ export const useStore = create<AppState>((set) => ({
 
     startBatch: (total) => set((state) => {
         if (state.isBatchDownloading) {
-            // If already downloading, add to the total
             return { batchTotal: state.batchTotal + total };
         }
-        // Otherwise start fresh
         return { batchTotal: total, batchCompleted: 0, isBatchDownloading: true };
     }),
     incrementBatch: () => set((state) => {

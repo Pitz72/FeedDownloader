@@ -74,7 +74,7 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
             exit="exit"
             className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0b1120] text-white overflow-hidden"
         >
-            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none"></div>
+            <div className="absolute inset-0 bg-[url('./noise.svg')] opacity-20 pointer-events-none"></div>
 
             {/* Logo */}
             <motion.img

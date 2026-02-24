@@ -1,14 +1,16 @@
 {
     "app": {
         "title": "Runtime FeedDownloader Pro",
-        "slogan": "La façon la plus puissante d'archiver vos podcasts.",
+        "slogan": "Le moyen le plus puissant d'archiver vos podcasts.",
         "start": "Démarrer l'application",
         "language": "Langue"
     },
     "sidebar": {
         "my_feeds": "Mes Flux",
         "invalid_date": "Date Inconnue",
-        "no_feeds": "Aucun flux enregistré. Ajoutez-en un pour commencer."
+        "no_feeds": "Aucun flux enregistré. Ajoutez-en un pour commencer.",
+        "untitled": "Sans Titre",
+        "remove": "Supprimer"
     },
     "input": {
         "placeholder": "Entrez l'URL RSS du podcast...",
@@ -17,15 +19,21 @@
     "episodes": {
         "count": "{{count}} Épisodes",
         "download_all": "Tout Télécharger",
-        "change_folder": "Changer Dossier",
+        "change_folder": "Changer de Dossier",
         "download": "Télécharger",
         "downloaded": "Téléchargé",
-        "open_folder": "Ouvrir le dossier",
-        "reset_status": "Oublier le téléchargement"
+        "open_folder": "Ouvrir le Dossier",
+        "reset_status": "Oublier le téléchargement",
+        "filter": "Filtrer les épisodes...",
+        "date_filter": "Filtre par Date",
+        "from": "Du",
+        "to": "Au"
     },
     "progress": {
-        "downloading": "Téléchargement...",
-        "dont_close": "Ne fermez pas l'application"
+        "downloading": "Téléchargement en cours...",
+        "dont_close": "Ne fermez pas l'application",
+        "completed": "Terminé !",
+        "stop": "Arrêter le téléchargement"
     },
     "toast": {
         "download_started": "Téléchargement démarré...",
@@ -34,35 +42,52 @@
         "feed_error": "Erreur lors du chargement du flux",
         "status_reset": "Statut réinitialisé",
         "no_audio": "Aucun fichier audio trouvé",
-        "all_downloaded": "Tous les épisodes déjà téléchargés!",
-        "folder_selected": "Dossier de téléchargement: {{path}}",
-        "offline_error": "Hors ligne"
+        "all_downloaded": "Tous les épisodes sont déjà téléchargés !",
+        "folder_selected": "Dossier de téléchargement : {{path}}",
+        "offline_error": "Hors ligne",
+        "parse_error": "Impossible d'analyser le flux.",
+        "invalid_feed": "URL invalide : c'est une page web, pas un flux RSS.",
+        "network_error": "Erreur réseau. Vérifiez votre connexion.",
+        "feed_not_found": "Flux introuvable (404)."
     },
     "confirm": {
-        "mass_download": "Voulez-vous vraiment télécharger tous les {{count}} épisodes?",
-        "remove_feed": "Êtes-vous sûr de vouloir supprimer ce flux?",
+        "mass_download": "Voulez-vous vraiment télécharger les {{count}} épisodes ?",
+        "mass_download_title": "Téléchargement en Masse",
+        "remove_feed": "Êtes-vous sûr de vouloir supprimer ce flux ?",
+        "remove_feed_title": "Supprimer le Flux",
         "reset_status": "Voulez-vous marquer cet épisode comme NON téléchargé ? (Le fichier restera sur le disque)"
+    },
+    "common": {
+        "cancel": "Annuler",
+        "confirm": "Confirmer",
+        "clear": "Effacer"
     },
     "settings": {
         "title": "Paramètres",
         "general": "Général",
         "language": "Langue",
         "storage": "Stockage",
-        "download_path": "Chemin de téléchargement",
-        "data": "Données & Portabilité",
-        "import_opml": "Importer des flux (OPML)",
-        "export_opml": "Exporter des flux (OPML)",
-        "export_csv": "Exporter l'inventaire (CSV)",
-        "danger_zone": "Zone de danger",
-        "reset_db": "Réinitialiser l'historique",
-        "confirm_reset": "Êtes-vous sûr ? Cela effacera tous les marqueurs de téléchargement. Les fichiers ne seront pas supprimés.",
-        "import_success": "Importation de {{count}} flux réussie",
-        "export_success": "Exportation réussie",
+        "download_path": "Chemin de Téléchargement",
+        "data": "Données et Portabilité",
+        "import_opml": "Importer des Flux (OPML)",
+        "export_opml": "Exporter des Flux (OPML)",
+        "export_csv": "Exporter l'Inventaire (CSV)",
+        "danger_zone": "Zone de Danger",
+        "reset_db": "Réinitialiser l'Historique des Téléchargements",
+        "confirm_reset": "Êtes-vous sûr ? Cela effacera toutes les marques de progression. Les fichiers ne seront pas supprimés.",
+        "import_success": "{{count}} flux importés avec succès",
+        "export_success": "Exportation terminée avec succès",
         "reset_tooltip_downloading": "Impossible de réinitialiser pendant le téléchargement",
-        "import_error": "Aucun flux importé ou erreur d'importation"
+        "import_error": "Aucun flux importé ou erreur lors de l'importation",
+        "concurrency": "Téléchargements Parallèles",
+        "concurrency_hint": "Nombre de téléchargements simultanés",
+        "stats": "Statistiques de l'Archive",
+        "stats_files": "Fichiers Téléchargés",
+        "stats_podcasts": "Podcasts",
+        "stats_range": "Période de l'archive"
     },
     "help": {
-        "title": "Guide de l'utilisateur",
+        "title": "Guide Utilisateur",
         "read_manual": "LIRE LE MANUEL",
         "loading": "Chargement de la documentation...",
         "error_loading": "Impossible de charger la documentation",
