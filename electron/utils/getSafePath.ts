@@ -1,0 +1,34 @@
+import path from 'path';
+import sanitize from 'sanitize-filename';
+
+/**
+ * Build a safe, filesystem-friendly path for a downloaded episode.
+ * - Sanitises folder and file name
+ * - Truncates if the resulting path exceeds MAX_PATH
+ * - Appends the given extension (default `.mp3`)
+ */
+export function getSafePath(
+    baseDir: string,
+    podcastTitle: string,
+    episodeTitle: string,
+    ext: string = '.mp3',
+): string {
+    const sanitizedPodcast = sanitize(podcastTitle);
+    let sanitizedTitle = sanitize(episodeTitle);
+
+    const MAX_PATH = 250;
+
+    const folderPath = path.join(baseDir, sanitizedPodcast);
+    const separators = 1;
+
+    const occupied = folderPath.length + separators + ext.length;
+    const available = MAX_PATH - occupied;
+
+    if (available < 1) {
+        sanitizedTitle = sanitizedTitle.substring(0, 5);
+    } else if (sanitizedTitle.length > available) {
+        sanitizedTitle = sanitizedTitle.substring(0, available);
+    }
+
+    return path.join(folderPath, `${sanitizedTitle}${ext}`);
+}

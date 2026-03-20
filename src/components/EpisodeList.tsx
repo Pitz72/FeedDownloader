@@ -5,7 +5,8 @@ import { useToast } from '../context/ToastContext';
 import { useTranslation } from 'react-i18next';
 import { Virtuoso } from 'react-virtuoso';
 import { ConfirmModal } from './ConfirmModal';
-import type { Episode } from '../types';
+import type { Episode } from '../../shared/types';
+import { getEnclosureUrl } from '../../shared/getEnclosureUrl';
 
 export const EpisodeList: React.FC = () => {
     const currentFeed = useStore((state: AppState) => state.currentFeed);
@@ -39,7 +40,11 @@ export const EpisodeList: React.FC = () => {
     useEffect(() => {
         fetchDownloaded();
         const removeListener = window.api.onDownloadsUpdated((_event, guids) => {
-            setDownloadedGuids(guids);
+            try {
+                setDownloadedGuids(guids);
+            } catch (err) {
+                console.error('Error in onDownloadsUpdated:', err);
+            }
         });
         return () => removeListener();
     }, []);
@@ -80,10 +85,7 @@ export const EpisodeList: React.FC = () => {
     if (!currentFeed) return null;
 
     const handleDownload = (episode: Episode, silent = false) => {
-        let url = episode.enclosure?.url;
-        if (!url && episode.enclosures && episode.enclosures.length > 0) {
-            url = episode.enclosures[0].url;
-        }
+        const url = getEnclosureUrl(episode);
 
         if (!url) {
             if (!silent) toast.show(t('toast.no_audio'), 'error');
@@ -105,7 +107,7 @@ export const EpisodeList: React.FC = () => {
 
     const handleDownloadAll = () => {
         const episodesToDownload = filteredEpisodes.filter((episode: Episode) => {
-            const url = episode.enclosure?.url || (episode.enclosures && episode.enclosures[0]?.url);
+            const url = getEnclosureUrl(episode);
             const guid = episode.guid || url;
             return guid && !downloadedGuids.includes(guid);
         });
@@ -158,8 +160,7 @@ export const EpisodeList: React.FC = () => {
     const isOnline = navigator.onLine;
 
     const renderEpisodeRow = (_index: number, episode: Episode) => {
-        let url = episode.enclosure?.url;
-        if (!url && episode.enclosures && episode.enclosures.length > 0) url = episode.enclosures[0].url;
+        const url = getEnclosureUrl(episode);
 
         const guid = episode.guid || url || '';
 

@@ -7,9 +7,10 @@ import { useTranslation } from 'react-i18next';
 import pkg from '../../package.json';
 import { SettingsModal } from './SettingsModal';
 import { ConfirmModal } from './ConfirmModal';
+import type { FeedEntry } from '../../shared/types';
 
 export const Sidebar: React.FC = () => {
-    const [feeds, setFeeds] = useState<any[]>([]);
+    const [feeds, setFeeds] = useState<FeedEntry[]>([]);
     const { currentFeed, setCurrentFeed } = useStore((state: AppState) => state);
     const toast = useToast();
     const { t } = useTranslation();
@@ -33,7 +34,11 @@ export const Sidebar: React.FC = () => {
         loadFeeds();
         // Push event instead of polling (v0.4.0)
         const removeListener = window.api.onFeedsUpdated((_event, updatedFeeds) => {
-            setFeeds(updatedFeeds);
+            try {
+                setFeeds(updatedFeeds);
+            } catch (err) {
+                console.error('Error in onFeedsUpdated:', err);
+            }
         });
         return () => removeListener();
     }, []);

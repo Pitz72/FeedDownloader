@@ -3,39 +3,14 @@ import { FeedService } from './services/FeedService';
 import { LibraryService } from './services/LibraryService';
 import { DownloadService } from './services/DownloadService';
 import { QueueService } from './services/QueueService';
+import { BatchTracker } from './services/BatchTracker';
+import { getSafePath } from './utils/getSafePath';
+import { extractExtension } from './utils/extractExtension';
+import { validateUrl } from './utils/validateUrl';
+import { IPC_CHANNELS as CH } from '../shared/types';
+import type { FeedEntry, DownloadRequest } from '../shared/types';
 import path from 'path';
-import sanitize from 'sanitize-filename';
 import fs from 'fs-extra';
-
-// IPC Channel constants — single source of truth
-const CH = {
-    PARSE_FEED: 'parse-feed',
-    GET_FEEDS: 'get-feeds',
-    ADD_FEED: 'add-feed',
-    REMOVE_FEED: 'remove-feed',
-    START_DOWNLOAD: 'start-download',
-    DOWNLOAD_PROGRESS: 'download-progress',
-    CHOOSE_FOLDER: 'choose-folder',
-    GET_DOWNLOAD_PATH: 'get-download-path',
-    SET_DOWNLOAD_PATH: 'set-download-path',
-    GET_DOWNLOADED_EPISODES: 'get-downloaded-episodes',
-    IMPORT_OPML: 'import-opml',
-    EXPORT_OPML: 'export-opml',
-    EXPORT_ARCHIVE_CSV: 'export-archive-csv',
-    STOP_BATCH: 'stop-batch',
-    REMOVE_HISTORY_ITEM: 'remove-history-item',
-    RESET_HISTORY: 'reset-history',
-    SHOW_IN_FOLDER: 'show-in-folder',
-    GET_HELP_CONTENT: 'get-help-content',
-    // Push events (main → renderer)
-    FEEDS_UPDATED: 'feeds-updated',
-    DOWNLOADS_UPDATED: 'downloads-updated',
-    BATCH_COMPLETED: 'batch-completed',
-    // v0.4.0 new
-    GET_CONCURRENCY: 'get-concurrency',
-    SET_CONCURRENCY: 'set-concurrency',
-    GET_ARCHIVE_STATS: 'get-archive-stats',
-} as const;
 
 const feedService = new FeedService();
 const libraryService = new LibraryService();
@@ -50,13 +25,18 @@ function pushEvent(win: BrowserWindow, channel: string, data?: any) {
     }
 }
 
-// Track batch for OS notification
-let batchTracker = { total: 0, completed: 0, active: false };
+// Track batch for OS notification (v0.4.2 — race-condition-safe)
+const batchTracker = new BatchTracker();
 
 export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
     // ── Feed Parsing ──────────────────────────────────────
     ipcMain.handle(CH.PARSE_FEED, async (_, url: string) => {
+        // v0.4.4 — validate URL before fetching
+        const check = validateUrl(url);
+        if (!check.valid) {
+            throw new Error(check.error);
+        }
         return await feedService.parseFeed(url);
     });
 
@@ -65,7 +45,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         return libraryService.getFeeds();
     });
 
-    ipcMain.handle(CH.ADD_FEED, async (_, feed: any) => {
+    ipcMain.handle(CH.ADD_FEED, async (_, feed: FeedEntry) => {
         libraryService.addFeed(feed);
         const feeds = libraryService.getFeeds();
         pushEvent(mainWindow, CH.FEEDS_UPDATED, feeds);
@@ -97,20 +77,27 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     });
 
     // ── Download Engine ──────────────────────────────────
-    ipcMain.handle(CH.START_DOWNLOAD, async (_, { url, title, podcastTitle, guid, pubDate }: { url: string; title: string; podcastTitle: string; guid: string; pubDate?: string }) => {
+    ipcMain.handle(CH.START_DOWNLOAD, async (_, { url, title, podcastTitle, guid, pubDate }: DownloadRequest) => {
+        // v0.4.4 — validate download URL
+        const check = validateUrl(url);
+        if (!check.valid) {
+            throw new Error(check.error);
+        }
+
         let baseDir = libraryService.getDownloadPath();
         if (!baseDir) {
             baseDir = path.join(app.getPath('documents'), 'FeedDownloader', 'downloads');
         }
 
-        const targetFile = getSafePath(baseDir, podcastTitle, title);
+        // v0.4.3 — detect real extension from enclosure URL
+        const ext = extractExtension(url);
+        const targetFile = getSafePath(baseDir, podcastTitle, title, ext);
         const targetDir = path.dirname(targetFile);
 
         await fs.ensureDir(targetDir);
 
-        // Track batch
-        batchTracker.total++;
-        batchTracker.active = true;
+        // Track batch (v0.4.2 — atomic via BatchTracker)
+        batchTracker.track();
 
         queueService.add(async () => {
             try {
@@ -136,21 +123,17 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                 console.error("Download error:", error);
                 pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, error: true });
             } finally {
-                batchTracker.completed++;
-                if (batchTracker.completed >= batchTracker.total && batchTracker.active) {
-                    batchTracker.active = false;
-                    const total = batchTracker.total;
-                    batchTracker = { total: 0, completed: 0, active: false };
-
+                const finishedTotal = batchTracker.complete();
+                if (finishedTotal !== null) {
                     // OS Notification
                     if (Notification.isSupported()) {
                         new Notification({
                             title: 'Runtime FeedDownloader Pro',
-                            body: `Download completato: ${total} file scaricati.`,
+                            body: `Download completato: ${finishedTotal} file scaricati.`,
                             icon: path.join(process.env.VITE_PUBLIC || '', 'logo.png'),
                         }).show();
                     }
-                    pushEvent(mainWindow, CH.BATCH_COMPLETED, { total });
+                    pushEvent(mainWindow, CH.BATCH_COMPLETED, { total: finishedTotal });
                 }
             }
         });
@@ -160,7 +143,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
     ipcMain.handle(CH.STOP_BATCH, async () => {
         queueService.clear();
-        batchTracker = { total: 0, completed: 0, active: false };
+        batchTracker.reset();
         return true;
     });
 
@@ -236,12 +219,14 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     });
 
     // ── Show in folder ───────────────────────────────────
-    ipcMain.handle(CH.SHOW_IN_FOLDER, async (_, { podcastTitle, title }) => {
+    ipcMain.handle(CH.SHOW_IN_FOLDER, async (_, { podcastTitle, title, enclosureUrl }: { podcastTitle: string; title: string; enclosureUrl?: string }) => {
         let baseDir = libraryService.getDownloadPath();
         if (!baseDir) {
             baseDir = path.join(app.getPath('documents'), 'FeedDownloader', 'downloads');
         }
-        const safePath = getSafePath(baseDir, podcastTitle, title);
+        // v0.4.3 — use real extension to find the correct file on disk
+        const ext = enclosureUrl ? extractExtension(enclosureUrl) : '.mp3';
+        const safePath = getSafePath(baseDir, podcastTitle, title, ext);
 
         const { shell } = await import('electron');
         shell.showItemInFolder(safePath);
@@ -303,26 +288,4 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     ipcMain.handle(CH.GET_ARCHIVE_STATS, async () => {
         return libraryService.getArchiveStats();
     });
-}
-
-function getSafePath(baseDir: string, podcastTitle: string, episodeTitle: string): string {
-    const sanitizedPodcast = sanitize(podcastTitle);
-    let sanitizedTitle = sanitize(episodeTitle);
-
-    const MAX_PATH = 250;
-    const ext = '.mp3';
-
-    const folderPath = path.join(baseDir, sanitizedPodcast);
-    const separators = 1;
-
-    const occupied = folderPath.length + separators + ext.length;
-    const available = MAX_PATH - occupied;
-
-    if (available < 1) {
-        sanitizedTitle = sanitizedTitle.substring(0, 5);
-    } else if (sanitizedTitle.length > available) {
-        sanitizedTitle = sanitizedTitle.substring(0, available);
-    }
-
-    return path.join(folderPath, `${sanitizedTitle}${ext}`);
 }

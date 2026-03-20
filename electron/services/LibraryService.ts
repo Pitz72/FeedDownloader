@@ -1,158 +1,104 @@
-import Store from 'electron-store';
 import { XMLParser, XMLBuilder } from 'fast-xml-parser';
+import { DatabaseService } from './DatabaseService';
+import type { FeedEntry, ArchiveEntry, ArchiveStats } from '../../shared/types';
 
-interface Feed {
-    url: string;
-    title: string;
-    lastUpdated: string;
-}
-
-interface ArchiveEntry {
-    guid: string;
-    podcastTitle: string;
-    title: string;
-    pubDate: string;
-    downloadedAt: string;
-    filename?: string;
-}
-
-interface ArchiveStats {
-    totalFiles: number;
-    totalPodcasts: number;
-    oldestDate: string | null;
-    newestDate: string | null;
-}
-
+/**
+ * LibraryService — high-level persistence API.
+ *
+ * v0.4.6: Backed by DatabaseService (SQLite) instead of electron-store (JSON).
+ * OPML import/export logic lives here; all CRUD is delegated to DatabaseService.
+ */
 export class LibraryService {
-    private store: Store;
+    private db: DatabaseService;
 
-    constructor() {
-        this.store = new Store();
+    constructor(db?: DatabaseService) {
+        this.db = db || new DatabaseService();
     }
 
-    getFeeds(): Feed[] {
-        return (this.store.get('feeds') as Feed[]) || [];
+    // ── Feeds ────────────────────────────────────────────────
+
+    getFeeds(): FeedEntry[] {
+        return this.db.getFeeds();
     }
 
-    addFeed(feed: Feed) {
-        const feeds = this.getFeeds();
-        if (!feeds.find((f) => f.url === feed.url)) {
-            feeds.push(feed);
-            this.store.set('feeds', feeds);
-        }
+    addFeed(feed: FeedEntry): void {
+        this.db.addFeed(feed);
     }
 
-    removeFeed(url: string) {
-        const feeds = this.getFeeds().filter((f) => f.url !== url);
-        this.store.set('feeds', feeds);
+    removeFeed(url: string): void {
+        this.db.removeFeed(url);
     }
 
-    getDownloadPath(): string {
-        return (this.store.get('downloadPath') as string) || '';
+    // ── Downloads ────────────────────────────────────────────
+
+    getDownloadedEpisodes(): string[] {
+        return this.db.getDownloadedEpisodes();
     }
 
-    setDownloadPath(path: string) {
-        this.store.set('downloadPath', path);
-    }
-
-    markAsDownloaded(guid: string) {
-        const downloads = (this.store.get('downloads') as string[]) || [];
-        if (!downloads.includes(guid)) {
-            downloads.push(guid);
-            this.store.set('downloads', downloads);
-        }
-    }
-
-    // Archive / CSV Support
-    addArchiveEntry(entry: ArchiveEntry) {
-        const archive = (this.store.get('archive') as ArchiveEntry[]) || [];
-        if (!archive.find(e => e.guid === entry.guid)) {
-            archive.push(entry);
-            this.store.set('archive', archive);
-        }
-    }
-
-    exportArchiveCSV(): string {
-        const archive = (this.store.get('archive') as ArchiveEntry[]) || [];
-        let csv = "Podcast,Episode Title,Publish Date,Downloaded At,GUID\n";
-
-        archive.forEach(entry => {
-            const row = [
-                `"${entry.podcastTitle.replace(/"/g, '""')}"`,
-                `"${entry.title.replace(/"/g, '""')}"`,
-                `"${entry.pubDate}"`,
-                `"${entry.downloadedAt}"`,
-                `"${entry.guid}"`
-            ].join(",");
-            csv += row + "\n";
-        });
-
-        return csv;
+    markAsDownloaded(guid: string): void {
+        this.db.markAsDownloaded(guid);
     }
 
     isDownloaded(guid: string): boolean {
-        const downloads = (this.store.get('downloads') as string[]) || [];
-        return downloads.includes(guid);
+        return this.db.isDownloaded(guid);
     }
 
-    getDownloadedEpisodes(): string[] {
-        return (this.store.get('downloads') as string[]) || [];
+    removeDownloadedEpisode(guid: string): void {
+        this.db.removeDownloadedEpisode(guid);
     }
 
-    removeDownloadedEpisode(guid: string) {
-        const downloads = (this.store.get('downloads') as string[]) || [];
-        const newDownloads = downloads.filter(id => id !== guid);
-        this.store.set('downloads', newDownloads);
-
-        const archive = (this.store.get('archive') as ArchiveEntry[]) || [];
-        const newArchive = archive.filter(e => e.guid !== guid);
-        this.store.set('archive', newArchive);
+    resetDownloadHistory(): void {
+        this.db.resetDownloadHistory();
     }
 
-    resetDownloadHistory() {
-        this.store.set('downloads', []);
-        this.store.set('archive', []);
+    // ── Archive ──────────────────────────────────────────────
+
+    addArchiveEntry(entry: ArchiveEntry): void {
+        this.db.addArchiveEntry(entry);
     }
 
-    // Concurrency settings
-    getConcurrency(): number {
-        return (this.store.get('concurrency') as number) || 3;
+    exportArchiveCSV(): string {
+        return this.db.exportArchiveCSV();
     }
 
-    setConcurrency(n: number) {
-        this.store.set('concurrency', Math.max(1, Math.min(n, 10)));
-    }
-
-    // Archive Statistics
     getArchiveStats(): ArchiveStats {
-        const archive = (this.store.get('archive') as ArchiveEntry[]) || [];
-
-        if (archive.length === 0) {
-            return { totalFiles: 0, totalPodcasts: 0, oldestDate: null, newestDate: null };
-        }
-
-        const podcasts = new Set(archive.map(e => e.podcastTitle));
-        const dates = archive
-            .map(e => e.downloadedAt)
-            .filter(d => d)
-            .sort();
-
-        return {
-            totalFiles: archive.length,
-            totalPodcasts: podcasts.size,
-            oldestDate: dates[0] || null,
-            newestDate: dates[dates.length - 1] || null,
-        };
+        return this.db.getArchiveStats();
     }
 
-    // OPML Support
+    // ── Settings ─────────────────────────────────────────────
+
+    getDownloadPath(): string {
+        return this.db.getDownloadPath();
+    }
+
+    setDownloadPath(downloadPath: string): void {
+        this.db.setDownloadPath(downloadPath);
+    }
+
+    getConcurrency(): number {
+        return this.db.getConcurrency();
+    }
+
+    setConcurrency(n: number): void {
+        this.db.setConcurrency(n);
+    }
+
+    // ── OPML ─────────────────────────────────────────────────
+
     async importOPML(xmlContent: string): Promise<number> {
         const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: "" });
         const result = parser.parse(xmlContent);
 
         let count = 0;
 
-        const traverse = (node: any) => {
+        interface OPMLNode {
+            xmlUrl?: string;
+            text?: string;
+            title?: string;
+            outline?: OPMLNode | OPMLNode[];
+        }
+
+        const traverse = (node: OPMLNode | OPMLNode[]) => {
             if (Array.isArray(node)) {
                 node.forEach(child => traverse(child));
             } else if (typeof node === 'object') {

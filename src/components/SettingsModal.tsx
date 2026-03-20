@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { HelpModal } from './HelpModal';
 import { useStore, AppState } from '../store/useStore';
 import { useToast } from '../context/ToastContext';
-import type { ArchiveStats } from '../types';
+import type { ArchiveStats } from '../../shared/types';
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -48,7 +48,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     const handleResetDatabase = async () => {
         await window.api.resetDownloadHistory();
         setConfirmReset(false);
-        window.location.reload();
+        // v0.4.7 — update state without reloading the entire app
+        setArchiveStats({ totalFiles: 0, totalPodcasts: 0, oldestDate: null, newestDate: null });
+        toast.show(t('settings.reset_success', 'Download history cleared.'), 'success');
     };
 
     const handleConcurrencyChange = async (n: number) => {
@@ -202,7 +204,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                             const res = await window.api.importOPML();
                                             if (res && res.count > 0) {
                                                 toast.show(t('settings.import_success', { count: res.count }), 'success');
-                                                setTimeout(() => window.location.reload(), 1500);
+                                                // v0.4.7 — feeds auto-update via onFeedsUpdated push event, no reload needed
                                             } else {
                                                 toast.show(t('settings.import_error'), 'error');
                                             }
