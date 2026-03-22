@@ -1,5 +1,11 @@
 # Analisi Critica del Codice (v0.1.3)
 
+> ⚠️ **ARCHIVIO STORICO** — Questo report fotografa lo stato del progetto alla versione **v0.1.3** (febbraio 2026).
+> Tutte le criticità qui documentate sono state **risolte** nelle versioni successive.
+> Conservato a scopo di riferimento storico sulla evoluzione del progetto.
+
+---
+
 In risposta alle osservazioni di Gemini, ecco l'analisi dello stato attuale del codice:
 
 ## 🔴 Criticità Gravi (Stabilità)

@@ -3,7 +3,8 @@
         "title": "Runtime FeedDownloader Pro",
         "slogan": "The most powerful way to archive your podcasts.",
         "start": "Start Application",
-        "language": "Language"
+        "language": "Language",
+        "skip": "Skip"
     },
     "sidebar": {
         "my_feeds": "My Feeds",
@@ -14,7 +15,8 @@
     },
     "input": {
         "placeholder": "Enter podcast RSS URL...",
-        "analyze": "Analyze"
+        "analyze": "Analyze",
+        "drop_url": "Drop RSS URL here to analyze"
     },
     "episodes": {
         "count": "{{count}} Episodes",
@@ -48,7 +50,9 @@
         "parse_error": "Could not parse the feed.",
         "invalid_feed": "Invalid URL: this is a webpage, not an RSS feed.",
         "network_error": "Network error. Check your connection.",
-        "feed_not_found": "Feed not found (404)."
+        "feed_not_found": "Feed not found (404).",
+        "episode_not_found": "Episode not available (404) — file removed from server.",
+        "download_error": "Download failed."
     },
     "confirm": {
         "mass_download": "Do you really want to download all {{count}} episodes?",

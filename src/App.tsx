@@ -5,13 +5,14 @@ import { Sidebar } from './components/Sidebar';
 import { GlobalProgressBar } from './components/GlobalProgressBar';
 import { IntroScreen } from './components/IntroScreen';
 import { useStore, AppState } from './store/useStore';
-import { ToastProvider } from './context/ToastContext';
+import { ToastProvider, useToast } from './context/ToastContext';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 
 function AppContent() {
   const updateDownload = useStore((state: AppState) => state.updateDownload);
   const incrementBatch = useStore((state: AppState) => state.incrementBatch);
+  const toast = useToast();
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -20,9 +21,32 @@ function AppContent() {
       if (data.completed || data.error) {
         incrementBatch();
       }
+      // v0.5.0 — Show toast on download errors
+      if (data.error) {
+        if (data.notFound) {
+          toast.show(t('toast.episode_not_found'), 'error');
+        } else {
+          toast.show(t('toast.download_error'), 'error');
+        }
+      }
     });
     return () => removeListener();
-  }, [updateDownload, incrementBatch]);
+  }, [updateDownload, incrementBatch, toast, t]);
+
+  // v0.5.0 — Ctrl+F focuses episode filter input
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        const filterInput = document.getElementById('episode-filter-input');
+        if (filterInput) {
+          e.preventDefault();
+          filterInput.focus();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 

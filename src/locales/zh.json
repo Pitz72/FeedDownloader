@@ -3,7 +3,8 @@
         "title": "Runtime FeedDownloader Pro",
         "slogan": "存档播客的最强大方式。",
         "start": "启动应用",
-        "language": "语言"
+        "language": "语言",
+        "skip": "跳过"
     },
     "sidebar": {
         "my_feeds": "我的订阅",
@@ -14,7 +15,8 @@
     },
     "input": {
         "placeholder": "输入播客 RSS URL...",
-        "analyze": "分析"
+        "analyze": "分析",
+        "drop_url": "将 RSS URL 拖放到此处进行分析"
     },
     "episodes": {
         "count": "{{count}} 集",
@@ -48,7 +50,9 @@
         "parse_error": "无法解析订阅。",
         "invalid_feed": "无效 URL：这是一个网页，不是 RSS 订阅。",
         "network_error": "网络错误。请检查您的连接。",
-        "feed_not_found": "订阅未找到 (404)。"
+        "feed_not_found": "订阅未找到 (404)。",
+        "episode_not_found": "剧集不可用 (404) — 文件已从服务器删除。",
+        "download_error": "下载失败。"
     },
     "confirm": {
         "mass_download": "您确定要下载全部 {{count}} 集吗？",

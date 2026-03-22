@@ -1,5 +1,12 @@
 # Report di Verifica: Codice vs Documentazione
 
+> ⚠️ **ARCHIVIO STORICO** — Questo report copre esclusivamente le versioni **v0.0.2 – v0.2.1** (febbraio 2026).
+> Alcune informazioni tecniche sono superate: ad esempio, la persistenza è migrata da `electron-store`
+> a SQLite in v0.4.6, e `getSafePath` è stato estratto da `ipc.ts` in un modulo dedicato in v0.4.1.
+> Conservato a scopo di riferimento storico.
+
+---
+
 ## 1. Obiettivo
 Verificare "chirurgicamente" la corrispondenza tra le funzionalità dichiarate nella documentazione (Versioni v0.0.2 - v0.2.1) e l'effettivo codice sorgente del progetto **Runtime FeedDownloader Pro**.
 

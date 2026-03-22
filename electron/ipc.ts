@@ -19,7 +19,7 @@ const initialConcurrency = libraryService.getConcurrency();
 const queueService = new QueueService(initialConcurrency);
 
 // Helper: send push event to renderer safely
-function pushEvent(win: BrowserWindow, channel: string, data?: any) {
+function pushEvent(win: BrowserWindow, channel: string, data?: unknown) {
     if (win && !win.isDestroyed()) {
         win.webContents.send(channel, data);
     }
@@ -27,6 +27,9 @@ function pushEvent(win: BrowserWindow, channel: string, data?: any) {
 
 // Track batch for OS notification (v0.4.2 — race-condition-safe)
 const batchTracker = new BatchTracker();
+
+// UI locale synced from Renderer (v0.4.10 — OS notification localization)
+let uiLocale = 'en';
 
 export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
@@ -121,15 +124,30 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                 pushEvent(mainWindow, CH.DOWNLOADS_UPDATED, libraryService.getDownloadedEpisodes());
             } catch (error) {
                 console.error("Download error:", error);
-                pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, error: true });
+                // v0.5.0 — propagate notFound flag for ghost episodes (404)
+                const isNotFound = (error as Error).message === 'EPISODE_NOT_FOUND';
+                pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, {
+                    url, loaded: 0, total: 0, error: true,
+                    ...(isNotFound ? { notFound: true } : {})
+                });
             } finally {
                 const finishedTotal = batchTracker.complete();
                 if (finishedTotal !== null) {
-                    // OS Notification
+                    // OS Notification — localized (v0.4.10)
                     if (Notification.isSupported()) {
+                        const notificationBodies: Record<string, string> = {
+                            en: `Download complete: ${finishedTotal} files downloaded.`,
+                            it: `Download completato: ${finishedTotal} file scaricati.`,
+                            fr: `Téléchargement terminé : ${finishedTotal} fichiers téléchargés.`,
+                            de: `Download abgeschlossen: ${finishedTotal} Dateien heruntergeladen.`,
+                            es: `Descarga completada: ${finishedTotal} archivos descargados.`,
+                            pt: `Download concluído: ${finishedTotal} ficheiros descarregados.`,
+                            ru: `Загрузка завершена: ${finishedTotal} файлов скачано.`,
+                            zh: `下载完成：已下载 ${finishedTotal} 个文件。`,
+                        };
                         new Notification({
                             title: 'Runtime FeedDownloader Pro',
-                            body: `Download completato: ${finishedTotal} file scaricati.`,
+                            body: notificationBodies[uiLocale] ?? notificationBodies['en'],
                             icon: path.join(process.env.VITE_PUBLIC || '', 'logo.png'),
                         }).show();
                     }
@@ -287,5 +305,11 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     // ── Archive Stats (v0.4.0) ───────────────────────────
     ipcMain.handle(CH.GET_ARCHIVE_STATS, async () => {
         return libraryService.getArchiveStats();
+    });
+
+    // ── Locale Sync (v0.4.10) ────────────────────────────
+    ipcMain.handle(CH.SET_LOCALE, async (_, locale: string) => {
+        uiLocale = locale;
+        return true;
     });
 }

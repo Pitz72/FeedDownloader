@@ -52,20 +52,6 @@ function createMockDataStream(chunks: Buffer[]) {
     return stream;
 }
 
-// Helper: create a stalling data stream (never emits finish)
-function createStallingStream() {
-    const emitter = new EventEmitter();
-    const stream = Object.assign(emitter, {
-        pipe: vi.fn().mockImplementation(() => {
-            // Emit one chunk then stop (stall)
-            emitter.emit('data', Buffer.from('partial'));
-            // Never emits finish — simulates stall
-            return emitter;
-        }),
-        destroy: vi.fn(),
-    });
-    return stream;
-}
 
 describe('DownloadService', () => {
     let service: DownloadService;

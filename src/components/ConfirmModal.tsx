@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -33,6 +33,14 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     };
 
     const colors = variantColors[variant];
+
+    // v0.5.0 — Esc key closes the modal
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') onCancel(); };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, onCancel]);
 
     return (
         <AnimatePresence>

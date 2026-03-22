@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import Database from 'better-sqlite3';
 import { DatabaseService } from '../electron/services/DatabaseService';
 
 // Mock electron's app module to avoid needing the real Electron runtime

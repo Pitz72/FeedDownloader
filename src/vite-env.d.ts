@@ -4,6 +4,7 @@
 import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveStats } from '../shared/types'
 
 declare global {
+    const __APP_VERSION__: string;
     interface Window {
         api: {
             parseFeed: (url: string) => Promise<Feed>;
@@ -33,6 +34,8 @@ declare global {
             setConcurrency: (n: number) => Promise<boolean>;
             // Archive Stats
             getArchiveStats: () => Promise<ArchiveStats>;
+            // Locale Sync (v0.4.10)
+            setLocale: (locale: string) => Promise<boolean>;
         };
     }
 }

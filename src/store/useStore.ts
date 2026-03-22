@@ -26,12 +26,22 @@ export const useStore = create<AppState>((set) => ({
 
     setCurrentFeed: (feed) => set({ currentFeed: feed }),
     setFeeds: (feeds) => set({ feeds }),
-    updateDownload: (progress) => set((state) => ({
-        downloads: {
-            ...state.downloads,
-            [progress.url]: { ...state.downloads[progress.url], ...progress }
+    updateDownload: (progress) => {
+        set((state) => ({
+            downloads: {
+                ...state.downloads,
+                [progress.url]: { ...state.downloads[progress.url], ...progress }
+            }
+        }));
+        // Schedule cleanup after 2s to let the UI render the final state
+        if (progress.completed || progress.error) {
+            setTimeout(() => set((state) => {
+                const updated = { ...state.downloads };
+                delete updated[progress.url];
+                return { downloads: updated };
+            }), 2000);
         }
-    })),
+    },
 
     // Batch Download State
     batchTotal: 0,

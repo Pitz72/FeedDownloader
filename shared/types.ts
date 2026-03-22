@@ -41,6 +41,7 @@ export interface DownloadProgress {
     total: number;
     completed?: boolean;
     error?: boolean;
+    notFound?: boolean; // v0.5.0 — ghost episode: server returned 404
 }
 
 export interface ArchiveEntry {
@@ -101,4 +102,6 @@ export const IPC_CHANNELS = {
     GET_CONCURRENCY: 'get-concurrency',
     SET_CONCURRENCY: 'set-concurrency',
     GET_ARCHIVE_STATS: 'get-archive-stats',
+    // UI locale sync (renderer → main, for OS notifications)
+    SET_LOCALE: 'set-locale',
 } as const;

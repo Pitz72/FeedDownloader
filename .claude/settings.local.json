@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls \"c:\\\\Users\\\\Utente\\\\Documents\\\\SVILUPPO\\\\UTILITY\\\\FeedDownloader\"/*.md)",
+      "Bash(npm run build)",
+      "Bash(node -e \"const p=require\\(''./package.json''\\); console.log\\(JSON.stringify\\(p.build, null, 2\\)\\)\")",
+      "Bash(node -e \":*)",
+      "Bash(timeout 8 \"./Runtime FeedDownloader Pro.exe\")",
+      "Bash(echo \"EXIT: $?\")",
+      "Read(//c/Users/Utente/Documents/SVILUPPO/UTILITY/FeedDownloader/builds/0.5.0/win-unpacked/$APPDATA/Runtime FeedDownloader Pro/**)",
+      "Read(//c/Users/Utente/Documents/SVILUPPO/UTILITY/FeedDownloader/builds/0.5.0/win-unpacked/$APPDATA/Runtime FeedDownloader Pro/logs/**)",
+      "Bash(timeout 10 \"./Runtime FeedDownloader Pro.exe\" --enable-logging --v=1)"
+    ]
+  }
+}

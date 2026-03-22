@@ -7,6 +7,7 @@ import { Virtuoso } from 'react-virtuoso';
 import { ConfirmModal } from './ConfirmModal';
 import type { Episode } from '../../shared/types';
 import { getEnclosureUrl } from '../../shared/getEnclosureUrl';
+import { useOnlineStatus } from '../hooks/useOnlineStatus';
 
 export const EpisodeList: React.FC = () => {
     const currentFeed = useStore((state: AppState) => state.currentFeed);
@@ -82,6 +83,9 @@ export const EpisodeList: React.FC = () => {
         return episodes;
     }, [currentFeed, searchQuery, dateFrom, dateTo]);
 
+    // v0.5.0 — must be called before early return (React hooks rules)
+    const isOnline = useOnlineStatus();
+
     if (!currentFeed) return null;
 
     const handleDownload = (episode: Episode, silent = false) => {
@@ -156,8 +160,6 @@ export const EpisodeList: React.FC = () => {
     const imageUrl = typeof currentFeed.image === 'string'
         ? currentFeed.image
         : currentFeed.image?.url;
-
-    const isOnline = navigator.onLine;
 
     const renderEpisodeRow = (_index: number, episode: Episode) => {
         const url = getEnclosureUrl(episode);
@@ -305,6 +307,7 @@ export const EpisodeList: React.FC = () => {
                             <Search size={16} className="text-gray-500" />
                         </div>
                         <input
+                            id="episode-filter-input"
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}

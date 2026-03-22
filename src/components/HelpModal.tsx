@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, BookOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -14,13 +14,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
     const [content, setContent] = useState('');
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        if (isOpen) {
-            loadHelp();
-        }
-    }, [isOpen, i18n.language]);
-
-    const loadHelp = async () => {
+    const loadHelp = useCallback(async () => {
         setLoading(true);
         try {
             // Provide just the language code (e.g., 'it', 'en-US' -> 'en')
@@ -33,7 +27,13 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [i18n.language, t]);
+
+    useEffect(() => {
+        if (isOpen) {
+            loadHelp();
+        }
+    }, [isOpen, loadHelp]);
 
     const backdropVariants = {
         hidden: { opacity: 0 },
@@ -85,14 +85,14 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
                                 <div className="prose prose-invert prose-blue max-w-none">
                                     <Markdown
                                         components={{
-                                            h1: ({ node, ...props }) => <h1 className="text-3xl font-bold text-white mb-6 border-b border-white/10 pb-4" {...props} />,
-                                            h2: ({ node, ...props }) => <h2 className="text-2xl font-semibold text-blue-400 mt-8 mb-4" {...props} />,
-                                            h3: ({ node, ...props }) => <h3 className="text-xl font-medium text-gray-200 mt-6 mb-3" {...props} />,
-                                            p: ({ node, ...props }) => <p className="text-gray-300 leading-relaxed mb-4" {...props} />,
-                                            ul: ({ node, ...props }) => <ul className="list-disc pl-6 space-y-2 mb-4 text-gray-300" {...props} />,
-                                            li: ({ node, ...props }) => <li className="pl-1" {...props} />,
-                                            strong: ({ node, ...props }) => <strong className="text-white font-semibold" {...props} />,
-                                            a: ({ node, ...props }) => <a className="text-blue-400 hover:text-blue-300 underline" target="_blank" {...props} />,
+                                            h1: ({ node: _node, ...props }) => <h1 className="text-3xl font-bold text-white mb-6 border-b border-white/10 pb-4" {...props} />,
+                                            h2: ({ node: _node, ...props }) => <h2 className="text-2xl font-semibold text-blue-400 mt-8 mb-4" {...props} />,
+                                            h3: ({ node: _node, ...props }) => <h3 className="text-xl font-medium text-gray-200 mt-6 mb-3" {...props} />,
+                                            p: ({ node: _node, ...props }) => <p className="text-gray-300 leading-relaxed mb-4" {...props} />,
+                                            ul: ({ node: _node, ...props }) => <ul className="list-disc pl-6 space-y-2 mb-4 text-gray-300" {...props} />,
+                                            li: ({ node: _node, ...props }) => <li className="pl-1" {...props} />,
+                                            strong: ({ node: _node, ...props }) => <strong className="text-white font-semibold" {...props} />,
+                                            a: ({ node: _node, ...props }) => <a className="text-blue-400 hover:text-blue-300 underline" target="_blank" {...props} />,
                                         }}
                                     >
                                         {content}

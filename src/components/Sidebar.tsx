@@ -4,7 +4,6 @@ import { Library, Trash2, Podcast, Settings } from 'lucide-react';
 import clsx from 'clsx';
 import { useToast } from '../context/ToastContext';
 import { useTranslation } from 'react-i18next';
-import pkg from '../../package.json';
 import { SettingsModal } from './SettingsModal';
 import { ConfirmModal } from './ConfirmModal';
 import type { FeedEntry } from '../../shared/types';
@@ -95,7 +94,7 @@ export const Sidebar: React.FC = () => {
 
                 {feeds.map((feed) => {
                     const imageUrl = typeof feed.image === 'string' ? feed.image : feed.image?.url;
-                    const date = new Date(feed.lastUpdated);
+                    const date = new Date(feed.lastUpdated ?? '');
                     const isValidDate = !isNaN(date.getTime());
 
                     return (
@@ -111,7 +110,7 @@ export const Sidebar: React.FC = () => {
                         >
                             <div className="w-10 h-10 rounded bg-gray-800 flex items-center justify-center shrink-0 overflow-hidden">
                                 {imageUrl ? (
-                                    <img src={imageUrl} className="w-full h-full object-cover" />
+                                    <img src={imageUrl} className="w-full h-full object-cover" alt={feed.title || ''} />
                                 ) : (
                                     <Podcast size={18} />
                                 )}
@@ -138,7 +137,7 @@ export const Sidebar: React.FC = () => {
             </div>
 
             <div className="p-4 border-t border-white/10">
-                <p className="text-xs text-center text-gray-600">v{pkg.version}</p>
+                <p className="text-xs text-center text-gray-600">v{__APP_VERSION__}</p>
             </div>
 
             <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />

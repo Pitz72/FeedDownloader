@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { ChevronRight, BookOpen } from 'lucide-react';
@@ -19,6 +19,8 @@ interface IntroScreenProps {
 export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
     const { t, i18n } = useTranslation();
     const [step, setStep] = useState(0); // 0: Logo, 1: Title, 2: Controls
+    const timer1Ref = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const timer2Ref = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Animation variants
     const containerVariants = {
@@ -44,10 +46,20 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
 
     // Auto-advance sequence
     React.useEffect(() => {
-        const timer1 = setTimeout(() => setStep(1), 1500); // Show title after 1.5s
-        const timer2 = setTimeout(() => setStep(2), 2500); // Show controls after 2.5s
-        return () => { clearTimeout(timer1); clearTimeout(timer2); };
+        timer1Ref.current = setTimeout(() => setStep(1), 1500);
+        timer2Ref.current = setTimeout(() => setStep(2), 2500);
+        return () => {
+            if (timer1Ref.current) clearTimeout(timer1Ref.current);
+            if (timer2Ref.current) clearTimeout(timer2Ref.current);
+        };
     }, []);
+
+    // v0.4.10 — Skip intro: clear pending timers and jump to controls
+    const skipToEnd = () => {
+        if (timer1Ref.current) clearTimeout(timer1Ref.current);
+        if (timer2Ref.current) clearTimeout(timer2Ref.current);
+        setStep(2);
+    };
 
     const changeLanguage = (lng: string) => {
         i18n.changeLanguage(lng);
@@ -73,8 +85,19 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
             animate="visible"
             exit="exit"
             className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0b1120] text-white overflow-hidden"
+        onClick={step < 2 ? skipToEnd : undefined}
         >
             <div className="absolute inset-0 bg-[url('./noise.svg')] opacity-20 pointer-events-none"></div>
+
+            {/* Skip button — visible during animation phases */}
+            {step < 2 && (
+                <button
+                    onClick={(e) => { e.stopPropagation(); skipToEnd(); }}
+                    className="absolute top-4 right-4 z-20 text-white/40 hover:text-white/80 text-sm transition-colors px-3 py-1 rounded-full border border-white/10 hover:border-white/30"
+                >
+                    {t('app.skip')} →
+                </button>
+            )}
 
             {/* Logo */}
             <motion.img

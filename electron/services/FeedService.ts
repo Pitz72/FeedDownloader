@@ -36,7 +36,9 @@ export class FeedService {
       }
 
       // 2. Parse
-      const feed: any = await this.parser.parseURL(url);
+      const feed = await this.parser.parseURL(url) as Record<string, unknown> & {
+        image?: unknown; itunes?: { image?: unknown }; items: Record<string, unknown>[];
+      };
 
       // Fix for Anchor.fm / iTunes feeds where image is in 'itunes.image'
       if (!feed.image && feed.itunes && feed.itunes.image) {
@@ -44,7 +46,7 @@ export class FeedService {
       }
 
       // Map 'items' to 'episodes' for UI consistency
-      feed.episodes = feed.items.map((item: any) => ({
+      feed.episodes = feed.items.map((item) => ({
         title: item.title,
         pubDate: item.pubDate,
         link: item.link,
@@ -57,12 +59,13 @@ export class FeedService {
       }));
 
       return feed;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error parsing feed:', error);
-      if (error.message.includes('INVALID_FEED_TYPE')) {
+      const errMsg = error instanceof Error ? error.message : String(error);
+      if (errMsg.includes('INVALID_FEED_TYPE')) {
         throw error; // Rethrow custom error
       }
-      throw new Error("FAILED_TO_PARSE: Could not parse feed. " + error.message);
+      throw new Error("FAILED_TO_PARSE: Could not parse feed. " + errMsg);
     }
   }
 }

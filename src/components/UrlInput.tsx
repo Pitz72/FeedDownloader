@@ -7,12 +7,15 @@ import { useTranslation } from 'react-i18next';
 export const UrlInput: React.FC = () => {
     const [url, setUrl] = useState('');
     const [loading, setLoading] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
     const setCurrentFeed = useStore((state: AppState) => state.setCurrentFeed);
     const toast = useToast();
     const { t } = useTranslation();
 
-    const handleAnalyze = async () => {
-        if (!url) return;
+    // Shared analyze logic — used by button, Enter key, and drag & drop
+    const analyzeFeed = async (feedUrl: string) => {
+        const trimmed = feedUrl.trim();
+        if (!trimmed) return;
         if (!navigator.onLine) {
             toast.show(t('toast.offline_error'), 'error');
             return;
@@ -20,26 +23,58 @@ export const UrlInput: React.FC = () => {
 
         setLoading(true);
         try {
-            const feed = await window.api.parseFeed(url);
-            const fullFeed = { ...feed, url };
+            const feed = await window.api.parseFeed(trimmed);
+            const fullFeed = { ...feed, url: trimmed };
             setCurrentFeed(fullFeed);
             await window.api.addFeed(fullFeed);
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
-            let msg = t('toast.parse_error', 'Could not parse the feed.');
-            if (error.message?.includes('INVALID_FEED_TYPE')) msg = t('toast.invalid_feed', 'Invalid URL: this is a webpage, not an RSS feed.');
-            else if (error.message?.includes('Network Error')) msg = t('toast.network_error', 'Network error. Check your connection.');
-            else if (error.message?.includes('404')) msg = t('toast.feed_not_found', 'Feed not found (404).');
-
+            const msg_src = error instanceof Error ? error.message : '';
+            let msg = t('toast.parse_error');
+            if (msg_src.includes('INVALID_FEED_TYPE')) msg = t('toast.invalid_feed');
+            else if (msg_src.includes('Network Error')) msg = t('toast.network_error');
+            else if (msg_src.includes('404')) msg = t('toast.feed_not_found');
             toast.show(msg, 'error');
         } finally {
             setLoading(false);
         }
     };
 
+    const handleAnalyze = () => analyzeFeed(url);
+
+    // v0.5.0 — Drag & Drop RSS URL
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        // Only clear if leaving the container entirely
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+            setIsDragging(false);
+        }
+    };
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+        const dropped = (
+            e.dataTransfer.getData('text/plain') ||
+            e.dataTransfer.getData('text/uri-list')
+        ).trim();
+        if (!dropped) return;
+        setUrl(dropped);
+        analyzeFeed(dropped);
+    };
+
     return (
-        <div className="flex flex-col gap-2 max-w-3xl mx-auto mt-10">
-            <div className="flex gap-2 p-4 glass-card">
+        <div
+            className={`flex flex-col gap-2 max-w-3xl mx-auto mt-10 transition-all ${isDragging ? 'scale-[1.01]' : ''}`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+        >
+            <div className={`flex gap-2 p-4 glass-card transition-all ${isDragging ? 'ring-2 ring-blue-500/60 bg-blue-500/5' : ''}`}>
                 <button
                     onClick={async () => {
                         const path = await window.api.chooseFolder();
@@ -59,7 +94,7 @@ export const UrlInput: React.FC = () => {
                         type="text"
                         value={url}
                         onChange={(e) => setUrl(e.target.value)}
-                        placeholder={t('input.placeholder')}
+                        placeholder={isDragging ? t('input.drop_url') : t('input.placeholder')}
                         className="w-full bg-white/5 border border-white/10 text-white pl-12 pr-32 py-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all placeholder:text-gray-500"
                         onKeyDown={(e) => e.key === 'Enter' && handleAnalyze()}
                     />

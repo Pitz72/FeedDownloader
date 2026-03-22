@@ -51,4 +51,7 @@ contextBridge.exposeInMainWorld('api', {
 
   // Archive Stats
   getArchiveStats: (): Promise<ArchiveStats> => ipcRenderer.invoke(CH.GET_ARCHIVE_STATS),
+
+  // Locale Sync (v0.4.10)
+  setLocale: (locale: string): Promise<boolean> => ipcRenderer.invoke(CH.SET_LOCALE, locale),
 })

@@ -22,6 +22,7 @@ export class DownloadService {
                 if (err.message === 'DISK_FULL') throw error;
                 if (err.message === 'DOWNLOAD_TIMEOUT') throw error;
                 if (err.message === 'DOWNLOAD_STALLED') throw error;
+                if (err.message === 'EPISODE_NOT_FOUND') throw error; // v0.5.0 — 404 is permanent, no retry
 
                 console.error(`Download attempt ${i + 1} failed:`, error);
 
@@ -49,6 +50,13 @@ export class DownloadService {
                 responseType: 'stream',
                 timeout: CONNECTION_TIMEOUT_MS,
             });
+
+            // v0.5.0 — Ghost episode detection: 404 means file was removed from server
+            if (response.status === 404) {
+                writer.close();
+                await fs.remove(tempPath).catch(() => { });
+                throw new Error('EPISODE_NOT_FOUND');
+            }
 
             const totalLength = response.headers['content-length'];
 
@@ -83,6 +91,17 @@ export class DownloadService {
 
                 writer.on('finish', async () => {
                     if (stallTimer) clearTimeout(stallTimer);
+
+                    // v0.5.0 — Integrity check: verify downloaded size matches Content-Length
+                    if (totalLength) {
+                        const expected = parseInt(totalLength);
+                        if (expected > 0 && Math.abs(loaded - expected) / expected > 0.01) {
+                            await fs.remove(tempPath).catch(() => { });
+                            reject(new Error('INTEGRITY_CHECK_FAILED'));
+                            return;
+                        }
+                    }
+
                     try {
                         await fs.rename(tempPath, outputPath);
                         resolve();

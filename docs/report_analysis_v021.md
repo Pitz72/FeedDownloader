@@ -1,5 +1,12 @@
 # Analisi Approfondita: Runtime FeedDownloader Pro
 
+> ⚠️ **ARCHIVIO STORICO** — Questo report fotografa lo stato del progetto alla versione **v0.2.1** (febbraio 2026).
+> Lo stato attuale del progetto è significativamente più avanzato (v0.4.8): SQLite, test suite (189 test),
+> validazione URL anti-SSRF, rilevamento estensione reale, timeout download e architettura a push events.
+> Conservato a scopo di riferimento storico sull'evoluzione del progetto.
+
+---
+
 ## 1. Panoramica del Progetto
 **Runtime FeedDownloader Pro** è un'applicazione desktop professionale per l'archiviazione massiva di podcast. 
 Nata inizialmente come script Python, è stata completamente riscritta (v0.0.2) utilizzando tecnologie web moderne (**Electron, React, TypeScript, Vite**) per offrire un'interfaccia utente evoluta e prestazioni superiori.
