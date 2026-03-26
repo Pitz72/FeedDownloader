@@ -100,7 +100,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
     const panelVariants = {
         hidden: { x: 60, opacity: 0 },
-        visible: { x: 0, opacity: 1, transition: { type: 'spring', stiffness: 300, damping: 30 } },
+        visible: { x: 0, opacity: 1, transition: { type: 'spring' as const, stiffness: 300, damping: 30 } },
         exit: { x: 60, opacity: 0, transition: { duration: 0.15 } }
     };
 
