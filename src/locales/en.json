@@ -33,7 +33,10 @@
         "filter_all": "All",
         "filter_new": "Not Downloaded",
         "filter_downloaded": "Downloaded",
-        "sync_new": "Sync New"
+        "sync_new": "Sync New",
+        "duration_filter": "Duration",
+        "min_duration": "Min (min)",
+        "max_duration": "Max (min)"
     },
     "progress": {
         "downloading": "Downloading...",

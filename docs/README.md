@@ -10,6 +10,7 @@ Cronologia completa delle versioni in [`changelog/`](changelog/).
 
 | Versione | Data | Tema |
 |----------|------|------|
+| [0.6.6](changelog/0.6.6.md) | 26 mar 2026 | Filtro Durata Episodi — filtro min/max minuti, parseDurationMinutes (HH:MM:SS/MM:SS/sec), durata in ogni riga |
 | [0.6.5](changelog/0.6.5.md) | 26 mar 2026 | Throttling Velocità — limite KB/s configurabile per i download, Transform stream puro Node.js |
 | [0.6.4](changelog/0.6.4.md) | 26 mar 2026 | Tagging ID3 Automatico — iniezione metadati (titolo, artista, anno, copertina) nei file .mp3 scaricati |
 | [0.6.3](changelog/0.6.3.md) | 26 mar 2026 | Feed Cache + Spinner — cache in-memory 5 min, risposta istantanea ai click ripetuti |

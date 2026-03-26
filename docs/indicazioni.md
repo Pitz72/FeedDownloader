@@ -23,7 +23,7 @@ Gestione intelligente delle risorse per evitare ban dai CDN e ottimizzare i temp
 - ✅ **Download Paralleli Configurabili (v0.4.0):** Selettore per limitare i download paralleli (1, 3, 5 simultanei).
 - ✅ **Throttling Velocità di Trasferimento (v0.6.5):** Limitazione della velocità in KB/s per non saturare la rete o attivare protezioni anti-bot.
 - ✅ **Filtri per Data (v0.4.0):** Filtro per intervallo di date di pubblicazione degli episodi.
-- 🔲 **Filtri Avanzati:** Filtrare per keyword nel titolo o durata dell'episodio.
+- ✅ **Filtri Avanzati (v0.6.6):** Filtro per keyword nel titolo (già presente) e filtro per durata (min/max minuti). `parseDurationMinutes` supporta HH:MM:SS, MM:SS e secondi puri; durata mostrata in ogni riga episodio.
 - ✅ **Sincronizzazione Incrementale Smart (v0.5.3):** Funzione "Sync New" che rianalizza il feed e mette in coda automaticamente solo i nuovi episodi non ancora presenti nel database.
 
 ### 4. Gestione dello Storage (Safety)
@@ -58,4 +58,4 @@ Fornire all'utente una visione chiara dello stato del proprio archivio.
 - 🔲 **Esportazione Log Avanzata:** Includere nel CSV dettagli tecnici come bitrate, frequenza di campionamento e stato di validazione del file.
 
 ---
-*Documento redatto il 16 febbraio 2026 come roadmap per lo sviluppo futuro. Aggiornato il 21 marzo 2026 con lo stato di implementazione. Aggiornato il 26 marzo 2026: segnate ✅ le feature implementate in v0.5.0–v0.6.5; aggiunta sezione 5 su refactor finestra impostazioni.*
+*Documento redatto il 16 febbraio 2026 come roadmap per lo sviluppo futuro. Aggiornato il 21 marzo 2026 con lo stato di implementazione. Aggiornato il 26 marzo 2026: segnate ✅ le feature implementate in v0.5.0–v0.6.6; aggiunta sezione 5 su refactor finestra impostazioni.*

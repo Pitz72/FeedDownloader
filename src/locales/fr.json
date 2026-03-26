@@ -33,7 +33,10 @@
         "filter_all": "Tous",
         "filter_new": "Non téléchargés",
         "filter_downloaded": "Téléchargés",
-        "sync_new": "Sync Nouveaux"
+        "sync_new": "Sync Nouveaux",
+        "duration_filter": "Durée",
+        "min_duration": "Min (min)",
+        "max_duration": "Max (min)"
     },
     "progress": {
         "downloading": "Téléchargement en cours...",

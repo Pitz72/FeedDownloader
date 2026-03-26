@@ -33,7 +33,10 @@
         "filter_all": "Tutti",
         "filter_new": "Da scaricare",
         "filter_downloaded": "Scaricati",
-        "sync_new": "Sincronizza Nuovi"
+        "sync_new": "Sincronizza Nuovi",
+        "duration_filter": "Durata",
+        "min_duration": "Min (min)",
+        "max_duration": "Max (min)"
     },
     "progress": {
         "downloading": "Download in corso...",

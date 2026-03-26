@@ -33,7 +33,10 @@
         "filter_all": "Все",
         "filter_new": "Не скачанные",
         "filter_downloaded": "Скачанные",
-        "sync_new": "Синхронизировать новые"
+        "sync_new": "Синхронизировать новые",
+        "duration_filter": "Длительность",
+        "min_duration": "Мин (мин)",
+        "max_duration": "Макс (мин)"
     },
     "progress": {
         "downloading": "Загрузка...",

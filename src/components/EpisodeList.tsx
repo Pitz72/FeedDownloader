@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useStore, AppState } from '../store/useStore';
-import { Download, Check, RefreshCw, FolderOpen, DownloadCloud, RotateCcw, Search, Calendar } from 'lucide-react';
+import { Download, Check, RefreshCw, FolderOpen, DownloadCloud, RotateCcw, Search, Calendar, Clock } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import { useTranslation } from 'react-i18next';
 import { Virtuoso } from 'react-virtuoso';
@@ -26,6 +26,11 @@ export const EpisodeList: React.FC = () => {
     // Status filter (v0.5.2)
     type StatusFilter = 'all' | 'new' | 'downloaded';
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+
+    // Duration filter state (v0.6.6)
+    const [minDuration, setMinDuration] = useState<number>(0);
+    const [maxDuration, setMaxDuration] = useState<number>(0);
+    const [showDurationFilter, setShowDurationFilter] = useState(false);
 
     // Sync new episodes (v0.5.3)
     const [isSyncing, setIsSyncing] = useState(false);
@@ -57,7 +62,38 @@ export const EpisodeList: React.FC = () => {
         return () => removeListener();
     }, []);
 
-    // Filtered episodes: search + date range
+    // v0.6.6 — Parse itunes:duration string to minutes
+    const parseDurationMinutes = (duration?: string): number | null => {
+        if (!duration) return null;
+        const trimmed = duration.trim();
+        // Pure number → treat as seconds
+        if (/^\d+$/.test(trimmed)) {
+            return Math.floor(parseInt(trimmed, 10) / 60);
+        }
+        const parts = trimmed.split(':').map(p => parseInt(p, 10));
+        if (parts.some(isNaN)) return null;
+        if (parts.length === 3) {
+            // HH:MM:SS
+            return parts[0] * 60 + parts[1];
+        }
+        if (parts.length === 2) {
+            // MM:SS
+            return parts[0];
+        }
+        return null;
+    };
+
+    // v0.6.6 — Format duration for display
+    const formatDuration = (duration?: string): string | null => {
+        const mins = parseDurationMinutes(duration);
+        if (mins === null) return null;
+        const h = Math.floor(mins / 60);
+        const m = mins % 60;
+        if (h > 0) return `${h}h ${m}m`;
+        return `${m} min`;
+    };
+
+    // Filtered episodes: search + date range + duration
     const filteredEpisodes = useMemo(() => {
         if (!currentFeed) return [];
         let episodes = currentFeed.episodes;
@@ -97,8 +133,19 @@ export const EpisodeList: React.FC = () => {
             });
         }
 
+        // Duration filter (v0.6.6)
+        if (minDuration > 0 || maxDuration > 0) {
+            episodes = episodes.filter((ep: Episode) => {
+                const mins = parseDurationMinutes(ep.itunes?.duration);
+                if (mins === null) return true; // no duration info → always pass
+                if (minDuration > 0 && mins < minDuration) return false;
+                if (maxDuration > 0 && mins > maxDuration) return false;
+                return true;
+            });
+        }
+
         return episodes;
-    }, [currentFeed, searchQuery, dateFrom, dateTo, downloadedGuids, statusFilter]);
+    }, [currentFeed, searchQuery, dateFrom, dateTo, downloadedGuids, statusFilter, minDuration, maxDuration]);
 
     // v0.5.0 — must be called before early return (React hooks rules)
     const isOnline = useOnlineStatus();
@@ -223,7 +270,15 @@ export const EpisodeList: React.FC = () => {
             <div className="glass-card p-4 flex items-center gap-4 hover:bg-white/5 transition-colors group mb-2 mx-1">
                 <div className="flex-1 min-w-0">
                     <h3 className="font-medium text-gray-200 truncate">{episode.title}</h3>
-                    <p className="text-sm text-gray-500">{episode.pubDate ? new Date(episode.pubDate).toLocaleDateString() : ''}</p>
+                    <p className="text-sm text-gray-500 flex items-center gap-2">
+                        <span>{episode.pubDate ? new Date(episode.pubDate).toLocaleDateString() : ''}</span>
+                        {formatDuration(episode.itunes?.duration) && (
+                            <span className="flex items-center gap-1 text-gray-600">
+                                <Clock size={11} />
+                                {formatDuration(episode.itunes?.duration)}
+                            </span>
+                        )}
+                    </p>
                 </div>
 
                 {isDownloading ? (
@@ -321,6 +376,16 @@ export const EpisodeList: React.FC = () => {
                             {t('episodes.date_filter', 'Date Filter')}
                         </button>
 
+                        {/* Duration Filter button (v0.6.6) */}
+                        <button
+                            onClick={() => setShowDurationFilter(!showDurationFilter)}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors ${showDurationFilter ? 'bg-blue-600/30 text-blue-300 border border-blue-500/30' : 'bg-white/10 hover:bg-white/20 text-gray-300'}`}
+                            title={t('episodes.duration_filter', 'Filter by duration')}
+                        >
+                            <Clock size={16} />
+                            {t('episodes.duration_filter', 'Duration Filter')}
+                        </button>
+
                         {/* Status filter (v0.5.2) */}
                         <div className="flex rounded-lg overflow-hidden border border-white/10 text-sm">
                             {(['all', 'new', 'downloaded'] as const).map(s => (
@@ -363,6 +428,42 @@ export const EpisodeList: React.FC = () => {
                             {(dateFrom || dateTo) && (
                                 <button
                                     onClick={() => { setDateFrom(''); setDateTo(''); }}
+                                    className="text-xs text-gray-400 hover:text-white px-2 py-1 hover:bg-white/10 rounded transition-colors"
+                                >
+                                    {t('common.clear', 'Clear')}
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Duration Filter Panel (v0.6.6) */}
+                    {showDurationFilter && (
+                        <div className="mt-3 flex flex-wrap items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-lg">
+                            <div className="flex items-center gap-2">
+                                <label className="text-xs text-gray-400">{t('episodes.min_duration', 'Min (min)')}</label>
+                                <input
+                                    type="number"
+                                    min={0}
+                                    value={minDuration || ''}
+                                    onChange={(e) => setMinDuration(e.target.value === '' ? 0 : Math.max(0, parseInt(e.target.value, 10) || 0))}
+                                    className="bg-black/30 border border-white/10 rounded px-2 py-1 text-sm text-gray-300 focus:outline-none focus:border-blue-500 w-20"
+                                    placeholder="0"
+                                />
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <label className="text-xs text-gray-400">{t('episodes.max_duration', 'Max (min)')}</label>
+                                <input
+                                    type="number"
+                                    min={0}
+                                    value={maxDuration || ''}
+                                    onChange={(e) => setMaxDuration(e.target.value === '' ? 0 : Math.max(0, parseInt(e.target.value, 10) || 0))}
+                                    className="bg-black/30 border border-white/10 rounded px-2 py-1 text-sm text-gray-300 focus:outline-none focus:border-blue-500 w-20"
+                                    placeholder="0"
+                                />
+                            </div>
+                            {(minDuration > 0 || maxDuration > 0) && (
+                                <button
+                                    onClick={() => { setMinDuration(0); setMaxDuration(0); }}
                                     className="text-xs text-gray-400 hover:text-white px-2 py-1 hover:bg-white/10 rounded transition-colors"
                                 >
                                     {t('common.clear', 'Clear')}

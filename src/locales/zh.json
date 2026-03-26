@@ -33,7 +33,10 @@
         "filter_all": "全部",
         "filter_new": "未下载",
         "filter_downloaded": "已下载",
-        "sync_new": "同步新集"
+        "sync_new": "同步新集",
+        "duration_filter": "时长",
+        "min_duration": "最短 (分钟)",
+        "max_duration": "最长 (分钟)"
     },
     "progress": {
         "downloading": "下载中...",

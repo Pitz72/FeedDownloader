@@ -33,7 +33,10 @@
         "filter_all": "Todos",
         "filter_new": "Não descarregados",
         "filter_downloaded": "Descarregados",
-        "sync_new": "Sincronizar Novos"
+        "sync_new": "Sincronizar Novos",
+        "duration_filter": "Duração",
+        "min_duration": "Mín (min)",
+        "max_duration": "Máx (min)"
     },
     "progress": {
         "downloading": "A descarregar...",

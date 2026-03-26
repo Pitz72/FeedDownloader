@@ -33,7 +33,10 @@
         "filter_all": "Alle",
         "filter_new": "Nicht heruntergeladen",
         "filter_downloaded": "Heruntergeladen",
-        "sync_new": "Neue synchronisieren"
+        "sync_new": "Neue synchronisieren",
+        "duration_filter": "Dauer",
+        "min_duration": "Min (Min)",
+        "max_duration": "Max (Min)"
     },
     "progress": {
         "downloading": "Wird heruntergeladen...",

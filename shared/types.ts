@@ -16,6 +16,7 @@ export interface Episode {
     guid?: string;
     isoDate?: string;
     description?: string;
+    itunes?: { duration?: string };
 }
 
 export interface Feed {
