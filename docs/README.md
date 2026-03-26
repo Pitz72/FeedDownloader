@@ -10,6 +10,7 @@ Cronologia completa delle versioni in [`changelog/`](changelog/).
 
 | Versione | Data | Tema |
 |----------|------|------|
+| [0.5.1](changelog/0.5.1.md) | 26 mar 2026 | Security Hardening & Cleanup — nodeIntegration esplicito, rate limit PARSE_FEED, rimozione electron-store |
 | [0.5.0](changelog/0.5.0.md) | 22 mar 2026 | UX Upgrade — drag & drop, shortcuts, tray icon, integrity check, ghost 404 |
 | [0.4.9](changelog/0.4.9.md) | 21 mar 2026 | Lieve Cleanup — 7 criticità lievi risolte, useOnlineStatus, __APP_VERSION__, ESLint nel build |
 | [0.4.8](changelog/0.4.8.md) | 20 mar 2026 | Code Hygiene — utility centralizzata, try/catch push events, fix CSV |
@@ -38,7 +39,7 @@ Cronologia completa delle versioni in [`changelog/`](changelog/).
 
 | File | Periodo coperto | Note |
 |------|----------------|------|
-| [report_stato_attuale_2026-03-21.md](report_stato_attuale_2026-03-21.md) | v0.4.9 — **attuale** | Verifica codice reale: 2 criticità medie aperte, 7 lievi risolte in v0.4.9, roadmap |
+| [report_stato_attuale_2026-03-21.md](report_stato_attuale_2026-03-21.md) | v0.5.0 — **attuale** | Verifica codice reale: tutte le criticità chiuse, roadmap medio/lungo termine |
 | [report_analisi_v040_rimanenti.md](report_analisi_v040_rimanenti.md) | post v0.4.0 | Criticità rimanenti iniziali e backlog sviluppo |
 | [report_analysis_v021.md](report_analysis_v021.md) | v0.2.1 | ⚠️ Archivio storico |
 | [report_verification_code_vs_docs.md](report_verification_code_vs_docs.md) | v0.0.2 – v0.2.1 | ⚠️ Archivio storico |

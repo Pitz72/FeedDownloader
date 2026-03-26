@@ -92,6 +92,9 @@ function createWindow() {
     ...(process.platform === 'darwin' ? { titleBarStyle: 'hidden' } : {}),
     webPreferences: {
       preload: path.join(__dirname, 'preload.mjs'),
+      nodeIntegration: false,
+      contextIsolation: true,
+      sandbox: false, // sandbox:true incompatible with preload+better-sqlite3 native module
     },
   })
 

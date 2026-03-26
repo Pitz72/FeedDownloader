@@ -28,6 +28,10 @@ function pushEvent(win: BrowserWindow, channel: string, data?: unknown) {
 // Track batch for OS notification (v0.4.2 — race-condition-safe)
 const batchTracker = new BatchTracker();
 
+// v0.5.1 — Rate limiting for PARSE_FEED: max 1 request per URL every 3 seconds
+const parseFeedLastCall = new Map<string, number>();
+const PARSE_FEED_COOLDOWN_MS = 3000;
+
 // UI locale synced from Renderer (v0.4.10 — OS notification localization)
 let uiLocale = 'en';
 
@@ -40,6 +44,15 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         if (!check.valid) {
             throw new Error(check.error);
         }
+
+        // v0.5.1 — rate limit: reject duplicate requests for the same URL within cooldown window
+        const now = Date.now();
+        const lastCall = parseFeedLastCall.get(url);
+        if (lastCall !== undefined && (now - lastCall) < PARSE_FEED_COOLDOWN_MS) {
+            throw new Error('RATE_LIMITED');
+        }
+        parseFeedLastCall.set(url, now);
+
         return await feedService.parseFeed(url);
     });
 
