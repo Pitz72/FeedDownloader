@@ -97,7 +97,9 @@
         "stats_range": "Rango del archivo",
         "naming_template": "Plantilla de Nombre de Archivo",
         "naming_template_tokens": "Tokens disponibles: {title} {podcast} {date} {year} {month} {day}",
-        "naming_template_preview": "Vista previa"
+        "naming_template_preview": "Vista previa",
+        "sidecar_enabled": "Archivos Sidecar .json",
+        "sidecar_hint": "Guarda un archivo .json junto a cada audio descargado con título, podcast, fecha y URL de origen"
     },
     "help": {
         "title": "Guía de Usuario",

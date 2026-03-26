@@ -58,4 +58,8 @@ contextBridge.exposeInMainWorld('api', {
   // Naming Template (v0.5.4)
   getNamingTemplate: (): Promise<string> => ipcRenderer.invoke(CH.GET_NAMING_TEMPLATE),
   setNamingTemplate: (template: string): Promise<boolean> => ipcRenderer.invoke(CH.SET_NAMING_TEMPLATE, template),
+
+  // Sidecar JSON (v0.5.5)
+  getSidecarEnabled: (): Promise<boolean> => ipcRenderer.invoke(CH.GET_SIDECAR_ENABLED),
+  setSidecarEnabled: (enabled: boolean): Promise<boolean> => ipcRenderer.invoke(CH.SET_SIDECAR_ENABLED, enabled),
 })

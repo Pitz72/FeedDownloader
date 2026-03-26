@@ -20,6 +20,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     const [isHelpOpen, setIsHelpOpen] = useState(false);
     const [concurrency, setConcurrency] = useState(3);
     const [namingTemplate, setNamingTemplate] = useState('{title}');
+    const [sidecarEnabled, setSidecarEnabled] = useState(false);
     const [archiveStats, setArchiveStats] = useState<ArchiveStats | null>(null);
     const isBatchDownloading = useStore((state: AppState) => state.isBatchDownloading);
 
@@ -38,6 +39,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         setArchiveStats(stats);
         const tmpl = await window.api.getNamingTemplate();
         setNamingTemplate(tmpl || '{title}');
+        const sidecar = await window.api.getSidecarEnabled();
+        setSidecarEnabled(sidecar);
     };
 
     const handleChangeFolder = async () => {
@@ -193,6 +196,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                             .replace(/\{podcast\}/gi, 'My Podcast')
                                             .replace(/\{title\}/gi, 'Episode Title')}
                                     </p>
+                                </div>
+                                {/* Sidecar JSON (v0.5.5) */}
+                                <div className="flex items-center justify-between mt-4 p-3 bg-white/5 border border-white/10 rounded-lg">
+                                    <div>
+                                        <p className="text-sm text-gray-300">{t('settings.sidecar_enabled')}</p>
+                                        <p className="text-xs text-gray-500 mt-0.5">{t('settings.sidecar_hint')}</p>
+                                    </div>
+                                    <button
+                                        onClick={async () => {
+                                            const next = !sidecarEnabled;
+                                            setSidecarEnabled(next);
+                                            await window.api.setSidecarEnabled(next);
+                                        }}
+                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${sidecarEnabled ? 'bg-blue-600' : 'bg-white/20'}`}
+                                    >
+                                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${sidecarEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                                    </button>
                                 </div>
                             </div>
 

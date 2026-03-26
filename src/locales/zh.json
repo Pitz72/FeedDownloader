@@ -97,7 +97,9 @@
         "stats_range": "存档期间",
         "naming_template": "文件命名模板",
         "naming_template_tokens": "可用标记：{title} {podcast} {date} {year} {month} {day}",
-        "naming_template_preview": "预览"
+        "naming_template_preview": "预览",
+        "sidecar_enabled": "Sidecar .json 文件",
+        "sidecar_hint": "在每个下载的音频旁保存一个 .json 文件，包含标题、播客、日期和来源 URL"
     },
     "help": {
         "title": "用户指南",

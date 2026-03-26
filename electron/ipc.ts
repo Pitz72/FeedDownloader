@@ -141,6 +141,24 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                     });
                 }
 
+                // v0.5.5 — Write sidecar .json if enabled
+                if (libraryService.getSidecarEnabled()) {
+                    const sidecarPath = path.join(
+                        path.dirname(targetFile),
+                        path.parse(targetFile).name + '.json'
+                    );
+                    const sidecar = {
+                        title,
+                        podcast: podcastTitle,
+                        guid: guid || null,
+                        pubDate: pubDate || null,
+                        downloadedAt: new Date().toISOString(),
+                        sourceUrl: url,
+                        filename: path.basename(targetFile),
+                    };
+                    await fs.writeJSON(sidecarPath, sidecar, { spaces: 2 }).catch(() => { });
+                }
+
                 pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded: 100, total: 100, completed: true });
                 pushEvent(mainWindow, CH.DOWNLOADS_UPDATED, libraryService.getDownloadedEpisodes());
             } catch (error) {
@@ -341,6 +359,16 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
     ipcMain.handle(CH.SET_NAMING_TEMPLATE, async (_, template: string) => {
         libraryService.setNamingTemplate(template);
+        return true;
+    });
+
+    // ── Sidecar JSON (v0.5.5) ────────────────────────────────
+    ipcMain.handle(CH.GET_SIDECAR_ENABLED, async () => {
+        return libraryService.getSidecarEnabled();
+    });
+
+    ipcMain.handle(CH.SET_SIDECAR_ENABLED, async (_, enabled: boolean) => {
+        libraryService.setSidecarEnabled(enabled);
         return true;
     });
 }

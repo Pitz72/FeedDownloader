@@ -97,7 +97,9 @@
         "stats_range": "Период архива",
         "naming_template": "Шаблон имени файла",
         "naming_template_tokens": "Доступные токены: {title} {podcast} {date} {year} {month} {day}",
-        "naming_template_preview": "Предпросмотр"
+        "naming_template_preview": "Предпросмотр",
+        "sidecar_enabled": "Файлы Sidecar .json",
+        "sidecar_hint": "Сохраняет файл .json рядом с каждым скачанным аудио с заголовком, подкастом, датой и URL источника"
     },
     "help": {
         "title": "Руководство пользователя",

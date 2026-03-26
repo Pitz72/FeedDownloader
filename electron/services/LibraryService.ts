@@ -91,6 +91,14 @@ export class LibraryService {
         this.db.setNamingTemplate(template);
     }
 
+    getSidecarEnabled(): boolean {
+        return this.db.getSidecarEnabled();
+    }
+
+    setSidecarEnabled(enabled: boolean): void {
+        this.db.setSidecarEnabled(enabled);
+    }
+
     // ── OPML ─────────────────────────────────────────────────
 
     async importOPML(xmlContent: string): Promise<number> {

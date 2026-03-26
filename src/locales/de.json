@@ -97,7 +97,9 @@
         "stats_range": "Archivzeitraum",
         "naming_template": "Dateibenennungsvorlage",
         "naming_template_tokens": "Verfügbare Token: {title} {podcast} {date} {year} {month} {day}",
-        "naming_template_preview": "Vorschau"
+        "naming_template_preview": "Vorschau",
+        "sidecar_enabled": "Sidecar .json-Dateien",
+        "sidecar_hint": "Speichert eine .json-Datei neben jeder heruntergeladenen Audiodatei mit Titel, Podcast, Datum und Quell-URL"
     },
     "help": {
         "title": "Benutzerhandbuch",

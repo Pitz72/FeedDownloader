@@ -39,6 +39,9 @@ declare global {
             // Naming Template (v0.5.4)
             getNamingTemplate: () => Promise<string>;
             setNamingTemplate: (template: string) => Promise<boolean>;
+            // Sidecar JSON (v0.5.5)
+            getSidecarEnabled: () => Promise<boolean>;
+            setSidecarEnabled: (enabled: boolean) => Promise<boolean>;
         };
     }
 }

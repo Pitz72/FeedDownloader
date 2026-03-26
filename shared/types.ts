@@ -107,4 +107,7 @@ export const IPC_CHANNELS = {
     // Naming Template (v0.5.4)
     GET_NAMING_TEMPLATE: 'get-naming-template',
     SET_NAMING_TEMPLATE: 'set-naming-template',
+    // Sidecar JSON (v0.5.5)
+    GET_SIDECAR_ENABLED: 'get-sidecar-enabled',
+    SET_SIDECAR_ENABLED: 'set-sidecar-enabled',
 } as const;

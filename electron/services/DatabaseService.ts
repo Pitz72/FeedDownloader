@@ -212,6 +212,14 @@ export class DatabaseService {
         this.setSetting('namingTemplate', template);
     }
 
+    getSidecarEnabled(): boolean {
+        return this.getSetting('sidecarEnabled') === 'true';
+    }
+
+    setSidecarEnabled(enabled: boolean): void {
+        this.setSetting('sidecarEnabled', String(enabled));
+    }
+
     // ── Lifecycle ────────────────────────────────────────────
 
     close(): void {
