@@ -10,6 +10,7 @@ Cronologia completa delle versioni in [`changelog/`](changelog/).
 
 | Versione | Data | Tema |
 |----------|------|------|
+| [0.6.1](changelog/0.6.1.md) | 26 mar 2026 | Resume Download — ripartenza automatica dei download interrotti via HTTP 206 Range |
 | [0.6.0](changelog/0.6.0.md) | 26 mar 2026 | Health Check Archivio — verifica quali file scaricati esistono su disco, dashboard totale/presenti/mancanti/dimensione |
 | [0.5.5](changelog/0.5.5.md) | 26 mar 2026 | Sidecar Metadata .json — file .json opzionale accanto a ogni audio scaricato |
 | [0.5.4](changelog/0.5.4.md) | 26 mar 2026 | Template Naming — template personalizzabile per il nome file degli episodi scaricati |

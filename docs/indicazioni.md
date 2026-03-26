@@ -9,7 +9,7 @@ Questo documento delinea le linee guida e i suggerimenti tecnici per l'evoluzion
 ### 1. Robustezza e Integrità del Dato (Core Archiving)
 L'obiettivo è garantire che ogni file scaricato sia identico alla sorgente e che il processo sia resiliente alle interruzioni.
 - ✅ **Verifica Integrità (Checksum/Size) (v0.5.0):** Controllo post-download sulla dimensione del file (header `Content-Length` vs bytes scritti, tolleranza ±1%).
-- 🔲 **Resume dei Download (HTTP 206):** Supportare il riavvio dei download interrotti dal punto di blocco per evitare spreco di banda su file di grandi dimensioni.
+- ✅ **Resume dei Download (HTTP 206) (v0.6.1):** Riavvio automatico dal punto di interruzione via header `Range: bytes=N-`; il file `.part` viene conservato su errori transitori e ripreso al tentativo successivo.
 - ✅ **Rilevamento Episodi "Ghost" (v0.5.0):** Gestione esplicita degli errori 404 con toast dedicato (`episode_not_found`) e nessun tentativo di retry.
 
 ### 2. Organizzazione e Metadati (Library Management)
@@ -38,4 +38,4 @@ Fornire all'utente una visione chiara dello stato del proprio archivio.
 - 🔲 **Esportazione Log Avanzata:** Includere nel CSV dettagli tecnici come bitrate, frequenza di campionamento e stato di validazione del file.
 
 ---
-*Documento redatto il 16 febbraio 2026 come roadmap per lo sviluppo futuro. Aggiornato il 21 marzo 2026 con lo stato di implementazione. Aggiornato il 26 marzo 2026: segnate ✅ le feature implementate in v0.5.0.*
+*Documento redatto il 16 febbraio 2026 come roadmap per lo sviluppo futuro. Aggiornato il 21 marzo 2026 con lo stato di implementazione. Aggiornato il 26 marzo 2026: segnate ✅ le feature implementate in v0.5.0 e v0.6.1.*
