@@ -9,7 +9,9 @@
       "Bash(echo \"EXIT: $?\")",
       "Read(//c/Users/Utente/Documents/SVILUPPO/UTILITY/FeedDownloader/builds/0.5.0/win-unpacked/$APPDATA/Runtime FeedDownloader Pro/**)",
       "Read(//c/Users/Utente/Documents/SVILUPPO/UTILITY/FeedDownloader/builds/0.5.0/win-unpacked/$APPDATA/Runtime FeedDownloader Pro/logs/**)",
-      "Bash(timeout 10 \"./Runtime FeedDownloader Pro.exe\" --enable-logging --v=1)"
+      "Bash(timeout 10 \"./Runtime FeedDownloader Pro.exe\" --enable-logging --v=1)",
+      "Bash(sed -i 's/\"\"version\"\": \"\"0.6.0\"\"/\"\"version\"\": \"\"0.6.1\"\"/' package.json)",
+      "Bash(grep '\"\"version\"\"' package.json)"
     ]
   }
 }
