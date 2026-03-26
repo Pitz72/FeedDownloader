@@ -13,7 +13,8 @@
       "Bash(grep -E '\\\\.\\(md|json|ts|js|yml\\)$')",
       "Bash(wc -l /c/Users/Utente/Documents/SVILUPPO/UTILITY/FeedDownloader/.claude/worktrees/flamboyant-lalande/tests/*.test.ts)",
       "Bash(wc -l /c/Users/Utente/Documents/SVILUPPO/UTILITY/FeedDownloader/.claude/worktrees/flamboyant-lalande/src/**/*.tsx /c/Users/Utente/Documents/SVILUPPO/UTILITY/FeedDownloader/.claude/worktrees/flamboyant-lalande/src/**/*.ts)",
-      "Bash(find C:/Users/Utente/Documents/SVILUPPO/UTILITY/FeedDownloader/.claude/worktrees/flamboyant-lalande/src -name *.json)"
+      "Bash(find C:/Users/Utente/Documents/SVILUPPO/UTILITY/FeedDownloader/.claude/worktrees/flamboyant-lalande/src -name *.json)",
+      "Bash(npm install:*)"
     ]
   }
 }
