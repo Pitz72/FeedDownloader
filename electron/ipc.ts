@@ -33,6 +33,10 @@ const batchTracker = new BatchTracker();
 const parseFeedLastCall = new Map<string, number>();
 const PARSE_FEED_COOLDOWN_MS = 3000;
 
+// v0.6.3 — In-memory feed cache: avoids re-fetching on repeated clicks
+const feedCache = new Map<string, { feed: unknown; timestamp: number }>();
+const FEED_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
 // UI locale synced from Renderer (v0.4.10 — OS notification localization)
 let uiLocale = 'en';
 
@@ -46,15 +50,24 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
             throw new Error(check.error);
         }
 
-        // v0.5.1 — rate limit: reject duplicate requests for the same URL within cooldown window
         const now = Date.now();
+
+        // v0.6.3 — Return cached feed if still fresh (avoids double HTTP round-trip on every click)
+        const cached = feedCache.get(url);
+        if (cached && (now - cached.timestamp) < FEED_CACHE_TTL_MS) {
+            return cached.feed;
+        }
+
+        // v0.5.1 — rate limit: reject duplicate requests for the same URL within cooldown window
         const lastCall = parseFeedLastCall.get(url);
         if (lastCall !== undefined && (now - lastCall) < PARSE_FEED_COOLDOWN_MS) {
             throw new Error('RATE_LIMITED');
         }
         parseFeedLastCall.set(url, now);
 
-        return await feedService.parseFeed(url);
+        const feed = await feedService.parseFeed(url);
+        feedCache.set(url, { feed, timestamp: now });
+        return feed;
     });
 
     // ── Feed Library ──────────────────────────────────────

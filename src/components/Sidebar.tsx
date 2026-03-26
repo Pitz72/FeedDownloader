@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useStore, AppState } from '../store/useStore';
-import { Library, Trash2, Podcast, Settings } from 'lucide-react';
+import { Library, Trash2, Podcast, Settings, Loader2 } from 'lucide-react';
 import clsx from 'clsx';
 import { useToast } from '../context/ToastContext';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +14,7 @@ export const Sidebar: React.FC = () => {
     const toast = useToast();
     const { t } = useTranslation();
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [loadingUrl, setLoadingUrl] = useState<string | null>(null);
 
     // ConfirmModal state
     const [confirmState, setConfirmState] = useState<{ isOpen: boolean; url: string }>({
@@ -46,11 +47,14 @@ export const Sidebar: React.FC = () => {
         // Skip re-fetch if it's the same feed already loaded
         if (currentFeed?.url === feedUrl) return;
 
+        setLoadingUrl(feedUrl);
         try {
             const feed = await window.api.parseFeed(feedUrl);
             setCurrentFeed({ ...feed, url: feedUrl });
         } catch (e) {
             toast.show(t('toast.feed_error'), 'error');
+        } finally {
+            setLoadingUrl(null);
         }
     };
 
@@ -103,13 +107,17 @@ export const Sidebar: React.FC = () => {
                             onClick={() => handleSelectFeed(feed.url)}
                             className={clsx(
                                 "p-3 rounded-lg cursor-pointer transition-all flex items-center gap-3 group border border-transparent",
-                                currentFeed?.url === feed.url
+                                loadingUrl === feed.url
+                                    ? "bg-blue-600/10 border-blue-500/20 text-white opacity-80"
+                                    : currentFeed?.url === feed.url
                                     ? "bg-blue-600/20 border-blue-500/30 text-white"
                                     : "hover:bg-white/5 text-gray-400 hover:text-white"
                             )}
                         >
                             <div className="w-10 h-10 rounded bg-gray-800 flex items-center justify-center shrink-0 overflow-hidden">
-                                {imageUrl ? (
+                                {loadingUrl === feed.url ? (
+                                    <Loader2 size={18} className="animate-spin text-blue-400" />
+                                ) : imageUrl ? (
                                     <img src={imageUrl} className="w-full h-full object-cover" alt={feed.title || ''} />
                                 ) : (
                                     <Podcast size={18} />
