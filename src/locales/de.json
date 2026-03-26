@@ -123,7 +123,14 @@
         "nav_download": "Download",
         "nav_metadata": "Metadaten",
         "nav_archive": "Archiv",
-        "nav_advanced": "Erweitert"
+        "nav_advanced": "Erweitert",
+        "migrate_archive": "Archiv migrieren",
+        "migrate_archive_desc": "Alle Dateien in den neuen Pfad verschieben und die Datenbank aktualisieren",
+        "migrate_running": "Migration läuft... {{moved}}/{{total}} Ordner",
+        "migrate_done": "Migration abgeschlossen: {{moved}} Ordner verschoben",
+        "migrate_done_errors": "Migration abgeschlossen: {{moved}} verschoben, {{errors}} Fehler",
+        "migrate_no_path": "Kein Download-Pfad konfiguriert",
+        "migrate_same_path": "Zielpfad ist identisch mit dem Quellpfad"
     },
     "diskspace": {
         "critical": "Kritischer Speicherplatz: weniger als 200 MB verfügbar. Download abgebrochen.",

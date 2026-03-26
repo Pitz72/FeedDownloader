@@ -123,7 +123,14 @@
         "nav_download": "Téléchargement",
         "nav_metadata": "Métadonnées",
         "nav_archive": "Archive",
-        "nav_advanced": "Avancé"
+        "nav_advanced": "Avancé",
+        "migrate_archive": "Migrer l'Archive",
+        "migrate_archive_desc": "Déplacer tous les fichiers vers le nouveau chemin et mettre à jour la base de données",
+        "migrate_running": "Migration en cours... {{moved}}/{{total}} dossiers",
+        "migrate_done": "Migration terminée : {{moved}} dossiers déplacés",
+        "migrate_done_errors": "Migration terminée : {{moved}} déplacés, {{errors}} erreurs",
+        "migrate_no_path": "Aucun chemin de téléchargement configuré",
+        "migrate_same_path": "Le chemin de destination est identique à l'origine"
     },
     "diskspace": {
         "critical": "Espace disque critique : moins de 200 Mo disponibles. Téléchargement annulé.",

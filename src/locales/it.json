@@ -123,7 +123,14 @@
         "nav_download": "Download",
         "nav_metadata": "Metadati",
         "nav_archive": "Archivio",
-        "nav_advanced": "Avanzate"
+        "nav_advanced": "Avanzate",
+        "migrate_archive": "Migra Archivio",
+        "migrate_archive_desc": "Sposta tutti i file nel nuovo percorso e aggiorna il database",
+        "migrate_running": "Migrazione in corso... {{moved}}/{{total}} cartelle",
+        "migrate_done": "Migrazione completata: {{moved}} cartelle spostate",
+        "migrate_done_errors": "Migrazione completata: {{moved}} spostate, {{errors}} errori",
+        "migrate_no_path": "Nessun percorso di download configurato",
+        "migrate_same_path": "Percorso di destinazione uguale all'origine"
     },
     "diskspace": {
         "critical": "Spazio disco critico: meno di 200 MB disponibili. Download annullato.",

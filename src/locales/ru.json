@@ -123,7 +123,14 @@
         "nav_download": "Загрузка",
         "nav_metadata": "Метаданные",
         "nav_archive": "Архив",
-        "nav_advanced": "Расширенные"
+        "nav_advanced": "Расширенные",
+        "migrate_archive": "Мигрировать архив",
+        "migrate_archive_desc": "Переместить все файлы в новый путь и обновить базу данных",
+        "migrate_running": "Миграция... {{moved}}/{{total}} папок",
+        "migrate_done": "Миграция завершена: {{moved}} папок перемещено",
+        "migrate_done_errors": "Миграция завершена: {{moved}} перемещено, {{errors}} ошибок",
+        "migrate_no_path": "Путь загрузки не настроен",
+        "migrate_same_path": "Путь назначения совпадает с исходным"
     },
     "diskspace": {
         "critical": "Критически мало места на диске: менее 200 МБ. Загрузка отменена.",

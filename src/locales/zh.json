@@ -123,7 +123,14 @@
         "nav_download": "下载",
         "nav_metadata": "元数据",
         "nav_archive": "存档",
-        "nav_advanced": "高级"
+        "nav_advanced": "高级",
+        "migrate_archive": "迁移存档",
+        "migrate_archive_desc": "将所有文件移动到新路径并更新数据库",
+        "migrate_running": "迁移中... {{moved}}/{{total}} 文件夹",
+        "migrate_done": "迁移完成：已移动 {{moved}} 个文件夹",
+        "migrate_done_errors": "迁移完成：已移动 {{moved}} 个，{{errors}} 个错误",
+        "migrate_no_path": "未配置下载路径",
+        "migrate_same_path": "目标路径与源路径相同"
     },
     "diskspace": {
         "critical": "磁盘空间严重不足：可用空间少于 200 MB。下载已取消。",

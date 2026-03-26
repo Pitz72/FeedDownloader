@@ -10,7 +10,7 @@ import { extractExtension } from './utils/extractExtension';
 import { applyTemplate } from './utils/applyTemplate';
 import { validateUrl } from './utils/validateUrl';
 import { IPC_CHANNELS as CH } from '../shared/types';
-import type { FeedEntry, DownloadRequest, HealthCheckResult, DiskSpaceInfo } from '../shared/types';
+import type { FeedEntry, DownloadRequest, HealthCheckResult, DiskSpaceInfo, MigrationResult, MigrationProgress } from '../shared/types';
 import path from 'path';
 import fs from 'fs-extra';
 import { statfs } from 'fs/promises';
@@ -478,5 +478,64 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
             missingFiles,
         };
         return result;
+    });
+
+    // ── Archive Migration (v0.6.10) ──────────────────────────
+    ipcMain.handle(CH.MIGRATE_ARCHIVE, async (_, newPath: string): Promise<MigrationResult> => {
+        const currentPath = libraryService.getDownloadPath();
+
+        if (!currentPath || !newPath) {
+            return { moved: 0, errors: 0, newPath: newPath || '' };
+        }
+        if (currentPath === newPath) {
+            return { moved: 0, errors: 0, newPath };
+        }
+        if (!(await fs.pathExists(currentPath))) {
+            libraryService.setDownloadPath(newPath);
+            return { moved: 0, errors: 0, newPath };
+        }
+
+        await fs.ensureDir(newPath);
+
+        // Collect all podcast subdirectories
+        const dirEntries = await fs.readdir(currentPath, { withFileTypes: true });
+        const folders = dirEntries.filter(e => e.isDirectory()).map(e => e.name);
+        const total = folders.length;
+
+        let moved = 0;
+        let errors = 0;
+
+        for (let i = 0; i < folders.length; i++) {
+            const folder = folders[i];
+            pushEvent(mainWindow, CH.MIGRATION_PROGRESS, {
+                moved: i,
+                total,
+                currentFolder: folder,
+            } as MigrationProgress);
+
+            try {
+                await fs.move(
+                    path.join(currentPath, folder),
+                    path.join(newPath, folder),
+                    { overwrite: false }
+                );
+                moved++;
+            } catch (e) {
+                console.error(`[Migration] Failed to move "${folder}":`, e);
+                errors++;
+            }
+        }
+
+        // Update download path in DB
+        libraryService.setDownloadPath(newPath);
+
+        // Final progress signal
+        pushEvent(mainWindow, CH.MIGRATION_PROGRESS, {
+            moved: total,
+            total,
+            currentFolder: '',
+        } as MigrationProgress);
+
+        return { moved, errors, newPath };
     });
 }

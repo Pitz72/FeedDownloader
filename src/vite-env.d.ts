@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 // Re-export shared types for use in global declarations
-import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveStats, HealthCheckResult, DiskSpaceInfo } from '../shared/types'
+import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveStats, HealthCheckResult, DiskSpaceInfo, MigrationResult, MigrationProgress } from '../shared/types'
 
 declare global {
     const __APP_VERSION__: string;
@@ -52,6 +52,9 @@ declare global {
             setSpeedLimit: (kbps: number) => Promise<boolean>;
             // Disk Space (v0.6.9)
             checkDiskSpace: (dirPath: string) => Promise<DiskSpaceInfo | null>;
+            // Archive Migration (v0.6.10)
+            migrateArchive: (newPath: string) => Promise<MigrationResult>;
+            onMigrationProgress: (callback: (event: Electron.IpcRendererEvent, data: MigrationProgress) => void) => () => void;
         };
     }
 }

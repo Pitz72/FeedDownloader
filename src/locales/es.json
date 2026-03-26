@@ -123,7 +123,14 @@
         "nav_download": "Descarga",
         "nav_metadata": "Metadatos",
         "nav_archive": "Archivo",
-        "nav_advanced": "Avanzado"
+        "nav_advanced": "Avanzado",
+        "migrate_archive": "Migrar Archivo",
+        "migrate_archive_desc": "Mover todos los archivos a la nueva ruta y actualizar la base de datos",
+        "migrate_running": "Migrando... {{moved}}/{{total}} carpetas",
+        "migrate_done": "Migración completada: {{moved}} carpetas movidas",
+        "migrate_done_errors": "Migración completada: {{moved}} movidas, {{errors}} errores",
+        "migrate_no_path": "No hay ruta de descarga configurada",
+        "migrate_same_path": "La ruta de destino es igual al origen"
     },
     "diskspace": {
         "critical": "Espacio en disco crítico: menos de 200 MB disponibles. Descarga cancelada.",

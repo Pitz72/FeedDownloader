@@ -1,5 +1,5 @@
 import { ipcRenderer, contextBridge } from 'electron'
-import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveStats, HealthCheckResult, DiskSpaceInfo } from '../shared/types'
+import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveStats, HealthCheckResult, DiskSpaceInfo, MigrationResult, MigrationProgress } from '../shared/types'
 import { IPC_CHANNELS as CH } from '../shared/types'
 
 // --------- Expose API to the Renderer process ---------
@@ -76,4 +76,12 @@ contextBridge.exposeInMainWorld('api', {
 
   // Disk Space (v0.6.9)
   checkDiskSpace: (dirPath: string): Promise<DiskSpaceInfo | null> => ipcRenderer.invoke(CH.CHECK_DISK_SPACE, dirPath),
+
+  // Archive Migration (v0.6.10)
+  migrateArchive: (newPath: string): Promise<MigrationResult> => ipcRenderer.invoke(CH.MIGRATE_ARCHIVE, newPath),
+  onMigrationProgress: (callback: (event: Electron.IpcRendererEvent, data: MigrationProgress) => void) => {
+    const subscription = (_event: Electron.IpcRendererEvent, data: MigrationProgress) => callback(_event, data);
+    ipcRenderer.on(CH.MIGRATION_PROGRESS, subscription);
+    return () => ipcRenderer.removeListener(CH.MIGRATION_PROGRESS, subscription);
+  },
 })

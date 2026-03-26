@@ -88,6 +88,19 @@ export interface DiskSpaceInfo {
     totalBytes: number;
 }
 
+// v0.6.10 — Archive NAS migration
+export interface MigrationResult {
+    moved: number;
+    errors: number;
+    newPath: string;
+}
+
+export interface MigrationProgress {
+    moved: number;
+    total: number;
+    currentFolder: string;
+}
+
 // ── IPC Channel Constants ────────────────────────────────────
 // Used by both ipc.ts (main) and preload.ts / vite-env.d.ts (renderer)
 
@@ -136,4 +149,7 @@ export const IPC_CHANNELS = {
     SET_SPEED_LIMIT: 'set-speed-limit',
     // Disk Space (v0.6.9)
     CHECK_DISK_SPACE: 'check-disk-space',
+    // Archive Migration (v0.6.10)
+    MIGRATE_ARCHIVE: 'migrate-archive',
+    MIGRATION_PROGRESS: 'migration-progress',
 } as const;

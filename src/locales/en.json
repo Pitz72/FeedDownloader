@@ -123,7 +123,14 @@
         "nav_download": "Download",
         "nav_metadata": "Metadata",
         "nav_archive": "Archive",
-        "nav_advanced": "Advanced"
+        "nav_advanced": "Advanced",
+        "migrate_archive": "Migrate Archive",
+        "migrate_archive_desc": "Move all files to the new path and update the database",
+        "migrate_running": "Migrating... {{moved}}/{{total}} folders",
+        "migrate_done": "Migration complete: {{moved}} folders moved",
+        "migrate_done_errors": "Migration complete: {{moved}} moved, {{errors}} errors",
+        "migrate_no_path": "No download path configured",
+        "migrate_same_path": "Destination path is the same as origin"
     },
     "diskspace": {
         "critical": "Critical disk space: less than 200 MB available. Download cancelled.",

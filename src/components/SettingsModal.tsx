@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, FolderOpen, AlertTriangle, BookOpen, Upload, Download, FileSpreadsheet, Settings2, BarChart3, ShieldCheck, RefreshCw, Globe, Tag, Archive } from 'lucide-react';
+import { X, FolderOpen, AlertTriangle, BookOpen, Upload, Download, FileSpreadsheet, Settings2, BarChart3, ShieldCheck, RefreshCw, Globe, Tag, Archive, HardDrive } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HelpModal } from './HelpModal';
 import { useStore, AppState } from '../store/useStore';
 import { useToast } from '../context/ToastContext';
-import type { ArchiveStats } from '../../shared/types';
+import type { ArchiveStats, MigrationProgress } from '../../shared/types';
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -29,7 +29,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     const [healthResult, setHealthResult] = useState<import('../../shared/types').HealthCheckResult | null>(null);
     const [isHealthChecking, setIsHealthChecking] = useState(false);
     const [activeCategory, setActiveCategory] = useState<NavCategory>('general');
+    // v0.6.10 — Migration state
+    const [migrationProgress, setMigrationProgress] = useState<{ moved: number; total: number } | null>(null);
     const isBatchDownloading = useStore((state: AppState) => state.isBatchDownloading);
+
+    // v0.6.10 — Subscribe to migration progress events
+    useEffect(() => {
+        if (!isOpen) return;
+        const unsub = window.api.onMigrationProgress((_e, data: MigrationProgress) => {
+            setMigrationProgress({ moved: data.moved, total: data.total });
+        });
+        return unsub;
+    }, [isOpen]);
 
     useEffect(() => {
         if (isOpen) {
@@ -59,6 +70,34 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         if (path) {
             await window.api.setDownloadPath(path);
             setDownloadPath(path);
+        }
+    };
+
+    // v0.6.10 — Migrate archive to a new location (NAS, external drive, etc.)
+    const handleMigrateArchive = async () => {
+        const currentPath = await window.api.getDownloadPath();
+        if (!currentPath) {
+            toast.show(t('settings.migrate_no_path'), 'error');
+            return;
+        }
+        const newPath = await window.api.chooseFolder();
+        if (!newPath) return;
+        if (newPath === currentPath) {
+            toast.show(t('settings.migrate_same_path'), 'info');
+            return;
+        }
+        setMigrationProgress({ moved: 0, total: 0 });
+        try {
+            const result = await window.api.migrateArchive(newPath);
+            setDownloadPath(newPath);
+            const msg = result.errors > 0
+                ? t('settings.migrate_done_errors', { moved: result.moved, errors: result.errors })
+                : t('settings.migrate_done', { moved: result.moved });
+            toast.show(msg, result.errors > 0 ? 'error' : 'success');
+        } catch {
+            toast.show(t('toast.feed_error'), 'error');
+        } finally {
+            setMigrationProgress(null);
         }
     };
 
@@ -441,6 +480,46 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                                 </div>
                                                             )}
                                                         </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Migrate Archive (v0.6.10) */}
+                                                <div className="space-y-3">
+                                                    <h3 className="text-sm font-medium text-purple-400 uppercase tracking-wider flex items-center gap-2">
+                                                        <HardDrive size={14} />
+                                                        {t('settings.migrate_archive')}
+                                                    </h3>
+                                                    <p className="text-xs text-gray-500">{t('settings.migrate_archive_desc')}</p>
+                                                    {migrationProgress ? (
+                                                        <div className="p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg space-y-2">
+                                                            <div className="flex items-center gap-2 text-sm text-purple-300">
+                                                                <RefreshCw size={14} className="animate-spin" />
+                                                                {t('settings.migrate_running', {
+                                                                    moved: migrationProgress.moved,
+                                                                    total: migrationProgress.total,
+                                                                })}
+                                                            </div>
+                                                            {migrationProgress.total > 0 && (
+                                                                <div className="w-full bg-white/10 rounded-full h-1.5">
+                                                                    <div
+                                                                        className="bg-purple-500 h-1.5 rounded-full transition-all"
+                                                                        style={{ width: `${Math.round((migrationProgress.moved / migrationProgress.total) * 100)}%` }}
+                                                                    />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <button
+                                                            onClick={handleMigrateArchive}
+                                                            disabled={isBatchDownloading}
+                                                            className={`w-full flex items-center justify-center gap-2 border rounded-lg px-4 py-2.5 text-sm transition-colors ${isBatchDownloading
+                                                                ? 'bg-gray-800 border-gray-700 text-gray-500 cursor-not-allowed'
+                                                                : 'bg-purple-500/10 hover:bg-purple-500/20 border-purple-500/30 text-purple-300'
+                                                            }`}
+                                                        >
+                                                            <HardDrive size={16} />
+                                                            {t('settings.migrate_archive')}
+                                                        </button>
                                                     )}
                                                 </div>
 
