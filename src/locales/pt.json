@@ -118,7 +118,12 @@
         "id3_disabled": "Marcação ID3 Desativada",
         "speed_limit": "Limite de Velocidade",
         "speed_limit_desc": "Limitar a velocidade de download. 0 = ilimitado.",
-        "speed_unlimited": "Ilimitado"
+        "speed_unlimited": "Ilimitado",
+        "nav_general": "Geral",
+        "nav_download": "Download",
+        "nav_metadata": "Metadados",
+        "nav_archive": "Arquivo",
+        "nav_advanced": "Avançado"
     },
     "help": {
         "title": "Guia do Utilizador",

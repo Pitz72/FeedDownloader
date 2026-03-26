@@ -118,7 +118,12 @@
         "id3_disabled": "ID3-теги отключены",
         "speed_limit": "Ограничение скорости",
         "speed_limit_desc": "Ограничить скорость загрузки. 0 = без ограничений.",
-        "speed_unlimited": "Без ограничений"
+        "speed_unlimited": "Без ограничений",
+        "nav_general": "Основное",
+        "nav_download": "Загрузка",
+        "nav_metadata": "Метаданные",
+        "nav_archive": "Архив",
+        "nav_advanced": "Расширенные"
     },
     "help": {
         "title": "Руководство пользователя",

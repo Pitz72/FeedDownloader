@@ -118,7 +118,12 @@
         "id3_disabled": "ID3 标签已禁用",
         "speed_limit": "下载速度限制",
         "speed_limit_desc": "限制下载速度。0 = 无限制。",
-        "speed_unlimited": "无限制"
+        "speed_unlimited": "无限制",
+        "nav_general": "常规",
+        "nav_download": "下载",
+        "nav_metadata": "元数据",
+        "nav_archive": "存档",
+        "nav_advanced": "高级"
     },
     "help": {
         "title": "用户指南",

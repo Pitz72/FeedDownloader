@@ -118,7 +118,12 @@
         "id3_disabled": "ID3-Tagging Deaktiviert",
         "speed_limit": "Download-Geschwindigkeitslimit",
         "speed_limit_desc": "Download-Geschwindigkeit begrenzen. 0 = unbegrenzt.",
-        "speed_unlimited": "Unbegrenzt"
+        "speed_unlimited": "Unbegrenzt",
+        "nav_general": "Allgemein",
+        "nav_download": "Download",
+        "nav_metadata": "Metadaten",
+        "nav_archive": "Archiv",
+        "nav_advanced": "Erweitert"
     },
     "help": {
         "title": "Benutzerhandbuch",
