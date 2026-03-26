@@ -4,16 +4,18 @@ import { Library, Trash2, Podcast, Settings, Loader2 } from 'lucide-react';
 import clsx from 'clsx';
 import { useToast } from '../context/ToastContext';
 import { useTranslation } from 'react-i18next';
-import { SettingsModal } from './SettingsModal';
 import { ConfirmModal } from './ConfirmModal';
 import type { FeedEntry } from '../../shared/types';
 
-export const Sidebar: React.FC = () => {
+interface SidebarProps {
+    onSettingsOpen: () => void;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen }) => {
     const [feeds, setFeeds] = useState<FeedEntry[]>([]);
     const { currentFeed, setCurrentFeed } = useStore((state: AppState) => state);
     const toast = useToast();
     const { t } = useTranslation();
-    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [loadingUrl, setLoadingUrl] = useState<string | null>(null);
 
     // ConfirmModal state
@@ -81,7 +83,7 @@ export const Sidebar: React.FC = () => {
                     {t('sidebar.my_feeds', 'Libreria')}
                 </h2>
                 <button
-                    onClick={() => setIsSettingsOpen(true)}
+                    onClick={onSettingsOpen}
                     className="text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10"
                     title={t('settings.title')}
                 >
@@ -148,7 +150,6 @@ export const Sidebar: React.FC = () => {
                 <p className="text-xs text-center text-gray-600">v{__APP_VERSION__}</p>
             </div>
 
-            <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
             <ConfirmModal
                 isOpen={confirmState.isOpen}
                 title={t('confirm.remove_feed_title', 'Remove Feed')}

@@ -4,6 +4,7 @@ import { EpisodeList } from './components/EpisodeList';
 import { Sidebar } from './components/Sidebar';
 import { GlobalProgressBar } from './components/GlobalProgressBar';
 import { IntroScreen } from './components/IntroScreen';
+import { SettingsModal } from './components/SettingsModal';
 import { useStore, AppState } from './store/useStore';
 import { ToastProvider, useToast } from './context/ToastContext';
 import { useTranslation } from 'react-i18next';
@@ -49,6 +50,7 @@ function AppContent() {
   }, []);
 
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -85,9 +87,12 @@ function AppContent() {
       </AnimatePresence>
 
       {/* Sidebar */}
-      <Sidebar />
+      <Sidebar onSettingsOpen={() => setIsSettingsOpen(true)} />
 
       {/* Main Content */}
+      {/* SettingsModal al root level — copre tutta la viewport */}
+      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+
       <div className={`relative z-10 flex-1 flex flex-col min-h-screen ${!isOnline ? 'mt-8' : ''}`}>
         <div className="flex-1 p-8">
           <header className="text-center mb-12">
