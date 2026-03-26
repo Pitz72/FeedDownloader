@@ -14,9 +14,9 @@ L'obiettivo è garantire che ogni file scaricato sia identico alla sorgente e ch
 
 ### 2. Organizzazione e Metadati (Library Management)
 I file archiviati devono essere auto-esplicativi e organizzati secondo standard bibliotecari.
-- 🔲 **Template di Naming Personalizzabili:** Permettere la definizione di strutture cartelle/file dinamiche, es: `[YYYY-MM-DD] - [Podcast Name] - [Episode Title].mp3`.
+- ✅ **Template di Naming Personalizzabili (v0.5.4):** Permettere la definizione di strutture cartelle/file dinamiche, es: `[YYYY-MM-DD] - [Podcast Name] - [Episode Title].mp3`.
 - 🔲 **Tagging ID3 Automatico:** Iniezione dei metadati (Titolo, Artista, Anno, Cover Art) direttamente nel file audio leggendoli dal feed RSS.
-- 🔲 **Sidecar Files (Metadata Backup):** Salvataggio di file `.json` o `.txt` con le show notes e la descrizione completa di ogni episodio insieme al file audio.
+- ✅ **Sidecar Files (Metadata Backup) (v0.5.5):** Salvataggio di file `.json` con titolo, podcast, data e URL sorgente accanto a ogni episodio scaricato.
 
 ### 3. Efficienza di Massa (Workflow Automation)
 Gestione intelligente delle risorse per evitare ban dai CDN e ottimizzare i tempi.
@@ -24,7 +24,7 @@ Gestione intelligente delle risorse per evitare ban dai CDN e ottimizzare i temp
 - 🔲 **Throttling Velocità di Trasferimento:** Limitazione della velocità in KB/s per non saturare la rete o attivare protezioni anti-bot.
 - ✅ **Filtri per Data (v0.4.0):** Filtro per intervallo di date di pubblicazione degli episodi.
 - 🔲 **Filtri Avanzati:** Filtrare per keyword nel titolo o durata dell'episodio.
-- 🔲 **Sincronizzazione Incrementale Smart:** Funzione "Sync" che scarica solo i nuovi episodi ignorando sistematicamente quelli già presenti nell'archivio locale o nel database.
+- ✅ **Sincronizzazione Incrementale Smart (v0.5.3):** Funzione "Sync New" che rianalizza il feed e mette in coda automaticamente solo i nuovi episodi non ancora presenti nel database.
 
 ### 4. Gestione dello Storage (Safety)
 Prevenzione degli errori legati alla capacità fisica dei dischi.
@@ -34,7 +34,7 @@ Prevenzione degli errori legati alla capacità fisica dei dischi.
 ### 5. Analisi e Reporting (Insights)
 Fornire all'utente una visione chiara dello stato del proprio archivio.
 - ✅ **Statistiche Archivio (v0.4.0):** Dashboard con file totali scaricati, podcast distinti e periodo dell'archivio.
-- 🔲 **Report di Salute (Health Check):** Dashboard estesa con ore totali archiviate, spazio occupato e integrità dei file su disco.
+- ✅ **Report di Salute (Health Check) (v0.6.0):** Dashboard con totale in DB, file presenti/mancanti su disco, spazio occupato e lista dei file mancanti.
 - 🔲 **Esportazione Log Avanzata:** Includere nel CSV dettagli tecnici come bitrate, frequenza di campionamento e stato di validazione del file.
 
 ---
