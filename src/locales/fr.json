@@ -99,7 +99,16 @@
         "naming_template_tokens": "Jetons disponibles : {title} {podcast} {date} {year} {month} {day}",
         "naming_template_preview": "Aperçu",
         "sidecar_enabled": "Fichiers Sidecar .json",
-        "sidecar_hint": "Enregistre un fichier .json à côté de chaque audio téléchargé avec titre, podcast, date et URL source"
+        "sidecar_hint": "Enregistre un fichier .json à côté de chaque audio téléchargé avec titre, podcast, date et URL source",
+        "health_check": "Vérification de l'Archive",
+        "health_check_run": "Lancer la Vérification",
+        "health_check_running": "Vérification...",
+        "health_total": "Dans la DB",
+        "health_present": "Sur le disque",
+        "health_missing": "Manquants",
+        "health_size": "Espace utilisé",
+        "health_missing_files": "Fichiers manquants",
+        "health_and_more": "... et {{count}} de plus"
     },
     "help": {
         "title": "Guide Utilisateur",

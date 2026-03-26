@@ -9,7 +9,7 @@ import { extractExtension } from './utils/extractExtension';
 import { applyTemplate } from './utils/applyTemplate';
 import { validateUrl } from './utils/validateUrl';
 import { IPC_CHANNELS as CH } from '../shared/types';
-import type { FeedEntry, DownloadRequest } from '../shared/types';
+import type { FeedEntry, DownloadRequest, HealthCheckResult } from '../shared/types';
 import path from 'path';
 import fs from 'fs-extra';
 
@@ -370,5 +370,46 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     ipcMain.handle(CH.SET_SIDECAR_ENABLED, async (_, enabled: boolean) => {
         libraryService.setSidecarEnabled(enabled);
         return true;
+    });
+
+    // ── Health Check (v0.6.0) ────────────────────────────────
+    ipcMain.handle(CH.RUN_HEALTH_CHECK, async () => {
+        const entries = libraryService.getArchive();
+        let baseDir = libraryService.getDownloadPath();
+        if (!baseDir) {
+            baseDir = path.join(app.getPath('documents'), 'FeedDownloader', 'downloads');
+        }
+
+        let present = 0;
+        let missing = 0;
+        let totalSizeBytes = 0;
+        const missingFiles: { title: string; podcast: string; filename: string }[] = [];
+
+        for (const entry of entries) {
+            if (!entry.filename) {
+                missing++;
+                missingFiles.push({ title: entry.title, podcast: entry.podcastTitle, filename: '(no filename)' });
+                continue;
+            }
+            const sanitize = (await import('sanitize-filename')).default;
+            const fullPath = path.join(baseDir, sanitize(entry.podcastTitle), entry.filename);
+            try {
+                const stat = await fs.stat(fullPath);
+                present++;
+                totalSizeBytes += stat.size;
+            } catch {
+                missing++;
+                missingFiles.push({ title: entry.title, podcast: entry.podcastTitle, filename: entry.filename });
+            }
+        }
+
+        const result: HealthCheckResult = {
+            total: entries.length,
+            present,
+            missing,
+            totalSizeBytes,
+            missingFiles,
+        };
+        return result;
     });
 }

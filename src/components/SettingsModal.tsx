@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, FolderOpen, AlertTriangle, BookOpen, Upload, Download, FileSpreadsheet, Settings2, BarChart3 } from 'lucide-react';
+import { X, FolderOpen, AlertTriangle, BookOpen, Upload, Download, FileSpreadsheet, Settings2, BarChart3, ShieldCheck, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HelpModal } from './HelpModal';
 import { useStore, AppState } from '../store/useStore';
@@ -22,6 +22,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     const [namingTemplate, setNamingTemplate] = useState('{title}');
     const [sidecarEnabled, setSidecarEnabled] = useState(false);
     const [archiveStats, setArchiveStats] = useState<ArchiveStats | null>(null);
+    const [healthResult, setHealthResult] = useState<import('../../shared/types').HealthCheckResult | null>(null);
+    const [isHealthChecking, setIsHealthChecking] = useState(false);
     const isBatchDownloading = useStore((state: AppState) => state.isBatchDownloading);
 
     useEffect(() => {
@@ -240,6 +242,64 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                     )}
                                 </div>
                             )}
+
+                            {/* Health Check (v0.6.0) */}
+                            <div className="space-y-3">
+                                <h3 className="text-sm font-medium text-yellow-400 uppercase tracking-wider flex items-center gap-2">
+                                    <ShieldCheck size={14} />
+                                    {t('settings.health_check')}
+                                </h3>
+                                <button
+                                    onClick={async () => {
+                                        setIsHealthChecking(true);
+                                        try {
+                                            const result = await window.api.runHealthCheck();
+                                            setHealthResult(result);
+                                        } finally {
+                                            setIsHealthChecking(false);
+                                        }
+                                    }}
+                                    disabled={isHealthChecking}
+                                    className="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 p-2 rounded-lg text-sm text-gray-300 transition-colors disabled:opacity-50"
+                                >
+                                    <RefreshCw size={16} className={isHealthChecking ? 'animate-spin text-yellow-400' : 'text-yellow-400'} />
+                                    {isHealthChecking ? t('settings.health_check_running') : t('settings.health_check_run')}
+                                </button>
+                                {healthResult && (
+                                    <div className="space-y-2 p-3 bg-white/5 border border-white/10 rounded-lg text-sm">
+                                        <div className="grid grid-cols-3 gap-2 text-center">
+                                            <div className="bg-white/5 rounded p-2">
+                                                <p className="text-xl font-bold text-white">{healthResult.total}</p>
+                                                <p className="text-xs text-gray-400">{t('settings.health_total')}</p>
+                                            </div>
+                                            <div className="bg-white/5 rounded p-2">
+                                                <p className="text-xl font-bold text-green-400">{healthResult.present}</p>
+                                                <p className="text-xs text-gray-400">{t('settings.health_present')}</p>
+                                            </div>
+                                            <div className={`rounded p-2 ${healthResult.missing > 0 ? 'bg-red-500/10' : 'bg-white/5'}`}>
+                                                <p className={`text-xl font-bold ${healthResult.missing > 0 ? 'text-red-400' : 'text-gray-400'}`}>{healthResult.missing}</p>
+                                                <p className="text-xs text-gray-400">{t('settings.health_missing')}</p>
+                                            </div>
+                                        </div>
+                                        <p className="text-xs text-gray-500 text-center">
+                                            {t('settings.health_size')}: {healthResult.totalSizeBytes >= 1_073_741_824
+                                                ? (healthResult.totalSizeBytes / 1_073_741_824).toFixed(2) + ' GB'
+                                                : (healthResult.totalSizeBytes / 1_048_576).toFixed(1) + ' MB'}
+                                        </p>
+                                        {healthResult.missing > 0 && (
+                                            <div className="mt-2 space-y-1">
+                                                <p className="text-xs text-red-400 font-medium">{t('settings.health_missing_files')}:</p>
+                                                {healthResult.missingFiles.slice(0, 5).map((f, i) => (
+                                                    <p key={i} className="text-xs text-gray-500 font-mono truncate">{f.podcast} / {f.filename}</p>
+                                                ))}
+                                                {healthResult.missingFiles.length > 5 && (
+                                                    <p className="text-xs text-gray-600">... {t('settings.health_and_more', { count: healthResult.missingFiles.length - 5 })}</p>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
 
                             {/* Data & Portability */}
                             <div className="space-y-3">

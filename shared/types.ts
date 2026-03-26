@@ -60,6 +60,14 @@ export interface ArchiveStats {
     newestDate: string | null;
 }
 
+export interface HealthCheckResult {
+    total: number;
+    present: number;
+    missing: number;
+    totalSizeBytes: number;
+    missingFiles: { title: string; podcast: string; filename: string }[];
+}
+
 export interface DownloadRequest {
     url: string;
     title: string;
@@ -110,4 +118,6 @@ export const IPC_CHANNELS = {
     // Sidecar JSON (v0.5.5)
     GET_SIDECAR_ENABLED: 'get-sidecar-enabled',
     SET_SIDECAR_ENABLED: 'set-sidecar-enabled',
+    // Health Check (v0.6.0)
+    RUN_HEALTH_CHECK: 'run-health-check',
 } as const;

@@ -99,7 +99,16 @@
         "naming_template_tokens": "Verfügbare Token: {title} {podcast} {date} {year} {month} {day}",
         "naming_template_preview": "Vorschau",
         "sidecar_enabled": "Sidecar .json-Dateien",
-        "sidecar_hint": "Speichert eine .json-Datei neben jeder heruntergeladenen Audiodatei mit Titel, Podcast, Datum und Quell-URL"
+        "sidecar_hint": "Speichert eine .json-Datei neben jeder heruntergeladenen Audiodatei mit Titel, Podcast, Datum und Quell-URL",
+        "health_check": "Archiv-Integritätsprüfung",
+        "health_check_run": "Prüfung starten",
+        "health_check_running": "Prüfung läuft...",
+        "health_total": "In DB",
+        "health_present": "Auf Disk",
+        "health_missing": "Fehlend",
+        "health_size": "Speicherplatz",
+        "health_missing_files": "Fehlende Dateien",
+        "health_and_more": "... und {{count}} weitere"
     },
     "help": {
         "title": "Benutzerhandbuch",

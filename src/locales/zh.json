@@ -99,7 +99,16 @@
         "naming_template_tokens": "可用标记：{title} {podcast} {date} {year} {month} {day}",
         "naming_template_preview": "预览",
         "sidecar_enabled": "Sidecar .json 文件",
-        "sidecar_hint": "在每个下载的音频旁保存一个 .json 文件，包含标题、播客、日期和来源 URL"
+        "sidecar_hint": "在每个下载的音频旁保存一个 .json 文件，包含标题、播客、日期和来源 URL",
+        "health_check": "存档健康检查",
+        "health_check_run": "开始检查",
+        "health_check_running": "检查中...",
+        "health_total": "数据库中",
+        "health_present": "磁盘上",
+        "health_missing": "缺失",
+        "health_size": "占用空间",
+        "health_missing_files": "缺失文件",
+        "health_and_more": "... 还有 {{count}} 个"
     },
     "help": {
         "title": "用户指南",

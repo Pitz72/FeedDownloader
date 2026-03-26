@@ -10,6 +10,7 @@ Cronologia completa delle versioni in [`changelog/`](changelog/).
 
 | Versione | Data | Tema |
 |----------|------|------|
+| [0.6.0](changelog/0.6.0.md) | 26 mar 2026 | Health Check Archivio — verifica quali file scaricati esistono su disco, dashboard totale/presenti/mancanti/dimensione |
 | [0.5.5](changelog/0.5.5.md) | 26 mar 2026 | Sidecar Metadata .json — file .json opzionale accanto a ogni audio scaricato |
 | [0.5.4](changelog/0.5.4.md) | 26 mar 2026 | Template Naming — template personalizzabile per il nome file degli episodi scaricati |
 | [0.5.3](changelog/0.5.3.md) | 26 mar 2026 | Sincronizzazione Incrementale Smart — Sync New, ri-analisi feed + coda automatica nuovi episodi |

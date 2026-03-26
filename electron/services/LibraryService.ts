@@ -61,6 +61,10 @@ export class LibraryService {
         return this.db.exportArchiveCSV();
     }
 
+    getArchive(): ArchiveEntry[] {
+        return this.db.getArchive();
+    }
+
     getArchiveStats(): ArchiveStats {
         return this.db.getArchiveStats();
     }

@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 // Re-export shared types for use in global declarations
-import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveStats } from '../shared/types'
+import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveStats, HealthCheckResult } from '../shared/types'
 
 declare global {
     const __APP_VERSION__: string;
@@ -42,6 +42,8 @@ declare global {
             // Sidecar JSON (v0.5.5)
             getSidecarEnabled: () => Promise<boolean>;
             setSidecarEnabled: (enabled: boolean) => Promise<boolean>;
+            // Health Check (v0.6.0)
+            runHealthCheck: () => Promise<HealthCheckResult>;
         };
     }
 }

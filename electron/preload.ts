@@ -1,5 +1,5 @@
 import { ipcRenderer, contextBridge } from 'electron'
-import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveStats } from '../shared/types'
+import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveStats, HealthCheckResult } from '../shared/types'
 import { IPC_CHANNELS as CH } from '../shared/types'
 
 // --------- Expose API to the Renderer process ---------
@@ -62,4 +62,7 @@ contextBridge.exposeInMainWorld('api', {
   // Sidecar JSON (v0.5.5)
   getSidecarEnabled: (): Promise<boolean> => ipcRenderer.invoke(CH.GET_SIDECAR_ENABLED),
   setSidecarEnabled: (enabled: boolean): Promise<boolean> => ipcRenderer.invoke(CH.SET_SIDECAR_ENABLED, enabled),
+
+  // Health Check (v0.6.0)
+  runHealthCheck: (): Promise<HealthCheckResult> => ipcRenderer.invoke(CH.RUN_HEALTH_CHECK),
 })

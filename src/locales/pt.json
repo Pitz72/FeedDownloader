@@ -99,7 +99,16 @@
         "naming_template_tokens": "Tokens disponíveis: {title} {podcast} {date} {year} {month} {day}",
         "naming_template_preview": "Pré-visualização",
         "sidecar_enabled": "Ficheiros Sidecar .json",
-        "sidecar_hint": "Guarda um ficheiro .json ao lado de cada áudio descarregado com título, podcast, data e URL de origem"
+        "sidecar_hint": "Guarda um ficheiro .json ao lado de cada áudio descarregado com título, podcast, data e URL de origem",
+        "health_check": "Verificação do Arquivo",
+        "health_check_run": "Iniciar Verificação",
+        "health_check_running": "A verificar...",
+        "health_total": "Na DB",
+        "health_present": "No disco",
+        "health_missing": "Em falta",
+        "health_size": "Espaço ocupado",
+        "health_missing_files": "Ficheiros em falta",
+        "health_and_more": "... e mais {{count}}"
     },
     "help": {
         "title": "Guia do Utilizador",

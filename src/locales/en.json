@@ -99,7 +99,16 @@
         "naming_template_tokens": "Available tokens: {title} {podcast} {date} {year} {month} {day}",
         "naming_template_preview": "Preview",
         "sidecar_enabled": "Sidecar .json Files",
-        "sidecar_hint": "Save a .json file next to each downloaded audio with title, podcast, date and source URL"
+        "sidecar_hint": "Save a .json file next to each downloaded audio with title, podcast, date and source URL",
+        "health_check": "Archive Health Check",
+        "health_check_run": "Run Check",
+        "health_check_running": "Checking...",
+        "health_total": "In DB",
+        "health_present": "On Disk",
+        "health_missing": "Missing",
+        "health_size": "Disk Usage",
+        "health_missing_files": "Missing files",
+        "health_and_more": "... and {{count}} more"
     },
     "help": {
         "title": "User Guide",

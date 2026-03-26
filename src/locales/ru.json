@@ -99,7 +99,16 @@
         "naming_template_tokens": "Доступные токены: {title} {podcast} {date} {year} {month} {day}",
         "naming_template_preview": "Предпросмотр",
         "sidecar_enabled": "Файлы Sidecar .json",
-        "sidecar_hint": "Сохраняет файл .json рядом с каждым скачанным аудио с заголовком, подкастом, датой и URL источника"
+        "sidecar_hint": "Сохраняет файл .json рядом с каждым скачанным аудио с заголовком, подкастом, датой и URL источника",
+        "health_check": "Проверка целостности архива",
+        "health_check_run": "Запустить проверку",
+        "health_check_running": "Проверка...",
+        "health_total": "В БД",
+        "health_present": "На диске",
+        "health_missing": "Отсутствует",
+        "health_size": "Занято места",
+        "health_missing_files": "Отсутствующие файлы",
+        "health_and_more": "... и ещё {{count}}"
     },
     "help": {
         "title": "Руководство пользователя",
