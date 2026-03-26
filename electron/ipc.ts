@@ -6,6 +6,7 @@ import { QueueService } from './services/QueueService';
 import { BatchTracker } from './services/BatchTracker';
 import { getSafePath } from './utils/getSafePath';
 import { extractExtension } from './utils/extractExtension';
+import { applyTemplate } from './utils/applyTemplate';
 import { validateUrl } from './utils/validateUrl';
 import { IPC_CHANNELS as CH } from '../shared/types';
 import type { FeedEntry, DownloadRequest } from '../shared/types';
@@ -107,7 +108,14 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
         // v0.4.3 — detect real extension from enclosure URL
         const ext = extractExtension(url);
-        const targetFile = getSafePath(baseDir, podcastTitle, title, ext);
+        // v0.5.4 — apply naming template
+        const namingTemplate = libraryService.getNamingTemplate();
+        const resolvedName = applyTemplate(namingTemplate, {
+            title,
+            podcast: podcastTitle,
+            pubDate: pubDate,
+        });
+        const targetFile = getSafePath(baseDir, podcastTitle, resolvedName, ext);
         const targetDir = path.dirname(targetFile);
 
         await fs.ensureDir(targetDir);
@@ -323,6 +331,16 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     // ── Locale Sync (v0.4.10) ────────────────────────────
     ipcMain.handle(CH.SET_LOCALE, async (_, locale: string) => {
         uiLocale = locale;
+        return true;
+    });
+
+    // ── Naming Template (v0.5.4) ────────────────────────────
+    ipcMain.handle(CH.GET_NAMING_TEMPLATE, async () => {
+        return libraryService.getNamingTemplate();
+    });
+
+    ipcMain.handle(CH.SET_NAMING_TEMPLATE, async (_, template: string) => {
+        libraryService.setNamingTemplate(template);
         return true;
     });
 }

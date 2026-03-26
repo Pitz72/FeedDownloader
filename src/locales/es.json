@@ -94,7 +94,10 @@
         "stats": "Estadísticas del Archivo",
         "stats_files": "Archivos Descargados",
         "stats_podcasts": "Podcasts",
-        "stats_range": "Rango del archivo"
+        "stats_range": "Rango del archivo",
+        "naming_template": "Plantilla de Nombre de Archivo",
+        "naming_template_tokens": "Tokens disponibles: {title} {podcast} {date} {year} {month} {day}",
+        "naming_template_preview": "Vista previa"
     },
     "help": {
         "title": "Guía de Usuario",

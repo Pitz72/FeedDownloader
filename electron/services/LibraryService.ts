@@ -83,6 +83,14 @@ export class LibraryService {
         this.db.setConcurrency(n);
     }
 
+    getNamingTemplate(): string {
+        return this.db.getNamingTemplate();
+    }
+
+    setNamingTemplate(template: string): void {
+        this.db.setNamingTemplate(template);
+    }
+
     // ── OPML ─────────────────────────────────────────────────
 
     async importOPML(xmlContent: string): Promise<number> {

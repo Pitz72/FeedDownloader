@@ -19,6 +19,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     const [confirmReset, setConfirmReset] = useState(false);
     const [isHelpOpen, setIsHelpOpen] = useState(false);
     const [concurrency, setConcurrency] = useState(3);
+    const [namingTemplate, setNamingTemplate] = useState('{title}');
     const [archiveStats, setArchiveStats] = useState<ArchiveStats | null>(null);
     const isBatchDownloading = useStore((state: AppState) => state.isBatchDownloading);
 
@@ -35,6 +36,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         setConcurrency(conc);
         const stats = await window.api.getArchiveStats();
         setArchiveStats(stats);
+        const tmpl = await window.api.getNamingTemplate();
+        setNamingTemplate(tmpl || '{title}');
     };
 
     const handleChangeFolder = async () => {
@@ -167,6 +170,29 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                         ))}
                                     </div>
                                     <p className="text-xs text-gray-500">{t('settings.concurrency_hint', 'Number of simultaneous downloads')}</p>
+                                </div>
+
+                                {/* Naming Template (v0.5.4) */}
+                                <div className="space-y-2 mt-4">
+                                    <label className="block text-sm text-gray-300">{t('settings.naming_template')}</label>
+                                    <input
+                                        type="text"
+                                        value={namingTemplate}
+                                        onChange={(e) => setNamingTemplate(e.target.value)}
+                                        onBlur={async () => { await window.api.setNamingTemplate(namingTemplate); }}
+                                        className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-300 font-mono focus:outline-none focus:border-blue-500"
+                                        placeholder="{title}"
+                                    />
+                                    <p className="text-xs text-gray-500">{t('settings.naming_template_tokens')}</p>
+                                    <p className="text-xs text-gray-600 font-mono truncate">
+                                        {t('settings.naming_template_preview')}: {namingTemplate
+                                            .replace(/\{date\}/gi, '2024-03-15')
+                                            .replace(/\{year\}/gi, '2024')
+                                            .replace(/\{month\}/gi, '03')
+                                            .replace(/\{day\}/gi, '15')
+                                            .replace(/\{podcast\}/gi, 'My Podcast')
+                                            .replace(/\{title\}/gi, 'Episode Title')}
+                                    </p>
                                 </div>
                             </div>
 

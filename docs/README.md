@@ -10,6 +10,7 @@ Cronologia completa delle versioni in [`changelog/`](changelog/).
 
 | Versione | Data | Tema |
 |----------|------|------|
+| [0.5.4](changelog/0.5.4.md) | 26 mar 2026 | Template Naming — template personalizzabile per il nome file degli episodi scaricati |
 | [0.5.3](changelog/0.5.3.md) | 26 mar 2026 | Sincronizzazione Incrementale Smart — Sync New, ri-analisi feed + coda automatica nuovi episodi |
 | [0.5.2](changelog/0.5.2.md) | 26 mar 2026 | Filtro Stato Episodi — All / Da scaricare / Scaricati, localizzato in 8 lingue |
 | [0.5.1](changelog/0.5.1.md) | 26 mar 2026 | Security Hardening & Cleanup — nodeIntegration esplicito, rate limit PARSE_FEED, rimozione electron-store |

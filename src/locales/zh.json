@@ -94,7 +94,10 @@
         "stats": "存档统计",
         "stats_files": "已下载文件",
         "stats_podcasts": "播客",
-        "stats_range": "存档期间"
+        "stats_range": "存档期间",
+        "naming_template": "文件命名模板",
+        "naming_template_tokens": "可用标记：{title} {podcast} {date} {year} {month} {day}",
+        "naming_template_preview": "预览"
     },
     "help": {
         "title": "用户指南",

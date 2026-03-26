@@ -204,6 +204,14 @@ export class DatabaseService {
         this.setSetting('concurrency', String(Math.max(1, Math.min(n, 10))));
     }
 
+    getNamingTemplate(): string {
+        return this.getSetting('namingTemplate') || '{title}';
+    }
+
+    setNamingTemplate(template: string): void {
+        this.setSetting('namingTemplate', template);
+    }
+
     // ── Lifecycle ────────────────────────────────────────────
 
     close(): void {

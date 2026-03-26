@@ -94,7 +94,10 @@
         "stats": "Статистика архива",
         "stats_files": "Загруженных файлов",
         "stats_podcasts": "Подкастов",
-        "stats_range": "Период архива"
+        "stats_range": "Период архива",
+        "naming_template": "Шаблон имени файла",
+        "naming_template_tokens": "Доступные токены: {title} {podcast} {date} {year} {month} {day}",
+        "naming_template_preview": "Предпросмотр"
     },
     "help": {
         "title": "Руководство пользователя",

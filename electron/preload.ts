@@ -54,4 +54,8 @@ contextBridge.exposeInMainWorld('api', {
 
   // Locale Sync (v0.4.10)
   setLocale: (locale: string): Promise<boolean> => ipcRenderer.invoke(CH.SET_LOCALE, locale),
+
+  // Naming Template (v0.5.4)
+  getNamingTemplate: (): Promise<string> => ipcRenderer.invoke(CH.GET_NAMING_TEMPLATE),
+  setNamingTemplate: (template: string): Promise<boolean> => ipcRenderer.invoke(CH.SET_NAMING_TEMPLATE, template),
 })

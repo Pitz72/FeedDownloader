@@ -104,4 +104,7 @@ export const IPC_CHANNELS = {
     GET_ARCHIVE_STATS: 'get-archive-stats',
     // UI locale sync (renderer → main, for OS notifications)
     SET_LOCALE: 'set-locale',
+    // Naming Template (v0.5.4)
+    GET_NAMING_TEMPLATE: 'get-naming-template',
+    SET_NAMING_TEMPLATE: 'set-naming-template',
 } as const;

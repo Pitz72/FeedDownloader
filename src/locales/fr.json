@@ -94,7 +94,10 @@
         "stats": "Statistiques de l'Archive",
         "stats_files": "Fichiers Téléchargés",
         "stats_podcasts": "Podcasts",
-        "stats_range": "Période de l'archive"
+        "stats_range": "Période de l'archive",
+        "naming_template": "Modèle de Nom de Fichier",
+        "naming_template_tokens": "Jetons disponibles : {title} {podcast} {date} {year} {month} {day}",
+        "naming_template_preview": "Aperçu"
     },
     "help": {
         "title": "Guide Utilisateur",

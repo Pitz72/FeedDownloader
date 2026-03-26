@@ -36,6 +36,9 @@ declare global {
             getArchiveStats: () => Promise<ArchiveStats>;
             // Locale Sync (v0.4.10)
             setLocale: (locale: string) => Promise<boolean>;
+            // Naming Template (v0.5.4)
+            getNamingTemplate: () => Promise<string>;
+            setNamingTemplate: (template: string) => Promise<boolean>;
         };
     }
 }

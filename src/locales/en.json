@@ -94,7 +94,10 @@
         "stats": "Archive Statistics",
         "stats_files": "Files Downloaded",
         "stats_podcasts": "Podcasts",
-        "stats_range": "Archive range"
+        "stats_range": "Archive range",
+        "naming_template": "File Naming Template",
+        "naming_template_tokens": "Available tokens: {title} {podcast} {date} {year} {month} {day}",
+        "naming_template_preview": "Preview"
     },
     "help": {
         "title": "User Guide",
