@@ -112,7 +112,10 @@
         "id3_tagging": "Marcação ID3",
         "id3_tagging_desc": "Escreve metadados (título, artista, ano, capa) nos ficheiros .mp3 descarregados",
         "id3_enabled": "Marcação ID3 Ativada",
-        "id3_disabled": "Marcação ID3 Desativada"
+        "id3_disabled": "Marcação ID3 Desativada",
+        "speed_limit": "Limite de Velocidade",
+        "speed_limit_desc": "Limitar a velocidade de download. 0 = ilimitado.",
+        "speed_unlimited": "Ilimitado"
     },
     "help": {
         "title": "Guia do Utilizador",

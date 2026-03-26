@@ -124,4 +124,7 @@ export const IPC_CHANNELS = {
     // ID3 Tagging (v0.6.4)
     GET_ID3_ENABLED: 'get-id3-enabled',
     SET_ID3_ENABLED: 'set-id3-enabled',
+    // Speed Throttle (v0.6.5)
+    GET_SPEED_LIMIT: 'get-speed-limit',
+    SET_SPEED_LIMIT: 'set-speed-limit',
 } as const;

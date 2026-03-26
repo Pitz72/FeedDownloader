@@ -21,7 +21,7 @@ I file archiviati devono essere auto-esplicativi e organizzati secondo standard 
 ### 3. Efficienza di Massa (Workflow Automation)
 Gestione intelligente delle risorse per evitare ban dai CDN e ottimizzare i tempi.
 - ✅ **Download Paralleli Configurabili (v0.4.0):** Selettore per limitare i download paralleli (1, 3, 5 simultanei).
-- 🔲 **Throttling Velocità di Trasferimento:** Limitazione della velocità in KB/s per non saturare la rete o attivare protezioni anti-bot.
+- ✅ **Throttling Velocità di Trasferimento (v0.6.5):** Limitazione della velocità in KB/s per non saturare la rete o attivare protezioni anti-bot.
 - ✅ **Filtri per Data (v0.4.0):** Filtro per intervallo di date di pubblicazione degli episodi.
 - 🔲 **Filtri Avanzati:** Filtrare per keyword nel titolo o durata dell'episodio.
 - ✅ **Sincronizzazione Incrementale Smart (v0.5.3):** Funzione "Sync New" che rianalizza il feed e mette in coda automaticamente solo i nuovi episodi non ancora presenti nel database.
@@ -58,4 +58,4 @@ Fornire all'utente una visione chiara dello stato del proprio archivio.
 - 🔲 **Esportazione Log Avanzata:** Includere nel CSV dettagli tecnici come bitrate, frequenza di campionamento e stato di validazione del file.
 
 ---
-*Documento redatto il 16 febbraio 2026 come roadmap per lo sviluppo futuro. Aggiornato il 21 marzo 2026 con lo stato di implementazione. Aggiornato il 26 marzo 2026: segnate ✅ le feature implementate in v0.5.0–v0.6.4; aggiunta sezione 5 su refactor finestra impostazioni.*
+*Documento redatto il 16 febbraio 2026 come roadmap per lo sviluppo futuro. Aggiornato il 21 marzo 2026 con lo stato di implementazione. Aggiornato il 26 marzo 2026: segnate ✅ le feature implementate in v0.5.0–v0.6.5; aggiunta sezione 5 su refactor finestra impostazioni.*

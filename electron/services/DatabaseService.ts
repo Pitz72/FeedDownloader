@@ -228,6 +228,15 @@ export class DatabaseService {
         this.setSetting('id3Enabled', String(enabled));
     }
 
+    getSpeedLimit(): number {
+        const val = this.getSetting('speedLimitKBps');
+        return val ? parseInt(val, 10) : 0; // 0 = unlimited
+    }
+
+    setSpeedLimit(kbps: number): void {
+        this.setSetting('speedLimitKBps', String(Math.max(0, Math.floor(kbps))));
+    }
+
     // ── Lifecycle ────────────────────────────────────────────
 
     close(): void {

@@ -111,6 +111,9 @@ export class LibraryService {
         this.db.setId3Enabled(enabled);
     }
 
+    getSpeedLimit(): number { return this.db.getSpeedLimit(); }
+    setSpeedLimit(kbps: number): void { this.db.setSpeedLimit(kbps); }
+
     // ── OPML ─────────────────────────────────────────────────
 
     async importOPML(xmlContent: string): Promise<number> {

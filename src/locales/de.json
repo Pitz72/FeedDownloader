@@ -112,7 +112,10 @@
         "id3_tagging": "ID3-Tagging",
         "id3_tagging_desc": "Metadaten (Titel, Künstler, Jahr, Cover) in heruntergeladene .mp3-Dateien schreiben",
         "id3_enabled": "ID3-Tagging Aktiviert",
-        "id3_disabled": "ID3-Tagging Deaktiviert"
+        "id3_disabled": "ID3-Tagging Deaktiviert",
+        "speed_limit": "Download-Geschwindigkeitslimit",
+        "speed_limit_desc": "Download-Geschwindigkeit begrenzen. 0 = unbegrenzt.",
+        "speed_unlimited": "Unbegrenzt"
     },
     "help": {
         "title": "Benutzerhandbuch",

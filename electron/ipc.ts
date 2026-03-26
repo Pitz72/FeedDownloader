@@ -139,9 +139,10 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
         queueService.add(async () => {
             try {
+                const speedLimitKBps = libraryService.getSpeedLimit();
                 await downloadService.downloadFile(url, targetFile, (loaded, total) => {
                     pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded, total });
-                });
+                }, speedLimitKBps);
 
                 if (guid) {
                     libraryService.markAsDownloaded(guid);
@@ -403,6 +404,16 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
     ipcMain.handle(CH.SET_ID3_ENABLED, async (_, enabled: boolean) => {
         libraryService.setId3Enabled(enabled);
+        return true;
+    });
+
+    // ── Speed Throttle (v0.6.5) ─────────────────────────────────
+    ipcMain.handle(CH.GET_SPEED_LIMIT, async () => {
+        return libraryService.getSpeedLimit();
+    });
+
+    ipcMain.handle(CH.SET_SPEED_LIMIT, async (_, kbps: number) => {
+        libraryService.setSpeedLimit(kbps);
         return true;
     });
 

@@ -112,7 +112,10 @@
         "id3_tagging": "Balisage ID3",
         "id3_tagging_desc": "Écrire les métadonnées (titre, artiste, année, pochette) dans les fichiers .mp3 téléchargés",
         "id3_enabled": "Balisage ID3 Activé",
-        "id3_disabled": "Balisage ID3 Désactivé"
+        "id3_disabled": "Balisage ID3 Désactivé",
+        "speed_limit": "Limite de Vitesse",
+        "speed_limit_desc": "Limiter la vitesse de téléchargement. 0 = illimité.",
+        "speed_unlimited": "Illimité"
     },
     "help": {
         "title": "Guide Utilisateur",

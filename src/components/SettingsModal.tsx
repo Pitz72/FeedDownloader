@@ -22,6 +22,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     const [namingTemplate, setNamingTemplate] = useState('{title}');
     const [sidecarEnabled, setSidecarEnabled] = useState(false);
     const [id3Enabled, setId3Enabled] = useState(false);
+    const [speedLimit, setSpeedLimit] = useState<number>(0);
     const [archiveStats, setArchiveStats] = useState<ArchiveStats | null>(null);
     const [healthResult, setHealthResult] = useState<import('../../shared/types').HealthCheckResult | null>(null);
     const [isHealthChecking, setIsHealthChecking] = useState(false);
@@ -46,6 +47,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         setSidecarEnabled(sidecar);
         const id3 = await window.api.getId3Enabled();
         setId3Enabled(id3);
+        const sl = await window.api.getSpeedLimit();
+        setSpeedLimit(sl);
     };
 
     const handleChangeFolder = async () => {
@@ -67,6 +70,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     const handleConcurrencyChange = async (n: number) => {
         setConcurrency(n);
         await window.api.setConcurrency(n);
+    };
+
+    const handleSpeedLimitChange = async (value: number) => {
+        const clamped = Math.max(0, Math.floor(value));
+        setSpeedLimit(clamped);
+        await window.api.setSpeedLimit(clamped);
     };
 
     const changeLanguage = (lang: string) => {
@@ -235,6 +244,26 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                     >
                                         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${id3Enabled ? 'translate-x-6' : 'translate-x-1'}`} />
                                     </button>
+                                </div>
+                                {/* Speed Limit (v0.6.5) */}
+                                <div className="space-y-2 mt-4">
+                                    <label className="text-sm font-medium text-gray-300">
+                                        {t('settings.speed_limit')}
+                                    </label>
+                                    <p className="text-xs text-gray-500">{t('settings.speed_limit_desc')}</p>
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            type="number"
+                                            min={0}
+                                            max={102400}
+                                            value={speedLimit}
+                                            onChange={(e) => handleSpeedLimitChange(parseInt(e.target.value) || 0)}
+                                            className="w-32 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+                                        />
+                                        <span className="text-sm text-gray-400">
+                                            {speedLimit === 0 ? t('settings.speed_unlimited') : 'KB/s'}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
 

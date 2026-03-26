@@ -1,5 +1,6 @@
 import axios from 'axios';
 import fs from 'fs-extra';
+import { createThrottleStream } from '../utils/throttleStream';
 
 /** Timeout for the initial HTTP connection (ms) */
 const CONNECTION_TIMEOUT_MS = 30_000; // 30s
@@ -8,10 +9,10 @@ const CONNECTION_TIMEOUT_MS = 30_000; // 30s
 const STALL_TIMEOUT_MS = 60_000; // 60s
 
 export class DownloadService {
-    async downloadFile(url: string, outputPath: string, onProgress: (loaded: number, total: number) => void, attempts = 3) {
+    async downloadFile(url: string, outputPath: string, onProgress: (loaded: number, total: number) => void, speedLimitKBps?: number, attempts = 3) {
         for (let i = 0; i < attempts; i++) {
             try {
-                await this.attemptDownload(url, outputPath, onProgress);
+                await this.attemptDownload(url, outputPath, onProgress, speedLimitKBps);
                 return; // Success
             } catch (error: unknown) {
                 const err = error as { code?: string; message?: string };
@@ -41,7 +42,7 @@ export class DownloadService {
         }
     }
 
-    private async attemptDownload(url: string, outputPath: string, onProgress: (loaded: number, total: number) => void) {
+    private async attemptDownload(url: string, outputPath: string, onProgress: (loaded: number, total: number) => void, speedLimitKBps?: number) {
         const tempPath = `${outputPath}.part`;
 
         // v0.6.1 — Check for existing partial download to resume via HTTP Range
@@ -93,6 +94,11 @@ export class DownloadService {
 
             let loaded = resumedBytes; // Start progress counter from resume offset
 
+            // v0.6.5 — crea throttle stream se limite configurato
+            const throttle = speedLimitKBps && speedLimitKBps > 0
+                ? createThrottleStream(speedLimitKBps * 1024)
+                : null;
+
             return new Promise<void>((resolve, reject) => {
                 // v0.4.7 — stall detection: abort if no data received for STALL_TIMEOUT_MS
                 let stallTimer: ReturnType<typeof setTimeout> | null = null;
@@ -110,6 +116,7 @@ export class DownloadService {
                 // Start the stall timer
                 resetStallTimer();
 
+                // Stall detection e progress: ascolta sul raw stream (network)
                 response.data.on('data', (chunk: Buffer) => {
                     loaded += chunk.length;
                     resetStallTimer(); // Got data — reset the stall timer
@@ -118,7 +125,12 @@ export class DownloadService {
                     }
                 });
 
-                response.data.pipe(writer!);
+                // Pipe: attraverso throttle se attivo, diretto altrimenti
+                if (throttle) {
+                    response.data.pipe(throttle).pipe(writer!);
+                } else {
+                    response.data.pipe(writer!);
+                }
 
                 writer!.on('finish', async () => {
                     if (stallTimer) clearTimeout(stallTimer);
