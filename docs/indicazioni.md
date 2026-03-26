@@ -15,7 +15,7 @@ L'obiettivo è garantire che ogni file scaricato sia identico alla sorgente e ch
 ### 2. Organizzazione e Metadati (Library Management)
 I file archiviati devono essere auto-esplicativi e organizzati secondo standard bibliotecari.
 - ✅ **Template di Naming Personalizzabili (v0.5.4):** Permettere la definizione di strutture cartelle/file dinamiche, es: `[YYYY-MM-DD] - [Podcast Name] - [Episode Title].mp3`.
-- 🔲 **Tagging ID3 Automatico:** Iniezione dei metadati (Titolo, Artista, Anno, Cover Art) direttamente nel file audio leggendoli dal feed RSS.
+- ✅ **Tagging ID3 Automatico (v0.6.4):** Iniezione dei metadati (Titolo, Artista, Anno, Cover Art) direttamente nel file audio leggendoli dal feed RSS.
 - ✅ **Sidecar Files (Metadata Backup) (v0.5.5):** Salvataggio di file `.json` con titolo, podcast, data e URL sorgente accanto a ogni episodio scaricato.
 
 ### 3. Efficienza di Massa (Workflow Automation)

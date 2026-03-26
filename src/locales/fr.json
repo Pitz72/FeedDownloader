@@ -108,7 +108,11 @@
         "health_missing": "Manquants",
         "health_size": "Espace utilisé",
         "health_missing_files": "Fichiers manquants",
-        "health_and_more": "... et {{count}} de plus"
+        "health_and_more": "... et {{count}} de plus",
+        "id3_tagging": "Balisage ID3",
+        "id3_tagging_desc": "Écrire les métadonnées (titre, artiste, année, pochette) dans les fichiers .mp3 téléchargés",
+        "id3_enabled": "Balisage ID3 Activé",
+        "id3_disabled": "Balisage ID3 Désactivé"
     },
     "help": {
         "title": "Guide Utilisateur",

@@ -108,7 +108,11 @@
         "health_missing": "Missing",
         "health_size": "Disk Usage",
         "health_missing_files": "Missing files",
-        "health_and_more": "... and {{count}} more"
+        "health_and_more": "... and {{count}} more",
+        "id3_tagging": "ID3 Tagging",
+        "id3_tagging_desc": "Write metadata (title, artist, year, cover art) into downloaded .mp3 files",
+        "id3_enabled": "ID3 Tagging Enabled",
+        "id3_disabled": "ID3 Tagging Disabled"
     },
     "help": {
         "title": "User Guide",

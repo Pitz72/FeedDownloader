@@ -115,12 +115,14 @@ export const EpisodeList: React.FC = () => {
 
         const guid = episode.guid || url;
 
+        const imageUrl = typeof currentFeed?.image === 'string' ? currentFeed.image : currentFeed?.image?.url;
         window.api.startDownload({
             url,
             title: episode.title,
             podcastTitle: currentFeed.title,
             guid,
-            pubDate: episode.pubDate || episode.isoDate
+            pubDate: episode.pubDate || episode.isoDate,
+            feedImageUrl: imageUrl
         });
 
         if (!silent) toast.show(t('toast.download_started'), 'info');

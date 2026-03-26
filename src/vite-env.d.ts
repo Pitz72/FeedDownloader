@@ -44,6 +44,9 @@ declare global {
             setSidecarEnabled: (enabled: boolean) => Promise<boolean>;
             // Health Check (v0.6.0)
             runHealthCheck: () => Promise<HealthCheckResult>;
+            // ID3 Tagging (v0.6.4)
+            getId3Enabled: () => Promise<boolean>;
+            setId3Enabled: (enabled: boolean) => Promise<boolean>;
         };
     }
 }

@@ -220,6 +220,14 @@ export class DatabaseService {
         this.setSetting('sidecarEnabled', String(enabled));
     }
 
+    getId3Enabled(): boolean {
+        return this.getSetting('id3Enabled') === 'true';
+    }
+
+    setId3Enabled(enabled: boolean): void {
+        this.setSetting('id3Enabled', String(enabled));
+    }
+
     // ── Lifecycle ────────────────────────────────────────────
 
     close(): void {

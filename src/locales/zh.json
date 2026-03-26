@@ -108,7 +108,11 @@
         "health_missing": "缺失",
         "health_size": "占用空间",
         "health_missing_files": "缺失文件",
-        "health_and_more": "... 还有 {{count}} 个"
+        "health_and_more": "... 还有 {{count}} 个",
+        "id3_tagging": "ID3 标签",
+        "id3_tagging_desc": "将元数据（标题、艺术家、年份、封面）写入已下载的 .mp3 文件",
+        "id3_enabled": "ID3 标签已启用",
+        "id3_disabled": "ID3 标签已禁用"
     },
     "help": {
         "title": "用户指南",

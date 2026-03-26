@@ -10,6 +10,7 @@ Cronologia completa delle versioni in [`changelog/`](changelog/).
 
 | Versione | Data | Tema |
 |----------|------|------|
+| [0.6.4](changelog/0.6.4.md) | 26 mar 2026 | Tagging ID3 Automatico — iniezione metadati (titolo, artista, anno, copertina) nei file .mp3 scaricati |
 | [0.6.3](changelog/0.6.3.md) | 26 mar 2026 | Feed Cache + Spinner — cache in-memory 5 min, risposta istantanea ai click ripetuti |
 | [0.6.2](changelog/0.6.2.md) | 26 mar 2026 | Fix chiusura app — X termina il processo (rimosso minimize-to-tray) |
 | [0.6.1](changelog/0.6.1.md) | 26 mar 2026 | Resume Download — ripartenza automatica dei download interrotti via HTTP 206 Range |

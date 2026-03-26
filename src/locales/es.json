@@ -108,7 +108,11 @@
         "health_missing": "Faltantes",
         "health_size": "Espacio ocupado",
         "health_missing_files": "Archivos faltantes",
-        "health_and_more": "... y {{count}} más"
+        "health_and_more": "... y {{count}} más",
+        "id3_tagging": "Etiquetado ID3",
+        "id3_tagging_desc": "Escribe metadatos (título, artista, año, portada) en los archivos .mp3 descargados",
+        "id3_enabled": "Etiquetado ID3 Activado",
+        "id3_disabled": "Etiquetado ID3 Desactivado"
     },
     "help": {
         "title": "Guía de Usuario",

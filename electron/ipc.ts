@@ -5,6 +5,7 @@ import { DownloadService } from './services/DownloadService';
 import { QueueService } from './services/QueueService';
 import { BatchTracker } from './services/BatchTracker';
 import { getSafePath } from './utils/getSafePath';
+import { writeId3Tags } from './utils/writeId3Tags';
 import { extractExtension } from './utils/extractExtension';
 import { applyTemplate } from './utils/applyTemplate';
 import { validateUrl } from './utils/validateUrl';
@@ -107,7 +108,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     });
 
     // ── Download Engine ──────────────────────────────────
-    ipcMain.handle(CH.START_DOWNLOAD, async (_, { url, title, podcastTitle, guid, pubDate }: DownloadRequest) => {
+    ipcMain.handle(CH.START_DOWNLOAD, async (_, { url, title, podcastTitle, guid, pubDate, feedImageUrl }: DownloadRequest) => {
         // v0.4.4 — validate download URL
         const check = validateUrl(url);
         if (!check.valid) {
@@ -152,6 +153,16 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                         downloadedAt: new Date().toISOString(),
                         filename: path.basename(targetFile)
                     });
+                }
+
+                // v0.6.4 — Write ID3 tags if enabled
+                if (libraryService.getId3Enabled()) {
+                    await writeId3Tags(targetFile, {
+                        title,
+                        podcastTitle,
+                        pubDate,
+                        feedImageUrl: feedImageUrl,
+                    }).catch((e) => console.error('[ID3] Failed to write tags:', e));
                 }
 
                 // v0.5.5 — Write sidecar .json if enabled
@@ -382,6 +393,16 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
     ipcMain.handle(CH.SET_SIDECAR_ENABLED, async (_, enabled: boolean) => {
         libraryService.setSidecarEnabled(enabled);
+        return true;
+    });
+
+    // ── ID3 Tagging (v0.6.4) ────────────────────────────────
+    ipcMain.handle(CH.GET_ID3_ENABLED, async () => {
+        return libraryService.getId3Enabled();
+    });
+
+    ipcMain.handle(CH.SET_ID3_ENABLED, async (_, enabled: boolean) => {
+        libraryService.setId3Enabled(enabled);
         return true;
     });
 

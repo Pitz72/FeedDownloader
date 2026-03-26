@@ -108,7 +108,11 @@
         "health_missing": "Отсутствует",
         "health_size": "Занято места",
         "health_missing_files": "Отсутствующие файлы",
-        "health_and_more": "... и ещё {{count}}"
+        "health_and_more": "... и ещё {{count}}",
+        "id3_tagging": "ID3-теги",
+        "id3_tagging_desc": "Записывать метаданные (название, исполнитель, год, обложка) в скачанные .mp3-файлы",
+        "id3_enabled": "ID3-теги включены",
+        "id3_disabled": "ID3-теги отключены"
     },
     "help": {
         "title": "Руководство пользователя",

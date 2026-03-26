@@ -65,4 +65,8 @@ contextBridge.exposeInMainWorld('api', {
 
   // Health Check (v0.6.0)
   runHealthCheck: (): Promise<HealthCheckResult> => ipcRenderer.invoke(CH.RUN_HEALTH_CHECK),
+
+  // ID3 Tagging (v0.6.4)
+  getId3Enabled: (): Promise<boolean> => ipcRenderer.invoke(CH.GET_ID3_ENABLED),
+  setId3Enabled: (enabled: boolean): Promise<boolean> => ipcRenderer.invoke(CH.SET_ID3_ENABLED, enabled),
 })

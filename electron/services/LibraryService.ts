@@ -103,6 +103,14 @@ export class LibraryService {
         this.db.setSidecarEnabled(enabled);
     }
 
+    getId3Enabled(): boolean {
+        return this.db.getId3Enabled();
+    }
+
+    setId3Enabled(enabled: boolean): void {
+        this.db.setId3Enabled(enabled);
+    }
+
     // ── OPML ─────────────────────────────────────────────────
 
     async importOPML(xmlContent: string): Promise<number> {

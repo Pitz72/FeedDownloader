@@ -74,6 +74,7 @@ export interface DownloadRequest {
     podcastTitle: string;
     guid: string;
     pubDate?: string;
+    feedImageUrl?: string;  // URL immagine del feed per cover art ID3 (v0.6.4)
 }
 
 export interface DownloadResult {
@@ -120,4 +121,7 @@ export const IPC_CHANNELS = {
     SET_SIDECAR_ENABLED: 'set-sidecar-enabled',
     // Health Check (v0.6.0)
     RUN_HEALTH_CHECK: 'run-health-check',
+    // ID3 Tagging (v0.6.4)
+    GET_ID3_ENABLED: 'get-id3-enabled',
+    SET_ID3_ENABLED: 'set-id3-enabled',
 } as const;

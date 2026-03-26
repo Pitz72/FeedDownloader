@@ -21,6 +21,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     const [concurrency, setConcurrency] = useState(3);
     const [namingTemplate, setNamingTemplate] = useState('{title}');
     const [sidecarEnabled, setSidecarEnabled] = useState(false);
+    const [id3Enabled, setId3Enabled] = useState(false);
     const [archiveStats, setArchiveStats] = useState<ArchiveStats | null>(null);
     const [healthResult, setHealthResult] = useState<import('../../shared/types').HealthCheckResult | null>(null);
     const [isHealthChecking, setIsHealthChecking] = useState(false);
@@ -43,6 +44,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         setNamingTemplate(tmpl || '{title}');
         const sidecar = await window.api.getSidecarEnabled();
         setSidecarEnabled(sidecar);
+        const id3 = await window.api.getId3Enabled();
+        setId3Enabled(id3);
     };
 
     const handleChangeFolder = async () => {
@@ -214,6 +217,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${sidecarEnabled ? 'bg-blue-600' : 'bg-white/20'}`}
                                     >
                                         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${sidecarEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                                    </button>
+                                </div>
+                                {/* ID3 Tagging (v0.6.4) */}
+                                <div className="flex items-center justify-between mt-4 p-3 bg-white/5 border border-white/10 rounded-lg">
+                                    <div>
+                                        <p className="text-sm text-gray-300">{id3Enabled ? t('settings.id3_enabled') : t('settings.id3_disabled')}</p>
+                                        <p className="text-xs text-gray-500 mt-0.5">{t('settings.id3_tagging_desc')}</p>
+                                    </div>
+                                    <button
+                                        onClick={async () => {
+                                            const next = !id3Enabled;
+                                            setId3Enabled(next);
+                                            await window.api.setId3Enabled(next);
+                                        }}
+                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${id3Enabled ? 'bg-blue-600' : 'bg-white/20'}`}
+                                    >
+                                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${id3Enabled ? 'translate-x-6' : 'translate-x-1'}`} />
                                     </button>
                                 </div>
                             </div>

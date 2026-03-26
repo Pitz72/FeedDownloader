@@ -108,7 +108,11 @@
         "health_missing": "Fehlend",
         "health_size": "Speicherplatz",
         "health_missing_files": "Fehlende Dateien",
-        "health_and_more": "... und {{count}} weitere"
+        "health_and_more": "... und {{count}} weitere",
+        "id3_tagging": "ID3-Tagging",
+        "id3_tagging_desc": "Metadaten (Titel, Künstler, Jahr, Cover) in heruntergeladene .mp3-Dateien schreiben",
+        "id3_enabled": "ID3-Tagging Aktiviert",
+        "id3_disabled": "ID3-Tagging Deaktiviert"
     },
     "help": {
         "title": "Benutzerhandbuch",
