@@ -25,8 +25,6 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 
 
 let win: BrowserWindow | null
 let tray: Tray | null = null
-// v0.5.0 — flag to distinguish user quit (tray menu) from window close (minimize to tray)
-let isQuiting = false
 
 const icon = path.join(process.env.VITE_PUBLIC, 'logo.png');
 
@@ -62,7 +60,6 @@ function createTray() {
     {
       label: 'Quit',
       click: () => {
-        isQuiting = true;
         app.quit();
       },
     },
@@ -117,15 +114,6 @@ function createWindow() {
     win?.show();
   });
 
-  // v0.5.0 — On close: minimize to tray instead of quitting (non-macOS)
-  if (process.platform !== 'darwin') {
-    win.on('close', (event) => {
-      if (!isQuiting) {
-        event.preventDefault();
-        win?.hide();
-      }
-    });
-  }
 
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL)
@@ -134,17 +122,10 @@ function createWindow() {
   }
 }
 
-// Ensure the window can close on OS-initiated quit (shutdown, etc.)
-app.on('before-quit', () => {
-  isQuiting = true;
-});
-
 // Quit when all windows are closed
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
-    // With tray: keep running (windows are hidden, not closed).
-    // Without tray (creation failed): quit to avoid ghost process.
-    if (!tray) app.quit();
+    app.quit();
   } else {
     app.quit()
     win = null
