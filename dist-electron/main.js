@@ -20810,7 +20810,8 @@ class ZW {
         content: c.content,
         contentSnippet: c.contentSnippet,
         guid: c.guid,
-        isoDate: c.isoDate
+        isoDate: c.isoDate,
+        itunes: c.itunes
       })), a;
     } catch (n) {
       console.error("Error parsing feed:", n);
