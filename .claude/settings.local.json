@@ -17,7 +17,14 @@
       "Bash(MAIN=\"c:/Users/Utente/Documents/SVILUPPO/UTILITY/FeedDownloader\")",
       "Bash(mkdir -p \"$MAIN/builds/0.6.7\")",
       "Bash(cp -f \"$WORKTREE/builds/0.6.7/Runtime FeedDownloader Pro Setup 0.6.7.exe\" \"$MAIN/builds/0.6.7/Runtime FeedDownloader Pro Setup 0.6.7.exe\")",
-      "Read(//c/Users/Utente/Documents/SVILUPPO/UTILITY/FeedDownloader/.claude/worktrees/flamboyant-lalande/$MAIN/builds/**)"
+      "Read(//c/Users/Utente/Documents/SVILUPPO/UTILITY/FeedDownloader/.claude/worktrees/flamboyant-lalande/$MAIN/builds/**)",
+      "Bash(mkdir -p \"$MAIN/builds/0.6.8\")",
+      "Bash(cp -f \"$WORKTREE/builds/0.6.8/Runtime FeedDownloader Pro Setup 0.6.8.exe\" \"$MAIN/builds/0.6.8/Runtime FeedDownloader Pro Setup 0.6.8.exe\")",
+      "Bash(WORKTREE=\"C:/Users/Utente/Documents/SVILUPPO/UTILITY/FeedDownloader/.claude/worktrees/flamboyant-lalande\")",
+      "Bash(MAINREPO=\"C:/Users/Utente/Documents/SVILUPPO/UTILITY/FeedDownloader\")",
+      "Bash(mkdir -p \"$MAINREPO/builds/0.6.9\")",
+      "Bash(cp -f \"$WORKTREE/builds/0.6.9/Runtime FeedDownloader Pro Setup 0.6.9.exe\" \"$MAINREPO/builds/0.6.9/Runtime FeedDownloader Pro Setup 0.6.9.exe\")",
+      "Read(//c/Users/Utente/Documents/SVILUPPO/UTILITY/FeedDownloader/.claude/worktrees/flamboyant-lalande/$MAINREPO/builds/**)"
     ]
   }
 }
