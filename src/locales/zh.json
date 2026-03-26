@@ -29,7 +29,10 @@
         "filter": "搜索剧集...",
         "date_filter": "日期筛选",
         "from": "从",
-        "to": "至"
+        "to": "至",
+        "filter_all": "全部",
+        "filter_new": "未下载",
+        "filter_downloaded": "已下载"
     },
     "progress": {
         "downloading": "下载中...",

@@ -29,7 +29,10 @@
         "filter": "Поиск выпусков...",
         "date_filter": "Фильтр по дате",
         "from": "От",
-        "to": "До"
+        "to": "До",
+        "filter_all": "Все",
+        "filter_new": "Не скачанные",
+        "filter_downloaded": "Скачанные"
     },
     "progress": {
         "downloading": "Загрузка...",

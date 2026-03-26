@@ -29,7 +29,10 @@
         "filter": "Episoden filtern...",
         "date_filter": "Datumsfilter",
         "from": "Von",
-        "to": "Bis"
+        "to": "Bis",
+        "filter_all": "Alle",
+        "filter_new": "Nicht heruntergeladen",
+        "filter_downloaded": "Heruntergeladen"
     },
     "progress": {
         "downloading": "Wird heruntergeladen...",

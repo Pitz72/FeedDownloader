@@ -29,7 +29,10 @@
         "filter": "Filter episodes...",
         "date_filter": "Date Filter",
         "from": "From",
-        "to": "To"
+        "to": "To",
+        "filter_all": "All",
+        "filter_new": "Not Downloaded",
+        "filter_downloaded": "Downloaded"
     },
     "progress": {
         "downloading": "Downloading...",

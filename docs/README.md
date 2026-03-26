@@ -10,6 +10,7 @@ Cronologia completa delle versioni in [`changelog/`](changelog/).
 
 | Versione | Data | Tema |
 |----------|------|------|
+| [0.5.2](changelog/0.5.2.md) | 26 mar 2026 | Filtro Stato Episodi — All / Da scaricare / Scaricati, localizzato in 8 lingue |
 | [0.5.1](changelog/0.5.1.md) | 26 mar 2026 | Security Hardening & Cleanup — nodeIntegration esplicito, rate limit PARSE_FEED, rimozione electron-store |
 | [0.5.0](changelog/0.5.0.md) | 22 mar 2026 | UX Upgrade — drag & drop, shortcuts, tray icon, integrity check, ghost 404 |
 | [0.4.9](changelog/0.4.9.md) | 21 mar 2026 | Lieve Cleanup — 7 criticità lievi risolte, useOnlineStatus, __APP_VERSION__, ESLint nel build |

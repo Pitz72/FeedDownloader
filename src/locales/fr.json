@@ -29,7 +29,10 @@
         "filter": "Filtrer les épisodes...",
         "date_filter": "Filtre par Date",
         "from": "Du",
-        "to": "Au"
+        "to": "Au",
+        "filter_all": "Tous",
+        "filter_new": "Non téléchargés",
+        "filter_downloaded": "Téléchargés"
     },
     "progress": {
         "downloading": "Téléchargement en cours...",

@@ -29,7 +29,10 @@
         "filter": "Filtra episodi...",
         "date_filter": "Filtro Data",
         "from": "Da",
-        "to": "A"
+        "to": "A",
+        "filter_all": "Tutti",
+        "filter_new": "Da scaricare",
+        "filter_downloaded": "Scaricati"
     },
     "progress": {
         "downloading": "Download in corso...",

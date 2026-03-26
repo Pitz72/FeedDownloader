@@ -29,7 +29,10 @@
         "filter": "Filtrar episodios...",
         "date_filter": "Filtro por Fecha",
         "from": "Desde",
-        "to": "Hasta"
+        "to": "Hasta",
+        "filter_all": "Todos",
+        "filter_new": "No descargados",
+        "filter_downloaded": "Descargados"
     },
     "progress": {
         "downloading": "Descargando...",

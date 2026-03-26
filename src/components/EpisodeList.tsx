@@ -23,6 +23,10 @@ export const EpisodeList: React.FC = () => {
     const [dateTo, setDateTo] = useState('');
     const [showDateFilter, setShowDateFilter] = useState(false);
 
+    // Status filter (v0.5.2)
+    type StatusFilter = 'all' | 'new' | 'downloaded';
+    const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+
     // ConfirmModal state
     const [confirmState, setConfirmState] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
         isOpen: false, title: '', message: '', onConfirm: () => { }
@@ -80,8 +84,18 @@ export const EpisodeList: React.FC = () => {
             });
         }
 
+        // Status filter (v0.5.2)
+        if (statusFilter !== 'all') {
+            episodes = episodes.filter((ep: Episode) => {
+                const url = getEnclosureUrl(ep);
+                const guid = ep.guid || url || '';
+                const isDownloaded = guid ? downloadedGuids.includes(guid) : false;
+                return statusFilter === 'downloaded' ? isDownloaded : !isDownloaded;
+            });
+        }
+
         return episodes;
-    }, [currentFeed, searchQuery, dateFrom, dateTo]);
+    }, [currentFeed, searchQuery, dateFrom, dateTo, downloadedGuids, statusFilter]);
 
     // v0.5.0 — must be called before early return (React hooks rules)
     const isOnline = useOnlineStatus();
@@ -263,6 +277,19 @@ export const EpisodeList: React.FC = () => {
                             <Calendar size={16} />
                             {t('episodes.date_filter', 'Date Filter')}
                         </button>
+
+                        {/* Status filter (v0.5.2) */}
+                        <div className="flex rounded-lg overflow-hidden border border-white/10 text-sm">
+                            {(['all', 'new', 'downloaded'] as const).map(s => (
+                                <button
+                                    key={s}
+                                    onClick={() => setStatusFilter(s)}
+                                    className={`px-3 py-1.5 transition-colors ${statusFilter === s ? 'bg-blue-600 text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'}`}
+                                >
+                                    {t(`episodes.filter_${s}`)}
+                                </button>
+                            ))}
+                        </div>
 
                         <span className="text-gray-500 text-sm ml-2">
                             {t('episodes.count', { count: filteredEpisodes.length })}
