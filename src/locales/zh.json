@@ -32,7 +32,8 @@
         "to": "至",
         "filter_all": "全部",
         "filter_new": "未下载",
-        "filter_downloaded": "已下载"
+        "filter_downloaded": "已下载",
+        "sync_new": "同步新集"
     },
     "progress": {
         "downloading": "下载中...",
@@ -55,7 +56,9 @@
         "network_error": "网络错误。请检查您的连接。",
         "feed_not_found": "订阅未找到 (404)。",
         "episode_not_found": "剧集不可用 (404) — 文件已从服务器删除。",
-        "download_error": "下载失败。"
+        "download_error": "下载失败。",
+        "sync_queued": "{{count}} 个新集已加入队列",
+        "sync_none": "没有新剧集可下载"
     },
     "confirm": {
         "mass_download": "您确定要下载全部 {{count}} 集吗？",

@@ -32,7 +32,8 @@
         "to": "Bis",
         "filter_all": "Alle",
         "filter_new": "Nicht heruntergeladen",
-        "filter_downloaded": "Heruntergeladen"
+        "filter_downloaded": "Heruntergeladen",
+        "sync_new": "Neue synchronisieren"
     },
     "progress": {
         "downloading": "Wird heruntergeladen...",
@@ -55,7 +56,9 @@
         "network_error": "Netzwerkfehler. Überprüfen Sie Ihre Verbindung.",
         "feed_not_found": "Feed nicht gefunden (404).",
         "episode_not_found": "Episode nicht verfügbar (404) — Datei vom Server entfernt.",
-        "download_error": "Download fehlgeschlagen."
+        "download_error": "Download fehlgeschlagen.",
+        "sync_queued": "{{count}} neue Episoden in der Warteschlange",
+        "sync_none": "Keine neuen Episoden zum Herunterladen"
     },
     "confirm": {
         "mass_download": "Möchten Sie wirklich alle {{count}} Episoden herunterladen?",

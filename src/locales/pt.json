@@ -32,7 +32,8 @@
         "to": "Até",
         "filter_all": "Todos",
         "filter_new": "Não descarregados",
-        "filter_downloaded": "Descarregados"
+        "filter_downloaded": "Descarregados",
+        "sync_new": "Sincronizar Novos"
     },
     "progress": {
         "downloading": "A descarregar...",
@@ -55,7 +56,9 @@
         "network_error": "Erro de rede. Verifique a sua conexão.",
         "feed_not_found": "Feed não encontrado (404).",
         "episode_not_found": "Episódio indisponível (404) — ficheiro removido do servidor.",
-        "download_error": "Download falhado."
+        "download_error": "Download falhado.",
+        "sync_queued": "{{count}} novos episódios em fila",
+        "sync_none": "Nenhum novo episódio para descarregar"
     },
     "confirm": {
         "mass_download": "Quer mesmo descarregar todos os {{count}} episódios?",

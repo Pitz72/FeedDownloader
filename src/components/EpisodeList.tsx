@@ -27,6 +27,9 @@ export const EpisodeList: React.FC = () => {
     type StatusFilter = 'all' | 'new' | 'downloaded';
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
+    // Sync new episodes (v0.5.3)
+    const [isSyncing, setIsSyncing] = useState(false);
+
     // ConfirmModal state
     const [confirmState, setConfirmState] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
         isOpen: false, title: '', message: '', onConfirm: () => { }
@@ -121,6 +124,31 @@ export const EpisodeList: React.FC = () => {
         });
 
         if (!silent) toast.show(t('toast.download_started'), 'info');
+    };
+
+    // v0.5.3 — Sync New: re-parse feed and queue only undownloaded episodes
+    const handleSyncNew = async () => {
+        if (!currentFeed || !isOnline || isSyncing) return;
+        setIsSyncing(true);
+        try {
+            const freshFeed = await window.api.parseFeed(currentFeed.url);
+            const newEpisodes = freshFeed.episodes.filter((ep: Episode) => {
+                const url = getEnclosureUrl(ep);
+                const guid = ep.guid || url || '';
+                return guid ? !downloadedGuids.includes(guid) : false;
+            });
+            if (newEpisodes.length === 0) {
+                toast.show(t('toast.sync_none'), 'info');
+                return;
+            }
+            startBatch(newEpisodes.length);
+            toast.show(t('toast.sync_queued', { count: newEpisodes.length }), 'success');
+            newEpisodes.forEach((ep: Episode) => handleDownload(ep, true));
+        } catch {
+            toast.show(t('toast.feed_error'), 'error');
+        } finally {
+            setIsSyncing(false);
+        }
     };
 
     const handleDownloadAll = () => {
@@ -267,6 +295,19 @@ export const EpisodeList: React.FC = () => {
                         >
                             <DownloadCloud size={16} />
                             {t('episodes.download_all')}
+                        </button>
+
+                        {/* Sync New (v0.5.3) */}
+                        <button
+                            onClick={handleSyncNew}
+                            disabled={!isOnline || isSyncing}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors ${!isOnline || isSyncing
+                                ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                                : 'bg-emerald-700 hover:bg-emerald-600 text-white'}`}
+                            title={t('episodes.sync_new')}
+                        >
+                            <RefreshCw size={16} className={isSyncing ? 'animate-spin' : ''} />
+                            {t('episodes.sync_new')}
                         </button>
 
                         <button

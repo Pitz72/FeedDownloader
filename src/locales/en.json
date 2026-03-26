@@ -32,7 +32,8 @@
         "to": "To",
         "filter_all": "All",
         "filter_new": "Not Downloaded",
-        "filter_downloaded": "Downloaded"
+        "filter_downloaded": "Downloaded",
+        "sync_new": "Sync New"
     },
     "progress": {
         "downloading": "Downloading...",
@@ -55,7 +56,9 @@
         "network_error": "Network error. Check your connection.",
         "feed_not_found": "Feed not found (404).",
         "episode_not_found": "Episode not available (404) — file removed from server.",
-        "download_error": "Download failed."
+        "download_error": "Download failed.",
+        "sync_queued": "{{count}} new episodes queued",
+        "sync_none": "No new episodes to download"
     },
     "confirm": {
         "mass_download": "Do you really want to download all {{count}} episodes?",

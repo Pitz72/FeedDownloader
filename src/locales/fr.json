@@ -32,7 +32,8 @@
         "to": "Au",
         "filter_all": "Tous",
         "filter_new": "Non téléchargés",
-        "filter_downloaded": "Téléchargés"
+        "filter_downloaded": "Téléchargés",
+        "sync_new": "Sync Nouveaux"
     },
     "progress": {
         "downloading": "Téléchargement en cours...",
@@ -55,7 +56,9 @@
         "network_error": "Erreur réseau. Vérifiez votre connexion.",
         "feed_not_found": "Flux introuvable (404).",
         "episode_not_found": "Épisode indisponible (404) — fichier supprimé du serveur.",
-        "download_error": "Téléchargement échoué."
+        "download_error": "Téléchargement échoué.",
+        "sync_queued": "{{count}} nouveaux épisodes en file d'attente",
+        "sync_none": "Aucun nouvel épisode à télécharger"
     },
     "confirm": {
         "mass_download": "Voulez-vous vraiment télécharger les {{count}} épisodes ?",
