@@ -125,6 +125,10 @@
         "nav_archive": "Archiv",
         "nav_advanced": "Erweitert"
     },
+    "diskspace": {
+        "critical": "Kritischer Speicherplatz: weniger als 200 MB verfügbar. Download abgebrochen.",
+        "low_warning": "⚠ Verfügbar: {{free}} — Geschätzter Bedarf: {{needed}}. Möglicherweise nicht ausreichend."
+    },
     "help": {
         "title": "Benutzerhandbuch",
         "read_manual": "HANDBUCH LESEN",

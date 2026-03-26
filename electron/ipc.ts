@@ -10,9 +10,10 @@ import { extractExtension } from './utils/extractExtension';
 import { applyTemplate } from './utils/applyTemplate';
 import { validateUrl } from './utils/validateUrl';
 import { IPC_CHANNELS as CH } from '../shared/types';
-import type { FeedEntry, DownloadRequest, HealthCheckResult } from '../shared/types';
+import type { FeedEntry, DownloadRequest, HealthCheckResult, DiskSpaceInfo } from '../shared/types';
 import path from 'path';
 import fs from 'fs-extra';
+import { statfs } from 'fs/promises';
 
 const feedService = new FeedService();
 const libraryService = new LibraryService();
@@ -415,6 +416,27 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     ipcMain.handle(CH.SET_SPEED_LIMIT, async (_, kbps: number) => {
         libraryService.setSpeedLimit(kbps);
         return true;
+    });
+
+    // ── Disk Space (v0.6.9) ──────────────────────────────────────
+    ipcMain.handle(CH.CHECK_DISK_SPACE, async (_, dirPath: string): Promise<DiskSpaceInfo | null> => {
+        try {
+            // Walk up to find the first existing ancestor directory
+            let checkPath = dirPath || app.getPath('documents');
+            while (checkPath && !(await fs.pathExists(checkPath))) {
+                const parent = path.dirname(checkPath);
+                if (parent === checkPath) break; // reached filesystem root
+                checkPath = parent;
+            }
+            const stats = await statfs(checkPath);
+            return {
+                freeBytes: stats.bavail * stats.bsize,
+                totalBytes: stats.blocks * stats.bsize,
+            };
+        } catch (e) {
+            console.error('[DiskSpace] Failed to check disk space:', e);
+            return null;
+        }
     });
 
     // ── Health Check (v0.6.0) ────────────────────────────────

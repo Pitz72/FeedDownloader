@@ -125,6 +125,10 @@
         "nav_archive": "存档",
         "nav_advanced": "高级"
     },
+    "diskspace": {
+        "critical": "磁盘空间严重不足：可用空间少于 200 MB。下载已取消。",
+        "low_warning": "⚠ 可用空间：{{free}} — 预估所需：{{needed}}。可能空间不足。"
+    },
     "help": {
         "title": "用户指南",
         "read_manual": "阅读手册",

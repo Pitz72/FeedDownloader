@@ -93,6 +93,24 @@ export const EpisodeList: React.FC = () => {
         return `${m} min`;
     };
 
+    // v0.6.9 — Format bytes for human-readable display
+    const formatBytes = (bytes: number): string => {
+        if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
+        if (bytes >= 1024 ** 2) return `${Math.round(bytes / 1024 ** 2)} MB`;
+        return `${Math.round(bytes / 1024)} KB`;
+    };
+
+    // v0.6.9 — Estimate download size from episode durations (128 kbps)
+    const estimateDownloadBytes = (episodes: Episode[]): number => {
+        const BYTES_PER_SECOND = 16_000; // 128 kbps = 16 KB/s
+        const DEFAULT_DURATION_SEC = 45 * 60; // 45 min fallback when duration unknown
+        return episodes.reduce((total, ep) => {
+            const mins = parseDurationMinutes(ep.itunes?.duration);
+            const secs = mins !== null ? mins * 60 : DEFAULT_DURATION_SEC;
+            return total + secs * BYTES_PER_SECOND;
+        }, 0);
+    };
+
     // Filtered episodes: search + date range + duration
     const filteredEpisodes = useMemo(() => {
         if (!currentFeed) return [];
@@ -190,6 +208,25 @@ export const EpisodeList: React.FC = () => {
                 toast.show(t('toast.sync_none'), 'info');
                 return;
             }
+
+            // v0.6.9 — Pre-allocazione spazio disco
+            const CRITICAL_BYTES = 200 * 1024 * 1024;
+            const downloadPath = await window.api.getDownloadPath().catch(() => '');
+            const diskInfo = await window.api.checkDiskSpace(downloadPath).catch(() => null);
+            if (diskInfo && diskInfo.freeBytes < CRITICAL_BYTES) {
+                toast.show(t('diskspace.critical'), 'error');
+                return;
+            }
+            if (diskInfo) {
+                const estimatedBytes = estimateDownloadBytes(newEpisodes);
+                if (diskInfo.freeBytes < estimatedBytes * 1.2) {
+                    toast.show(t('diskspace.low_warning', {
+                        free: formatBytes(diskInfo.freeBytes),
+                        needed: formatBytes(estimatedBytes),
+                    }), 'error');
+                }
+            }
+
             startBatch(newEpisodes.length);
             toast.show(t('toast.sync_queued', { count: newEpisodes.length }), 'success');
             newEpisodes.forEach((ep: Episode) => handleDownload(ep, true));
@@ -200,7 +237,7 @@ export const EpisodeList: React.FC = () => {
         }
     };
 
-    const handleDownloadAll = () => {
+    const handleDownloadAll = async () => {
         const episodesToDownload = filteredEpisodes.filter((episode: Episode) => {
             const url = getEnclosureUrl(episode);
             const guid = episode.guid || url;
@@ -212,10 +249,31 @@ export const EpisodeList: React.FC = () => {
             return;
         }
 
+        // v0.6.9 — Pre-allocazione spazio disco
+        const downloadPath = await window.api.getDownloadPath().catch(() => '');
+        const diskInfo = await window.api.checkDiskSpace(downloadPath).catch(() => null);
+        const CRITICAL_BYTES = 200 * 1024 * 1024; // 200 MB
+
+        if (diskInfo && diskInfo.freeBytes < CRITICAL_BYTES) {
+            toast.show(t('diskspace.critical'), 'error');
+            return;
+        }
+
+        let diskWarning = '';
+        if (diskInfo) {
+            const estimatedBytes = estimateDownloadBytes(episodesToDownload);
+            if (diskInfo.freeBytes < estimatedBytes * 1.2) {
+                diskWarning = ' ' + t('diskspace.low_warning', {
+                    free: formatBytes(diskInfo.freeBytes),
+                    needed: formatBytes(estimatedBytes),
+                });
+            }
+        }
+
         setConfirmState({
             isOpen: true,
             title: t('confirm.mass_download_title', 'Batch Download'),
-            message: t('confirm.mass_download', { count: episodesToDownload.length }),
+            message: t('confirm.mass_download', { count: episodesToDownload.length }) + diskWarning,
             onConfirm: () => {
                 setConfirmState(prev => ({ ...prev, isOpen: false }));
                 startBatch(episodesToDownload.length);

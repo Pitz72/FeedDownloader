@@ -1,5 +1,5 @@
 import { ipcRenderer, contextBridge } from 'electron'
-import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveStats, HealthCheckResult } from '../shared/types'
+import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveStats, HealthCheckResult, DiskSpaceInfo } from '../shared/types'
 import { IPC_CHANNELS as CH } from '../shared/types'
 
 // --------- Expose API to the Renderer process ---------
@@ -73,4 +73,7 @@ contextBridge.exposeInMainWorld('api', {
   // Speed Throttle (v0.6.5)
   getSpeedLimit: (): Promise<number> => ipcRenderer.invoke(CH.GET_SPEED_LIMIT),
   setSpeedLimit: (kbps: number): Promise<boolean> => ipcRenderer.invoke(CH.SET_SPEED_LIMIT, kbps),
+
+  // Disk Space (v0.6.9)
+  checkDiskSpace: (dirPath: string): Promise<DiskSpaceInfo | null> => ipcRenderer.invoke(CH.CHECK_DISK_SPACE, dirPath),
 })

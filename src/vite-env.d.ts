@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 // Re-export shared types for use in global declarations
-import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveStats, HealthCheckResult } from '../shared/types'
+import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveStats, HealthCheckResult, DiskSpaceInfo } from '../shared/types'
 
 declare global {
     const __APP_VERSION__: string;
@@ -50,6 +50,8 @@ declare global {
             // Speed Throttle (v0.6.5)
             getSpeedLimit: () => Promise<number>;
             setSpeedLimit: (kbps: number) => Promise<boolean>;
+            // Disk Space (v0.6.9)
+            checkDiskSpace: (dirPath: string) => Promise<DiskSpaceInfo | null>;
         };
     }
 }

@@ -82,6 +82,12 @@ export interface DownloadResult {
     status: 'queued';
 }
 
+// v0.6.9 — Disk space info returned by CHECK_DISK_SPACE
+export interface DiskSpaceInfo {
+    freeBytes: number;
+    totalBytes: number;
+}
+
 // ── IPC Channel Constants ────────────────────────────────────
 // Used by both ipc.ts (main) and preload.ts / vite-env.d.ts (renderer)
 
@@ -128,4 +134,6 @@ export const IPC_CHANNELS = {
     // Speed Throttle (v0.6.5)
     GET_SPEED_LIMIT: 'get-speed-limit',
     SET_SPEED_LIMIT: 'set-speed-limit',
+    // Disk Space (v0.6.9)
+    CHECK_DISK_SPACE: 'check-disk-space',
 } as const;

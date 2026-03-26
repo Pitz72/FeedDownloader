@@ -125,6 +125,10 @@
         "nav_archive": "Archivio",
         "nav_advanced": "Avanzate"
     },
+    "diskspace": {
+        "critical": "Spazio disco critico: meno di 200 MB disponibili. Download annullato.",
+        "low_warning": "⚠ Spazio disponibile: {{free}} — Stimato necessario: {{needed}}. Potrebbe non essere sufficiente."
+    },
     "help": {
         "title": "Guida Utente",
         "read_manual": "LEGGI LA GUIDA",
