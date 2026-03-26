@@ -11,7 +11,13 @@
       "Read(//c/Users/Utente/Documents/SVILUPPO/UTILITY/FeedDownloader/builds/0.5.0/win-unpacked/$APPDATA/Runtime FeedDownloader Pro/logs/**)",
       "Bash(timeout 10 \"./Runtime FeedDownloader Pro.exe\" --enable-logging --v=1)",
       "Bash(sed -i 's/\"\"version\"\": \"\"0.6.0\"\"/\"\"version\"\": \"\"0.6.1\"\"/' package.json)",
-      "Bash(grep '\"\"version\"\"' package.json)"
+      "Bash(grep '\"\"version\"\"' package.json)",
+      "Bash(npm install node-id3)",
+      "Bash(WORKTREE=\"c:/Users/Utente/Documents/SVILUPPO/UTILITY/FeedDownloader/.claude/worktrees/flamboyant-lalande\")",
+      "Bash(MAIN=\"c:/Users/Utente/Documents/SVILUPPO/UTILITY/FeedDownloader\")",
+      "Bash(mkdir -p \"$MAIN/builds/0.6.7\")",
+      "Bash(cp -f \"$WORKTREE/builds/0.6.7/Runtime FeedDownloader Pro Setup 0.6.7.exe\" \"$MAIN/builds/0.6.7/Runtime FeedDownloader Pro Setup 0.6.7.exe\")",
+      "Read(//c/Users/Utente/Documents/SVILUPPO/UTILITY/FeedDownloader/.claude/worktrees/flamboyant-lalande/$MAIN/builds/**)"
     ]
   }
 }
