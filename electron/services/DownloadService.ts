@@ -1,5 +1,6 @@
 import axios from 'axios';
 import fs from 'fs-extra';
+import { createThrottleStream } from '../utils/throttleStream';
 
 /** Timeout for the initial HTTP connection (ms) */
 const CONNECTION_TIMEOUT_MS = 30_000; // 30s
@@ -8,10 +9,10 @@ const CONNECTION_TIMEOUT_MS = 30_000; // 30s
 const STALL_TIMEOUT_MS = 60_000; // 60s
 
 export class DownloadService {
-    async downloadFile(url: string, outputPath: string, onProgress: (loaded: number, total: number) => void, attempts = 3) {
+    async downloadFile(url: string, outputPath: string, onProgress: (loaded: number, total: number) => void, speedLimitKBps?: number, attempts = 3) {
         for (let i = 0; i < attempts; i++) {
             try {
-                await this.attemptDownload(url, outputPath, onProgress);
+                await this.attemptDownload(url, outputPath, onProgress, speedLimitKBps);
                 return; // Success
             } catch (error: unknown) {
                 const err = error as { code?: string; message?: string };
@@ -26,8 +27,11 @@ export class DownloadService {
 
                 console.error(`Download attempt ${i + 1} failed:`, error);
 
-                // Cleanup partial file
-                await fs.remove(`${outputPath}.part`).catch(() => { });
+                // v0.6.1 — On integrity failure, delete .part to force a fresh download
+                if (err.message === 'INTEGRITY_CHECK_FAILED') {
+                    await fs.remove(`${outputPath}.part`).catch(() => { });
+                }
+                // For other transient errors, keep .part file so next attempt can resume
                 await fs.remove(outputPath).catch(() => { });
 
                 if (i === attempts - 1) throw error; // Throw on last attempt
@@ -38,29 +42,62 @@ export class DownloadService {
         }
     }
 
-    private async attemptDownload(url: string, outputPath: string, onProgress: (loaded: number, total: number) => void) {
+    private async attemptDownload(url: string, outputPath: string, onProgress: (loaded: number, total: number) => void, speedLimitKBps?: number) {
         const tempPath = `${outputPath}.part`;
-        const writer = fs.createWriteStream(tempPath);
+
+        // v0.6.1 — Check for existing partial download to resume via HTTP Range
+        let resumedBytes = 0;
+        try {
+            const stat = await fs.stat(tempPath);
+            resumedBytes = stat.size;
+        } catch {
+            // No partial file — start from scratch
+        }
+
+        let writer: fs.WriteStream | null = null;
 
         try {
             // v0.4.7 — connection timeout prevents hanging on unresponsive servers
+            // v0.6.1 — include Range header when resuming a partial download
             const response = await axios({
                 url,
                 method: 'GET',
                 responseType: 'stream',
                 timeout: CONNECTION_TIMEOUT_MS,
+                ...(resumedBytes > 0 ? { headers: { Range: `bytes=${resumedBytes}-` } } : {}),
             });
 
             // v0.5.0 — Ghost episode detection: 404 means file was removed from server
             if (response.status === 404) {
-                writer.close();
                 await fs.remove(tempPath).catch(() => { });
                 throw new Error('EPISODE_NOT_FOUND');
             }
 
-            const totalLength = response.headers['content-length'];
+            // v0.6.1 — Server returned 206 Partial Content: resume is active
+            const isResuming = resumedBytes > 0 && response.status === 206;
 
-            let loaded = 0;
+            // v0.6.1 — Server ignored Range (responded 200): discard partial file, start fresh
+            if (resumedBytes > 0 && response.status === 200) {
+                await fs.remove(tempPath).catch(() => { });
+                resumedBytes = 0;
+            }
+
+            writer = isResuming
+                ? fs.createWriteStream(tempPath, { flags: 'a' }) // append to partial
+                : fs.createWriteStream(tempPath);
+
+            const contentLength = response.headers['content-length'];
+            // v0.6.1 — For 206 responses, Content-Length is remaining bytes; add resumed offset for total
+            const totalBytes = contentLength
+                ? (isResuming ? resumedBytes + parseInt(contentLength) : parseInt(contentLength))
+                : 0;
+
+            let loaded = resumedBytes; // Start progress counter from resume offset
+
+            // v0.6.5 — crea throttle stream se limite configurato
+            const throttle = speedLimitKBps && speedLimitKBps > 0
+                ? createThrottleStream(speedLimitKBps * 1024)
+                : null;
 
             return new Promise<void>((resolve, reject) => {
                 // v0.4.7 — stall detection: abort if no data received for STALL_TIMEOUT_MS
@@ -70,8 +107,8 @@ export class DownloadService {
                     if (stallTimer) clearTimeout(stallTimer);
                     stallTimer = setTimeout(() => {
                         response.data.destroy();
-                        writer.close();
-                        fs.remove(tempPath).catch(() => { });
+                        writer!.close();
+                        // v0.6.1 — Keep .part file on stall so next attempt can resume
                         reject(new Error('DOWNLOAD_STALLED'));
                     }, STALL_TIMEOUT_MS);
                 };
@@ -79,22 +116,28 @@ export class DownloadService {
                 // Start the stall timer
                 resetStallTimer();
 
+                // Stall detection e progress: ascolta sul raw stream (network)
                 response.data.on('data', (chunk: Buffer) => {
                     loaded += chunk.length;
                     resetStallTimer(); // Got data — reset the stall timer
-                    if (totalLength) {
-                        onProgress(loaded, parseInt(totalLength));
+                    if (totalBytes > 0) {
+                        onProgress(loaded, totalBytes);
                     }
                 });
 
-                response.data.pipe(writer);
+                // Pipe: attraverso throttle se attivo, diretto altrimenti
+                if (throttle) {
+                    response.data.pipe(throttle).pipe(writer!);
+                } else {
+                    response.data.pipe(writer!);
+                }
 
-                writer.on('finish', async () => {
+                writer!.on('finish', async () => {
                     if (stallTimer) clearTimeout(stallTimer);
 
-                    // v0.5.0 — Integrity check: verify downloaded size matches Content-Length
-                    if (totalLength) {
-                        const expected = parseInt(totalLength);
+                    // v0.5.0 — Integrity check: only for full downloads (not resumed partial content)
+                    if (contentLength && !isResuming) {
+                        const expected = parseInt(contentLength);
                         if (expected > 0 && Math.abs(loaded - expected) / expected > 0.01) {
                             await fs.remove(tempPath).catch(() => { });
                             reject(new Error('INTEGRITY_CHECK_FAILED'));
@@ -110,7 +153,7 @@ export class DownloadService {
                     }
                 });
 
-                writer.on('error', async (err: NodeJS.ErrnoException) => {
+                writer!.on('error', async (err: NodeJS.ErrnoException) => {
                     if (stallTimer) clearTimeout(stallTimer);
                     await fs.remove(tempPath).catch(() => { });
 
@@ -119,8 +162,7 @@ export class DownloadService {
                 });
             });
         } catch (error) {
-            writer.close();
-            await fs.remove(tempPath).catch(() => { });
+            if (writer) writer.close();
 
             // v0.4.7 — wrap axios timeout as DOWNLOAD_TIMEOUT
             const axiosErr = error as { code?: string };

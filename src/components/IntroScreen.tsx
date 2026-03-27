@@ -1,14 +1,15 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { ChevronRight, BookOpen } from 'lucide-react';
+import { Icon } from './Icon';
+import noiseSvg from '../assets/noise.svg';
 import { HelpModal } from './HelpModal';
 import GB from 'country-flag-icons/react/3x2/GB';
 import IT from 'country-flag-icons/react/3x2/IT';
 import FR from 'country-flag-icons/react/3x2/FR';
 import DE from 'country-flag-icons/react/3x2/DE';
 import ES from 'country-flag-icons/react/3x2/ES';
-import PT from 'country-flag-icons/react/3x2/PT'; // Portuguese
+import PT from 'country-flag-icons/react/3x2/PT';
 import RU from 'country-flag-icons/react/3x2/RU';
 import CN from 'country-flag-icons/react/3x2/CN';
 
@@ -22,7 +23,6 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
     const timer1Ref = useRef<ReturnType<typeof setTimeout> | null>(null);
     const timer2Ref = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    // Animation variants
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: { opacity: 1, transition: { duration: 0.8 } },
@@ -34,8 +34,8 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
         animate: {
             scale: step > 0 ? 1.2 : 1,
             opacity: 1,
-            y: step > 0 ? -40 : 0, // Reduced distance
-            transition: { duration: 1, ease: "easeOut" as const }
+            y: step > 0 ? -40 : 0,
+            transition: { duration: 1, ease: 'easeOut' as const }
         }
     };
 
@@ -54,26 +54,24 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
         };
     }, []);
 
-    // v0.4.10 — Skip intro: clear pending timers and jump to controls
+    // Skip intro: clear pending timers and jump to controls
     const skipToEnd = () => {
         if (timer1Ref.current) clearTimeout(timer1Ref.current);
         if (timer2Ref.current) clearTimeout(timer2Ref.current);
         setStep(2);
     };
 
-    const changeLanguage = (lng: string) => {
-        i18n.changeLanguage(lng);
-    };
+    const changeLanguage = (lng: string) => { i18n.changeLanguage(lng); };
 
     const languages = [
-        { code: 'en', Flag: GB, label: 'English' },
-        { code: 'it', Flag: IT, label: 'Italiano' },
-        { code: 'fr', Flag: FR, label: 'Français' },
-        { code: 'de', Flag: DE, label: 'Deutsch' },
-        { code: 'es', Flag: ES, label: 'Español' },
-        { code: 'pt', Flag: PT, label: 'Português' },
-        { code: 'ru', Flag: RU, label: 'Русский' },
-        { code: 'zh', Flag: CN, label: '中文' },
+        { code: 'en', Flag: GB },
+        { code: 'it', Flag: IT },
+        { code: 'fr', Flag: FR },
+        { code: 'de', Flag: DE },
+        { code: 'es', Flag: ES },
+        { code: 'pt', Flag: PT },
+        { code: 'ru', Flag: RU },
+        { code: 'zh', Flag: CN },
     ];
 
     const [isHelpOpen, setIsHelpOpen] = useState(false);
@@ -84,16 +82,36 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0b1120] text-white overflow-hidden"
-        onClick={step < 2 ? skipToEnd : undefined}
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden"
+            style={{ background: 'var(--color-background)', color: 'var(--color-on-surface)' }}
+            onClick={step < 2 ? skipToEnd : undefined}
         >
-            <div className="absolute inset-0 bg-[url('./noise.svg')] opacity-20 pointer-events-none"></div>
+            {/* Noise texture overlay */}
+            <div
+                className="absolute inset-0 pointer-events-none"
+                style={{ backgroundImage: `url(${noiseSvg})`, opacity: 0.15 }}
+            />
 
-            {/* Skip button — visible during animation phases */}
+            {/* Radial glow — coerente con la palette primary */}
+            <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                    background: 'radial-gradient(ellipse 60% 50% at 50% 40%, rgba(173,198,255,0.07) 0%, transparent 70%)',
+                }}
+            />
+
+            {/* Skip button */}
             {step < 2 && (
                 <button
                     onClick={(e) => { e.stopPropagation(); skipToEnd(); }}
-                    className="absolute top-4 right-4 z-20 text-white/40 hover:text-white/80 text-sm transition-colors px-3 py-1 rounded-full border border-white/10 hover:border-white/30"
+                    className="absolute top-4 right-4 z-20 text-xs px-3 py-1.5 rounded-full transition-all"
+                    style={{
+                        color: 'var(--color-on-surface-variant)',
+                        border: '1px solid rgba(65,71,85,0.3)',
+                        fontFamily: 'var(--font-label)',
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-on-surface)')}
+                    onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-on-surface-variant)')}
                 >
                     {t('app.skip')} →
                 </button>
@@ -118,10 +136,21 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
                         animate="visible"
                         className="text-center z-10 px-4"
                     >
-                        <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600 mb-4">
-                            Runtime FeedDownloader Pro
+                        <h1
+                            className="text-4xl md:text-6xl font-extrabold tracking-tight mb-4"
+                            style={{
+                                fontFamily: 'var(--font-headline)',
+                                background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))',
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                            }}
+                        >
+                            {t('app.title')}
                         </h1>
-                        <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto font-light">
+                        <p
+                            className="text-lg md:text-xl max-w-2xl mx-auto font-light"
+                            style={{ color: 'var(--color-on-surface-variant)' }}
+                        >
                             {t('app.slogan')}
                         </p>
                     </motion.div>
@@ -138,15 +167,24 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
                         className="mt-12 z-10 flex flex-col items-center gap-8"
                     >
                         {/* Language Selector */}
-                        <div className="flex flex-wrap justify-center gap-3 bg-white/5 p-3 rounded-2xl backdrop-blur-sm border border-white/10">
+                        <div
+                            className="flex flex-wrap justify-center gap-2 p-2 rounded-2xl"
+                            style={{
+                                background: 'var(--color-surface-container-low)',
+                                boxShadow: 'inset 0 0 0 1px rgba(65,71,85,0.2)',
+                            }}
+                        >
                             {languages.map(({ code, Flag }) => (
                                 <button
                                     key={code}
                                     onClick={() => changeLanguage(code)}
-                                    className={`p-2 rounded-lg transition-all ${i18n.language === code
-                                        ? 'bg-blue-600 shadow-lg scale-110'
-                                        : 'hover:bg-white/10 opacity-70 hover:opacity-100 hover:scale-105'
-                                        }`}
+                                    className="p-2 rounded-xl transition-all"
+                                    style={i18n.language === code
+                                        ? { background: 'var(--color-primary-container)', transform: 'scale(1.1)' }
+                                        : { background: 'transparent', opacity: 0.65 }
+                                    }
+                                    onMouseEnter={e => { if (i18n.language !== code) { e.currentTarget.style.opacity = '1'; e.currentTarget.style.background = 'var(--color-surface-container-high)'; } }}
+                                    onMouseLeave={e => { if (i18n.language !== code) { e.currentTarget.style.opacity = '0.65'; e.currentTarget.style.background = 'transparent'; } }}
                                     title={code.toUpperCase()}
                                 >
                                     <Flag className="w-6 h-4 md:w-8 md:h-6 rounded-sm" />
@@ -154,23 +192,31 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
                             ))}
                         </div>
 
-                        {/* Start Button */}
-                        <div className="flex flex-col gap-4 w-full items-center">
+                        {/* Buttons */}
+                        <div className="flex flex-col gap-3 w-full items-center">
                             <button
                                 onClick={onComplete}
-                                className="group relative px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full font-bold text-lg shadow-lg hover:shadow-blue-500/50 transition-all hover:scale-105 active:scale-95 flex items-center gap-2 overflow-hidden w-64 justify-center"
+                                className="btn-primary-gradient group flex items-center gap-2 px-8 py-3 w-64 justify-center text-base"
+                                style={{ borderRadius: '9999px' }}
                             >
-                                <span className="relative z-10">{t('app.start')}</span>
-                                <ChevronRight className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform" />
-                                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 rounded-full"></div>
+                                {t('app.start')}
+                                <Icon name="chevron_right" size={20} className="group-hover:translate-x-0.5 transition-transform" />
                             </button>
 
                             <button
                                 onClick={() => setIsHelpOpen(true)}
-                                className="px-8 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full font-medium text-gray-300 hover:text-white transition-all flex items-center gap-2 w-64 justify-center"
+                                className="flex items-center gap-2 px-8 py-3 w-64 justify-center rounded-full text-sm font-medium transition-all"
+                                style={{
+                                    background: 'var(--color-surface-container-low)',
+                                    color: 'var(--color-on-surface-variant)',
+                                    boxShadow: 'inset 0 0 0 1px rgba(65,71,85,0.25)',
+                                    fontFamily: 'var(--font-label)',
+                                }}
+                                onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-on-surface)'; e.currentTarget.style.background = 'var(--color-surface-container)'; }}
+                                onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-on-surface-variant)'; e.currentTarget.style.background = 'var(--color-surface-container-low)'; }}
                             >
-                                <BookOpen className="w-5 h-5" />
-                                <span>{t('help.read_manual', 'LEGGI LA GUIDA')}</span>
+                                <Icon name="menu_book" size={18} />
+                                {t('help.read_manual', 'Leggi la guida')}
                             </button>
                         </div>
                     </motion.div>

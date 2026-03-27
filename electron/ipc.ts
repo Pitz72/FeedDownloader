@@ -5,12 +5,15 @@ import { DownloadService } from './services/DownloadService';
 import { QueueService } from './services/QueueService';
 import { BatchTracker } from './services/BatchTracker';
 import { getSafePath } from './utils/getSafePath';
+import { writeId3Tags } from './utils/writeId3Tags';
 import { extractExtension } from './utils/extractExtension';
+import { applyTemplate } from './utils/applyTemplate';
 import { validateUrl } from './utils/validateUrl';
 import { IPC_CHANNELS as CH } from '../shared/types';
-import type { FeedEntry, DownloadRequest } from '../shared/types';
+import type { FeedEntry, DownloadRequest, HealthCheckResult, DiskSpaceInfo, MigrationResult, MigrationProgress } from '../shared/types';
 import path from 'path';
 import fs from 'fs-extra';
+import { statfs } from 'fs/promises';
 
 const feedService = new FeedService();
 const libraryService = new LibraryService();
@@ -28,6 +31,14 @@ function pushEvent(win: BrowserWindow, channel: string, data?: unknown) {
 // Track batch for OS notification (v0.4.2 — race-condition-safe)
 const batchTracker = new BatchTracker();
 
+// v0.5.1 — Rate limiting for PARSE_FEED: max 1 request per URL every 3 seconds
+const parseFeedLastCall = new Map<string, number>();
+const PARSE_FEED_COOLDOWN_MS = 3000;
+
+// v0.6.3 — In-memory feed cache: avoids re-fetching on repeated clicks
+const feedCache = new Map<string, { feed: unknown; timestamp: number }>();
+const FEED_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
 // UI locale synced from Renderer (v0.4.10 — OS notification localization)
 let uiLocale = 'en';
 
@@ -40,7 +51,25 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         if (!check.valid) {
             throw new Error(check.error);
         }
-        return await feedService.parseFeed(url);
+
+        const now = Date.now();
+
+        // v0.6.3 — Return cached feed if still fresh (avoids double HTTP round-trip on every click)
+        const cached = feedCache.get(url);
+        if (cached && (now - cached.timestamp) < FEED_CACHE_TTL_MS) {
+            return cached.feed;
+        }
+
+        // v0.5.1 — rate limit: reject duplicate requests for the same URL within cooldown window
+        const lastCall = parseFeedLastCall.get(url);
+        if (lastCall !== undefined && (now - lastCall) < PARSE_FEED_COOLDOWN_MS) {
+            throw new Error('RATE_LIMITED');
+        }
+        parseFeedLastCall.set(url, now);
+
+        const feed = await feedService.parseFeed(url);
+        feedCache.set(url, { feed, timestamp: now });
+        return feed;
     });
 
     // ── Feed Library ──────────────────────────────────────
@@ -80,7 +109,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     });
 
     // ── Download Engine ──────────────────────────────────
-    ipcMain.handle(CH.START_DOWNLOAD, async (_, { url, title, podcastTitle, guid, pubDate }: DownloadRequest) => {
+    ipcMain.handle(CH.START_DOWNLOAD, async (_, { url, title, podcastTitle, guid, pubDate, feedImageUrl }: DownloadRequest) => {
         // v0.4.4 — validate download URL
         const check = validateUrl(url);
         if (!check.valid) {
@@ -94,7 +123,14 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
         // v0.4.3 — detect real extension from enclosure URL
         const ext = extractExtension(url);
-        const targetFile = getSafePath(baseDir, podcastTitle, title, ext);
+        // v0.5.4 — apply naming template
+        const namingTemplate = libraryService.getNamingTemplate();
+        const resolvedName = applyTemplate(namingTemplate, {
+            title,
+            podcast: podcastTitle,
+            pubDate: pubDate,
+        });
+        const targetFile = getSafePath(baseDir, podcastTitle, resolvedName, ext);
         const targetDir = path.dirname(targetFile);
 
         await fs.ensureDir(targetDir);
@@ -104,9 +140,10 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
         queueService.add(async () => {
             try {
+                const speedLimitKBps = libraryService.getSpeedLimit();
                 await downloadService.downloadFile(url, targetFile, (loaded, total) => {
                     pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded, total });
-                });
+                }, speedLimitKBps);
 
                 if (guid) {
                     libraryService.markAsDownloaded(guid);
@@ -118,6 +155,34 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                         downloadedAt: new Date().toISOString(),
                         filename: path.basename(targetFile)
                     });
+                }
+
+                // v0.6.4 — Write ID3 tags if enabled
+                if (libraryService.getId3Enabled()) {
+                    await writeId3Tags(targetFile, {
+                        title,
+                        podcastTitle,
+                        pubDate,
+                        feedImageUrl: feedImageUrl,
+                    }).catch((e) => console.error('[ID3] Failed to write tags:', e));
+                }
+
+                // v0.5.5 — Write sidecar .json if enabled
+                if (libraryService.getSidecarEnabled()) {
+                    const sidecarPath = path.join(
+                        path.dirname(targetFile),
+                        path.parse(targetFile).name + '.json'
+                    );
+                    const sidecar = {
+                        title,
+                        podcast: podcastTitle,
+                        guid: guid || null,
+                        pubDate: pubDate || null,
+                        downloadedAt: new Date().toISOString(),
+                        sourceUrl: url,
+                        filename: path.basename(targetFile),
+                    };
+                    await fs.writeJSON(sidecarPath, sidecar, { spaces: 2 }).catch(() => { });
                 }
 
                 pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded: 100, total: 100, completed: true });
@@ -311,5 +376,166 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     ipcMain.handle(CH.SET_LOCALE, async (_, locale: string) => {
         uiLocale = locale;
         return true;
+    });
+
+    // ── Naming Template (v0.5.4) ────────────────────────────
+    ipcMain.handle(CH.GET_NAMING_TEMPLATE, async () => {
+        return libraryService.getNamingTemplate();
+    });
+
+    ipcMain.handle(CH.SET_NAMING_TEMPLATE, async (_, template: string) => {
+        libraryService.setNamingTemplate(template);
+        return true;
+    });
+
+    // ── Sidecar JSON (v0.5.5) ────────────────────────────────
+    ipcMain.handle(CH.GET_SIDECAR_ENABLED, async () => {
+        return libraryService.getSidecarEnabled();
+    });
+
+    ipcMain.handle(CH.SET_SIDECAR_ENABLED, async (_, enabled: boolean) => {
+        libraryService.setSidecarEnabled(enabled);
+        return true;
+    });
+
+    // ── ID3 Tagging (v0.6.4) ────────────────────────────────
+    ipcMain.handle(CH.GET_ID3_ENABLED, async () => {
+        return libraryService.getId3Enabled();
+    });
+
+    ipcMain.handle(CH.SET_ID3_ENABLED, async (_, enabled: boolean) => {
+        libraryService.setId3Enabled(enabled);
+        return true;
+    });
+
+    // ── Speed Throttle (v0.6.5) ─────────────────────────────────
+    ipcMain.handle(CH.GET_SPEED_LIMIT, async () => {
+        return libraryService.getSpeedLimit();
+    });
+
+    ipcMain.handle(CH.SET_SPEED_LIMIT, async (_, kbps: number) => {
+        libraryService.setSpeedLimit(kbps);
+        return true;
+    });
+
+    // ── Disk Space (v0.6.9) ──────────────────────────────────────
+    ipcMain.handle(CH.CHECK_DISK_SPACE, async (_, dirPath: string): Promise<DiskSpaceInfo | null> => {
+        try {
+            // Walk up to find the first existing ancestor directory
+            let checkPath = dirPath || app.getPath('documents');
+            while (checkPath && !(await fs.pathExists(checkPath))) {
+                const parent = path.dirname(checkPath);
+                if (parent === checkPath) break; // reached filesystem root
+                checkPath = parent;
+            }
+            const stats = await statfs(checkPath);
+            return {
+                freeBytes: stats.bavail * stats.bsize,
+                totalBytes: stats.blocks * stats.bsize,
+            };
+        } catch (e) {
+            console.error('[DiskSpace] Failed to check disk space:', e);
+            return null;
+        }
+    });
+
+    // ── Health Check (v0.6.0) ────────────────────────────────
+    ipcMain.handle(CH.RUN_HEALTH_CHECK, async () => {
+        const entries = libraryService.getArchive();
+        let baseDir = libraryService.getDownloadPath();
+        if (!baseDir) {
+            baseDir = path.join(app.getPath('documents'), 'FeedDownloader', 'downloads');
+        }
+
+        let present = 0;
+        let missing = 0;
+        let totalSizeBytes = 0;
+        const missingFiles: { title: string; podcast: string; filename: string }[] = [];
+
+        for (const entry of entries) {
+            if (!entry.filename) {
+                missing++;
+                missingFiles.push({ title: entry.title, podcast: entry.podcastTitle, filename: '(no filename)' });
+                continue;
+            }
+            const sanitize = (await import('sanitize-filename')).default;
+            const fullPath = path.join(baseDir, sanitize(entry.podcastTitle), entry.filename);
+            try {
+                const stat = await fs.stat(fullPath);
+                present++;
+                totalSizeBytes += stat.size;
+            } catch {
+                missing++;
+                missingFiles.push({ title: entry.title, podcast: entry.podcastTitle, filename: entry.filename });
+            }
+        }
+
+        const result: HealthCheckResult = {
+            total: entries.length,
+            present,
+            missing,
+            totalSizeBytes,
+            missingFiles,
+        };
+        return result;
+    });
+
+    // ── Archive Migration (v0.6.10) ──────────────────────────
+    ipcMain.handle(CH.MIGRATE_ARCHIVE, async (_, newPath: string): Promise<MigrationResult> => {
+        const currentPath = libraryService.getDownloadPath();
+
+        if (!currentPath || !newPath) {
+            return { moved: 0, errors: 0, newPath: newPath || '' };
+        }
+        if (currentPath === newPath) {
+            return { moved: 0, errors: 0, newPath };
+        }
+        if (!(await fs.pathExists(currentPath))) {
+            libraryService.setDownloadPath(newPath);
+            return { moved: 0, errors: 0, newPath };
+        }
+
+        await fs.ensureDir(newPath);
+
+        // Collect all podcast subdirectories
+        const dirEntries = await fs.readdir(currentPath, { withFileTypes: true });
+        const folders = dirEntries.filter(e => e.isDirectory()).map(e => e.name);
+        const total = folders.length;
+
+        let moved = 0;
+        let errors = 0;
+
+        for (let i = 0; i < folders.length; i++) {
+            const folder = folders[i];
+            pushEvent(mainWindow, CH.MIGRATION_PROGRESS, {
+                moved: i,
+                total,
+                currentFolder: folder,
+            } as MigrationProgress);
+
+            try {
+                await fs.move(
+                    path.join(currentPath, folder),
+                    path.join(newPath, folder),
+                    { overwrite: false }
+                );
+                moved++;
+            } catch (e) {
+                console.error(`[Migration] Failed to move "${folder}":`, e);
+                errors++;
+            }
+        }
+
+        // Update download path in DB
+        libraryService.setDownloadPath(newPath);
+
+        // Final progress signal
+        pushEvent(mainWindow, CH.MIGRATION_PROGRESS, {
+            moved: total,
+            total,
+            currentFolder: '',
+        } as MigrationProgress);
+
+        return { moved, errors, newPath };
     });
 }

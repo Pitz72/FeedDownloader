@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import { X, CheckCircle, AlertCircle, Info } from 'lucide-react';
+import { Icon } from '../components/Icon';
 import clsx from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -53,12 +53,12 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                                 }
                             )}
                         >
-                            {toast.type === 'success' && <CheckCircle size={20} />}
-                            {toast.type === 'error' && <AlertCircle size={20} />}
-                            {toast.type === 'info' && <Info size={20} />}
+                            {toast.type === 'success' && <Icon name="check_circle" size={20} filled />}
+                            {toast.type === 'error'   && <Icon name="error" size={20} filled />}
+                            {toast.type === 'info'    && <Icon name="info" size={20} filled />}
                             <span className="flex-1 text-sm font-medium">{toast.message}</span>
                             <button onClick={() => remove(toast.id)} className="hover:bg-white/10 p-1 rounded">
-                                <X size={16} />
+                                <Icon name="close" size={16} />
                             </button>
                         </motion.div>
                     ))}

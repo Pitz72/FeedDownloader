@@ -29,7 +29,14 @@
         "filter": "搜索剧集...",
         "date_filter": "日期筛选",
         "from": "从",
-        "to": "至"
+        "to": "至",
+        "filter_all": "全部",
+        "filter_new": "未下载",
+        "filter_downloaded": "已下载",
+        "sync_new": "同步新集",
+        "duration_filter": "时长",
+        "min_duration": "最短 (分钟)",
+        "max_duration": "最长 (分钟)"
     },
     "progress": {
         "downloading": "下载中...",
@@ -52,7 +59,9 @@
         "network_error": "网络错误。请检查您的连接。",
         "feed_not_found": "订阅未找到 (404)。",
         "episode_not_found": "剧集不可用 (404) — 文件已从服务器删除。",
-        "download_error": "下载失败。"
+        "download_error": "下载失败。",
+        "sync_queued": "{{count}} 个新集已加入队列",
+        "sync_none": "没有新剧集可下载"
     },
     "confirm": {
         "mass_download": "您确定要下载全部 {{count}} 集吗？",
@@ -88,7 +97,44 @@
         "stats": "存档统计",
         "stats_files": "已下载文件",
         "stats_podcasts": "播客",
-        "stats_range": "存档期间"
+        "stats_range": "存档期间",
+        "naming_template": "文件命名模板",
+        "naming_template_tokens": "可用标记：{title} {podcast} {date} {year} {month} {day}",
+        "naming_template_preview": "预览",
+        "sidecar_enabled": "Sidecar .json 文件",
+        "sidecar_hint": "在每个下载的音频旁保存一个 .json 文件，包含标题、播客、日期和来源 URL",
+        "health_check": "存档健康检查",
+        "health_check_run": "开始检查",
+        "health_check_running": "检查中...",
+        "health_total": "数据库中",
+        "health_present": "磁盘上",
+        "health_missing": "缺失",
+        "health_size": "占用空间",
+        "health_missing_files": "缺失文件",
+        "health_and_more": "... 还有 {{count}} 个",
+        "id3_tagging": "ID3 标签",
+        "id3_tagging_desc": "将元数据（标题、艺术家、年份、封面）写入已下载的 .mp3 文件",
+        "id3_enabled": "ID3 标签已启用",
+        "id3_disabled": "ID3 标签已禁用",
+        "speed_limit": "下载速度限制",
+        "speed_limit_desc": "限制下载速度。0 = 无限制。",
+        "speed_unlimited": "无限制",
+        "nav_general": "常规",
+        "nav_download": "下载",
+        "nav_metadata": "元数据",
+        "nav_archive": "存档",
+        "nav_advanced": "高级",
+        "migrate_archive": "迁移存档",
+        "migrate_archive_desc": "将所有文件移动到新路径并更新数据库",
+        "migrate_running": "迁移中... {{moved}}/{{total}} 文件夹",
+        "migrate_done": "迁移完成：已移动 {{moved}} 个文件夹",
+        "migrate_done_errors": "迁移完成：已移动 {{moved}} 个，{{errors}} 个错误",
+        "migrate_no_path": "未配置下载路径",
+        "migrate_same_path": "目标路径与源路径相同"
+    },
+    "diskspace": {
+        "critical": "磁盘空间严重不足：可用空间少于 200 MB。下载已取消。",
+        "low_warning": "⚠ 可用空间：{{free}} — 预估所需：{{needed}}。可能空间不足。"
     },
     "help": {
         "title": "用户指南",

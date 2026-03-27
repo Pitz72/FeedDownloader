@@ -1,5 +1,5 @@
 import { ipcRenderer, contextBridge } from 'electron'
-import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveStats } from '../shared/types'
+import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveStats, HealthCheckResult, DiskSpaceInfo, MigrationResult, MigrationProgress } from '../shared/types'
 import { IPC_CHANNELS as CH } from '../shared/types'
 
 // --------- Expose API to the Renderer process ---------
@@ -54,4 +54,34 @@ contextBridge.exposeInMainWorld('api', {
 
   // Locale Sync (v0.4.10)
   setLocale: (locale: string): Promise<boolean> => ipcRenderer.invoke(CH.SET_LOCALE, locale),
+
+  // Naming Template (v0.5.4)
+  getNamingTemplate: (): Promise<string> => ipcRenderer.invoke(CH.GET_NAMING_TEMPLATE),
+  setNamingTemplate: (template: string): Promise<boolean> => ipcRenderer.invoke(CH.SET_NAMING_TEMPLATE, template),
+
+  // Sidecar JSON (v0.5.5)
+  getSidecarEnabled: (): Promise<boolean> => ipcRenderer.invoke(CH.GET_SIDECAR_ENABLED),
+  setSidecarEnabled: (enabled: boolean): Promise<boolean> => ipcRenderer.invoke(CH.SET_SIDECAR_ENABLED, enabled),
+
+  // Health Check (v0.6.0)
+  runHealthCheck: (): Promise<HealthCheckResult> => ipcRenderer.invoke(CH.RUN_HEALTH_CHECK),
+
+  // ID3 Tagging (v0.6.4)
+  getId3Enabled: (): Promise<boolean> => ipcRenderer.invoke(CH.GET_ID3_ENABLED),
+  setId3Enabled: (enabled: boolean): Promise<boolean> => ipcRenderer.invoke(CH.SET_ID3_ENABLED, enabled),
+
+  // Speed Throttle (v0.6.5)
+  getSpeedLimit: (): Promise<number> => ipcRenderer.invoke(CH.GET_SPEED_LIMIT),
+  setSpeedLimit: (kbps: number): Promise<boolean> => ipcRenderer.invoke(CH.SET_SPEED_LIMIT, kbps),
+
+  // Disk Space (v0.6.9)
+  checkDiskSpace: (dirPath: string): Promise<DiskSpaceInfo | null> => ipcRenderer.invoke(CH.CHECK_DISK_SPACE, dirPath),
+
+  // Archive Migration (v0.6.10)
+  migrateArchive: (newPath: string): Promise<MigrationResult> => ipcRenderer.invoke(CH.MIGRATE_ARCHIVE, newPath),
+  onMigrationProgress: (callback: (event: Electron.IpcRendererEvent, data: MigrationProgress) => void) => {
+    const subscription = (_event: Electron.IpcRendererEvent, data: MigrationProgress) => callback(_event, data);
+    ipcRenderer.on(CH.MIGRATION_PROGRESS, subscription);
+    return () => ipcRenderer.removeListener(CH.MIGRATION_PROGRESS, subscription);
+  },
 })

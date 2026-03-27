@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertTriangle } from 'lucide-react';
+import { Icon } from './Icon';
 import { useTranslation } from 'react-i18next';
 
 interface ConfirmModalProps {
@@ -14,6 +14,33 @@ interface ConfirmModalProps {
     onCancel: () => void;
 }
 
+const variantConfig = {
+    danger: {
+        iconName: 'error',
+        iconColor: 'var(--color-error)',
+        cardBg: 'rgba(147,0,10,0.12)',
+        cardBorder: 'rgba(255,180,171,0.2)',
+        btnBg: 'var(--color-error-container)',
+        btnColor: 'var(--color-error)',
+    },
+    warning: {
+        iconName: 'warning',
+        iconColor: 'var(--color-warning)',
+        cardBg: 'rgba(110,50,0,0.18)',
+        cardBorder: 'rgba(255,183,112,0.2)',
+        btnBg: 'var(--color-warning-container)',
+        btnColor: 'var(--color-warning)',
+    },
+    info: {
+        iconName: 'info',
+        iconColor: 'var(--color-primary)',
+        cardBg: 'rgba(75,142,255,0.10)',
+        cardBorder: 'rgba(173,198,255,0.2)',
+        btnBg: 'var(--color-primary-container)',
+        btnColor: 'var(--color-on-primary-fixed)',
+    },
+};
+
 export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     isOpen,
     title,
@@ -25,14 +52,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     onCancel,
 }) => {
     const { t } = useTranslation();
-
-    const variantColors = {
-        danger: { bg: 'bg-red-500/10', border: 'border-red-500/30', btn: 'bg-red-600 hover:bg-red-500', icon: 'text-red-400' },
-        warning: { bg: 'bg-orange-500/10', border: 'border-orange-500/30', btn: 'bg-orange-600 hover:bg-orange-500', icon: 'text-orange-400' },
-        info: { bg: 'bg-blue-500/10', border: 'border-blue-500/30', btn: 'bg-blue-600 hover:bg-blue-500', icon: 'text-blue-400' },
-    };
-
-    const colors = variantColors[variant];
+    const cfg = variantConfig[variant];
 
     // v0.5.0 — Esc key closes the modal
     useEffect(() => {
@@ -47,37 +67,60 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             {isOpen && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
                     <motion.div
-                        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                        className="absolute inset-0 backdrop-blur-sm"
+                        style={{ background: 'rgba(0,0,0,0.65)' }}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onCancel}
                     />
                     <motion.div
-                        className={`${colors.bg} border ${colors.border} rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden relative z-10 p-6`}
-                        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                        className="relative z-10 w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden p-6"
+                        style={{
+                            background: cfg.cardBg,
+                            border: `1px solid ${cfg.cardBorder}`,
+                            backdropFilter: 'blur(20px)',
+                        }}
+                        initial={{ opacity: 0, scale: 0.92, y: 16 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                        exit={{ opacity: 0, scale: 0.92, y: 16 }}
+                        transition={{ duration: 0.2 }}
                     >
-                        <div className="flex items-start gap-3 mb-4">
-                            <AlertTriangle className={`${colors.icon} shrink-0 mt-0.5`} size={22} />
+                        <div className="flex items-start gap-3 mb-5">
+                            <Icon name={cfg.iconName} size={22} filled style={{ color: cfg.iconColor, flexShrink: 0, marginTop: 2 }} />
                             <div>
-                                <h3 className="text-white font-semibold text-lg">{title}</h3>
-                                <p className="text-gray-300 text-sm mt-1 leading-relaxed">{message}</p>
+                                <h3 className="font-semibold text-base" style={{ color: 'var(--color-on-surface)', fontFamily: 'var(--font-headline)' }}>
+                                    {title}
+                                </h3>
+                                <p className="text-sm mt-1 leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
+                                    {message}
+                                </p>
                             </div>
                         </div>
-                        <div className="flex gap-2 mt-5">
+                        <div className="flex gap-2">
                             <button
                                 onClick={onCancel}
-                                className="flex-1 bg-white/5 hover:bg-white/10 text-gray-300 py-2.5 rounded-lg text-sm font-medium transition-colors"
+                                className="flex-1 py-2.5 rounded-lg text-sm font-medium transition-all"
+                                style={{
+                                    background: 'var(--color-surface-container-highest)',
+                                    color: 'var(--color-on-surface-variant)',
+                                    fontFamily: 'var(--font-label)',
+                                }}
+                                onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-surface-bright)')}
+                                onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-surface-container-highest)')}
                             >
-                                {cancelLabel || t('common.cancel', 'Cancel')}
+                                {cancelLabel || t('common.cancel', 'Annulla')}
                             </button>
                             <button
                                 onClick={onConfirm}
-                                className={`flex-1 ${colors.btn} text-white py-2.5 rounded-lg text-sm font-medium transition-colors shadow-lg`}
+                                className="flex-1 py-2.5 rounded-lg text-sm font-medium transition-all shadow-lg"
+                                style={{
+                                    background: cfg.btnBg,
+                                    color: cfg.btnColor,
+                                    fontFamily: 'var(--font-label)',
+                                }}
                             >
-                                {confirmLabel || t('common.confirm', 'Confirm')}
+                                {confirmLabel || t('common.confirm', 'Conferma')}
                             </button>
                         </div>
                     </motion.div>

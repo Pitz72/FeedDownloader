@@ -204,6 +204,39 @@ export class DatabaseService {
         this.setSetting('concurrency', String(Math.max(1, Math.min(n, 10))));
     }
 
+    getNamingTemplate(): string {
+        return this.getSetting('namingTemplate') || '{title}';
+    }
+
+    setNamingTemplate(template: string): void {
+        this.setSetting('namingTemplate', template);
+    }
+
+    getSidecarEnabled(): boolean {
+        return this.getSetting('sidecarEnabled') === 'true';
+    }
+
+    setSidecarEnabled(enabled: boolean): void {
+        this.setSetting('sidecarEnabled', String(enabled));
+    }
+
+    getId3Enabled(): boolean {
+        return this.getSetting('id3Enabled') === 'true';
+    }
+
+    setId3Enabled(enabled: boolean): void {
+        this.setSetting('id3Enabled', String(enabled));
+    }
+
+    getSpeedLimit(): number {
+        const val = this.getSetting('speedLimitKBps');
+        return val ? parseInt(val, 10) : 0; // 0 = unlimited
+    }
+
+    setSpeedLimit(kbps: number): void {
+        this.setSetting('speedLimitKBps', String(Math.max(0, Math.floor(kbps))));
+    }
+
     // ── Lifecycle ────────────────────────────────────────────
 
     close(): void {

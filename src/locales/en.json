@@ -29,7 +29,14 @@
         "filter": "Filter episodes...",
         "date_filter": "Date Filter",
         "from": "From",
-        "to": "To"
+        "to": "To",
+        "filter_all": "All",
+        "filter_new": "Not Downloaded",
+        "filter_downloaded": "Downloaded",
+        "sync_new": "Sync New",
+        "duration_filter": "Duration",
+        "min_duration": "Min (min)",
+        "max_duration": "Max (min)"
     },
     "progress": {
         "downloading": "Downloading...",
@@ -52,7 +59,9 @@
         "network_error": "Network error. Check your connection.",
         "feed_not_found": "Feed not found (404).",
         "episode_not_found": "Episode not available (404) — file removed from server.",
-        "download_error": "Download failed."
+        "download_error": "Download failed.",
+        "sync_queued": "{{count}} new episodes queued",
+        "sync_none": "No new episodes to download"
     },
     "confirm": {
         "mass_download": "Do you really want to download all {{count}} episodes?",
@@ -88,7 +97,44 @@
         "stats": "Archive Statistics",
         "stats_files": "Files Downloaded",
         "stats_podcasts": "Podcasts",
-        "stats_range": "Archive range"
+        "stats_range": "Archive range",
+        "naming_template": "File Naming Template",
+        "naming_template_tokens": "Available tokens: {title} {podcast} {date} {year} {month} {day}",
+        "naming_template_preview": "Preview",
+        "sidecar_enabled": "Sidecar .json Files",
+        "sidecar_hint": "Save a .json file next to each downloaded audio with title, podcast, date and source URL",
+        "health_check": "Archive Health Check",
+        "health_check_run": "Run Check",
+        "health_check_running": "Checking...",
+        "health_total": "In DB",
+        "health_present": "On Disk",
+        "health_missing": "Missing",
+        "health_size": "Disk Usage",
+        "health_missing_files": "Missing files",
+        "health_and_more": "... and {{count}} more",
+        "id3_tagging": "ID3 Tagging",
+        "id3_tagging_desc": "Write metadata (title, artist, year, cover art) into downloaded .mp3 files",
+        "id3_enabled": "ID3 Tagging Enabled",
+        "id3_disabled": "ID3 Tagging Disabled",
+        "speed_limit": "Download Speed Limit",
+        "speed_limit_desc": "Limit download speed. 0 = unlimited.",
+        "speed_unlimited": "Unlimited",
+        "nav_general": "General",
+        "nav_download": "Download",
+        "nav_metadata": "Metadata",
+        "nav_archive": "Archive",
+        "nav_advanced": "Advanced",
+        "migrate_archive": "Migrate Archive",
+        "migrate_archive_desc": "Move all files to the new path and update the database",
+        "migrate_running": "Migrating... {{moved}}/{{total}} folders",
+        "migrate_done": "Migration complete: {{moved}} folders moved",
+        "migrate_done_errors": "Migration complete: {{moved}} moved, {{errors}} errors",
+        "migrate_no_path": "No download path configured",
+        "migrate_same_path": "Destination path is the same as origin"
+    },
+    "diskspace": {
+        "critical": "Critical disk space: less than 200 MB available. Download cancelled.",
+        "low_warning": "⚠ Available: {{free}} — Estimated needed: {{needed}}. May not be enough."
     },
     "help": {
         "title": "User Guide",

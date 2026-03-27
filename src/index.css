@@ -1,79 +1,180 @@
 @import "tailwindcss";
 
-@theme {
-  --color-background: hsl(224 71% 4%);
-  --color-foreground: hsl(213 31% 91%);
-  --color-card: hsl(224 71% 4%);
-  --color-card-foreground: hsl(213 31% 91%);
-  --color-popover: hsl(224 71% 4%);
-  --color-popover-foreground: hsl(213 31% 91%);
-  --color-primary: hsl(210 40% 98%);
-  --color-primary-foreground: hsl(222.2 47.4% 11.2%);
-  --color-secondary: hsl(217.2 32.6% 17.5%);
-  --color-secondary-foreground: hsl(210 40% 98%);
-  --color-muted: hsl(217.2 32.6% 17.5%);
-  --color-muted-foreground: hsl(215 20.2% 65.1%);
-  --color-accent: hsl(217.2 32.6% 17.5%);
-  --color-accent-foreground: hsl(210 40% 98%);
-  --color-destructive: hsl(0 62.8% 30.6%);
-  --color-destructive-foreground: hsl(210 40% 98%);
-  --color-border: hsl(217.2 32.6% 17.5%);
-  --color-input: hsl(217.2 32.6% 17.5%);
-  --color-ring: hsl(224.3 76.3% 48%);
+/* ─── Fonts — importati da main.tsx per bundling corretto con Vite ─── */
+
+/* Material Symbols configuration */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined Variable', 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  user-select: none;
 }
 
+.material-symbols-outlined.filled {
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* ─── Design Token Palette (Obsidian Command) ─────────────── */
+@theme {
+  /* Surfaces */
+  --color-background:               #131313;
+  --color-surface:                  #131313;
+  --color-surface-dim:              #131313;
+  --color-surface-container-lowest: #0e0e0e;
+  --color-surface-container-low:    #1b1b1b;
+  --color-surface-container:        #1f1f1f;
+  --color-surface-container-high:   #2a2a2a;
+  --color-surface-container-highest:#353535;
+  --color-surface-bright:           #393939;
+  --color-surface-variant:          #353535;
+
+  /* Primary (electric blue) */
+  --color-primary:                  #adc6ff;
+  --color-primary-fixed:            #d8e2ff;
+  --color-primary-fixed-dim:        #adc6ff;
+  --color-primary-container:        #4b8eff;
+  --color-on-primary:               #002e69;
+  --color-on-primary-fixed:         #001a41;
+  --color-on-primary-container:     #00285c;
+  --color-inverse-primary:          #005bc1;
+
+  /* Secondary (neon purple) */
+  --color-secondary:                #e9b3ff;
+  --color-secondary-container:      #7d01b1;
+  --color-on-secondary:             #510074;
+  --color-on-secondary-container:   #e5a9ff;
+  --color-secondary-fixed:          #f6d9ff;
+  --color-secondary-fixed-dim:      #e9b3ff;
+
+  /* Tertiary */
+  --color-tertiary:                 #aac7ff;
+  --color-tertiary-container:       #3e90ff;
+
+  /* On-surface / text */
+  --color-on-surface:               #e2e2e2;
+  --color-on-surface-variant:       #c1c6d7;
+  --color-on-background:            #e2e2e2;
+
+  /* Outlines */
+  --color-outline:                  #8b90a0;
+  --color-outline-variant:          #414755;
+
+  /* Error */
+  --color-error:                    #ffb4ab;
+  --color-error-container:          #93000a;
+  --color-on-error:                 #690005;
+
+  /* Warning (amber) */
+  --color-warning:                  #ffb770;
+  --color-warning-container:        #6e3200;
+  --color-on-warning:               #4a2000;
+
+  /* Misc */
+  --color-surface-tint:             #adc6ff;
+  --color-inverse-surface:          #e2e2e2;
+  --color-inverse-on-surface:       #303030;
+
+  /* Legacy aliases (compatibilità componenti esistenti) */
+  --color-foreground:               #e2e2e2;
+  --color-card:                     #1b1b1b;
+  --color-card-foreground:          #e2e2e2;
+  --color-popover:                  #1f1f1f;
+  --color-popover-foreground:       #e2e2e2;
+  --color-muted:                    #2a2a2a;
+  --color-muted-foreground:         #c1c6d7;
+  --color-accent:                   #353535;
+  --color-accent-foreground:        #e2e2e2;
+  --color-destructive:              #93000a;
+  --color-destructive-foreground:   #ffb4ab;
+  --color-border:                   #414755;
+  --color-input:                    #353535;
+  --color-ring:                     #adc6ff;
+
+  /* Typography */
+  --font-headline: 'Epilogue', system-ui, sans-serif;
+  --font-body:     'Inter', system-ui, sans-serif;
+  --font-label:    'Space Grotesk Variable', 'Space Grotesk', system-ui, sans-serif;
+
+  /* Border radius — sharp, pro-sumer */
+  --radius:    0.125rem;
+  --radius-lg: 0.375rem;
+  --radius-xl: 0.5rem;
+}
+
+/* ─── Base ────────────────────────────────────────────────── */
 @layer base {
   * {
-    @apply border-[var(--color-border)];
+    box-sizing: border-box;
   }
 
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--color-background);
+    color: var(--color-on-surface);
+    font-family: var(--font-body);
+    overflow: hidden;
   }
 }
 
-/* Glassmorphism Utilities */
-.glass {
-  @apply bg-black/30 backdrop-blur-md border border-white/10 shadow-xl;
+/* ─── Utility Classes ─────────────────────────────────────── */
+
+/* Bento card — no border, surface layering */
+.bento-card {
+  background-color: var(--color-surface-container-low);
+  box-shadow: inset 0 0 0 1px rgba(65, 71, 85, 0.15);
 }
 
+/* Glass panel (floating / input bar) */
+.glass-panel {
+  background: rgba(53, 53, 53, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(65, 71, 85, 0.2);
+}
+
+/* Legacy glass-card — mantiene compatibilità SettingsModal e altri */
+.glass {
+  background: rgba(31, 31, 31, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(65, 71, 85, 0.3);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
 
 .glass-card {
-  @apply bg-card/50 backdrop-blur-lg border border-[var(--color-border)]/50 shadow-lg rounded-xl;
+  background: rgba(27, 27, 27, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(65, 71, 85, 0.3);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+  border-radius: 0.75rem;
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* Primary gradient button */
+.btn-primary-gradient {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-container));
+  color: var(--color-on-primary-fixed);
+  font-family: var(--font-label);
+  font-weight: 700;
+  font-size: 0.75rem;
+  border-radius: var(--radius-lg);
+  transition: filter 150ms cubic-bezier(0.2, 0, 0, 1), transform 150ms cubic-bezier(0.2, 0, 0, 1);
 }
+.btn-primary-gradient:hover  { filter: brightness(1.1); }
+.btn-primary-gradient:active { transform: scale(0.97); }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
+/* ─── Scrollbar ───────────────────────────────────────────── */
+::-webkit-scrollbar         { width: 4px; height: 4px; }
+::-webkit-scrollbar-track   { background: transparent; }
+::-webkit-scrollbar-thumb   { background: var(--color-surface-container-highest); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-outline); }
 
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
+.custom-scrollbar::-webkit-scrollbar         { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track   { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb   { background: var(--color-surface-container-highest); border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--color-outline); }

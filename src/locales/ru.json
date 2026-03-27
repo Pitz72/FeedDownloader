@@ -29,7 +29,14 @@
         "filter": "Поиск выпусков...",
         "date_filter": "Фильтр по дате",
         "from": "От",
-        "to": "До"
+        "to": "До",
+        "filter_all": "Все",
+        "filter_new": "Не скачанные",
+        "filter_downloaded": "Скачанные",
+        "sync_new": "Синхронизировать новые",
+        "duration_filter": "Длительность",
+        "min_duration": "Мин (мин)",
+        "max_duration": "Макс (мин)"
     },
     "progress": {
         "downloading": "Загрузка...",
@@ -52,7 +59,9 @@
         "network_error": "Ошибка сети. Проверьте подключение.",
         "feed_not_found": "Подписка не найдена (404).",
         "episode_not_found": "Выпуск недоступен (404) — файл удалён с сервера.",
-        "download_error": "Загрузка не удалась."
+        "download_error": "Загрузка не удалась.",
+        "sync_queued": "{{count}} новых выпусков в очереди",
+        "sync_none": "Нет новых выпусков для скачивания"
     },
     "confirm": {
         "mass_download": "Вы действительно хотите загрузить все {{count}} выпусков?",
@@ -88,7 +97,44 @@
         "stats": "Статистика архива",
         "stats_files": "Загруженных файлов",
         "stats_podcasts": "Подкастов",
-        "stats_range": "Период архива"
+        "stats_range": "Период архива",
+        "naming_template": "Шаблон имени файла",
+        "naming_template_tokens": "Доступные токены: {title} {podcast} {date} {year} {month} {day}",
+        "naming_template_preview": "Предпросмотр",
+        "sidecar_enabled": "Файлы Sidecar .json",
+        "sidecar_hint": "Сохраняет файл .json рядом с каждым скачанным аудио с заголовком, подкастом, датой и URL источника",
+        "health_check": "Проверка целостности архива",
+        "health_check_run": "Запустить проверку",
+        "health_check_running": "Проверка...",
+        "health_total": "В БД",
+        "health_present": "На диске",
+        "health_missing": "Отсутствует",
+        "health_size": "Занято места",
+        "health_missing_files": "Отсутствующие файлы",
+        "health_and_more": "... и ещё {{count}}",
+        "id3_tagging": "ID3-теги",
+        "id3_tagging_desc": "Записывать метаданные (название, исполнитель, год, обложка) в скачанные .mp3-файлы",
+        "id3_enabled": "ID3-теги включены",
+        "id3_disabled": "ID3-теги отключены",
+        "speed_limit": "Ограничение скорости",
+        "speed_limit_desc": "Ограничить скорость загрузки. 0 = без ограничений.",
+        "speed_unlimited": "Без ограничений",
+        "nav_general": "Основное",
+        "nav_download": "Загрузка",
+        "nav_metadata": "Метаданные",
+        "nav_archive": "Архив",
+        "nav_advanced": "Расширенные",
+        "migrate_archive": "Мигрировать архив",
+        "migrate_archive_desc": "Переместить все файлы в новый путь и обновить базу данных",
+        "migrate_running": "Миграция... {{moved}}/{{total}} папок",
+        "migrate_done": "Миграция завершена: {{moved}} папок перемещено",
+        "migrate_done_errors": "Миграция завершена: {{moved}} перемещено, {{errors}} ошибок",
+        "migrate_no_path": "Путь загрузки не настроен",
+        "migrate_same_path": "Путь назначения совпадает с исходным"
+    },
+    "diskspace": {
+        "critical": "Критически мало места на диске: менее 200 МБ. Загрузка отменена.",
+        "low_warning": "⚠ Доступно: {{free}} — Оценочная потребность: {{needed}}. Может быть недостаточно."
     },
     "help": {
         "title": "Руководство пользователя",

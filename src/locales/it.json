@@ -29,7 +29,14 @@
         "filter": "Filtra episodi...",
         "date_filter": "Filtro Data",
         "from": "Da",
-        "to": "A"
+        "to": "A",
+        "filter_all": "Tutti",
+        "filter_new": "Da scaricare",
+        "filter_downloaded": "Scaricati",
+        "sync_new": "Sincronizza Nuovi",
+        "duration_filter": "Durata",
+        "min_duration": "Min (min)",
+        "max_duration": "Max (min)"
     },
     "progress": {
         "downloading": "Download in corso...",
@@ -52,7 +59,9 @@
         "network_error": "Errore di rete. Controlla la connessione.",
         "feed_not_found": "Feed non trovato (404).",
         "episode_not_found": "Episodio non disponibile (404) — file rimosso dal server.",
-        "download_error": "Download fallito."
+        "download_error": "Download fallito.",
+        "sync_queued": "{{count}} nuovi episodi in coda",
+        "sync_none": "Nessun nuovo episodio da scaricare"
     },
     "confirm": {
         "mass_download": "Vuoi davvero scaricare tutti i {{count}} episodi?",
@@ -88,7 +97,44 @@
         "stats": "Statistiche Archivio",
         "stats_files": "File Scaricati",
         "stats_podcasts": "Podcast",
-        "stats_range": "Periodo archivio"
+        "stats_range": "Periodo archivio",
+        "naming_template": "Template Nome File",
+        "naming_template_tokens": "Token disponibili: {title} {podcast} {date} {year} {month} {day}",
+        "naming_template_preview": "Anteprima",
+        "sidecar_enabled": "File Sidecar .json",
+        "sidecar_hint": "Salva un file .json accanto ad ogni audio scaricato con titolo, podcast, data e URL sorgente",
+        "health_check": "Health Check Archivio",
+        "health_check_run": "Avvia Verifica",
+        "health_check_running": "Verifica in corso...",
+        "health_total": "Nel DB",
+        "health_present": "Su disco",
+        "health_missing": "Mancanti",
+        "health_size": "Spazio occupato",
+        "health_missing_files": "File mancanti",
+        "health_and_more": "... e altri {{count}}",
+        "id3_tagging": "Tagging ID3",
+        "id3_tagging_desc": "Scrivi metadati (titolo, artista, anno, copertina) nei file .mp3 scaricati",
+        "id3_enabled": "Tagging ID3 Abilitato",
+        "id3_disabled": "Tagging ID3 Disabilitato",
+        "speed_limit": "Limite Velocità Download",
+        "speed_limit_desc": "Limita la velocità di download. 0 = illimitato.",
+        "speed_unlimited": "Illimitato",
+        "nav_general": "Generale",
+        "nav_download": "Download",
+        "nav_metadata": "Metadati",
+        "nav_archive": "Archivio",
+        "nav_advanced": "Avanzate",
+        "migrate_archive": "Migra Archivio",
+        "migrate_archive_desc": "Sposta tutti i file nel nuovo percorso e aggiorna il database",
+        "migrate_running": "Migrazione in corso... {{moved}}/{{total}} cartelle",
+        "migrate_done": "Migrazione completata: {{moved}} cartelle spostate",
+        "migrate_done_errors": "Migrazione completata: {{moved}} spostate, {{errors}} errori",
+        "migrate_no_path": "Nessun percorso di download configurato",
+        "migrate_same_path": "Percorso di destinazione uguale all'origine"
+    },
+    "diskspace": {
+        "critical": "Spazio disco critico: meno di 200 MB disponibili. Download annullato.",
+        "low_warning": "⚠ Spazio disponibile: {{free}} — Stimato necessario: {{needed}}. Potrebbe non essere sufficiente."
     },
     "help": {
         "title": "Guida Utente",

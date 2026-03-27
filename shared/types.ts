@@ -16,6 +16,7 @@ export interface Episode {
     guid?: string;
     isoDate?: string;
     description?: string;
+    itunes?: { duration?: string };
 }
 
 export interface Feed {
@@ -60,16 +61,44 @@ export interface ArchiveStats {
     newestDate: string | null;
 }
 
+export interface HealthCheckResult {
+    total: number;
+    present: number;
+    missing: number;
+    totalSizeBytes: number;
+    missingFiles: { title: string; podcast: string; filename: string }[];
+}
+
 export interface DownloadRequest {
     url: string;
     title: string;
     podcastTitle: string;
     guid: string;
     pubDate?: string;
+    feedImageUrl?: string;  // URL immagine del feed per cover art ID3 (v0.6.4)
 }
 
 export interface DownloadResult {
     status: 'queued';
+}
+
+// v0.6.9 — Disk space info returned by CHECK_DISK_SPACE
+export interface DiskSpaceInfo {
+    freeBytes: number;
+    totalBytes: number;
+}
+
+// v0.6.10 — Archive NAS migration
+export interface MigrationResult {
+    moved: number;
+    errors: number;
+    newPath: string;
+}
+
+export interface MigrationProgress {
+    moved: number;
+    total: number;
+    currentFolder: string;
 }
 
 // ── IPC Channel Constants ────────────────────────────────────
@@ -104,4 +133,23 @@ export const IPC_CHANNELS = {
     GET_ARCHIVE_STATS: 'get-archive-stats',
     // UI locale sync (renderer → main, for OS notifications)
     SET_LOCALE: 'set-locale',
+    // Naming Template (v0.5.4)
+    GET_NAMING_TEMPLATE: 'get-naming-template',
+    SET_NAMING_TEMPLATE: 'set-naming-template',
+    // Sidecar JSON (v0.5.5)
+    GET_SIDECAR_ENABLED: 'get-sidecar-enabled',
+    SET_SIDECAR_ENABLED: 'set-sidecar-enabled',
+    // Health Check (v0.6.0)
+    RUN_HEALTH_CHECK: 'run-health-check',
+    // ID3 Tagging (v0.6.4)
+    GET_ID3_ENABLED: 'get-id3-enabled',
+    SET_ID3_ENABLED: 'set-id3-enabled',
+    // Speed Throttle (v0.6.5)
+    GET_SPEED_LIMIT: 'get-speed-limit',
+    SET_SPEED_LIMIT: 'set-speed-limit',
+    // Disk Space (v0.6.9)
+    CHECK_DISK_SPACE: 'check-disk-space',
+    // Archive Migration (v0.6.10)
+    MIGRATE_ARCHIVE: 'migrate-archive',
+    MIGRATION_PROGRESS: 'migration-progress',
 } as const;

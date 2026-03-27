@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 // Re-export shared types for use in global declarations
-import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveStats } from '../shared/types'
+import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveStats, HealthCheckResult, DiskSpaceInfo, MigrationResult, MigrationProgress } from '../shared/types'
 
 declare global {
     const __APP_VERSION__: string;
@@ -36,6 +36,25 @@ declare global {
             getArchiveStats: () => Promise<ArchiveStats>;
             // Locale Sync (v0.4.10)
             setLocale: (locale: string) => Promise<boolean>;
+            // Naming Template (v0.5.4)
+            getNamingTemplate: () => Promise<string>;
+            setNamingTemplate: (template: string) => Promise<boolean>;
+            // Sidecar JSON (v0.5.5)
+            getSidecarEnabled: () => Promise<boolean>;
+            setSidecarEnabled: (enabled: boolean) => Promise<boolean>;
+            // Health Check (v0.6.0)
+            runHealthCheck: () => Promise<HealthCheckResult>;
+            // ID3 Tagging (v0.6.4)
+            getId3Enabled: () => Promise<boolean>;
+            setId3Enabled: (enabled: boolean) => Promise<boolean>;
+            // Speed Throttle (v0.6.5)
+            getSpeedLimit: () => Promise<number>;
+            setSpeedLimit: (kbps: number) => Promise<boolean>;
+            // Disk Space (v0.6.9)
+            checkDiskSpace: (dirPath: string) => Promise<DiskSpaceInfo | null>;
+            // Archive Migration (v0.6.10)
+            migrateArchive: (newPath: string) => Promise<MigrationResult>;
+            onMigrationProgress: (callback: (event: Electron.IpcRendererEvent, data: MigrationProgress) => void) => () => void;
         };
     }
 }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useStore, AppState } from '../store/useStore';
-import { Download, Check, RefreshCw, FolderOpen, DownloadCloud, RotateCcw, Search, Calendar } from 'lucide-react';
+import { Icon } from './Icon';
 import { useToast } from '../context/ToastContext';
 import { useTranslation } from 'react-i18next';
 import { Virtuoso } from 'react-virtuoso';
@@ -23,12 +23,30 @@ export const EpisodeList: React.FC = () => {
     const [dateTo, setDateTo] = useState('');
     const [showDateFilter, setShowDateFilter] = useState(false);
 
+    // Status filter (v0.5.2)
+    type StatusFilter = 'all' | 'new' | 'downloaded';
+    const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+
+    // Duration filter state (v0.6.6)
+    const [minDuration, setMinDuration] = useState<number>(0);
+    const [maxDuration, setMaxDuration] = useState<number>(0);
+    const [showDurationFilter, setShowDurationFilter] = useState(false);
+
+    // Sync new episodes (v0.5.3)
+    const [isSyncing, setIsSyncing] = useState(false);
+
+    // Virtuoso scroll container — punta al <main id="main-scroll"> in App.tsx
+    const [scrollParent, setScrollParent] = useState<HTMLElement | null>(null);
+    useEffect(() => {
+        setScrollParent(document.getElementById('main-scroll'));
+    }, []);
+
     // ConfirmModal state
     const [confirmState, setConfirmState] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
         isOpen: false, title: '', message: '', onConfirm: () => { }
     });
 
-    // Initial fetch + push event listener (no more polling!)
+    // Initial fetch + push event listener
     const fetchDownloaded = async () => {
         try {
             const guids = await window.api.getDownloadedEpisodes();
@@ -41,21 +59,57 @@ export const EpisodeList: React.FC = () => {
     useEffect(() => {
         fetchDownloaded();
         const removeListener = window.api.onDownloadsUpdated((_event, guids) => {
-            try {
-                setDownloadedGuids(guids);
-            } catch (err) {
-                console.error('Error in onDownloadsUpdated:', err);
-            }
+            try { setDownloadedGuids(guids); }
+            catch (err) { console.error('Error in onDownloadsUpdated:', err); }
         });
         return () => removeListener();
     }, []);
 
-    // Filtered episodes: search + date range
+    // v0.6.6 — Parse itunes:duration string to minutes
+    const parseDurationMinutes = (duration?: string): number | null => {
+        if (!duration) return null;
+        const trimmed = duration.trim();
+        if (/^\d+$/.test(trimmed)) return Math.floor(parseInt(trimmed, 10) / 60);
+        const parts = trimmed.split(':').map(p => parseInt(p, 10));
+        if (parts.some(isNaN)) return null;
+        if (parts.length === 3) return parts[0] * 60 + parts[1];
+        if (parts.length === 2) return parts[0];
+        return null;
+    };
+
+    // v0.6.6 — Format duration for display
+    const formatDuration = (duration?: string): string | null => {
+        const mins = parseDurationMinutes(duration);
+        if (mins === null) return null;
+        const h = Math.floor(mins / 60);
+        const m = mins % 60;
+        if (h > 0) return `${h}h ${m}m`;
+        return `${m} min`;
+    };
+
+    // v0.6.9 — Format bytes for human-readable display
+    const formatBytes = (bytes: number): string => {
+        if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
+        if (bytes >= 1024 ** 2) return `${Math.round(bytes / 1024 ** 2)} MB`;
+        return `${Math.round(bytes / 1024)} KB`;
+    };
+
+    // v0.6.9 — Estimate download size from episode durations (128 kbps)
+    const estimateDownloadBytes = (episodes: Episode[]): number => {
+        const BYTES_PER_SECOND = 16_000;
+        const DEFAULT_DURATION_SEC = 45 * 60;
+        return episodes.reduce((total, ep) => {
+            const mins = parseDurationMinutes(ep.itunes?.duration);
+            const secs = mins !== null ? mins * 60 : DEFAULT_DURATION_SEC;
+            return total + secs * BYTES_PER_SECOND;
+        }, 0);
+    };
+
+    // Filtered episodes: search + date range + status + duration
     const filteredEpisodes = useMemo(() => {
         if (!currentFeed) return [];
         let episodes = currentFeed.episodes;
 
-        // Text search
         if (searchQuery) {
             const lowerQuery = searchQuery.toLowerCase();
             episodes = episodes.filter((ep: Episode) =>
@@ -64,7 +118,6 @@ export const EpisodeList: React.FC = () => {
             );
         }
 
-        // Date filter (v0.4.0)
         if (dateFrom) {
             const from = new Date(dateFrom).getTime();
             episodes = episodes.filter((ep: Episode) => {
@@ -73,75 +126,127 @@ export const EpisodeList: React.FC = () => {
             });
         }
         if (dateTo) {
-            const to = new Date(dateTo).getTime() + 86400000; // end of day
+            const to = new Date(dateTo).getTime() + 86400000;
             episodes = episodes.filter((ep: Episode) => {
                 const d = new Date(ep.pubDate || ep.isoDate || '').getTime();
                 return !isNaN(d) && d <= to;
             });
         }
 
-        return episodes;
-    }, [currentFeed, searchQuery, dateFrom, dateTo]);
+        if (statusFilter !== 'all') {
+            episodes = episodes.filter((ep: Episode) => {
+                const url = getEnclosureUrl(ep);
+                const guid = ep.guid || url || '';
+                const isDownloaded = guid ? downloadedGuids.includes(guid) : false;
+                return statusFilter === 'downloaded' ? isDownloaded : !isDownloaded;
+            });
+        }
 
-    // v0.5.0 — must be called before early return (React hooks rules)
+        if (minDuration > 0 || maxDuration > 0) {
+            episodes = episodes.filter((ep: Episode) => {
+                const mins = parseDurationMinutes(ep.itunes?.duration);
+                if (mins === null) return true;
+                if (minDuration > 0 && mins < minDuration) return false;
+                if (maxDuration > 0 && mins > maxDuration) return false;
+                return true;
+            });
+        }
+
+        return episodes;
+    }, [currentFeed, searchQuery, dateFrom, dateTo, downloadedGuids, statusFilter, minDuration, maxDuration]);
+
     const isOnline = useOnlineStatus();
 
     if (!currentFeed) return null;
 
     const handleDownload = (episode: Episode, silent = false) => {
         const url = getEnclosureUrl(episode);
-
-        if (!url) {
-            if (!silent) toast.show(t('toast.no_audio'), 'error');
-            return;
-        }
-
+        if (!url) { if (!silent) toast.show(t('toast.no_audio'), 'error'); return; }
         const guid = episode.guid || url;
-
+        const imageUrl = typeof currentFeed?.image === 'string' ? currentFeed.image : currentFeed?.image?.url;
         window.api.startDownload({
             url,
             title: episode.title,
             podcastTitle: currentFeed.title,
             guid,
-            pubDate: episode.pubDate || episode.isoDate
+            pubDate: episode.pubDate || episode.isoDate,
+            feedImageUrl: imageUrl
         });
-
         if (!silent) toast.show(t('toast.download_started'), 'info');
     };
 
-    const handleDownloadAll = () => {
+    // v0.5.3 — Sync New
+    const handleSyncNew = async () => {
+        if (!currentFeed || !isOnline || isSyncing) return;
+        setIsSyncing(true);
+        try {
+            const freshFeed = await window.api.parseFeed(currentFeed.url);
+            const newEpisodes = freshFeed.episodes.filter((ep: Episode) => {
+                const url = getEnclosureUrl(ep);
+                const guid = ep.guid || url || '';
+                return guid ? !downloadedGuids.includes(guid) : false;
+            });
+            if (newEpisodes.length === 0) { toast.show(t('toast.sync_none'), 'info'); return; }
+
+            // v0.6.9 — Disk space check
+            const CRITICAL_BYTES = 200 * 1024 * 1024;
+            const downloadPath = await window.api.getDownloadPath().catch(() => '');
+            const diskInfo = await window.api.checkDiskSpace(downloadPath).catch(() => null);
+            if (diskInfo && diskInfo.freeBytes < CRITICAL_BYTES) { toast.show(t('diskspace.critical'), 'error'); return; }
+            if (diskInfo) {
+                const estimatedBytes = estimateDownloadBytes(newEpisodes);
+                if (diskInfo.freeBytes < estimatedBytes * 1.2) {
+                    toast.show(t('diskspace.low_warning', { free: formatBytes(diskInfo.freeBytes), needed: formatBytes(estimatedBytes) }), 'error');
+                }
+            }
+
+            startBatch(newEpisodes.length);
+            toast.show(t('toast.sync_queued', { count: newEpisodes.length }), 'success');
+            newEpisodes.forEach((ep: Episode) => handleDownload(ep, true));
+        } catch {
+            toast.show(t('toast.feed_error'), 'error');
+        } finally {
+            setIsSyncing(false);
+        }
+    };
+
+    const handleDownloadAll = async () => {
         const episodesToDownload = filteredEpisodes.filter((episode: Episode) => {
             const url = getEnclosureUrl(episode);
             const guid = episode.guid || url;
             return guid && !downloadedGuids.includes(guid);
         });
+        if (episodesToDownload.length === 0) { toast.show(t('toast.all_downloaded'), 'info'); return; }
 
-        if (episodesToDownload.length === 0) {
-            toast.show(t('toast.all_downloaded'), 'info');
-            return;
+        // v0.6.9 — Disk space check
+        const downloadPath = await window.api.getDownloadPath().catch(() => '');
+        const diskInfo = await window.api.checkDiskSpace(downloadPath).catch(() => null);
+        const CRITICAL_BYTES = 200 * 1024 * 1024;
+        if (diskInfo && diskInfo.freeBytes < CRITICAL_BYTES) { toast.show(t('diskspace.critical'), 'error'); return; }
+        let diskWarning = '';
+        if (diskInfo) {
+            const estimatedBytes = estimateDownloadBytes(episodesToDownload);
+            if (diskInfo.freeBytes < estimatedBytes * 1.2) {
+                diskWarning = ' ' + t('diskspace.low_warning', { free: formatBytes(diskInfo.freeBytes), needed: formatBytes(estimatedBytes) });
+            }
         }
 
         setConfirmState({
             isOpen: true,
             title: t('confirm.mass_download_title', 'Batch Download'),
-            message: t('confirm.mass_download', { count: episodesToDownload.length }),
+            message: t('confirm.mass_download', { count: episodesToDownload.length }) + diskWarning,
             onConfirm: () => {
                 setConfirmState(prev => ({ ...prev, isOpen: false }));
                 startBatch(episodesToDownload.length);
                 toast.show(t('toast.mass_download_started'), 'success');
-                episodesToDownload.forEach((episode: Episode) => {
-                    handleDownload(episode, true);
-                });
+                episodesToDownload.forEach((episode: Episode) => handleDownload(episode, true));
             }
         });
     };
 
     const handleChangeFolder = async () => {
         const path = await window.api.chooseFolder();
-        if (path) {
-            await window.api.setDownloadPath(path);
-            toast.show(t('toast.folder_selected', { path }), 'success');
-        }
+        if (path) { await window.api.setDownloadPath(path); toast.show(t('toast.folder_selected', { path }), 'success'); }
     };
 
     const handleResetStatus = async (guid: string) => {
@@ -157,172 +262,346 @@ export const EpisodeList: React.FC = () => {
         });
     };
 
-    const imageUrl = typeof currentFeed.image === 'string'
-        ? currentFeed.image
-        : currentFeed.image?.url;
+    const imageUrl = typeof currentFeed.image === 'string' ? currentFeed.image : currentFeed.image?.url;
 
-    const renderEpisodeRow = (_index: number, episode: Episode) => {
+    // ── Episode row renderer ──────────────────────────────────────────────────
+    const renderEpisodeRow = (index: number, episode: Episode) => {
         const url = getEnclosureUrl(episode);
-
         const guid = episode.guid || url || '';
-
         const status = url ? downloads[url] : null;
         const isDownloading = status && !status.completed && !status.error;
         const isCompleted = status?.completed || downloadedGuids.includes(guid);
-
-        // Safe progress: handle missing Content-Length (v0.4.0 fix)
         const progressPercent = (status && status.total && status.total > 0)
             ? Math.round((status.loaded / status.total) * 100)
             : null;
 
+        const pubDate = episode.pubDate
+            ? new Date(episode.pubDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+            : '';
+        const dur = formatDuration(episode.itunes?.duration);
+
         return (
-            <div className="glass-card p-4 flex items-center gap-4 hover:bg-white/5 transition-colors group mb-2 mx-1">
+            <div
+                className="group flex items-center gap-4 px-4 py-3 transition-all duration-200 cursor-default"
+                style={{
+                    background: index % 2 === 0 ? 'var(--color-surface)' : 'var(--color-surface-container-lowest)',
+                    borderBottom: '1px solid rgba(65,71,85,0.05)',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-surface-container-high)')}
+                onMouseLeave={e => (e.currentTarget.style.background = index % 2 === 0 ? 'var(--color-surface)' : 'var(--color-surface-container-lowest)')}
+            >
+                {/* Index */}
+                <span
+                    className="w-10 text-xs shrink-0 text-right"
+                    style={{ fontFamily: 'var(--font-label)', color: 'var(--color-on-surface-variant)' }}
+                >
+                    {String(index + 1).padStart(2, '0')}.
+                </span>
+
+                {/* Info */}
                 <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-gray-200 truncate">{episode.title}</h3>
-                    <p className="text-sm text-gray-500">{episode.pubDate ? new Date(episode.pubDate).toLocaleDateString() : ''}</p>
+                    <h4
+                        className="text-sm font-bold truncate transition-colors"
+                        style={{ color: 'var(--color-on-surface)' }}
+                    >
+                        {episode.title}
+                    </h4>
+                    <div className="flex items-center gap-4 mt-0.5">
+                        {pubDate && (
+                            <span
+                                className="text-[10px] uppercase tracking-wide"
+                                style={{ fontFamily: 'var(--font-label)', color: 'var(--color-on-surface-variant)' }}
+                            >
+                                {pubDate}
+                            </span>
+                        )}
+                        {dur && (
+                            <span
+                                className="text-[10px] uppercase tracking-wide"
+                                style={{ fontFamily: 'var(--font-label)', color: 'var(--color-on-surface-variant)' }}
+                            >
+                                {dur}
+                            </span>
+                        )}
+                    </div>
                 </div>
 
-                {isDownloading ? (
-                    <div className="text-blue-400 text-sm font-mono flex items-center gap-2">
-                        <RefreshCw className="animate-spin" size={14} />
-                        {progressPercent !== null ? `${progressPercent}%` : t('progress.downloading')}
-                    </div>
-                ) : isCompleted ? (
-                    <div className="flex items-center gap-2 group/actions">
-                        <button
-                            onClick={() => handleResetStatus(guid)}
-                            className="p-1.5 text-gray-500 hover:text-orange-400 hover:bg-white/10 rounded-lg transition-colors opacity-0 group-hover/actions:opacity-100"
-                            title={t('episodes.reset_status')}
-                        >
-                            <RotateCcw size={18} />
-                        </button>
-
-                        <button
-                            onClick={() => window.api.showInFolder(currentFeed.title, episode.title)}
-                            className="p-1.5 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                            title={t('episodes.open_folder')}
-                        >
-                            <FolderOpen size={18} />
-                        </button>
-                        <div className="text-green-500 flex items-center gap-1" title={t('episodes.downloaded')}>
-                            <Check size={20} />
+                {/* Actions / status */}
+                <div className="flex items-center gap-3 shrink-0">
+                    {isDownloading ? (
+                        <div className="flex items-center gap-2 text-xs" style={{ fontFamily: 'var(--font-label)', color: 'var(--color-primary)' }}>
+                            <Icon name="progress_activity" size={16} className="animate-spin" />
+                            {progressPercent !== null ? `${progressPercent}%` : t('progress.downloading')}
                         </div>
-                    </div>
-                ) : (
-                    <button
-                        onClick={() => handleDownload(episode)}
-                        disabled={!isOnline}
-                        className={`p-2 rounded-full transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 ${!isOnline ? 'cursor-not-allowed opacity-50' : 'hover:bg-white/10'}`}
-                        title={isOnline ? t('episodes.download') : t('toast.offline_error')}
-                    >
-                        <Download size={20} className={isOnline ? "text-gray-300" : "text-gray-600"} />
-                    </button>
-                )}
+                    ) : isCompleted ? (
+                        <div className="flex items-center gap-1">
+                            <button
+                                onClick={() => handleResetStatus(guid)}
+                                className="opacity-0 group-hover:opacity-100 p-1 rounded transition-all"
+                                style={{ color: 'var(--color-on-surface-variant)' }}
+                                onMouseEnter={e => { e.currentTarget.style.color = '#fb923c'; }}
+                                onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-on-surface-variant)'; }}
+                                title={t('episodes.reset_status')}
+                            >
+                                <Icon name="restart_alt" size={16} />
+                            </button>
+                            <button
+                                onClick={() => window.api.showInFolder(currentFeed.title, episode.title)}
+                                className="opacity-0 group-hover:opacity-100 p-1 rounded transition-all"
+                                style={{ color: 'var(--color-on-surface-variant)' }}
+                                onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-on-surface)'; }}
+                                onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-on-surface-variant)'; }}
+                                title={t('episodes.open_folder')}
+                            >
+                                <Icon name="folder_open" size={16} />
+                            </button>
+                            <Icon name="check_circle" size={20} filled className="text-[var(--color-secondary)]" style={{ color: 'var(--color-secondary)' }} />
+                        </div>
+                    ) : (
+                        <button
+                            onClick={() => handleDownload(episode)}
+                            disabled={!isOnline}
+                            className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1.5 rounded-full transition-all disabled:cursor-not-allowed"
+                            style={{ background: 'var(--color-primary-container)', color: 'var(--color-on-primary-container)' }}
+                            title={isOnline ? t('episodes.download') : t('toast.offline_error')}
+                        >
+                            <Icon name="download" size={16} />
+                        </button>
+                    )}
+                </div>
             </div>
         );
     };
 
+    // ── Render ────────────────────────────────────────────────────────────────
     return (
-        <div className="max-w-3xl mx-auto mt-8 pb-20">
-            <div className="flex items-center gap-6 mb-8">
-                {imageUrl ? (
-                    <img src={imageUrl} className="w-32 h-32 rounded-lg shadow-lg object-cover" alt={currentFeed.title} />
-                ) : (
-                    <div className="w-32 h-32 bg-gray-700 rounded-lg flex items-center justify-center text-4xl">🎙️</div>
-                )}
-                <div>
-                    <h1 className="text-3xl font-bold text-white mb-2">{currentFeed.title}</h1>
-                    <p className="text-gray-400 line-clamp-2">{currentFeed.description}</p>
+        <div className="space-y-4 pb-8">
 
-                    {/* Toolbar */}
-                    <div className="mt-4 flex flex-wrap items-center gap-3">
+            {/* ── Podcast header (bento) ─────────────────────────────────── */}
+            <section
+                className="bento-card rounded-xl overflow-hidden flex flex-col md:flex-row gap-8 p-8"
+                style={{ borderTop: '1px solid rgba(65,71,85,0.1)' }}
+            >
+                {/* Cover art */}
+                <div className="w-full md:w-56 h-56 shrink-0 relative group rounded-lg overflow-hidden shadow-2xl">
+                    {imageUrl ? (
+                        <img src={imageUrl} className="w-full h-full object-cover" alt={currentFeed.title} />
+                    ) : (
+                        <div
+                            className="w-full h-full flex items-center justify-center text-5xl"
+                            style={{ background: 'var(--color-surface-container-high)' }}
+                        >
+                            🎙️
+                        </div>
+                    )}
+                </div>
+
+                {/* Info + actions */}
+                <div className="flex-1 flex flex-col justify-center min-w-0">
+                    <h2
+                        className="text-3xl font-extrabold tracking-tight mb-3 truncate"
+                        style={{ fontFamily: 'var(--font-headline)', color: 'var(--color-on-surface)' }}
+                    >
+                        {currentFeed.title}
+                    </h2>
+                    {currentFeed.description && (
+                        <p
+                            className="text-sm leading-relaxed mb-6 line-clamp-3"
+                            style={{ color: 'var(--color-on-surface-variant)' }}
+                        >
+                            {currentFeed.description}
+                        </p>
+                    )}
+
+                    {/* Action buttons */}
+                    <div className="flex flex-wrap gap-2">
                         <button
                             onClick={handleChangeFolder}
-                            className="flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm transition-colors"
+                            className="flex items-center gap-2 px-4 py-2 rounded text-xs transition-colors"
+                            style={{ fontFamily: 'var(--font-label)', background: 'var(--color-surface-container-highest)', color: 'var(--color-on-surface)' }}
+                            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(173,198,255,0.1)')}
+                            onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-surface-container-highest)')}
                         >
-                            <FolderOpen size={16} />
+                            <Icon name="folder_open" size={16} />
                             {t('episodes.change_folder')}
                         </button>
 
                         <button
                             onClick={handleDownloadAll}
                             disabled={!isOnline}
-                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors ${!isOnline
-                                ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                                : 'bg-blue-600 hover:bg-blue-500 text-white'}`}
+                            className="flex items-center gap-2 px-4 py-2 rounded text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            style={{ fontFamily: 'var(--font-label)', background: 'var(--color-surface-container-highest)', color: 'var(--color-on-surface)' }}
+                            onMouseEnter={e => { if (isOnline) e.currentTarget.style.background = 'rgba(173,198,255,0.1)'; }}
+                            onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-surface-container-highest)')}
                         >
-                            <DownloadCloud size={16} />
+                            <Icon name="cloud_download" size={16} />
                             {t('episodes.download_all')}
                         </button>
 
                         <button
-                            onClick={() => setShowDateFilter(!showDateFilter)}
-                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors ${showDateFilter ? 'bg-blue-600/30 text-blue-300 border border-blue-500/30' : 'bg-white/10 hover:bg-white/20 text-gray-300'}`}
-                            title={t('episodes.date_filter', 'Filter by date')}
+                            onClick={handleSyncNew}
+                            disabled={!isOnline || isSyncing}
+                            className="btn-primary-gradient flex items-center gap-2 px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <Calendar size={16} />
-                            {t('episodes.date_filter', 'Date Filter')}
+                            <Icon name="sync" size={16} className={isSyncing ? 'animate-spin' : ''} />
+                            {t('episodes.sync_new')}
                         </button>
-
-                        <span className="text-gray-500 text-sm ml-2">
-                            {t('episodes.count', { count: filteredEpisodes.length })}
-                        </span>
-                    </div>
-
-                    {/* Date Filter Panel (v0.4.0) */}
-                    {showDateFilter && (
-                        <div className="mt-3 flex flex-wrap items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-lg">
-                            <div className="flex items-center gap-2">
-                                <label className="text-xs text-gray-400">{t('episodes.from', 'From')}</label>
-                                <input
-                                    type="date"
-                                    value={dateFrom}
-                                    onChange={(e) => setDateFrom(e.target.value)}
-                                    className="bg-black/30 border border-white/10 rounded px-2 py-1 text-sm text-gray-300 focus:outline-none focus:border-blue-500"
-                                />
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <label className="text-xs text-gray-400">{t('episodes.to', 'To')}</label>
-                                <input
-                                    type="date"
-                                    value={dateTo}
-                                    onChange={(e) => setDateTo(e.target.value)}
-                                    className="bg-black/30 border border-white/10 rounded px-2 py-1 text-sm text-gray-300 focus:outline-none focus:border-blue-500"
-                                />
-                            </div>
-                            {(dateFrom || dateTo) && (
-                                <button
-                                    onClick={() => { setDateFrom(''); setDateTo(''); }}
-                                    className="text-xs text-gray-400 hover:text-white px-2 py-1 hover:bg-white/10 rounded transition-colors"
-                                >
-                                    {t('common.clear', 'Clear')}
-                                </button>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Search Bar */}
-                    <div className="mt-4 relative max-w-sm">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Search size={16} className="text-gray-500" />
-                        </div>
-                        <input
-                            id="episode-filter-input"
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder={t('episodes.filter', 'Filter episodes...')}
-                            className="block w-full pl-10 pr-3 py-2 border border-white/10 rounded-lg leading-5 bg-black/20 text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
-                        />
                     </div>
                 </div>
+            </section>
+
+            {/* ── Filter bar ────────────────────────────────────────────── */}
+            <div className="flex flex-col gap-3">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+
+                    {/* Status pills */}
+                    <div
+                        className="flex items-center p-1 rounded-full"
+                        style={{ background: 'var(--color-surface-container-low)' }}
+                    >
+                        {(['all', 'new', 'downloaded'] as const).map(s => (
+                            <button
+                                key={s}
+                                onClick={() => setStatusFilter(s)}
+                                className="px-4 py-1.5 rounded-full text-xs font-bold transition-colors"
+                                style={statusFilter === s
+                                    ? { fontFamily: 'var(--font-label)', background: 'var(--color-primary)', color: 'var(--color-on-primary-fixed)' }
+                                    : { fontFamily: 'var(--font-label)', color: 'var(--color-on-surface-variant)' }
+                                }
+                            >
+                                {t(`episodes.filter_${s}`)}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Right controls */}
+                    <div className="flex items-center gap-4">
+                        {/* Search */}
+                        <div className="relative flex items-center">
+                            <Icon name="search" size={16} style={{ position: 'absolute', left: '0.625rem', color: 'var(--color-on-surface-variant)', pointerEvents: 'none' } as React.CSSProperties} />
+                            <input
+                                id="episode-filter-input"
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder={t('episodes.filter', 'Cerca...')}
+                                className="bg-transparent border-none outline-none text-sm pl-8 pr-3 py-1"
+                                style={{ color: 'var(--color-on-surface)', fontFamily: 'var(--font-body)' }}
+                            />
+                        </div>
+
+                        {/* Date filter toggle */}
+                        <button
+                            onClick={() => setShowDateFilter(!showDateFilter)}
+                            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-all"
+                            style={showDateFilter
+                                ? { fontFamily: 'var(--font-label)', color: 'var(--color-primary)', background: 'rgba(173,198,255,0.12)', border: '1px solid var(--color-primary)' }
+                                : { fontFamily: 'var(--font-label)', color: 'var(--color-on-surface-variant)', background: 'transparent', border: '1px solid rgba(65,71,85,0.3)' }
+                            }
+                        >
+                            <Icon name="calendar_month" size={14} />
+                            {t('episodes.date_filter', 'Data')}
+                            {(dateFrom || dateTo) && <span className="w-1.5 h-1.5 rounded-full bg-current ml-0.5" />}
+                        </button>
+
+                        {/* Duration filter toggle */}
+                        <button
+                            onClick={() => setShowDurationFilter(!showDurationFilter)}
+                            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-all"
+                            style={showDurationFilter
+                                ? { fontFamily: 'var(--font-label)', color: 'var(--color-primary)', background: 'rgba(173,198,255,0.12)', border: '1px solid var(--color-primary)' }
+                                : { fontFamily: 'var(--font-label)', color: 'var(--color-on-surface-variant)', background: 'transparent', border: '1px solid rgba(65,71,85,0.3)' }
+                            }
+                        >
+                            <Icon name="schedule" size={14} />
+                            {t('episodes.duration_filter', 'Durata')}
+                            {(minDuration > 0 || maxDuration > 0) && <span className="w-1.5 h-1.5 rounded-full bg-current ml-0.5" />}
+                        </button>
+
+                        {/* Episode count */}
+                        <div className="text-sm" style={{ fontFamily: 'var(--font-label)' }}>
+                            <span style={{ color: 'var(--color-primary)', fontWeight: 700 }}>{filteredEpisodes.length}</span>
+                            {' '}
+                            <span style={{ color: 'var(--color-on-surface-variant)', fontWeight: 400 }}>{t('episodes.count_label', 'episodi')}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Date Filter Panel (v0.4.0) */}
+                {showDateFilter && (
+                    <div
+                        className="flex flex-wrap items-center gap-3 p-3 rounded-lg"
+                        style={{ background: 'var(--color-surface-container)', border: '1px solid rgba(65,71,85,0.2)' }}
+                    >
+                        <div className="flex items-center gap-2">
+                            <label className="text-xs" style={{ color: 'var(--color-on-surface-variant)' }}>{t('episodes.from', 'Da')}</label>
+                            <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}
+                                className="rounded px-2 py-1 text-sm border-none outline-none"
+                                style={{ background: 'var(--color-surface-container-high)', color: 'var(--color-on-surface)' }} />
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <label className="text-xs" style={{ color: 'var(--color-on-surface-variant)' }}>{t('episodes.to', 'A')}</label>
+                            <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)}
+                                className="rounded px-2 py-1 text-sm border-none outline-none"
+                                style={{ background: 'var(--color-surface-container-high)', color: 'var(--color-on-surface)' }} />
+                        </div>
+                        {(dateFrom || dateTo) && (
+                            <button onClick={() => { setDateFrom(''); setDateTo(''); }}
+                                className="text-xs px-2 py-1 rounded transition-colors"
+                                style={{ color: 'var(--color-on-surface-variant)' }}
+                                onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-on-surface)')}
+                                onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-on-surface-variant)')}
+                            >
+                                {t('common.clear', 'Cancella')}
+                            </button>
+                        )}
+                    </div>
+                )}
+
+                {/* Duration Filter Panel (v0.6.6) */}
+                {showDurationFilter && (
+                    <div
+                        className="flex flex-wrap items-center gap-3 p-3 rounded-lg"
+                        style={{ background: 'var(--color-surface-container)', border: '1px solid rgba(65,71,85,0.2)' }}
+                    >
+                        <div className="flex items-center gap-2">
+                            <label className="text-xs" style={{ color: 'var(--color-on-surface-variant)' }}>{t('episodes.min_duration', 'Min (min)')}</label>
+                            <input type="number" min={0} value={minDuration || ''}
+                                onChange={(e) => setMinDuration(e.target.value === '' ? 0 : Math.max(0, parseInt(e.target.value, 10) || 0))}
+                                className="rounded px-2 py-1 text-sm border-none outline-none w-20"
+                                style={{ background: 'var(--color-surface-container-high)', color: 'var(--color-on-surface)' }}
+                                placeholder="0" />
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <label className="text-xs" style={{ color: 'var(--color-on-surface-variant)' }}>{t('episodes.max_duration', 'Max (min)')}</label>
+                            <input type="number" min={0} value={maxDuration || ''}
+                                onChange={(e) => setMaxDuration(e.target.value === '' ? 0 : Math.max(0, parseInt(e.target.value, 10) || 0))}
+                                className="rounded px-2 py-1 text-sm border-none outline-none w-20"
+                                style={{ background: 'var(--color-surface-container-high)', color: 'var(--color-on-surface)' }}
+                                placeholder="0" />
+                        </div>
+                        {(minDuration > 0 || maxDuration > 0) && (
+                            <button onClick={() => { setMinDuration(0); setMaxDuration(0); }}
+                                className="text-xs px-2 py-1 rounded transition-colors"
+                                style={{ color: 'var(--color-on-surface-variant)' }}
+                                onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-on-surface)')}
+                                onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-on-surface-variant)')}
+                            >
+                                {t('common.clear', 'Cancella')}
+                            </button>
+                        )}
+                    </div>
+                )}
             </div>
 
-            <Virtuoso
-                useWindowScroll
-                data={filteredEpisodes}
-                itemContent={renderEpisodeRow}
-            />
+            {/* ── Episode list ──────────────────────────────────────────── */}
+            <div className="rounded-xl overflow-hidden" style={{ background: 'var(--color-surface)' }}>
+                <Virtuoso
+                    customScrollParent={scrollParent ?? undefined}
+                    data={filteredEpisodes}
+                    itemContent={renderEpisodeRow}
+                />
+            </div>
 
             <ConfirmModal
                 isOpen={confirmState.isOpen}

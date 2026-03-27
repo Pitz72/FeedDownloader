@@ -56,6 +56,7 @@ export class FeedService {
         contentSnippet: item.contentSnippet,
         guid: item.guid,
         isoDate: item.isoDate,
+        itunes: item.itunes,
       }));
 
       return feed;

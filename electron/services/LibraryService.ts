@@ -61,6 +61,10 @@ export class LibraryService {
         return this.db.exportArchiveCSV();
     }
 
+    getArchive(): ArchiveEntry[] {
+        return this.db.getArchive();
+    }
+
     getArchiveStats(): ArchiveStats {
         return this.db.getArchiveStats();
     }
@@ -82,6 +86,33 @@ export class LibraryService {
     setConcurrency(n: number): void {
         this.db.setConcurrency(n);
     }
+
+    getNamingTemplate(): string {
+        return this.db.getNamingTemplate();
+    }
+
+    setNamingTemplate(template: string): void {
+        this.db.setNamingTemplate(template);
+    }
+
+    getSidecarEnabled(): boolean {
+        return this.db.getSidecarEnabled();
+    }
+
+    setSidecarEnabled(enabled: boolean): void {
+        this.db.setSidecarEnabled(enabled);
+    }
+
+    getId3Enabled(): boolean {
+        return this.db.getId3Enabled();
+    }
+
+    setId3Enabled(enabled: boolean): void {
+        this.db.setId3Enabled(enabled);
+    }
+
+    getSpeedLimit(): number { return this.db.getSpeedLimit(); }
+    setSpeedLimit(kbps: number): void { this.db.setSpeedLimit(kbps); }
 
     // ── OPML ─────────────────────────────────────────────────
 
