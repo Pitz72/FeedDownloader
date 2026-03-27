@@ -180,7 +180,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen }) => {
                 >
                   {feed.lastUpdated
                     ? new Date(feed.lastUpdated).toLocaleDateString()
-                    : t('sidebar.invalid_date')}
+                    : '—'}
                 </p>
               </div>
 
