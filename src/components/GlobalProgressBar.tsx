@@ -2,7 +2,7 @@ import React from 'react';
 import { useStore, AppState } from '../store/useStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle } from 'lucide-react';
+import { Icon } from './Icon';
 
 export const GlobalProgressBar: React.FC = () => {
     const { batchTotal, batchCompleted, isBatchDownloading } = useStore((state: AppState) => state);
@@ -26,7 +26,7 @@ export const GlobalProgressBar: React.FC = () => {
                         <span className="text-sm font-medium text-white flex items-center gap-2">
                             {isComplete ? (
                                 <>
-                                    <CheckCircle size={16} className="text-green-400" />
+                                    <Icon name="check_circle" size={16} filled className="text-green-400" />
                                     {t('progress.completed', 'Completed!')}
                                 </>
                             ) : (

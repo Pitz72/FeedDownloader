@@ -5,6 +5,7 @@ import { Sidebar } from './components/Sidebar';
 import { GlobalProgressBar } from './components/GlobalProgressBar';
 import { IntroScreen } from './components/IntroScreen';
 import { SettingsModal } from './components/SettingsModal';
+import { Icon } from './components/Icon';
 import { useStore, AppState } from './store/useStore';
 import { ToastProvider, useToast } from './context/ToastContext';
 import { useTranslation } from 'react-i18next';
@@ -22,7 +23,6 @@ function AppContent() {
       if (data.completed || data.error) {
         incrementBatch();
       }
-      // v0.5.0 — Show toast on download errors
       if (data.error) {
         if (data.notFound) {
           toast.show(t('toast.episode_not_found'), 'error');
@@ -53,33 +53,28 @@ function AppContent() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
+    const handleOnline  = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
-    window.addEventListener('online', handleOnline);
+    window.addEventListener('online',  handleOnline);
     window.addEventListener('offline', handleOffline);
     return () => {
-      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('online',  handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 1 }}
-      className="flex min-h-screen bg-gradient-to-br from-gray-900 to-black text-white font-sans selection:bg-blue-500/30"
-    >
-      <div className="fixed inset-0 bg-[url('./noise.svg')] opacity-20 pointer-events-none z-0"></div>
+    <div className="flex h-screen overflow-hidden" style={{ background: 'var(--color-background)', color: 'var(--color-on-surface)' }}>
 
-      {/* Offline Banner */}
+      {/* Offline banner */}
       <AnimatePresence>
         {!isOnline && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="bg-red-600/90 text-white text-center text-sm py-1 font-medium z-50 fixed top-0 left-0 right-0 backdrop-blur-sm"
+            className="fixed top-0 left-0 right-0 z-50 text-center text-sm py-1 font-medium"
+            style={{ background: 'var(--color-error-container)', color: 'var(--color-error)' }}
           >
             {t('toast.offline_error')}
           </motion.div>
@@ -89,29 +84,54 @@ function AppContent() {
       {/* Sidebar */}
       <Sidebar onSettingsOpen={() => setIsSettingsOpen(true)} />
 
-      {/* Main Content */}
-      {/* SettingsModal al root level — copre tutta la viewport */}
+      {/* Settings modal — root level */}
       <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
 
-      <div className={`relative z-10 flex-1 flex flex-col min-h-screen ${!isOnline ? 'mt-8' : ''}`}>
-        <div className="flex-1 p-8">
-          <header className="text-center mb-12">
-            <h1 className="text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600 mb-4">
-              {t('app.title')}
-            </h1>
-            <p className="text-gray-400 text-lg">
-              {t('app.slogan')}
-            </p>
-          </header>
+      {/* Main area */}
+      <div className="flex-1 flex flex-col overflow-hidden" style={{ marginTop: !isOnline ? '2rem' : 0 }}>
 
-          <div className={!isOnline ? "opacity-50 pointer-events-none grayscale" : ""}>
-            <UrlInput />
+        {/* TopBar */}
+        <header
+          className="flex items-center justify-between px-8 h-14 shrink-0 z-20"
+          style={{ background: 'var(--color-background)' }}
+        >
+          <h1
+            className="text-lg font-extrabold tracking-tight"
+            style={{
+              fontFamily: 'var(--font-headline)',
+              background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-container))',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
+            {t('app.title')}
+          </h1>
+          <div className="flex items-center gap-3" style={{ color: 'var(--color-on-surface-variant)' }}>
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className="transition-colors p-1"
+              style={{ color: 'var(--color-on-surface-variant)' }}
+              onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-primary)')}
+              onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-on-surface-variant)')}
+              title={t('settings.title')}
+            >
+              <Icon name="settings" size={20} />
+            </button>
           </div>
-          <EpisodeList />
+        </header>
+
+        {/* Scrollable canvas */}
+        <main
+          className={`flex-1 overflow-y-auto custom-scrollbar ${!isOnline ? 'opacity-50 pointer-events-none grayscale' : ''}`}
+        >
+          <div className="max-w-7xl mx-auto px-8 py-6 space-y-6">
+            <UrlInput />
+            <EpisodeList />
+          </div>
           <GlobalProgressBar />
-        </div>
+        </main>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -128,7 +148,7 @@ function App() {
         )}
       </AnimatePresence>
     </ToastProvider>
-  )
+  );
 }
 
 export default App;

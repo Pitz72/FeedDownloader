@@ -28,26 +28,16 @@ Gestione intelligente delle risorse per evitare ban dai CDN e ottimizzare i temp
 
 ### 4. Gestione dello Storage (Safety)
 Prevenzione degli errori legati alla capacità fisica dei dischi.
-- 🔲 **Pre-allocazione dello Spazio:** Controllo preventivo della disponibilità su disco in base alla somma dei pesi stimati dei file nel feed.
-- 🔲 **Migrazione Archivio:** Funzionalità integrata per spostare l'intero archivio (file + database) su un altro drive (es. verso un NAS) mantenendo l'integrità dei puntatori.
+- ✅ **Pre-allocazione dello Spazio (v0.6.9):** Controllo preventivo della disponibilità su disco in base alla somma dei pesi stimati degli episodi (128 kbps × durata). Blocco critico < 200 MB; avviso se spazio < stima × 1.2.
+- ✅ **Migrazione Archivio (v0.6.10):** Funzionalità integrata per spostare l'intero archivio su un altro drive (es. NAS) con barra di avanzamento in tempo reale. Il DB non richiede aggiornamenti (archivia solo podcastTitle + filename relativi).
 
-### 5. UX — Finestra Impostazioni Dedicata (Priorità Alta)
-Le impostazioni sono attualmente ospitate in un modal che si apre dalla sidebar sinistra.
-Con l'accumulo di opzioni (cartella download, concorrenza, template naming, sidecar, ID3, health check, ecc.)
-il pannello è diventato troppo lungo e difficile da consultare.
+### 5. UX — Finestra Impostazioni Ridisegnata
+Le impostazioni erano ospitate in un modal troppo lungo e difficile da consultare.
 
-**Soluzione pianificata:** Sostituire il modal con una **finestra separata a tutta dimensione**,
-aperta tramite l'icona ingranaggio nella sidebar:
-- Layout a **due colonne**: navigazione per categoria a sinistra, contenuto a destra
-- Categorie suggerite: Generale, Download, Metadati, Archiviazione, Avanzate
-- La finestra deve espandersi sia **orizzontalmente** che verticalmente per ospitare dashboard
-  (es. Health Check) e form articolati (es. template naming con anteprima live) in modo leggibile
-- Implementare come `BrowserWindow` secondaria Electron oppure come route React dedicata (`/settings`)
-  con transizione animata
-
-🔲 **Refactor Finestra Impostazioni:** Rimpiazzare `SettingsModal` con una view a tutta dimensione,
-layout a due colonne con navigazione per categoria, che scala orizzontalmente e verticalmente.
-Da implementare prima o in parallelo alla prossima major (v0.7.0).
+✅ **Redesign Impostazioni (v0.6.7):** `SettingsModal` ridisegnata con layout a **due colonne** (`max-w-5xl`):
+- **Sidebar sinistra** con 5 categorie con icone: Generale, Download, Metadati, Archivio, Avanzate
+- **Area destra** scrollabile con animazione fade tra categorie (`AnimatePresence`)
+- Fix posizionamento v0.6.8: modal spostato al root level in `App.tsx`
 
 ---
 
@@ -55,7 +45,7 @@ Da implementare prima o in parallelo alla prossima major (v0.7.0).
 Fornire all'utente una visione chiara dello stato del proprio archivio.
 - ✅ **Statistiche Archivio (v0.4.0):** Dashboard con file totali scaricati, podcast distinti e periodo dell'archivio.
 - ✅ **Report di Salute (Health Check) (v0.6.0):** Dashboard con totale in DB, file presenti/mancanti su disco, spazio occupato e lista dei file mancanti.
-- 🔲 **Esportazione Log Avanzata:** Includere nel CSV dettagli tecnici come bitrate, frequenza di campionamento e stato di validazione del file.
+- 🔲 **Esportazione Log Avanzata (v0.6.11):** Includere nel CSV dettagli tecnici come bitrate, frequenza di campionamento e stato di validazione del file.
 
 ---
-*Documento redatto il 16 febbraio 2026 come roadmap per lo sviluppo futuro. Aggiornato il 21 marzo 2026 con lo stato di implementazione. Aggiornato il 26 marzo 2026: segnate ✅ le feature implementate in v0.5.0–v0.6.6; aggiunta sezione 5 su refactor finestra impostazioni.*
+*Documento redatto il 16 febbraio 2026 come roadmap per lo sviluppo futuro. Aggiornato il 21 marzo 2026 con lo stato di implementazione. Aggiornato il 26 marzo 2026: segnate ✅ le feature implementate in v0.5.0–v0.6.6; aggiunta sezione 5 su refactor finestra impostazioni. Aggiornato il 26 marzo 2026 (sera): segnate ✅ le sezioni 4 e 5 implementate in v0.6.7–v0.6.10; unico DA FARE rimasto è §6 Esportazione Log Avanzata (v0.6.11).*

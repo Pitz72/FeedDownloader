@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, BookOpen } from 'lucide-react';
+import { Icon } from './Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import Markdown from 'react-markdown';
 
@@ -67,11 +67,11 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
                         {/* Header */}
                         <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5 shrink-0">
                             <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                                <BookOpen className="text-blue-400" />
+                                <Icon name="menu_book" size={20} style={{ color: 'var(--color-primary)' }} />
                                 {t('help.title', 'User Guide')}
                             </h2>
                             <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
-                                <X size={24} />
+                                <Icon name="close" size={24} />
                             </button>
                         </div>
 

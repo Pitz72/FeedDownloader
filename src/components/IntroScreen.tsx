@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { ChevronRight, BookOpen } from 'lucide-react';
+import { Icon } from './Icon';
 import { HelpModal } from './HelpModal';
 import GB from 'country-flag-icons/react/3x2/GB';
 import IT from 'country-flag-icons/react/3x2/IT';
@@ -161,7 +161,7 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
                                 className="group relative px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full font-bold text-lg shadow-lg hover:shadow-blue-500/50 transition-all hover:scale-105 active:scale-95 flex items-center gap-2 overflow-hidden w-64 justify-center"
                             >
                                 <span className="relative z-10">{t('app.start')}</span>
-                                <ChevronRight className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform" />
+                                <Icon name="chevron_right" size={20} className="relative z-10 group-hover:translate-x-1 transition-transform" />
                                 <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 rounded-full"></div>
                             </button>
 
@@ -169,7 +169,7 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
                                 onClick={() => setIsHelpOpen(true)}
                                 className="px-8 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full font-medium text-gray-300 hover:text-white transition-all flex items-center gap-2 w-64 justify-center"
                             >
-                                <BookOpen className="w-5 h-5" />
+                                <Icon name="menu_book" size={20} />
                                 <span>{t('help.read_manual', 'LEGGI LA GUIDA')}</span>
                             </button>
                         </div>

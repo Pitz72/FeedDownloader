@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, FolderOpen, AlertTriangle, BookOpen, Upload, Download, FileSpreadsheet, Settings2, BarChart3, ShieldCheck, RefreshCw, Globe, Tag, Archive, HardDrive } from 'lucide-react';
+import { Icon } from './Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HelpModal } from './HelpModal';
 import { useStore, AppState } from '../store/useStore';
@@ -125,11 +125,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     };
 
     const navItems: { id: NavCategory; labelKey: string; icon: React.ReactNode }[] = [
-        { id: 'general', labelKey: 'settings.nav_general', icon: <Globe size={16} /> },
-        { id: 'download', labelKey: 'settings.nav_download', icon: <Download size={16} /> },
-        { id: 'metadata', labelKey: 'settings.nav_metadata', icon: <Tag size={16} /> },
-        { id: 'archive', labelKey: 'settings.nav_archive', icon: <Archive size={16} /> },
-        { id: 'advanced', labelKey: 'settings.nav_advanced', icon: <AlertTriangle size={16} /> },
+        { id: 'general', labelKey: 'settings.nav_general', icon: <Icon name="language" size={16} /> },
+        { id: 'download', labelKey: 'settings.nav_download', icon: <Icon name="download" size={16} /> },
+        { id: 'metadata', labelKey: 'settings.nav_metadata', icon: <Icon name="label" size={16} /> },
+        { id: 'archive', labelKey: 'settings.nav_archive', icon: <Icon name="inventory_2" size={16} /> },
+        { id: 'advanced', labelKey: 'settings.nav_advanced', icon: <Icon name="warning" size={16} /> },
     ];
 
     const backdropVariants = {
@@ -174,14 +174,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                         {/* Header */}
                         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-white/5 shrink-0">
                             <div className="flex items-center gap-2">
-                                <Settings2 size={20} className="text-blue-400" />
+                                <Icon name="settings" size={20} style={{ color: 'var(--color-primary)' }} />
                                 <h2 className="text-lg font-bold text-white">{t('settings.title')}</h2>
                             </div>
                             <button
                                 onClick={onClose}
                                 className="text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10"
                             >
-                                <X size={20} />
+                                <Icon name="close" size={20} />
                             </button>
                         </div>
 
@@ -250,7 +250,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                         className="w-full flex items-center justify-between bg-white/5 hover:bg-white/10 border border-white/10 p-3 rounded-lg text-gray-300 transition-colors"
                                                     >
                                                         <span className="flex items-center gap-2">
-                                                            <BookOpen size={18} className="text-blue-400" />
+                                                            <Icon name="menu_book" size={18} style={{ color: 'var(--color-primary)' }} />
                                                             {t('help.title')}
                                                         </span>
                                                         <div className="text-xs bg-white/10 px-2 py-1 rounded text-gray-500">
@@ -266,7 +266,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                             <>
                                                 <div className="space-y-3">
                                                     <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                                                        <Settings2 size={14} />
+                                                        <Icon name="settings" size={14} />
                                                         {t('settings.storage')}
                                                     </h3>
                                                     <div className="space-y-2">
@@ -283,7 +283,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                                 className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-lg transition-colors"
                                                                 title={t('episodes.change_folder')}
                                                             >
-                                                                <FolderOpen size={20} />
+                                                                <Icon name="folder_open" size={20} />
                                                             </button>
                                                         </div>
                                                     </div>
@@ -404,7 +404,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                 {archiveStats && archiveStats.totalFiles > 0 && (
                                                     <div className="space-y-3">
                                                         <h3 className="text-sm font-medium text-emerald-400 uppercase tracking-wider flex items-center gap-2">
-                                                            <BarChart3 size={14} />
+                                                            <Icon name="bar_chart" size={14} />
                                                             {t('settings.stats', 'Archive Statistics')}
                                                         </h3>
                                                         <div className="grid grid-cols-2 gap-3">
@@ -428,7 +428,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                 {/* Health Check */}
                                                 <div className="space-y-3">
                                                     <h3 className="text-sm font-medium text-yellow-400 uppercase tracking-wider flex items-center gap-2">
-                                                        <ShieldCheck size={14} />
+                                                        <Icon name="verified_user" size={14} />
                                                         {t('settings.health_check')}
                                                     </h3>
                                                     <button
@@ -444,7 +444,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                         disabled={isHealthChecking}
                                                         className="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 p-2 rounded-lg text-sm text-gray-300 transition-colors disabled:opacity-50"
                                                     >
-                                                        <RefreshCw size={16} className={isHealthChecking ? 'animate-spin text-yellow-400' : 'text-yellow-400'} />
+                                                        <Icon name="refresh" size={16} className={isHealthChecking ? 'animate-spin' : ''} style={{ color: '#facc15' }} />
                                                         {isHealthChecking ? t('settings.health_check_running') : t('settings.health_check_run')}
                                                     </button>
                                                     {healthResult && (
@@ -486,14 +486,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                 {/* Migrate Archive (v0.6.10) */}
                                                 <div className="space-y-3">
                                                     <h3 className="text-sm font-medium text-purple-400 uppercase tracking-wider flex items-center gap-2">
-                                                        <HardDrive size={14} />
+                                                        <Icon name="hard_drive" size={14} />
                                                         {t('settings.migrate_archive')}
                                                     </h3>
                                                     <p className="text-xs text-gray-500">{t('settings.migrate_archive_desc')}</p>
                                                     {migrationProgress ? (
                                                         <div className="p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg space-y-2">
                                                             <div className="flex items-center gap-2 text-sm text-purple-300">
-                                                                <RefreshCw size={14} className="animate-spin" />
+                                                                <Icon name="refresh" size={14} className="animate-spin" />
                                                                 {t('settings.migrate_running', {
                                                                     moved: migrationProgress.moved,
                                                                     total: migrationProgress.total,
@@ -517,7 +517,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                                 : 'bg-purple-500/10 hover:bg-purple-500/20 border-purple-500/30 text-purple-300'
                                                             }`}
                                                         >
-                                                            <HardDrive size={16} />
+                                                            <Icon name="hard_drive" size={16} />
                                                             {t('settings.migrate_archive')}
                                                         </button>
                                                     )}
@@ -539,7 +539,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                             }}
                                                             className="flex items-center gap-2 bg-white/5 hover:bg-white/10 p-2 rounded-lg text-sm text-gray-300 transition-colors"
                                                         >
-                                                            <Upload size={16} className="text-green-400" />
+                                                            <Icon name="upload" size={16} style={{ color: '#4ade80' }} />
                                                             {t('settings.import_opml')}
                                                         </button>
                                                         <button
@@ -549,7 +549,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                             }}
                                                             className="flex items-center gap-2 bg-white/5 hover:bg-white/10 p-2 rounded-lg text-sm text-gray-300 transition-colors"
                                                         >
-                                                            <Download size={16} className="text-blue-400" />
+                                                            <Icon name="download" size={16} style={{ color: 'var(--color-primary)' }} />
                                                             {t('settings.export_opml')}
                                                         </button>
                                                         <button
@@ -559,7 +559,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                             }}
                                                             className="flex items-center gap-2 bg-white/5 hover:bg-white/10 p-2 rounded-lg text-sm text-gray-300 transition-colors"
                                                         >
-                                                            <FileSpreadsheet size={16} className="text-purple-400" />
+                                                            <Icon name="table_chart" size={16} style={{ color: 'var(--color-secondary)' }} />
                                                             {t('settings.export_csv')}
                                                         </button>
                                                     </div>
@@ -582,7 +582,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                             }`}
                                                         title={isBatchDownloading ? t('settings.reset_tooltip_downloading') : ""}
                                                     >
-                                                        <AlertTriangle size={18} />
+                                                        <Icon name="warning" size={18} />
                                                         {t('settings.reset_db')}
                                                     </button>
                                                 ) : (

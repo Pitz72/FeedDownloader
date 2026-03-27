@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertTriangle } from 'lucide-react';
+import { Icon } from './Icon';
 import { useTranslation } from 'react-i18next';
 
 interface ConfirmModalProps {
@@ -60,7 +60,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
                     >
                         <div className="flex items-start gap-3 mb-4">
-                            <AlertTriangle className={`${colors.icon} shrink-0 mt-0.5`} size={22} />
+                            <Icon name="warning" size={22} className={`${colors.icon} shrink-0 mt-0.5`} />
                             <div>
                                 <h3 className="text-white font-semibold text-lg">{title}</h3>
                                 <p className="text-gray-300 text-sm mt-1 leading-relaxed">{message}</p>
