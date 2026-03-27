@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Icon } from './Icon';
+import noiseSvg from '../assets/noise.svg';
 import { HelpModal } from './HelpModal';
 import GB from 'country-flag-icons/react/3x2/GB';
 import IT from 'country-flag-icons/react/3x2/IT';
@@ -87,7 +88,7 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
             className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0b1120] text-white overflow-hidden"
         onClick={step < 2 ? skipToEnd : undefined}
         >
-            <div className="absolute inset-0 bg-[url('./noise.svg')] opacity-20 pointer-events-none"></div>
+            <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: `url(${noiseSvg})` }}></div>
 
             {/* Skip button — visible during animation phases */}
             {step < 2 && (

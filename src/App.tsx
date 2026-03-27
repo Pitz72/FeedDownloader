@@ -122,6 +122,7 @@ function AppContent() {
 
         {/* Scrollable canvas */}
         <main
+          id="main-scroll"
           className={`flex-1 overflow-y-auto custom-scrollbar ${!isOnline ? 'opacity-50 pointer-events-none grayscale' : ''}`}
         >
           <div className="max-w-7xl mx-auto px-8 py-6 space-y-6">

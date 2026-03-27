@@ -35,6 +35,12 @@ export const EpisodeList: React.FC = () => {
     // Sync new episodes (v0.5.3)
     const [isSyncing, setIsSyncing] = useState(false);
 
+    // Virtuoso scroll container — punta al <main id="main-scroll"> in App.tsx
+    const [scrollParent, setScrollParent] = useState<HTMLElement | null>(null);
+    useEffect(() => {
+        setScrollParent(document.getElementById('main-scroll'));
+    }, []);
+
     // ConfirmModal state
     const [confirmState, setConfirmState] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
         isOpen: false, title: '', message: '', onConfirm: () => { }
@@ -590,7 +596,7 @@ export const EpisodeList: React.FC = () => {
             {/* ── Episode list ──────────────────────────────────────────── */}
             <div className="rounded-xl overflow-hidden" style={{ background: 'var(--color-surface)' }}>
                 <Virtuoso
-                    useWindowScroll
+                    customScrollParent={scrollParent ?? undefined}
                     data={filteredEpisodes}
                     itemContent={renderEpisodeRow}
                 />
