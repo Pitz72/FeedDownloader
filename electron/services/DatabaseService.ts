@@ -55,6 +55,16 @@ export class DatabaseService {
                 value TEXT
             );
         `);
+
+        // v0.7.4 — Add integrity/metadata columns (no-op if already present)
+        for (const sql of [
+            'ALTER TABLE archive ADD COLUMN fileSize INTEGER',
+            'ALTER TABLE archive ADD COLUMN checksum TEXT',
+            'ALTER TABLE archive ADD COLUMN bitrate INTEGER',
+            'ALTER TABLE archive ADD COLUMN sampleRate INTEGER',
+        ]) {
+            try { this.db.exec(sql); } catch { /* column already exists */ }
+        }
     }
 
     // ── Feeds ────────────────────────────────────────────────
@@ -117,15 +127,20 @@ export class DatabaseService {
 
     addArchiveEntry(entry: ArchiveEntry): void {
         this.db.prepare(
-            `INSERT OR IGNORE INTO archive (guid, podcastTitle, title, pubDate, downloadedAt, filename)
-             VALUES (?, ?, ?, ?, ?, ?)`
+            `INSERT OR IGNORE INTO archive
+             (guid, podcastTitle, title, pubDate, downloadedAt, filename, fileSize, checksum, bitrate, sampleRate)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
         ).run(
             entry.guid,
             entry.podcastTitle,
             entry.title,
             entry.pubDate,
             entry.downloadedAt,
-            entry.filename || null
+            entry.filename || null,
+            entry.fileSize ?? null,
+            entry.checksum ?? null,
+            entry.bitrate ?? null,
+            entry.sampleRate ?? null,
         );
     }
 
@@ -135,19 +150,32 @@ export class DatabaseService {
 
     exportArchiveCSV(): string {
         const rows = this.db.prepare('SELECT * FROM archive ORDER BY downloadedAt DESC').all() as ArchiveEntry[];
-        
-        // v0.4.8 — Add UTF-8 BOM for Excel compatibility with accents
-        let csv = '\uFEFFPodcast,Episode Title,Publish Date,Downloaded At,GUID\n';
+
+        // v0.4.8 — UTF-8 BOM for Excel compatibility
+        // v0.7.4 — Extended with file size, bitrate, sample rate, checksum, validation status
+        let csv = '\uFEFFPodcast,Episode Title,Publish Date,Downloaded At,File Size (bytes),Bitrate (kbps),Sample Rate (Hz),SHA-256 Checksum,Validation Status,GUID\n';
 
         rows.forEach(r => {
-            const escape = (str: string) => {
-                const s = str || '';
-                // v0.4.8 — Escape double quotes AND replace newlines with spaces to avoid breaking structure
+            const escape = (val: string | number | null | undefined) => {
+                const s = String(val ?? '');
                 const escaped = s.replace(/"/g, '""').replace(/[\n\r]+/g, ' ');
                 return `"${escaped}"`;
             };
+            // Entries with checksum = integrity verified at download; legacy entries = no checksum stored
+            const validationStatus = r.checksum ? 'OK' : (r.filename ? 'LEGACY' : 'UNKNOWN');
 
-            csv += `${escape(r.podcastTitle)},${escape(r.title)},${escape(r.pubDate)},${escape(r.downloadedAt)},${escape(r.guid)}\n`;
+            csv += [
+                escape(r.podcastTitle),
+                escape(r.title),
+                escape(r.pubDate),
+                escape(r.downloadedAt),
+                escape(r.fileSize),
+                escape(r.bitrate),
+                escape(r.sampleRate),
+                escape(r.checksum),
+                escape(validationStatus),
+                escape(r.guid),
+            ].join(',') + '\n';
         });
 
         return csv;

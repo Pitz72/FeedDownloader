@@ -110,12 +110,13 @@ export const EpisodeList: React.FC = () => {
         if (!currentFeed) return [];
         let episodes = currentFeed.episodes;
 
+        // v0.7.4 — Multi-word AND: all space-separated keywords must match title or snippet
         if (searchQuery) {
-            const lowerQuery = searchQuery.toLowerCase();
-            episodes = episodes.filter((ep: Episode) =>
-                (ep.title && ep.title.toLowerCase().includes(lowerQuery)) ||
-                (ep.contentSnippet && ep.contentSnippet.toLowerCase().includes(lowerQuery))
-            );
+            const words = searchQuery.toLowerCase().split(/\s+/).filter(Boolean);
+            episodes = episodes.filter((ep: Episode) => {
+                const text = [ep.title, ep.contentSnippet].filter(Boolean).join(' ').toLowerCase();
+                return words.every(word => text.includes(word));
+            });
         }
 
         if (dateFrom) {
@@ -476,7 +477,7 @@ export const EpisodeList: React.FC = () => {
 
                     {/* Right controls */}
                     <div className="flex items-center gap-4">
-                        {/* Search */}
+                        {/* Search — v0.7.4: multi-word AND + clear button */}
                         <div className="relative flex items-center">
                             <Icon name="search" size={16} style={{ position: 'absolute', left: '0.625rem', color: 'var(--color-on-surface-variant)', pointerEvents: 'none' } as React.CSSProperties} />
                             <input
@@ -485,9 +486,21 @@ export const EpisodeList: React.FC = () => {
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder={t('episodes.filter', 'Cerca...')}
-                                className="bg-transparent border-none outline-none text-sm pl-8 pr-3 py-1"
-                                style={{ color: 'var(--color-on-surface)', fontFamily: 'var(--font-body)' }}
+                                className="bg-transparent border-none outline-none text-sm pl-8 py-1"
+                                style={{ color: 'var(--color-on-surface)', fontFamily: 'var(--font-body)', paddingRight: searchQuery ? '1.5rem' : '0.75rem' }}
                             />
+                            {searchQuery && (
+                                <button
+                                    onClick={() => setSearchQuery('')}
+                                    className="absolute right-1 p-0.5 rounded-full transition-colors"
+                                    style={{ color: 'var(--color-on-surface-variant)' }}
+                                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-on-surface)')}
+                                    onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-on-surface-variant)')}
+                                    title={t('common.clear', 'Pulisci')}
+                                >
+                                    <Icon name="close" size={14} />
+                                </button>
+                            )}
                         </div>
 
                         {/* Date filter toggle */}

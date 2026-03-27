@@ -52,6 +52,10 @@ export interface ArchiveEntry {
     pubDate: string;
     downloadedAt: string;
     filename?: string;
+    fileSize?: number;    // v0.7.4 — bytes on disk
+    checksum?: string;    // v0.7.4 — SHA-256 hex
+    bitrate?: number;     // v0.7.4 — kbps
+    sampleRate?: number;  // v0.7.4 — Hz
 }
 
 export interface ArchiveStats {

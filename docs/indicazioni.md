@@ -8,7 +8,7 @@ Questo documento delinea le linee guida e i suggerimenti tecnici per l'evoluzion
 
 ### 1. Robustezza e Integrità del Dato (Core Archiving)
 L'obiettivo è garantire che ogni file scaricato sia identico alla sorgente e che il processo sia resiliente alle interruzioni.
-- 🔲 **Verifica Integrità (Checksum/Size):** Implementare un controllo post-download sulla dimensione del file (header `Content-Length`) o verifica hash (MD5/SHA) dove disponibile.
+- ✅ **Verifica Integrità (Checksum/Size) (v0.7.4):** Controllo post-download su `Content-Length` (v0.5.0) + calcolo SHA-256 del file scaricato con salvataggio in archivio; `bitrate` e `sampleRate` estratti via `music-metadata`.
 - ✅ **Resume dei Download (HTTP 206) (v0.6.1):** I download interrotti riprendono dal punto di blocco tramite range request HTTP 206.
 - ✅ **Rilevamento Episodi "Ghost" / Health Check (v0.6.0):** Dashboard di salute con controllo integrità file su disco, conteggio presenti/mancanti e ore totali archiviate.
 
@@ -24,7 +24,7 @@ Gestione intelligente delle risorse per evitare ban dai CDN e ottimizzare i temp
 - ✅ **Throttling Velocità di Trasferimento (v0.6.5):** Limitazione della velocità in KB/s configurabile in Impostazioni.
 - ✅ **Filtri per Data (v0.4.0):** Filtro per intervallo di date di pubblicazione degli episodi.
 - ✅ **Filtri per Durata (v0.6.6):** Filtro per durata minima/massima degli episodi (pill buttons nella toolbar episodi).
-- 🔲 **Filtri Avanzati:** Filtrare per keyword nel titolo.
+- ✅ **Filtri Avanzati (v0.7.4):** Ricerca multi-parola con logica AND (tutte le keyword devono comparire in titolo o descrizione); pulsante clear integrato.
 - ✅ **Sincronizzazione Incrementale Smart (v0.6.x):** La funzione "Sync" scarica solo i nuovi episodi ignorando quelli già presenti nel database.
 
 ### 4. Gestione dello Storage (Safety)
@@ -36,7 +36,7 @@ Prevenzione degli errori legati alla capacità fisica dei dischi.
 Fornire all'utente una visione chiara dello stato del proprio archivio.
 - ✅ **Statistiche Archivio (v0.4.0):** Dashboard con file totali scaricati, podcast distinti e periodo dell'archivio.
 - ✅ **Health Check (v0.6.0):** Controllo integrità file su disco con contatori presenti/mancanti e ore totali archiviate.
-- 🔲 **Esportazione CSV Log:** Esportazione log dettagliato con bitrate, frequenza di campionamento e stato di validazione.
+- ✅ **Esportazione CSV Log (v0.7.4):** CSV esteso con `File Size (bytes)`, `Bitrate (kbps)`, `Sample Rate (Hz)`, `SHA-256 Checksum`, `Validation Status` (OK / LEGACY).
 
 ### 6. Interfaccia Utente (UI/UX)
 Identità visiva coerente e moderna per uno strumento da power user.
@@ -48,4 +48,6 @@ Identità visiva coerente e moderna per uno strumento da power user.
 - ✅ **Allineamento CSS vars — GlobalProgressBar (v0.7.3):** Pannello glass con `backdropFilter`, icone Material Symbols, gradiente barra avanzamento, hover semantici.
 
 ---
-*Documento redatto il 16 febbraio 2026 come roadmap per lo sviluppo futuro. Aggiornato il 27 marzo 2026 con lo stato completo di implementazione fino alla v0.7.3.*
+*Documento redatto il 16 febbraio 2026 come roadmap per lo sviluppo futuro. Aggiornato il 27 marzo 2026 con lo stato completo di implementazione fino alla v0.7.4.*
+
+> **DOCUMENTO ARCHIVIATO** — Tutti i punti della roadmap originale sono stati completati. Ulteriori sviluppi futuri saranno tracciati in un nuovo documento di planning.

@@ -1,4 +1,5 @@
 import { ipcMain, dialog, Notification, BrowserWindow, app } from 'electron';
+import crypto from 'crypto';
 import { FeedService } from './services/FeedService';
 import { LibraryService } from './services/LibraryService';
 import { DownloadService } from './services/DownloadService';
@@ -145,6 +146,32 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                     pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded, total });
                 }, speedLimitKBps);
 
+                // v0.7.4 — Compute SHA-256 checksum and extract audio metadata
+                let fileSize: number | undefined;
+                let checksum: string | undefined;
+                let bitrate: number | undefined;
+                let sampleRate: number | undefined;
+                try {
+                    const stat = await fs.stat(targetFile);
+                    fileSize = stat.size;
+
+                    const hash = crypto.createHash('sha256');
+                    const fileStream = fs.createReadStream(targetFile);
+                    await new Promise<void>((resolve, reject) => {
+                        fileStream.on('data', (chunk) => hash.update(chunk as Buffer));
+                        fileStream.on('end', resolve);
+                        fileStream.on('error', reject);
+                    });
+                    checksum = hash.digest('hex');
+
+                    const { parseFile } = await import('music-metadata');
+                    const meta = await parseFile(targetFile, { duration: false });
+                    bitrate = meta.format.bitrate ? Math.round(meta.format.bitrate / 1000) : undefined;
+                    sampleRate = meta.format.sampleRate ?? undefined;
+                } catch (e) {
+                    console.warn('[Integrity] Failed to compute metadata:', e);
+                }
+
                 if (guid) {
                     libraryService.markAsDownloaded(guid);
                     libraryService.addArchiveEntry({
@@ -153,7 +180,11 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                         podcastTitle,
                         pubDate: pubDate || new Date().toISOString(),
                         downloadedAt: new Date().toISOString(),
-                        filename: path.basename(targetFile)
+                        filename: path.basename(targetFile),
+                        fileSize,
+                        checksum,
+                        bitrate,
+                        sampleRate,
                     });
                 }
 
