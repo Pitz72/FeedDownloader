@@ -368,7 +368,6 @@ export const EpisodeList: React.FC = () => {
                             <Icon name="download" size={16} />
                         </button>
                     )}
-                    <Icon name="more_vert" size={18} className="opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity" style={{ color: 'var(--color-on-surface-variant)' }} />
                 </div>
             </div>
         );
@@ -494,27 +493,29 @@ export const EpisodeList: React.FC = () => {
                         {/* Date filter toggle */}
                         <button
                             onClick={() => setShowDateFilter(!showDateFilter)}
-                            className="flex items-center gap-1.5 text-xs transition-colors"
+                            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-all"
                             style={showDateFilter
-                                ? { fontFamily: 'var(--font-label)', color: 'var(--color-primary)' }
-                                : { fontFamily: 'var(--font-label)', color: 'var(--color-on-surface-variant)' }
+                                ? { fontFamily: 'var(--font-label)', color: 'var(--color-primary)', background: 'rgba(173,198,255,0.12)', border: '1px solid var(--color-primary)' }
+                                : { fontFamily: 'var(--font-label)', color: 'var(--color-on-surface-variant)', background: 'transparent', border: '1px solid rgba(65,71,85,0.3)' }
                             }
                         >
-                            <Icon name="calendar_month" size={16} />
+                            <Icon name="calendar_month" size={14} />
                             {t('episodes.date_filter', 'Data')}
+                            {(dateFrom || dateTo) && <span className="w-1.5 h-1.5 rounded-full bg-current ml-0.5" />}
                         </button>
 
                         {/* Duration filter toggle */}
                         <button
                             onClick={() => setShowDurationFilter(!showDurationFilter)}
-                            className="flex items-center gap-1.5 text-xs transition-colors"
+                            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-all"
                             style={showDurationFilter
-                                ? { fontFamily: 'var(--font-label)', color: 'var(--color-primary)' }
-                                : { fontFamily: 'var(--font-label)', color: 'var(--color-on-surface-variant)' }
+                                ? { fontFamily: 'var(--font-label)', color: 'var(--color-primary)', background: 'rgba(173,198,255,0.12)', border: '1px solid var(--color-primary)' }
+                                : { fontFamily: 'var(--font-label)', color: 'var(--color-on-surface-variant)', background: 'transparent', border: '1px solid rgba(65,71,85,0.3)' }
                             }
                         >
-                            <Icon name="schedule" size={16} />
+                            <Icon name="schedule" size={14} />
                             {t('episodes.duration_filter', 'Durata')}
+                            {(minDuration > 0 || maxDuration > 0) && <span className="w-1.5 h-1.5 rounded-full bg-current ml-0.5" />}
                         </button>
 
                         {/* Episode count */}
