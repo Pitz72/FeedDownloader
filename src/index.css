@@ -1,10 +1,6 @@
 @import "tailwindcss";
 
-/* ─── Fonts ───────────────────────────────────────────────── */
-@import "@fontsource/epilogue/700.css";
-@import "@fontsource/epilogue/800.css";
-@import "@fontsource-variable/space-grotesk";
-@import "@fontsource-variable/material-symbols-outlined";
+/* ─── Fonts — importati da main.tsx per bundling corretto con Vite ─── */
 
 /* Material Symbols configuration */
 .material-symbols-outlined {
