@@ -130,7 +130,20 @@
         "migrate_done": "Migración completada: {{moved}} carpetas movidas",
         "migrate_done_errors": "Migración completada: {{moved}} movidas, {{errors}} errores",
         "migrate_no_path": "No hay ruta de descarga configurada",
-        "migrate_same_path": "La ruta de destino es igual al origen"
+        "migrate_same_path": "La ruta de destino es igual al origen",
+        "path_network_detected": "Ruta de red detectada — acceso de escritura verificado",
+        "path_not_writable": "La ruta no es accesible o no tiene permisos de escritura",
+        "path_timeout": "No se pudo acceder a la ruta — verificar conexión de red",
+        "update_title": "Actualizaciones",
+        "update_current_version": "Versión actual",
+        "update_check": "Buscar Actualizaciones",
+        "update_checking": "Buscando actualizaciones...",
+        "update_not_available": "Tienes la última versión",
+        "update_available": "Actualización disponible: v{{version}}",
+        "update_downloading": "Descargando actualización... {{percent}}%",
+        "update_ready": "Actualización descargada — reiniciar para instalar",
+        "update_install": "Reiniciar e Instalar",
+        "update_error": "Error al verificar actualizaciones"
     },
     "diskspace": {
         "critical": "Espacio en disco crítico: menos de 200 MB disponibles. Descarga cancelada.",

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { HelpModal } from './HelpModal';
 import { useStore, AppState } from '../store/useStore';
 import { useToast } from '../context/ToastContext';
-import type { ArchiveStats, MigrationProgress } from '../../shared/types';
+import type { ArchiveStats, MigrationProgress, UpdateStatus } from '../../shared/types';
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -31,6 +31,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     const [activeCategory, setActiveCategory] = useState<NavCategory>('general');
     // v0.6.10 — Migration state
     const [migrationProgress, setMigrationProgress] = useState<{ moved: number; total: number } | null>(null);
+    // v0.7.5 — Auto-update state
+    const [updateStatus, setUpdateStatus] = useState<UpdateStatus>({ type: 'idle' });
     const isBatchDownloading = useStore((state: AppState) => state.isBatchDownloading);
 
     // v0.6.10 — Subscribe to migration progress events
@@ -41,6 +43,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         });
         return unsub;
     }, [isOpen]);
+
+    // v0.7.5 — Subscribe to auto-update status events
+    useEffect(() => {
+        const unsub = window.api.onUpdateStatus((_e, status: UpdateStatus) => {
+            setUpdateStatus(status);
+        });
+        return unsub;
+    }, []);
 
     useEffect(() => {
         if (isOpen) {
@@ -67,9 +77,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
     const handleChangeFolder = async () => {
         const path = await window.api.chooseFolder();
-        if (path) {
-            await window.api.setDownloadPath(path);
-            setDownloadPath(path);
+        if (!path) return;
+        // v0.7.5 — Validate path accessibility (supports SMB/NFS network paths)
+        const validation = await window.api.validatePath(path);
+        if (!validation.ok) {
+            if (validation.error === 'TIMEOUT') {
+                toast.show(t('settings.path_timeout'), 'error');
+            } else {
+                toast.show(t('settings.path_not_writable'), 'error');
+            }
+            return;
+        }
+        await window.api.setDownloadPath(path);
+        setDownloadPath(path);
+        if (validation.isNetworkPath) {
+            toast.show(t('settings.path_network_detected'), 'info');
         }
     };
 
@@ -607,7 +629,74 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
                                         {/* ── ADVANCED ── */}
                                         {activeCategory === 'advanced' && (
-                                            <div className="space-y-3">
+                                            <div className="space-y-8">
+
+                                                {/* Updates */}
+                                                <div className="space-y-3">
+                                                    <h3 style={sectionHeading('var(--color-primary)')}>
+                                                        <Icon name="system_update" size={14} />
+                                                        {t('settings.update_title')}
+                                                    </h3>
+                                                    <p className="text-xs font-mono" style={{ color: 'var(--color-on-surface-variant)', opacity: 0.55 }}>
+                                                        {t('settings.update_current_version')}: {__APP_VERSION__}
+                                                    </p>
+
+                                                    {/* Status indicator */}
+                                                    {updateStatus.type !== 'idle' && (
+                                                        <div className="p-3 rounded-lg text-sm flex items-center gap-2" style={{
+                                                            background: updateStatus.type === 'error' ? 'rgba(147,0,10,0.1)' : 'var(--color-surface-container-low)',
+                                                            boxShadow: 'inset 0 0 0 1px rgba(65,71,85,0.18)',
+                                                            color: updateStatus.type === 'error' ? 'var(--color-error)'
+                                                                : updateStatus.type === 'available' || updateStatus.type === 'ready' ? 'var(--color-primary)'
+                                                                : 'var(--color-on-surface-variant)',
+                                                        }}>
+                                                            {(updateStatus.type === 'checking' || updateStatus.type === 'downloading') && (
+                                                                <Icon name="refresh" size={14} className="animate-spin" />
+                                                            )}
+                                                            {updateStatus.type === 'not-available' && <Icon name="check_circle" size={14} style={{ color: 'var(--color-primary)' }} />}
+                                                            {updateStatus.type === 'available' && <Icon name="new_releases" size={14} />}
+                                                            {updateStatus.type === 'ready' && <Icon name="download_done" size={14} />}
+                                                            {updateStatus.type === 'error' && <Icon name="error" size={14} />}
+                                                            <span>
+                                                                {updateStatus.type === 'checking' && t('settings.update_checking')}
+                                                                {updateStatus.type === 'not-available' && t('settings.update_not_available')}
+                                                                {updateStatus.type === 'available' && t('settings.update_available', { version: updateStatus.version })}
+                                                                {updateStatus.type === 'downloading' && t('settings.update_downloading', { percent: updateStatus.percent })}
+                                                                {updateStatus.type === 'ready' && t('settings.update_ready')}
+                                                                {updateStatus.type === 'error' && t('settings.update_error')}
+                                                            </span>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Action buttons */}
+                                                    {updateStatus.type === 'ready' ? (
+                                                        <button
+                                                            onClick={() => window.api.installUpdate()}
+                                                            className="w-full flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm transition-all"
+                                                            style={{ background: 'rgba(173,198,255,0.12)', border: '1px solid rgba(173,198,255,0.25)', color: 'var(--color-primary)', fontFamily: 'var(--font-label)' }}
+                                                            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(173,198,255,0.22)')}
+                                                            onMouseLeave={e => (e.currentTarget.style.background = 'rgba(173,198,255,0.12)')}
+                                                        >
+                                                            <Icon name="restart_alt" size={16} />
+                                                            {t('settings.update_install')}
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => { setUpdateStatus({ type: 'checking' }); window.api.checkForUpdate(); }}
+                                                            disabled={updateStatus.type === 'checking' || updateStatus.type === 'downloading'}
+                                                            className="w-full flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            style={{ ...rowCardStyle, display: 'flex', justifyContent: 'center', color: 'var(--color-on-surface-variant)' }}
+                                                            onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-surface-container)')}
+                                                            onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-surface-container-low)')}
+                                                        >
+                                                            <Icon name="refresh" size={16} style={{ color: 'var(--color-primary)' }} />
+                                                            {t('settings.update_check')}
+                                                        </button>
+                                                    )}
+                                                </div>
+
+                                                {/* Danger Zone */}
+                                                <div className="space-y-3" style={{ borderTop: '1px solid rgba(65,71,85,0.15)', paddingTop: '1.5rem' }}>
                                                 <h3 style={sectionHeading('var(--color-error)')}>{t('settings.danger_zone')}</h3>
 
                                                 {!confirmReset ? (
@@ -650,6 +739,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                         </div>
                                                     </div>
                                                 )}
+                                                </div>
                                             </div>
                                         )}
 

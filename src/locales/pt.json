@@ -130,7 +130,20 @@
         "migrate_done": "Migração concluída: {{moved}} pastas movidas",
         "migrate_done_errors": "Migração concluída: {{moved}} movidas, {{errors}} erros",
         "migrate_no_path": "Nenhum caminho de download configurado",
-        "migrate_same_path": "O caminho de destino é igual à origem"
+        "migrate_same_path": "O caminho de destino é igual à origem",
+        "path_network_detected": "Caminho de rede detetado — acesso de escrita verificado",
+        "path_not_writable": "Caminho não gravável ou não acessível",
+        "path_timeout": "Não foi possível aceder ao caminho — verificar ligação de rede",
+        "update_title": "Atualizações",
+        "update_current_version": "Versão atual",
+        "update_check": "Verificar Atualizações",
+        "update_checking": "A verificar atualizações...",
+        "update_not_available": "Tem a versão mais recente",
+        "update_available": "Atualização disponível: v{{version}}",
+        "update_downloading": "A transferir atualização... {{percent}}%",
+        "update_ready": "Atualização transferida — reiniciar para instalar",
+        "update_install": "Reiniciar e Instalar",
+        "update_error": "Falha na verificação de atualizações"
     },
     "diskspace": {
         "critical": "Espaço em disco crítico: menos de 200 MB disponíveis. Download cancelado.",

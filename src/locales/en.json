@@ -130,7 +130,20 @@
         "migrate_done": "Migration complete: {{moved}} folders moved",
         "migrate_done_errors": "Migration complete: {{moved}} moved, {{errors}} errors",
         "migrate_no_path": "No download path configured",
-        "migrate_same_path": "Destination path is the same as origin"
+        "migrate_same_path": "Destination path is the same as origin",
+        "path_network_detected": "Network path detected — write access verified",
+        "path_not_writable": "Path is not writable or not accessible",
+        "path_timeout": "Could not reach path — check network connection",
+        "update_title": "Updates",
+        "update_current_version": "Current version",
+        "update_check": "Check for Updates",
+        "update_checking": "Checking for updates...",
+        "update_not_available": "You have the latest version",
+        "update_available": "Update available: v{{version}}",
+        "update_downloading": "Downloading update... {{percent}}%",
+        "update_ready": "Update downloaded — restart to install",
+        "update_install": "Restart & Install",
+        "update_error": "Update check failed"
     },
     "diskspace": {
         "critical": "Critical disk space: less than 200 MB available. Download cancelled.",

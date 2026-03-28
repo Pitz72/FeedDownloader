@@ -7,6 +7,10 @@ A differenza dei normali player, questo software è ottimizzato per il download 
 
 ## Caratteristiche Principali
 - **Motore "Database-First":** Il sistema ricorda cosa hai scaricato indipendentemente dai file su disco (SQLite).
+- **Auto-Update:** Aggiornamenti automatici integrati tramite GitHub Releases (v0.7.5).
+- **Supporto NAS/SMB:** Validazione nativa e timeout (8s) per percorsi di rete per prevenire freeze dell'interfaccia (v0.7.5).
+- **Integrità Dati:** Calcolo automatico SHA-256 e estrazione metadati audio (bitrate, sample rate) post-download (v0.7.4).
+- **Migrazione Archivio:** Sposta l'intera libreria in un nuovo percorso/disco con aggiornamento automatico del DB (v0.6.10).
 - **Batch Download:** Scarica centinaia di episodi con un click, con gestione intelligente della coda e concorrenza configurabile (1, 3 o 5 download paralleli).
 - **Download Resilienti:** Timeout di connessione (30s) e stall detection (60s), retry automatici con backoff esponenziale, file `.part` anti-corruzione.
 - **Sicurezza URL:** Validazione anti-SSRF a 5 livelli — blocca protocolli pericolosi, IP privati e indirizzi cloud metadata.
@@ -18,6 +22,18 @@ A differenza dei normali player, questo software è ottimizzato per il download 
 - **Smart Truncate:** Rinomina automaticamente i file per evitare errori di lunghezza percorso su Windows.
 - **Performance:** Lista virtualizzata — gestisce feed con migliaia di episodi senza rallentamenti.
 - **Help Integrato:** Guida utente completa consultabile direttamente all'interno dell'applicazione.
+
+## Certificazione Multilingua (v0.7.5)
+Il software è ufficialmente certificato per il supporto completo in **8 lingue**:
+- **Italiano (IT)** — Lingua nativa e di riferimento.
+- **English (EN)** — Lingua di fallback globale.
+- **Français (FR)**, **Deutsch (DE)**, **Español (ES)**, **Português (PT)**, **Русский (RU)**, **中文 (ZH)**.
+
+La verifica condotta il 28 marzo 2026 conferma la copertura del 100% per:
+1.  **Interfaccia Utente (UI):** Tutti i componenti React e i modali.
+2.  **Notifiche di Sistema:** Messaggi OS localizzati tramite il processo Main.
+3.  **Documentazione:** Help manuale presente in formato nativo per ogni lingua.
+4.  **Integrità dei Dati:** Gestione corretta dei caratteri speciali e codifiche internazionali (UTF-8).
 
 ## Istruzioni Rapide
 1.  **Analizza:** Incolla l'URL del feed RSS nella barra principale e premi "Analizza".

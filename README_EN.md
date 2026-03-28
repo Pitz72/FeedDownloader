@@ -7,6 +7,10 @@ Unlike standard players, this software is optimized for mass downloading (Batch)
 
 ## Key Features
 - **"Database-First" Engine:** The system remembers what you've downloaded regardless of files on disk.
+- **Auto-Update:** Integrated automatic updates via GitHub Releases (v0.7.5).
+- **NAS/SMB Support:** Native validation and timeout (8s) for network paths to prevent UI freezes (v0.7.5).
+- **Data Integrity:** Automatic SHA-256 calculation and audio metadata extraction (bitrate, sample rate) post-download (v0.7.4).
+- **Archive Migration:** Move the entire library to a new path/disk with automatic DB update (v0.6.10).
 - **Batch Download:** Download hundreds of episodes with one click, with intelligent queue management.
 - **Data Portability:** Import and Export your feeds via OPML standard. Generate detailed CSV reports of your archive.
 - **Advanced Safety:** Anti-corruption system for full disks, intelligent offline mode, and input feed validation.

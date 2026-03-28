@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 // Re-export shared types for use in global declarations
-import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveStats, HealthCheckResult, DiskSpaceInfo, MigrationResult, MigrationProgress } from '../shared/types'
+import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveStats, HealthCheckResult, DiskSpaceInfo, MigrationResult, MigrationProgress, PathValidationResult, UpdateStatus } from '../shared/types'
 
 declare global {
     const __APP_VERSION__: string;
@@ -55,6 +55,12 @@ declare global {
             // Archive Migration (v0.6.10)
             migrateArchive: (newPath: string) => Promise<MigrationResult>;
             onMigrationProgress: (callback: (event: Electron.IpcRendererEvent, data: MigrationProgress) => void) => () => void;
+            // Network Path Validation (v0.7.5)
+            validatePath: (dirPath: string) => Promise<PathValidationResult>;
+            // Auto-Update (v0.7.5)
+            checkForUpdate: () => Promise<void>;
+            installUpdate: () => Promise<void>;
+            onUpdateStatus: (callback: (event: Electron.IpcRendererEvent, status: UpdateStatus) => void) => () => void;
         };
     }
 }

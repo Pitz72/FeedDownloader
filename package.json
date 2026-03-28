@@ -1,7 +1,7 @@
 {
   "name": "runtime-feeddownloader-pro",
   "private": true,
-  "version": "0.7.4",
+  "version": "0.7.5",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -37,6 +37,7 @@
     "better-sqlite3": "^12.8.0",
     "clsx": "^2.1.1",
     "country-flag-icons": "^1.6.13",
+    "electron-updater": "^6.8.3",
     "fast-xml-parser": "^5.3.5",
     "framer-motion": "^12.34.0",
     "fs-extra": "^11.3.3",
@@ -129,6 +130,12 @@
       "uninstallerIcon": "public/icon.ico",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "GITHUB_OWNER",
+      "repo": "FeedDownloader",
+      "releaseType": "release"
     }
   }
 }

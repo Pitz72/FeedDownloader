@@ -1,5 +1,5 @@
 import { ipcRenderer, contextBridge } from 'electron'
-import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveStats, HealthCheckResult, DiskSpaceInfo, MigrationResult, MigrationProgress } from '../shared/types'
+import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveStats, HealthCheckResult, DiskSpaceInfo, MigrationResult, MigrationProgress, PathValidationResult, UpdateStatus } from '../shared/types'
 import { IPC_CHANNELS as CH } from '../shared/types'
 
 // --------- Expose API to the Renderer process ---------
@@ -83,5 +83,17 @@ contextBridge.exposeInMainWorld('api', {
     const subscription = (_event: Electron.IpcRendererEvent, data: MigrationProgress) => callback(_event, data);
     ipcRenderer.on(CH.MIGRATION_PROGRESS, subscription);
     return () => ipcRenderer.removeListener(CH.MIGRATION_PROGRESS, subscription);
+  },
+
+  // Network Path Validation (v0.7.5)
+  validatePath: (dirPath: string): Promise<PathValidationResult> => ipcRenderer.invoke(CH.VALIDATE_PATH, dirPath),
+
+  // Auto-Update (v0.7.5)
+  checkForUpdate: (): Promise<void> => ipcRenderer.invoke(CH.CHECK_FOR_UPDATE),
+  installUpdate: (): Promise<void> => ipcRenderer.invoke(CH.INSTALL_UPDATE),
+  onUpdateStatus: (callback: (event: Electron.IpcRendererEvent, status: UpdateStatus) => void) => {
+    const subscription = (_event: Electron.IpcRendererEvent, status: UpdateStatus) => callback(_event, status);
+    ipcRenderer.on(CH.UPDATE_STATUS, subscription);
+    return () => ipcRenderer.removeListener(CH.UPDATE_STATUS, subscription);
   },
 })

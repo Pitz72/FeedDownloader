@@ -130,7 +130,20 @@
         "migrate_done": "Migration abgeschlossen: {{moved}} Ordner verschoben",
         "migrate_done_errors": "Migration abgeschlossen: {{moved}} verschoben, {{errors}} Fehler",
         "migrate_no_path": "Kein Download-Pfad konfiguriert",
-        "migrate_same_path": "Zielpfad ist identisch mit dem Quellpfad"
+        "migrate_same_path": "Zielpfad ist identisch mit dem Quellpfad",
+        "path_network_detected": "Netzwerkpfad erkannt — Schreibzugriff bestätigt",
+        "path_not_writable": "Pfad ist nicht beschreibbar oder nicht erreichbar",
+        "path_timeout": "Pfad nicht erreichbar — Netzwerkverbindung prüfen",
+        "update_title": "Updates",
+        "update_current_version": "Aktuelle Version",
+        "update_check": "Nach Updates suchen",
+        "update_checking": "Suche nach Updates...",
+        "update_not_available": "Sie haben die neueste Version",
+        "update_available": "Update verfügbar: v{{version}}",
+        "update_downloading": "Update wird heruntergeladen... {{percent}}%",
+        "update_ready": "Update heruntergeladen — Neustart zum Installieren",
+        "update_install": "Neu starten & Installieren",
+        "update_error": "Update-Prüfung fehlgeschlagen"
     },
     "diskspace": {
         "critical": "Kritischer Speicherplatz: weniger als 200 MB verfügbar. Download abgebrochen.",

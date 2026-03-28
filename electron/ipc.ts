@@ -10,8 +10,10 @@ import { writeId3Tags } from './utils/writeId3Tags';
 import { extractExtension } from './utils/extractExtension';
 import { applyTemplate } from './utils/applyTemplate';
 import { validateUrl } from './utils/validateUrl';
+import { validateNetworkPath } from './utils/validateNetworkPath';
+import { autoUpdater } from 'electron-updater';
 import { IPC_CHANNELS as CH } from '../shared/types';
-import type { FeedEntry, DownloadRequest, HealthCheckResult, DiskSpaceInfo, MigrationResult, MigrationProgress } from '../shared/types';
+import type { FeedEntry, DownloadRequest, HealthCheckResult, DiskSpaceInfo, MigrationResult, MigrationProgress, PathValidationResult, UpdateStatus } from '../shared/types';
 import path from 'path';
 import fs from 'fs-extra';
 import { statfs } from 'fs/promises';
@@ -510,6 +512,42 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         };
         return result;
     });
+
+    // ── Network Path Validation (v0.7.5) ────────────────────────
+    ipcMain.handle(CH.VALIDATE_PATH, async (_, dirPath: string): Promise<PathValidationResult> => {
+        return validateNetworkPath(dirPath);
+    });
+
+    // ── Auto-Update (v0.7.5) ─────────────────────────────────────
+    {
+        const pushUpdateStatus = (status: UpdateStatus) => pushEvent(mainWindow, CH.UPDATE_STATUS, status);
+
+        autoUpdater.on('checking-for-update', () => pushUpdateStatus({ type: 'checking' }));
+        autoUpdater.on('update-available', (info: { version: string }) => pushUpdateStatus({ type: 'available', version: info.version }));
+        autoUpdater.on('update-not-available', () => pushUpdateStatus({ type: 'not-available' }));
+        autoUpdater.on('download-progress', (progress: { percent: number }) => pushUpdateStatus({ type: 'downloading', percent: Math.round(progress.percent) }));
+        autoUpdater.on('update-downloaded', () => pushUpdateStatus({ type: 'ready' }));
+        autoUpdater.on('error', (err: Error) => pushUpdateStatus({ type: 'error', message: err.message }));
+
+        // Auto-check on startup (packaged only), with 3-second delay
+        if (app.isPackaged) {
+            setTimeout(() => {
+                autoUpdater.checkForUpdates().catch(console.error);
+            }, 3000);
+        }
+
+        ipcMain.handle(CH.CHECK_FOR_UPDATE, async () => {
+            if (!app.isPackaged) {
+                pushUpdateStatus({ type: 'not-available' });
+                return;
+            }
+            await autoUpdater.checkForUpdates();
+        });
+
+        ipcMain.handle(CH.INSTALL_UPDATE, () => {
+            autoUpdater.quitAndInstall();
+        });
+    }
 
     // ── Archive Migration (v0.6.10) ──────────────────────────
     ipcMain.handle(CH.MIGRATE_ARCHIVE, async (_, newPath: string): Promise<MigrationResult> => {

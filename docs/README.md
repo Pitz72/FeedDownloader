@@ -10,6 +10,7 @@ Cronologia completa delle versioni in [`changelog/`](changelog/).
 
 | Versione | Data | Tema |
 |----------|------|------|
+| [0.7.5](changelog/0.7.5.md) | 28 mar 2026 | Supporto NAS/SMB + Electron Auto-Update |
 | [0.6.6](changelog/0.6.6.md) | 26 mar 2026 | Filtro Durata Episodi — filtro min/max minuti, parseDurationMinutes (HH:MM:SS/MM:SS/sec), durata in ogni riga |
 | [0.6.5](changelog/0.6.5.md) | 26 mar 2026 | Throttling Velocità — limite KB/s configurabile per i download, Transform stream puro Node.js |
 | [0.6.4](changelog/0.6.4.md) | 26 mar 2026 | Tagging ID3 Automatico — iniezione metadati (titolo, artista, anno, copertina) nei file .mp3 scaricati |
@@ -42,7 +43,8 @@ Cronologia completa delle versioni in [`changelog/`](changelog/).
 
 ## Roadmap
 
-- [indicazioni.md](indicazioni.md) — Feature future con stato di implementazione (✅/🔲)
+- [indicazioni.md](archivio/indicazioni.md) — Feature future con stato di implementazione (✅/🔲) — ⚠️ Archivio storico (tutto completato in v0.7.4)
+- [lungotermine.md](archivio/lungotermine.md) — Roadmap lungo termine — ⚠️ Archivio storico (tutto completato/abortito in v0.7.5)
 
 ---
 
@@ -50,8 +52,16 @@ Cronologia completa delle versioni in [`changelog/`](changelog/).
 
 | File | Periodo coperto | Note |
 |------|----------------|------|
-| [report_stato_attuale_2026-03-21.md](report_stato_attuale_2026-03-21.md) | v0.5.0 — **attuale** | Verifica codice reale: tutte le criticità chiuse, roadmap medio/lungo termine |
-| [report_analisi_v040_rimanenti.md](report_analisi_v040_rimanenti.md) | post v0.4.0 | Criticità rimanenti iniziali e backlog sviluppo |
-| [report_analysis_v021.md](report_analysis_v021.md) | v0.2.1 | ⚠️ Archivio storico |
-| [report_verification_code_vs_docs.md](report_verification_code_vs_docs.md) | v0.0.2 – v0.2.1 | ⚠️ Archivio storico |
-| [report_analysis_v013.md](report_analysis_v013.md) | v0.1.3 | ⚠️ Archivio storico |
+| [report_stato_attuale_2026-03-21.md](archivio/report_stato_attuale_2026-03-21.md) | v0.5.0 | Verifica codice reale: tutte le criticità chiuse, roadmap medio/lungo termine |
+| [report_analisi_v040_rimanenti.md](archivio/report_analisi_v040_rimanenti.md) | post v0.4.0 | ⚠️ Archivio storico |
+| [report_analysis_v021.md](archivio/report_analysis_v021.md) | v0.2.1 | ⚠️ Archivio storico |
+| [report_verification_code_vs_docs.md](archivio/report_verification_code_vs_docs.md) | v0.0.2 – v0.2.1 | ⚠️ Archivio storico |
+| [report_analysis_v013.md](archivio/report_analysis_v013.md) | v0.1.3 | ⚠️ Archivio storico |
+
+---
+
+## Interventi Documentazione
+
+| File | Data | Note |
+|------|------|------|
+| [docs-cleanup-2026-03-21.md](archivio/docs-cleanup-2026-03-21.md) | 21 mar 2026 | Pulizia e allineamento documentazione — COMPLETATO |

@@ -92,6 +92,23 @@ export interface DiskSpaceInfo {
     totalBytes: number;
 }
 
+// v0.7.5 — Network path validation
+export interface PathValidationResult {
+    ok: boolean;
+    isNetworkPath: boolean;
+    error?: 'TIMEOUT' | 'NOT_WRITABLE' | string;
+}
+
+// v0.7.5 — Auto-Update status (push event payload)
+export type UpdateStatus =
+    | { type: 'idle' }
+    | { type: 'checking' }
+    | { type: 'not-available' }
+    | { type: 'available'; version: string }
+    | { type: 'downloading'; percent: number }
+    | { type: 'ready' }
+    | { type: 'error'; message: string };
+
 // v0.6.10 — Archive NAS migration
 export interface MigrationResult {
     moved: number;
@@ -156,4 +173,10 @@ export const IPC_CHANNELS = {
     // Archive Migration (v0.6.10)
     MIGRATE_ARCHIVE: 'migrate-archive',
     MIGRATION_PROGRESS: 'migration-progress',
+    // Network Path Validation (v0.7.5)
+    VALIDATE_PATH: 'validate-path',
+    // Auto-Update (v0.7.5)
+    CHECK_FOR_UPDATE: 'check-for-update',
+    INSTALL_UPDATE: 'install-update',
+    UPDATE_STATUS: 'update-status',
 } as const;

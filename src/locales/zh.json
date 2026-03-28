@@ -130,7 +130,20 @@
         "migrate_done": "迁移完成：已移动 {{moved}} 个文件夹",
         "migrate_done_errors": "迁移完成：已移动 {{moved}} 个，{{errors}} 个错误",
         "migrate_no_path": "未配置下载路径",
-        "migrate_same_path": "目标路径与源路径相同"
+        "migrate_same_path": "目标路径与源路径相同",
+        "path_network_detected": "检测到网络路径 — 写入权限已验证",
+        "path_not_writable": "路径不可写或无法访问",
+        "path_timeout": "无法访问路径 — 请检查网络连接",
+        "update_title": "更新",
+        "update_current_version": "当前版本",
+        "update_check": "检查更新",
+        "update_checking": "正在检查更新...",
+        "update_not_available": "您已是最新版本",
+        "update_available": "有可用更新：v{{version}}",
+        "update_downloading": "正在下载更新... {{percent}}%",
+        "update_ready": "更新已下载 — 重启以安装",
+        "update_install": "重启并安装",
+        "update_error": "检查更新失败"
     },
     "diskspace": {
         "critical": "磁盘空间严重不足：可用空间少于 200 MB。下载已取消。",

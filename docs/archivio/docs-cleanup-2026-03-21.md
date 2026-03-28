@@ -1,5 +1,8 @@
 # 📚 Pulizia e Allineamento Documentazione
 
+> **Stato: COMPLETATO — Archiviato il 28 marzo 2026**
+> Tutte le modifiche descritte sono state applicate. File spostato in `docs/archivio/`.
+
 > Data: 21 marzo 2026
 > Tipo: Documentazione only — nessuna modifica al codice sorgente.
 

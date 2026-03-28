@@ -2,7 +2,7 @@
 
 > **Il modo più potente per archiviare i tuoi podcast.**
 
-![Version](https://img.shields.io/badge/version-0.4.8-blue)
+![Version](https://img.shields.io/badge/version-0.7.5-blue)
 ![Electron](https://img.shields.io/badge/Electron-30-47848F?logo=electron)
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)
@@ -14,7 +14,10 @@
 ### ✨ Caratteristiche Principali
 
 - 🔄 **Batch Download** — Scarica tutti gli episodi con un solo click
-- 🛡️ **Database-First** — Stato di download indipendente dal filesystem (SQLite)
+- 🚀 **Auto-Update** — Aggiornamenti automatici integrati tramite GitHub (v0.7.5)
+- 🔌 **Supporto NAS/SMB** — Validazione automatica e timeout per percorsi di rete (v0.7.5)
+- 🛡️ **Integrità Dati** — Checksum SHA-256 e metadati audio (bitrate/Hz) post-download (v0.7.4)
+- 📂 **Migrazione Archivio** — Sposta l'intera libreria in un nuovo percorso con un click (v0.6.10)
 - 🧠 **Smart Truncate** — Prevenzione automatica dei limiti `MAX_PATH` di Windows
 - 💾 **Download Resilienti** — Timeout 30s/60s, retry con backoff esponenziale, file `.part`, protezione disco pieno
 - 🔒 **URL Validation** — Protezione anti-SSRF a 5 livelli (v0.4.4)

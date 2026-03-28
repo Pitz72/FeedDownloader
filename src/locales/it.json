@@ -130,7 +130,20 @@
         "migrate_done": "Migrazione completata: {{moved}} cartelle spostate",
         "migrate_done_errors": "Migrazione completata: {{moved}} spostate, {{errors}} errori",
         "migrate_no_path": "Nessun percorso di download configurato",
-        "migrate_same_path": "Percorso di destinazione uguale all'origine"
+        "migrate_same_path": "Percorso di destinazione uguale all'origine",
+        "path_network_detected": "Percorso di rete rilevato — accesso in scrittura verificato",
+        "path_not_writable": "Percorso non scrivibile o non accessibile",
+        "path_timeout": "Impossibile raggiungere il percorso — verificare la connessione di rete",
+        "update_title": "Aggiornamenti",
+        "update_current_version": "Versione corrente",
+        "update_check": "Controlla Aggiornamenti",
+        "update_checking": "Ricerca aggiornamenti...",
+        "update_not_available": "Hai già la versione più recente",
+        "update_available": "Aggiornamento disponibile: v{{version}}",
+        "update_downloading": "Download aggiornamento... {{percent}}%",
+        "update_ready": "Aggiornamento scaricato — riavvia per installare",
+        "update_install": "Riavvia e Installa",
+        "update_error": "Verifica aggiornamenti fallita"
     },
     "diskspace": {
         "critical": "Spazio disco critico: meno di 200 MB disponibili. Download annullato.",

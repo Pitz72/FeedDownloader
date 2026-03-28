@@ -130,7 +130,20 @@
         "migrate_done": "Migration terminée : {{moved}} dossiers déplacés",
         "migrate_done_errors": "Migration terminée : {{moved}} déplacés, {{errors}} erreurs",
         "migrate_no_path": "Aucun chemin de téléchargement configuré",
-        "migrate_same_path": "Le chemin de destination est identique à l'origine"
+        "migrate_same_path": "Le chemin de destination est identique à l'origine",
+        "path_network_detected": "Chemin réseau détecté — accès en écriture vérifié",
+        "path_not_writable": "Chemin inaccessible ou sans droits d'écriture",
+        "path_timeout": "Impossible d'atteindre le chemin — vérifier la connexion réseau",
+        "update_title": "Mises à jour",
+        "update_current_version": "Version actuelle",
+        "update_check": "Vérifier les mises à jour",
+        "update_checking": "Recherche de mises à jour...",
+        "update_not_available": "Vous avez la dernière version",
+        "update_available": "Mise à jour disponible : v{{version}}",
+        "update_downloading": "Téléchargement... {{percent}}%",
+        "update_ready": "Mise à jour téléchargée — redémarrer pour installer",
+        "update_install": "Redémarrer & Installer",
+        "update_error": "Vérification des mises à jour échouée"
     },
     "diskspace": {
         "critical": "Espace disque critique : moins de 200 Mo disponibles. Téléchargement annulé.",
