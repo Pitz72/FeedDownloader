@@ -483,12 +483,12 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         let present = 0;
         let missing = 0;
         let totalSizeBytes = 0;
-        const missingFiles: { title: string; podcast: string; filename: string }[] = [];
+        const missingFiles: { guid: string; title: string; podcast: string; filename: string }[] = [];
 
         for (const entry of entries) {
             if (!entry.filename) {
                 missing++;
-                missingFiles.push({ title: entry.title, podcast: entry.podcastTitle, filename: '(no filename)' });
+                missingFiles.push({ guid: entry.guid, title: entry.title, podcast: entry.podcastTitle, filename: '(no filename)' });
                 continue;
             }
             const sanitize = (await import('sanitize-filename')).default;
@@ -499,7 +499,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                 totalSizeBytes += stat.size;
             } catch {
                 missing++;
-                missingFiles.push({ title: entry.title, podcast: entry.podcastTitle, filename: entry.filename });
+                missingFiles.push({ guid: entry.guid, title: entry.title, podcast: entry.podcastTitle, filename: entry.filename });
             }
         }
 
@@ -511,6 +511,13 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
             missingFiles,
         };
         return result;
+    });
+
+    // ── Mark Missing Files as Not Downloaded (v0.7.6) ───────────
+    ipcMain.handle(CH.MARK_MISSING_NOT_DOWNLOADED, async (_, guids: string[]): Promise<boolean> => {
+        libraryService.removeMissingFiles(guids);
+        pushEvent(mainWindow, CH.DOWNLOADS_UPDATED, libraryService.getDownloadedEpisodes());
+        return true;
     });
 
     // ── Network Path Validation (v0.7.5) ────────────────────────

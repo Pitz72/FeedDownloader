@@ -143,7 +143,9 @@
         "update_downloading": "Téléchargement... {{percent}}%",
         "update_ready": "Mise à jour téléchargée — redémarrer pour installer",
         "update_install": "Redémarrer & Installer",
-        "update_error": "Vérification des mises à jour échouée"
+        "update_error": "Vérification des mises à jour échouée",
+        "health_mark_not_downloaded": "Marquer comme non téléchargés",
+        "health_mark_success": "Fichiers manquants supprimés du registre. Ils peuvent maintenant être re-téléchargés."
     },
     "diskspace": {
         "critical": "Espace disque critique : moins de 200 Mo disponibles. Téléchargement annulé.",

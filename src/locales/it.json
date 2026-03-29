@@ -112,6 +112,8 @@
         "health_size": "Spazio occupato",
         "health_missing_files": "File mancanti",
         "health_and_more": "... e altri {{count}}",
+        "health_mark_not_downloaded": "Segna come non scaricati",
+        "health_mark_success": "File mancanti rimossi dal registro. Ora possono essere riscaricati.",
         "id3_tagging": "Tagging ID3",
         "id3_tagging_desc": "Scrivi metadati (titolo, artista, anno, copertina) nei file .mp3 scaricati",
         "id3_enabled": "Tagging ID3 Abilitato",

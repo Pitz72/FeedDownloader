@@ -115,6 +115,17 @@ export class DatabaseService {
         transaction();
     }
 
+    // v0.7.6 — Batch removal: marks a list of guids as not-downloaded (removes from downloads + archive)
+    removeMissingFiles(guids: string[]): void {
+        if (guids.length === 0) return;
+        const placeholders = guids.map(() => '?').join(',');
+        const transaction = this.db.transaction(() => {
+            this.db.prepare(`DELETE FROM downloads WHERE guid IN (${placeholders})`).run(...guids);
+            this.db.prepare(`DELETE FROM archive WHERE guid IN (${placeholders})`).run(...guids);
+        });
+        transaction();
+    }
+
     resetDownloadHistory(): void {
         const transaction = this.db.transaction(() => {
             this.db.prepare('DELETE FROM downloads').run();

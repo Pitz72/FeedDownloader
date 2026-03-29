@@ -143,7 +143,9 @@
         "update_downloading": "Descargando actualización... {{percent}}%",
         "update_ready": "Actualización descargada — reiniciar para instalar",
         "update_install": "Reiniciar e Instalar",
-        "update_error": "Error al verificar actualizaciones"
+        "update_error": "Error al verificar actualizaciones",
+        "health_mark_not_downloaded": "Marcar como no descargados",
+        "health_mark_success": "Archivos faltantes eliminados del registro. Ahora pueden volver a descargarse."
     },
     "diskspace": {
         "critical": "Espacio en disco crítico: menos de 200 MB disponibles. Descarga cancelada.",

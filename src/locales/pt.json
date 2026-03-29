@@ -143,7 +143,9 @@
         "update_downloading": "A transferir atualização... {{percent}}%",
         "update_ready": "Atualização transferida — reiniciar para instalar",
         "update_install": "Reiniciar e Instalar",
-        "update_error": "Falha na verificação de atualizações"
+        "update_error": "Falha na verificação de atualizações",
+        "health_mark_not_downloaded": "Marcar como não descarregados",
+        "health_mark_success": "Ficheiros em falta removidos do registo. Agora podem ser descarregados novamente."
     },
     "diskspace": {
         "critical": "Espaço em disco crítico: menos de 200 MB disponíveis. Download cancelado.",

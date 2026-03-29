@@ -143,7 +143,9 @@
         "update_downloading": "正在下载更新... {{percent}}%",
         "update_ready": "更新已下载 — 重启以安装",
         "update_install": "重启并安装",
-        "update_error": "检查更新失败"
+        "update_error": "检查更新失败",
+        "health_mark_not_downloaded": "标记为未下载",
+        "health_mark_success": "缺失文件已从记录中移除，现在可以重新下载。"
     },
     "diskspace": {
         "critical": "磁盘空间严重不足：可用空间少于 200 MB。下载已取消。",

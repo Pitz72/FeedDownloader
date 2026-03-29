@@ -143,7 +143,9 @@
         "update_downloading": "Update wird heruntergeladen... {{percent}}%",
         "update_ready": "Update heruntergeladen — Neustart zum Installieren",
         "update_install": "Neu starten & Installieren",
-        "update_error": "Update-Prüfung fehlgeschlagen"
+        "update_error": "Update-Prüfung fehlgeschlagen",
+        "health_mark_not_downloaded": "Als nicht heruntergeladen markieren",
+        "health_mark_success": "Fehlende Dateien aus dem Register entfernt. Sie können jetzt erneut heruntergeladen werden."
     },
     "diskspace": {
         "critical": "Kritischer Speicherplatz: weniger als 200 MB verfügbar. Download abgebrochen.",

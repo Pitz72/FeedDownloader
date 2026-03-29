@@ -143,7 +143,9 @@
         "update_downloading": "Downloading update... {{percent}}%",
         "update_ready": "Update downloaded — restart to install",
         "update_install": "Restart & Install",
-        "update_error": "Update check failed"
+        "update_error": "Update check failed",
+        "health_mark_not_downloaded": "Mark as not downloaded",
+        "health_mark_success": "Missing files removed from the registry. They can now be re-downloaded."
     },
     "diskspace": {
         "critical": "Critical disk space: less than 200 MB available. Download cancelled.",

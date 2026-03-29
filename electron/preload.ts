@@ -65,6 +65,8 @@ contextBridge.exposeInMainWorld('api', {
 
   // Health Check (v0.6.0)
   runHealthCheck: (): Promise<HealthCheckResult> => ipcRenderer.invoke(CH.RUN_HEALTH_CHECK),
+  // Mark missing files as not downloaded (v0.7.6)
+  markMissingNotDownloaded: (guids: string[]): Promise<boolean> => ipcRenderer.invoke(CH.MARK_MISSING_NOT_DOWNLOADED, guids),
 
   // ID3 Tagging (v0.6.4)
   getId3Enabled: (): Promise<boolean> => ipcRenderer.invoke(CH.GET_ID3_ENABLED),

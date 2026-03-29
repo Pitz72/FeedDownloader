@@ -28,6 +28,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     const [archiveStats, setArchiveStats] = useState<ArchiveStats | null>(null);
     const [healthResult, setHealthResult] = useState<import('../../shared/types').HealthCheckResult | null>(null);
     const [isHealthChecking, setIsHealthChecking] = useState(false);
+    const [isMarkingMissing, setIsMarkingMissing] = useState(false);
     const [activeCategory, setActiveCategory] = useState<NavCategory>('general');
     // v0.6.10 — Migration state
     const [migrationProgress, setMigrationProgress] = useState<{ moved: number; total: number } | null>(null);
@@ -558,6 +559,25 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                                     {healthResult.missingFiles.length > 5 && (
                                                                         <p className="text-xs" style={{ color: 'var(--color-on-surface-variant)', opacity: 0.4 }}>... {t('settings.health_and_more', { count: healthResult.missingFiles.length - 5 })}</p>
                                                                     )}
+                                                                    <button
+                                                                        onClick={async () => {
+                                                                            setIsMarkingMissing(true);
+                                                                            try {
+                                                                                const guids = healthResult.missingFiles.map(f => f.guid);
+                                                                                await window.api.markMissingNotDownloaded(guids);
+                                                                                setHealthResult(prev => prev ? { ...prev, missing: 0, missingFiles: [], total: prev.present } : null);
+                                                                                toast.show(t('settings.health_mark_success'), 'success');
+                                                                            } finally {
+                                                                                setIsMarkingMissing(false);
+                                                                            }
+                                                                        }}
+                                                                        disabled={isMarkingMissing}
+                                                                        className="mt-2 w-full flex items-center justify-center gap-2 p-2 rounded-lg text-xs transition-all disabled:opacity-50"
+                                                                        style={{ background: 'rgba(147,0,10,0.12)', color: 'var(--color-error)', border: '1px solid rgba(147,0,10,0.25)' }}
+                                                                    >
+                                                                        <Icon name={isMarkingMissing ? 'refresh' : 'sync_problem'} size={14} className={isMarkingMissing ? 'animate-spin' : ''} />
+                                                                        {t('settings.health_mark_not_downloaded')}
+                                                                    </button>
                                                                 </div>
                                                             )}
                                                         </div>

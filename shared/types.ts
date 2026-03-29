@@ -70,7 +70,7 @@ export interface HealthCheckResult {
     present: number;
     missing: number;
     totalSizeBytes: number;
-    missingFiles: { title: string; podcast: string; filename: string }[];
+    missingFiles: { guid: string; title: string; podcast: string; filename: string }[];
 }
 
 export interface DownloadRequest {
@@ -162,6 +162,8 @@ export const IPC_CHANNELS = {
     SET_SIDECAR_ENABLED: 'set-sidecar-enabled',
     // Health Check (v0.6.0)
     RUN_HEALTH_CHECK: 'run-health-check',
+    // v0.7.6 — Mark missing files as not downloaded
+    MARK_MISSING_NOT_DOWNLOADED: 'mark-missing-not-downloaded',
     // ID3 Tagging (v0.6.4)
     GET_ID3_ENABLED: 'get-id3-enabled',
     SET_ID3_ENABLED: 'set-id3-enabled',
