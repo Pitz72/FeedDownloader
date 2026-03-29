@@ -1,0 +1,106 @@
+<!DOCTYPE html><html lang="zh"><head>
+    <meta charset="utf-8">
+    <title>第 5 章：Feed 管理</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="book/theme.css">
+  </head>
+  <body>
+    <section class="level1">
+      <h1 id="第-5-章feed-管理">第 5 章：Feed 管理</h1>
+      <section class="level2">
+        <h2 id="51-什么是-rss-feed">5.1 什么是 RSS Feed</h2>
+        <p>RSS feed 是播客发布的一个 XML 文档，让应用程序能够自动读取可用节目列表。当发布者发布新节目时，会更新此文档，添加新条目。播客应用程序会定期读取这些文档，以识别最新内容。</p>
+        <p>对于 FeedDownloader Pro，RSS feed 是<strong>主要数据来源</strong>：它包含节目列表、音频文件 URL、元数据（标题、日期、时长、描述、封面图片）以及播客的一般信息（名称、作者、分类）。</p>
+        <p>使用软件不需要了解 RSS feed 的内部结构，但有助于解读节目列表中显示的数据，以及理解某些信息缺失或不完整的原因。</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="52-有效-feed-与问题-feed">5.2 有效 Feed 与问题 Feed</h2>
+        <p>并非所有 RSS feed 都遵循相同的标准合规级别。</p>
+        <p><strong>格式良好的 feed：</strong> 遵循 RSS 2.0 或 Atom 标准，包含所有必填字段（标题、链接、发布日期、带 MIME 类型的音频 URL），以及可选的 iTunes/Podcast Index 标签（时长、封面、季节信息）。FeedDownloader Pro 可无障碍读取这些 feed。</p>
+        <p><strong>部分不完整的 feed：</strong> 缺少某些可选字段（时长、文件大小、节目封面）。软件仍会下载音频文件，但列表中某些列将为空。</p>
+        <p><strong>音频 URL 不可访问的 feed：</strong> feed 可读，但音频文件 URL 指向已不存在的资源（404 错误）。这种情况在已停播或迁移至其他服务器的播客中很常见。FeedDownloader Pro 会在尝试下载后将这些节目标记为<strong>"错误"</strong>状态。</p>
+        <p><strong>需要身份验证的 feed：</strong> 某些私人或付费播客需要 HTTP Basic 凭据才能访问 feed。软件支持这些 feed：凭据直接包含在 URL 中，格式为 <code>https://用户名:密码@www.example.com/feed.xml</code>。</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="53-分析-feed详细说明">5.3 分析 Feed：详细说明</h2>
+        <p>点击<strong>"分析"</strong>时，FeedDownloader Pro 按顺序执行以下操作：</p>
+        <ol>
+          <li><strong>URL 验证：</strong> 检查 URL 在语法上是否正确，并通过 5 项反 SSRF 检查（详见第 10 章）。</li>
+          <li><strong>HTTP 请求：</strong> 使用标准 user-agent 联系 feed 服务器。此操作的超时时间为 30 秒。</li>
+          <li><strong>XML 解析：</strong> 读取并分析 RSS 或 Atom 文档。软件能处理与标准略有偏差的 feed（未声明的编码、缺失标签、非常规命名空间）。</li>
+          <li><strong>去重：</strong> 对 feed 中的每个节目，查询数据库以检查是否已经下载。音频 URL 用作唯一标识键。</li>
+          <li><strong>填充列表：</strong> 所有节目连同当前状态一起显示。</li>
+        </ol>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="54-feed-历史记录">5.4 Feed 历史记录</h2>
+        <p>FeedDownloader Pro 维护一份<strong>已分析 feed 的历史记录</strong>。输入搜索字段的每个 URL 都会与播客名称和节目数量一起保存，方便以后快速访问。</p>
+        <p>
+          <strong>访问历史记录：</strong>
+          点击 URL 字段右侧的箭头，或开始输入：软件会根据历史记录自动提供建议。
+        </p>
+        <p>
+          <strong>管理历史记录：</strong>
+          在设置中可以查看历史记录中的完整 feed 列表，删除单个条目，或清空整个列表。
+        </p>
+        <p><em>隐私说明：</em> 历史记录仅保存在本地数据库 <code>feeddownloader.db</code> 中。不会向外部服务器传输任何数据。</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="55-从-opml-导入-feed">5.5 从 OPML 导入 Feed</h2>
+        <p><strong>OPML</strong>（Outline Processor Markup Language）是在不同应用程序之间导出和导入播客列表的标准格式。如果你在 Pocket Casts、Overcast、AntennaPod 或任何其他客户端中有播客库，可以将其导出为 OPML 并直接导入 FeedDownloader Pro。</p>
+        <p><strong>如何导入 OPML 文件：</strong></p>
+        <ol>
+          <li>前往<strong>设置 → 存档</strong>，找到"数据与可移植性"部分。</li>
+          <li>选择从播客应用导出的 <code>.opml</code> 文件。</li>
+          <li>FeedDownloader Pro 解析该文件并显示识别到的播客列表，可以选择感兴趣的播客。</li>
+          <li>选中的 feed 将被添加到历史记录，并可选择按顺序自动分析。</li>
+        </ol>
+        <p><em>注意：</em> 某些播客应用使用专有的 OPML 格式变体。FeedDownloader Pro 支持最常见的版本。如果文件无法正确导入，请用文本编辑器打开，检查每个播客是否存在 <code>&lt;outline type="rss" xmlUrl="..."&gt;</code> 标签。</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="56-将库导出为-opml">5.6 将库导出为 OPML</h2>
+        <p>可以将 feed 历史记录以 OPML 格式导出，用于：</p>
+        <ul>
+          <li>创建播客列表的备份。</li>
+          <li>与其他用户或软件的另一个安装实例共享。</li>
+          <li>导入到播客应用中以订阅相同的 feed。</li>
+        </ul>
+        <p><strong>如何导出：</strong></p>
+        <ol>
+          <li>前往<strong>设置 → 存档</strong>，找到"数据与可移植性"部分。</li>
+          <li>为 <code>.opml</code> 文件选择名称和保存位置。</li>
+          <li>生成的文件与任何支持 OPML 标准的应用程序兼容。</li>
+        </ol>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="57-大型-feed">5.7 大型 Feed</h2>
+        <p>某些历史播客或广播制作存档可能拥有数千个节目，RSS 文件体积相当大。在这种情况下：</p>
+        <ul>
+          <li><strong>初始分析需要更长时间：</strong> 拥有 2,000 个节目的 feed 可能需要 15–30 秒才能完成下载和解析。这是预期行为。</li>
+          <li><strong>列表虚拟化：</strong> 拥有数千个条目时，列表只加载屏幕上可见的行，以保持界面响应流畅。</li>
+          <li><strong>估算所需空间：</strong> 2,000 个节目，每个约 50 MB，总量约为 100 GB。软件在启动批量任务前会显示总大小估计。请在继续操作前确认有足够的可用空间。</li>
+        </ul>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="58-多-feed-的局限性">5.8 多 Feed 的局限性</h2>
+        <p>FeedDownloader Pro 每次分析一个 feed。它没有带自动更新功能的持久 feed 管理器：软件针对批量下载进行了优化，而非多 feed 的持续监控。</p>
+        <p>要按顺序管理多个 feed，推荐策略如下：</p>
+        <ol>
+          <li>使用 OPML 功能将 feed 列表保存在一个集中文件中。</li>
+          <li>每次分析并下载一个播客，有序推进。</li>
+          <li>使用 feed 历史记录快速调出之前分析过的播客。</li>
+        </ol>
+        <hr>
+        <p><em>参见第 6 章，了解下载引擎的详细说明。</em></p>
+      </section>
+    </section>
+  
+
+</body></html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html><html lang="es"><head>
+    <meta charset="utf-8">
+    <title>Capítulo 7: NAS, Discos de Red y Rutas SMB</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="book/theme.css">
+  </head>
+  <body>
+    <section class="level1">
+      <h1 id="capítulo-7-nas-discos-de-red-y-rutas-smb">Capítulo 7: NAS, Discos de Red y Rutas SMB</h1>
+      <section class="level2">
+        <h2 id="71-por-qué-los-discos-de-red-requieren-un-enfoque-específico">7.1 Por Qué los Discos de Red Requieren un Enfoque Específico</h2>
+        <p>La mayoría de las aplicaciones de descarga de escritorio gestiona correctamente las rutas locales (<code>C:\</code>, <code>D:\</code>) y presenta comportamientos impredecibles cuando el destino es un NAS, un servidor Windows compartido o una unidad SMB. La razón es técnica: los discos de red son intrínsecamente menos fiables que los discos locales. El NAS puede estar apagado, la red local puede sufrir picos de latencia, las credenciales SMB pueden caducar. Cualquier operación sobre una ruta de red que no responde puede bloquear el thread principal de la aplicación durante decenas de segundos, haciendo que la interfaz no responda.</p>
+        <p>FeedDownloader Pro gestiona correctamente estos escenarios. Para los usuarios que archivan en NAS, este capítulo es esencial.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="72-cómo-funciona-la-validación-de-ruta-de-red">7.2 Cómo Funciona la Validación de Ruta de Red</h2>
+        <p>Cada vez que se configura una ruta de destino que comienza por <code>\\</code> (ruta UNC, típica de SMB) o corresponde a una unidad de red asignada (p. ej., <code>Z:\</code>), FeedDownloader Pro activa automáticamente el <strong>módulo de validación de ruta de red</strong>.</p>
+        <p>Este módulo ejecuta tres operaciones en un <strong>thread separado</strong>, sin involucrar nunca el thread de la interfaz:</p>
+        <ol>
+          <li><strong>Test de accesibilidad:</strong> Intenta acceder a la raíz de la ruta de red. Si el NAS no está encendido o la red no está disponible, esta operación falla.</li>
+          <li><strong>Test de acceso de lectura:</strong> Verifica que la carpeta de destino exista y sea legible.</li>
+          <li><strong>Test de acceso de escritura:</strong> Crea y luego elimina un archivo temporal (<code>_fdp_write_test_[timestamp].tmp</code>) en la carpeta de destino para verificar los permisos de escritura.</li>
+        </ol>
+        <p>Toda la secuencia tiene un <strong>timeout de 8 segundos</strong>. Si en este intervalo no se recibe respuesta, el software considera la ruta no disponible y muestra un aviso, sin bloquear la interfaz.</p>
+        <p><em>Motivación del timeout:</em> La mayoría de los NAS de consumo (Synology, QNAP, WD MyCloud) tarda 3–6 segundos en salir del modo de suspensión. 8 segundos es un intervalo suficiente para esperar esta recuperación, permaneciendo lo bastante breve como para no resultar una espera perceptible para el usuario.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="73-configurar-una-ruta-nas">7.3 Configurar una Ruta NAS</h2>
+        <p>
+          <strong>Método 1 — Ruta UNC directa:</strong>
+          Introducir la ruta en el formato <code>\\NombreServidor\NombreRecurso\Carpeta</code>:
+        </p>
+        <pre class="language-text"><code class="language-text">\\MYNAS\Podcast\Archivo
+\\192.168.1.100\media\podcast
+\\NAS-SYNOLOGY\video\audio_archive</code></pre>
+        <p>La ruta puede introducirse directamente en el campo de texto del destino, o bien mediante la ventana de selección de carpeta, que en Windows admite la navegación por rutas de red.</p>
+        <p>
+          <strong>Método 2 — Unidad de red asignada:</strong>
+          Si el NAS ya está asignado como unidad de red en Windows (p. ej., <code>Z:</code> → <code>\\MYNAS\Podcast</code>), es posible seleccionar <code>Z:\Archivo</code> como carpeta de destino. FeedDownloader Pro reconoce automáticamente que se trata de una ruta de red y activa la validación.
+        </p>
+        <p>
+          <strong>Método 3 — macOS y Linux (punto de montaje):</strong>
+          En macOS y Linux, las rutas de red SMB se presentan como carpetas normales en el sistema de archivos tras el montaje (p. ej., <code>/Volumes/MYNAS/Podcast</code> en macOS, <code>/mnt/nas/podcast</code> en Linux). Estas rutas pueden usarse directamente como carpeta de destino.
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="74-credenciales-smb-y-autenticación">7.4 Credenciales SMB y Autenticación</h2>
+        <p>Las credenciales de acceso al NAS deben configurarse a nivel del sistema operativo, no dentro de FeedDownloader Pro.</p>
+        <p><strong>En Windows:</strong></p>
+        <ol>
+          <li>Abrir el <strong>Explorador de archivos</strong> y navegar hasta la ruta del NAS (<code>\\MYNAS\</code>).</li>
+          <li>Introducir las credenciales cuando se soliciten y marcar <strong>"Recordar credenciales"</strong>.</li>
+          <li>Las credenciales se guardan en el <strong>Administrador de credenciales de Windows</strong> (<code>Panel de control → Administrador de credenciales → Credenciales de Windows</code>).</li>
+          <li>FeedDownloader Pro, como cualquier otra aplicación, accederá al NAS sin necesidad de credenciales adicionales.</li>
+        </ol>
+        <p>
+          <strong>En macOS:</strong>
+          Las credenciales SMB se solicitan al montar el recurso compartido (desde el Finder: <strong>Ir → Conectarse al servidor</strong> → <code>smb://192.168.1.100/NombreRecurso</code>). macOS las guarda en el Llavero.
+        </p>
+        <p>
+          <strong>En Linux:</strong>
+          Montar el recurso compartido con las credenciales en el archivo <code>fstab</code> o mediante una herramienta gráfica como GNOME Files. Como alternativa, usar <code>smbclient</code> o <code>mount -t cifs</code> desde la terminal.
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="75-diagnóstico-de-problemas-con-rutas-de-red">7.5 Diagnóstico de Problemas con Rutas de Red</h2>
+        <p>En caso de aviso «Ruta de red no accesible», verificar los siguientes puntos en el orden indicado.</p>
+        <p>
+          <strong>1. ¿El NAS está encendido y funcionando?</strong>
+          Verificar los indicadores del dispositivo. Muchos NAS de consumo entran en modo de suspensión tras un período de inactividad. Antes de iniciar la descarga, abrir el panel de administración del NAS desde el navegador para verificar su disponibilidad.
+        </p>
+        <p>
+          <strong>2. ¿El NAS es accesible desde la red?</strong>
+          Desde el Símbolo del sistema (Windows) o el Terminal (macOS/Linux):
+          <code>ping 192.168.1.100</code>
+          Sustituir con la dirección IP del NAS. Si el comando recibe respuesta, la conectividad de red básica está funcionando.
+        </p>
+        <p>
+          <strong>3. ¿El recurso compartido SMB es accesible?</strong>
+          Intentar abrir la ruta <code>\\192.168.1.100\NombreRecurso</code> directamente desde el Explorador de archivos de Windows. Si la operación falla, el problema reside en la configuración SMB del NAS, no en FeedDownloader Pro.
+        </p>
+        <p>
+          <strong>4. ¿Los permisos de escritura son correctos?</strong>
+          Crear manualmente un archivo en la carpeta de destino mediante el gestor de archivos. Si la operación no está permitida, el usuario con el que se accede al NAS no tiene permisos de escritura en ese recurso compartido. Configurar los permisos desde el panel de administración del NAS.
+        </p>
+        <p>
+          <strong>5. ¿El firewall bloquea las conexiones SMB?</strong>
+          El protocolo SMB utiliza el puerto 445 (y en algunos casos el puerto 139). Verificar que el firewall del sistema o de terceros no bloquee estos puertos para las conexiones en la red local.
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="76-rendimiento-óptimo-en-nas">7.6 Rendimiento Óptimo en NAS</h2>
+        <p>Las descargas en NAS presentan una complejidad adicional respecto a las de disco local: los archivos se escriben a través de la red y la velocidad depende tanto del ancho de banda de la LAN como de la capacidad de escritura del NAS.</p>
+        <p><strong>Indicaciones operativas:</strong></p>
+        <ul>
+          <li><strong>Usar una conexión por cable (Ethernet):</strong> El Wi-Fi introduce latencia e inestabilidad en las operaciones de escritura en red. Para archivos de gran tamaño, una conexión Gigabit Ethernet por cable ofrece un rendimiento significativamente mejor.</li>
+          <li><strong>Reducir los threads paralelos:</strong> La escritura simultánea de muchos archivos en un NAS puede saturar su I/O. Con 2–3 threads paralelos se obtienen a menudo mejores resultados que con el número máximo disponible.</li>
+          <li><strong>Evitar solapamientos con las copias de seguridad del NAS:</strong> Si el NAS realiza copias de seguridad automáticas, evitar iniciar descargas batch en las mismas franjas horarias, ya que la competencia por el I/O del disco ralentiza ambas operaciones.</li>
+          <li><strong>Usar una caché local:</strong> Para archivos muy grandes, es posible descargar primero en un disco local rápido y mover los archivos al NAS al completarse la descarga.</li>
+        </ul>
+        <hr>
+        <p><em>Véase el Capítulo 8 para la configuración de la plantilla de renombrado y las funcionalidades de metadatos.</em></p>
+      </section>
+    </section>
+  
+
+</body></html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html><html lang="fr"><head>
+    <meta charset="utf-8">
+    <title>Chapitre 5 : Gestion des feeds</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="book/theme.css">
+  </head>
+  <body>
+    <section class="level1">
+      <h1 id="chapitre-5--gestion-des-feeds">Chapitre 5 : Gestion des feeds</h1>
+      <section class="level2">
+        <h2 id="51-quest-ce-quun-feed-rss">5.1 Qu'est-ce qu'un feed RSS</h2>
+        <p>Un feed RSS est un document XML publié par un podcast pour permettre aux applications de lire automatiquement la liste des épisodes disponibles. Lorsqu'un éditeur publie un nouvel épisode, il met à jour ce document en ajoutant une nouvelle entrée. Les applications de podcast lisent périodiquement ces documents pour identifier les contenus les plus récents.</p>
+        <p>Pour FeedDownloader Pro, le feed RSS est la <strong>source primaire de données</strong> : il contient la liste des épisodes, les URL des fichiers audio, les métadonnées (titre, date, durée, description, couverture) et les informations générales sur le podcast (nom, auteur, catégorie).</p>
+        <p>La connaissance de la structure interne d'un feed RSS n'est pas nécessaire pour utiliser le logiciel, mais facilite l'interprétation des données affichées dans la liste des épisodes et la compréhension des causes d'éventuelles informations manquantes ou incomplètes.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="52-feeds-valides-et-feeds-problématiques">5.2 Feeds valides et feeds problématiques</h2>
+        <p>Tous les feeds RSS ne respectent pas le même niveau de conformité aux standards.</p>
+        <p><strong>Feed bien formé :</strong> Suit le standard RSS 2.0 ou Atom, inclut tous les champs obligatoires (titre, lien, date de publication, URL audio avec type MIME) et, facultativement, les balises iTunes/Podcast Index pour la durée, la couverture et les saisons. FeedDownloader Pro lit ces feeds sans problème.</p>
+        <p><strong>Feed partiellement incomplet :</strong> Certains champs facultatifs sont absents (durée, taille du fichier, couverture de l'épisode). Le logiciel télécharge quand même les fichiers audio, mais certaines colonnes de la liste resteront vides.</p>
+        <p><strong>Feed avec URL audio inaccessibles :</strong> Le feed est lisible, mais les URL des fichiers audio pointent vers des ressources qui n'existent plus (erreur 404). Cette situation est fréquente avec des podcasts abandonnés ou migrés vers d'autres serveurs. FeedDownloader Pro signale ces épisodes à l'état <strong>« Erreur »</strong> après la tentative de téléchargement.</p>
+        <p><strong>Feed protégé par authentification :</strong> Certains podcasts privés ou payants nécessitent des identifiants HTTP Basic pour accéder au feed. Le logiciel prend en charge ces feeds : les identifiants sont inclus directement dans l'URL au format <code>https://utilisateur:motdepasse@www.exemple.fr/feed.xml</code>.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="53-analyser-un-feed--détail">5.3 Analyser un feed : détail</h2>
+        <p>Lorsque l'on clique sur <strong>« Analyser »</strong>, FeedDownloader Pro exécute les opérations suivantes en séquence :</p>
+        <ol>
+          <li><strong>Validation de l'URL :</strong> Vérifie que l'URL est syntaxiquement correcte et qu'elle passe les 5 contrôles anti-SSRF (voir le Chapitre 10 pour les détails).</li>
+          <li><strong>Requête HTTP :</strong> Contacte le serveur du feed avec un user-agent standard. Le timeout pour cette opération est de 30 secondes.</li>
+          <li><strong>Parsing XML :</strong> Lit et analyse le document RSS ou Atom. Le logiciel gère les feeds avec de légères déviations par rapport aux standards (encodage non déclaré, balises manquantes, espaces de noms non conventionnels).</li>
+          <li><strong>Déduplication :</strong> Pour chaque épisode dans le feed, la base de données est interrogée pour vérifier si l'épisode a déjà été téléchargé. L'URL audio est utilisée comme clé d'identification unique.</li>
+          <li><strong>Remplissage de la liste :</strong> Tous les épisodes sont affichés avec leur état actuel.</li>
+        </ol>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="54-historique-des-feeds">5.4 Historique des feeds</h2>
+        <p>FeedDownloader Pro maintient un <strong>historique des feeds analysés</strong>. Chaque URL saisie dans le champ de recherche est mémorisée avec le nom du podcast et le nombre d'épisodes, pour simplifier les accès futurs.</p>
+        <p>
+          <strong>Accéder à l'historique :</strong>
+          Cliquer sur la flèche à droite du champ URL ou commencer à taper : le logiciel propose des suggestions automatiques basées sur l'historique.
+        </p>
+        <p>
+          <strong>Gérer l'historique :</strong>
+          Dans les paramètres, il est possible d'afficher la liste complète des feeds en historique, de supprimer des entrées individuelles ou de vider complètement la liste.
+        </p>
+        <p><em>Remarque sur la confidentialité :</em> L'historique est enregistré exclusivement dans la base de données locale <code>feeddownloader.db</code>. Aucune donnée n'est transmise à des serveurs externes.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="55-importer-des-feeds-depuis-opml">5.5 Importer des feeds depuis OPML</h2>
+        <p><strong>OPML</strong> (Outline Processor Markup Language) est le format standard pour l'export et l'import de listes de podcasts entre différentes applications. Si vous disposez d'une bibliothèque de podcasts dans une application comme Pocket Casts, Overcast, AntennaPod ou tout autre client, il est possible de l'exporter en OPML et de l'importer directement dans FeedDownloader Pro.</p>
+        <p><strong>Comment importer un fichier OPML :</strong></p>
+        <ol>
+          <li>Aller dans <strong>Paramètres → Archive</strong>, section « Données et portabilité ».</li>
+          <li>Sélectionner le fichier <code>.opml</code> exporté depuis l'application de podcast.</li>
+          <li>FeedDownloader Pro analyse le fichier et affiche la liste des podcasts identifiés, avec la possibilité de sélectionner ceux qui vous intéressent.</li>
+          <li>Les feeds sélectionnés sont ajoutés à l'historique et, facultativement, analysés en séquence automatique.</li>
+        </ol>
+        <p><em>Remarque :</em> Certaines applications de podcast utilisent des variantes propriétaires du format OPML. FeedDownloader Pro prend en charge les versions les plus répandues. Si un fichier n'est pas importé correctement, l'ouvrir avec un éditeur de texte et vérifier la présence de balises <code>&lt;outline type="rss" xmlUrl="..."&gt;</code> pour chaque podcast.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="56-exporter-la-bibliothèque-en-opml">5.6 Exporter la bibliothèque en OPML</h2>
+        <p>Il est possible d'exporter l'historique des feeds au format OPML pour :</p>
+        <ul>
+          <li>Créer une sauvegarde de la liste de podcasts.</li>
+          <li>La partager avec d'autres utilisateurs ou avec une autre installation du logiciel.</li>
+          <li>L'importer dans une application de podcast pour suivre les mêmes feeds.</li>
+        </ul>
+        <p><strong>Comment exporter :</strong></p>
+        <ol>
+          <li>Aller dans <strong>Paramètres → Archive</strong>, section « Données et portabilité ».</li>
+          <li>Choisir un nom et un emplacement pour le fichier <code>.opml</code>.</li>
+          <li>Le fichier généré est compatible avec toute application prenant en charge le standard OPML.</li>
+        </ol>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="57-feeds-de-grande-taille">5.7 Feeds de grande taille</h2>
+        <p>Certains podcasts historiques ou archives de production radiophonique peuvent avoir des feeds avec des milliers d'épisodes et des fichiers RSS de taille considérable. Dans ces cas :</p>
+        <ul>
+          <li><strong>L'analyse initiale prend plus de temps :</strong> Un feed avec 2 000 épisodes peut nécessiter 15 à 30 secondes pour le téléchargement et le parsing. Ce comportement est attendu.</li>
+          <li><strong>Virtualisation de la liste :</strong> Avec des milliers d'entrées, la liste ne charge que les lignes visibles à l'écran pour maintenir la réactivité de l'interface.</li>
+          <li><strong>Estimation de l'espace nécessaire :</strong> Avec 2 000 épisodes à environ 50 Mo chacun, le volume total est d'environ 100 Go. Le logiciel affiche une estimation de la taille totale avant le lancement du batch. Vérifier la disponibilité d'un espace suffisant avant de procéder.</li>
+        </ul>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="58-limitations-du-feed-multiple">5.8 Limitations du feed multiple</h2>
+        <p>FeedDownloader Pro analyse un feed à la fois. Il ne dispose pas d'un gestionnaire de feeds permanents avec mise à jour automatique : le logiciel est optimisé pour le téléchargement batch, et non pour la surveillance continue de plusieurs feeds.</p>
+        <p>Pour gérer plusieurs feeds en séquence, la stratégie recommandée est :</p>
+        <ol>
+          <li>Utiliser la fonction OPML pour maintenir la liste des feeds dans un fichier centralisé.</li>
+          <li>Analyser et télécharger un podcast à la fois, en procédant de manière systématique.</li>
+          <li>Utiliser l'historique des feeds pour rappeler rapidement un podcast déjà analysé.</li>
+        </ol>
+        <hr>
+        <p><em>Voir le Chapitre 6 pour une description détaillée du moteur de téléchargement.</em></p>
+      </section>
+    </section>
+  
+
+</body></html>

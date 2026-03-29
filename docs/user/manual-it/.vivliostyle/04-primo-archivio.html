@@ -1,0 +1,135 @@
+<!DOCTYPE html><html lang="it"><head>
+    <meta charset="utf-8">
+    <title>Capitolo 4: Il Primo Archivio — Guida Passo-Passo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="book/theme.css">
+  </head>
+  <body>
+    <section class="level1">
+      <h1 id="capitolo-4-il-primo-archivio--guida-passo-passo">Capitolo 4: Il Primo Archivio — Guida Passo-Passo</h1>
+      <section class="level2">
+        <h2 id="41-introduzione-al-workflow">4.1 Introduzione al Workflow</h2>
+        <p>Questo capitolo descrive un workflow completo, dall'URL di un podcast a un archivio ordinato sul disco. Lo scenario di riferimento è il più comune: scaricare l'intero catalogo di un podcast per la prima volta.</p>
+        <p>Si consiglia di leggere il capitolo dall'inizio alla fine almeno una volta. Acquisita familiarità con i passaggi, l'avvio di un nuovo archivio richiede meno di un minuto.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="42-fase-1-trovare-lurl-rss">4.2 Fase 1: Trovare l'URL RSS</h2>
+        <p>Il punto di partenza è l'URL del feed RSS del podcast da archiviare. Un feed RSS è un file di testo in formato XML che i servizi di podcast pubblicano per distribuire la lista degli episodi disponibili. Ogni podcast dispone di un feed RSS.</p>
+        <p><strong>Come trovare l'URL RSS:</strong></p>
+        <ul>
+          <li><strong>Sul sito web del podcast:</strong> Cercare un'icona arancione con le onde radio, oppure i testi "RSS", "Feed", "Subscribe" o "Podcast Feed". Cliccando sull'elemento si apre generalmente il file XML nel browser: l'URL visualizzato nella barra degli indirizzi è quello da utilizzare.</li>
+          <li><strong>Da un'app di podcast:</strong> Applicazioni come Pocket Casts, Apple Podcasts e simili mostrano spesso il link RSS nelle informazioni del podcast. Su alcune app il link è accessibile tramite la funzione "Condividi".</li>
+          <li><strong>Da servizi di hosting:</strong> Se il podcast è ospitato su Spreaker, Podbean, Buzzsprout o piattaforme equivalenti, l'URL del feed è di solito disponibile nel pannello del publisher o nelle informazioni pubbliche del podcast.</li>
+          <li><strong>Da un motore di ricerca:</strong> Cercare <code>[Nome Podcast] RSS feed</code>. Il primo risultato porta spesso direttamente all'URL corretto.</li>
+        </ul>
+        <p><em>Come riconoscere un URL RSS valido:</em> Generalmente termina con <code>.xml</code> o <code>.rss</code>, oppure contiene parole come <code>feed</code>, <code>rss</code> o <code>podcast</code> nel percorso. Esempi: <code>https://www.esempio.it/feed.xml</code>, <code>https://feeds.spreaker.com/podcast/12345</code>, <code>https://anchor.fm/s/abc123/podcast/rss</code>.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="43-fase-2-preparare-la-cartella-di-destinazione">4.3 Fase 2: Preparare la Cartella di Destinazione</h2>
+        <p>Prima di analizzare il feed, conviene definire la cartella di destinazione. Si consiglia di creare una struttura organizzata fin dall'inizio.</p>
+        <p>
+          <strong>Struttura consigliata:</strong>
+          <code>D:\Archivio Podcast\ ├── Il Mio Podcast\ ├── Podcast di Tecnologia\ └── Radio Talk Show\</code>
+        </p>
+        <p>Creare la cartella specifica per il podcast da archiviare (es. <code>D:\Archivio Podcast\Il Mio Podcast\</code>). FeedDownloader Pro salverà tutti i file di quel podcast in quella cartella, con i nomi definiti dal template di rinomina (vedi il Capitolo 8).</p>
+        <p><strong>Per impostare la cartella di destinazione in FeedDownloader Pro:</strong></p>
+        <ol>
+          <li>Cliccare sull'icona della <strong>cartella</strong> accanto al campo del percorso di destinazione.</li>
+          <li>Navigare fino alla cartella creata e selezionarla.</li>
+          <li>Il percorso viene visualizzato nel campo e memorizzato per le sessioni successive.</li>
+        </ol>
+        <p><em>Nota:</em> Per i percorsi su NAS o dischi di rete, consultare il Capitolo 7 prima di procedere. La configurazione per i percorsi di rete presenta alcune specificità descritte in quel capitolo.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="44-fase-3-analizzare-il-feed">4.4 Fase 3: Analizzare il Feed</h2>
+        <p>Con l'URL pronto e la cartella di destinazione impostata:</p>
+        <ol>
+          <li>Incollare l'URL RSS nel <strong>campo URL</strong> in cima all'interfaccia.</li>
+          <li>Cliccare su <strong>"Analizza"</strong> (oppure premere <code>Invio</code>).</li>
+          <li>La lista al centro viene popolata con gli episodi. Per un podcast con 200–300 episodi l'operazione richiede tipicamente 2–5 secondi. Per archivi molto grandi (1000+ episodi), possono essere necessari fino a 15–20 secondi, poiché il file XML del feed può raggiungere dimensioni considerevoli.</li>
+        </ol>
+        <p><strong>In caso di errore di analisi:</strong></p>
+        <ul>
+          <li>Verificare che l'URL sia corretto (nessuno spazio iniziale o finale, nessun carattere mancante).</li>
+          <li>Aprire l'URL nel browser: se il browser restituisce un errore o una pagina vuota, il feed potrebbe essere temporaneamente non disponibile o l'URL potrebbe essere cambiato.</li>
+          <li>Alcuni feed richiedono intestazioni HTTP specifiche. In questo caso il software mostra un messaggio di errore con il codice HTTP ricevuto (ad esempio <code>403 Forbidden</code>).</li>
+        </ul>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="45-fase-4-leggere-i-risultati-dellanalisi">4.5 Fase 4: Leggere i Risultati dell'Analisi</h2>
+        <p>Dopo l'analisi, la lista mostra tutti gli episodi del podcast.</p>
+        <p><strong>Elementi da verificare:</strong></p>
+        <ul>
+          <li><strong>Numero totale di episodi:</strong> Visibile nell'intestazione della lista o nel contatore in basso. Un podcast attivo da diversi anni può avere 300–500 episodi o più.</li>
+          <li><strong>Episodi in stato </strong>"Scaricato"<strong>:</strong> Se il podcast è già stato analizzato in precedenza, la maggior parte degli episodi apparirà in questo stato. Il database registra già questi file come presenti nell'archivio.</li>
+          <li><strong>Episodi con dati mancanti:</strong> È possibile che alcuni episodi non riportino durata o dimensione. Questo indica che il produttore del podcast non ha incluso queste informazioni nel file RSS. Il download viene eseguito correttamente in ogni caso.</li>
+        </ul>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="46-fase-5-avviare-il-download">4.6 Fase 5: Avviare il Download</h2>
+        <p>Sono disponibili due modalità di download.</p>
+        <p>
+          <strong>Modalità A — Download completo:</strong>
+          Cliccare su <strong>"Scarica Tutto"</strong>. Il software aggiunge alla coda tutti gli episodi in stato <strong>"Da Scaricare"</strong> e avvia i download in parallelo. Il numero di download simultanei dipende dall'impostazione dei thread (vedi il Capitolo 10; il valore predefinito è 3).
+        </p>
+        <p>
+          <strong>Modalità B — Download selettivo:</strong>
+          Per scaricare solo determinati episodi:
+        </p>
+        <ol>
+          <li>Selezionare gli episodi tenendo premuto <code>Ctrl</code> e cliccando su ciascuno.</li>
+          <li>Per selezionare un intervallo, cliccare sul primo episodio, tenere premuto <code>Shift</code> e cliccare sull'ultimo.</li>
+          <li>Usare il menu contestuale (clic destro sulla selezione) oppure il pulsante di download individuale (↓) su ciascun episodio selezionato.</li>
+        </ol>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="47-fase-6-monitorare-il-progresso">4.7 Fase 6: Monitorare il Progresso</h2>
+        <p>Durante il download:</p>
+        <ul>
+          <li><strong>Barra globale in basso:</strong> Mostra il progresso complessivo del batch. Per un archivio da 200 episodi a 64 kbps di media, il volume di dati totale è di circa 2–3 GB.</li>
+          <li><strong>Stato nella lista:</strong> Ogni riga si aggiorna in tempo reale. Gli episodi in corso mostrano una barra di avanzamento individuale con la percentuale completata.</li>
+          <li><strong>Esecuzione in background:</strong> Non è necessario mantenere la finestra aperta. È possibile chiuderla (il programma continua a operare nel system tray) e riaprirla al completamento del processo.</li>
+        </ul>
+        <p>Il software gestisce automaticamente i retry in caso di errore di rete, la stall detection in caso di server lenti e la verifica dell'integrità al completamento di ogni file. Se il computer entra in modalità sospensione, i download vengono interrotti e ripresi automaticamente al ripristino della sessione.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="48-fase-7-verificare-larchivio-completato">4.8 Fase 7: Verificare l'Archivio Completato</h2>
+        <p>Quando la barra globale raggiunge il 100% e tutti gli episodi risultano completati, l'archivio è pronto.</p>
+        <p><strong>Operazioni consigliate al completamento:</strong></p>
+        <ol>
+          <li>
+            <p><strong>Controllare gli errori:</strong> Se alcuni episodi mostrano lo stato <strong>"Errore"</strong> (rosso), cliccare sull'icona (ℹ) per visualizzare il codice di errore. La causa più comune è <code>404 Not Found</code>, che indica la rimozione del file dal server del podcast prima del download.</p>
+          </li>
+          <li>
+            <p><strong>Esportare un riepilogo CSV:</strong> Andare in <strong>Impostazioni → Archivio → Esporta CSV</strong>. Il file generato elenca tutti gli episodi scaricati con hash SHA-256, dimensioni e metadati (vedi il Capitolo 9).</p>
+          </li>
+          <li>
+            <p><strong>Verificare i file sul disco:</strong> Aprire la cartella di destinazione nel gestore file. I file audio sono organizzati secondo il template di rinomina configurato (vedi il Capitolo 8). La presenza di file <code>.part</code> indica download interrotti, che verranno completati all'avvio successivo del batch.</p>
+          </li>
+        </ol>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="49-aggiornare-larchivio-in-futuro">4.9 Aggiornare l'Archivio in Futuro</h2>
+        <p>Il sistema Database-First semplifica gli aggiornamenti dell'archivio. Quando il podcast pubblica nuovi episodi:</p>
+        <ol>
+          <li>Incollare lo stesso URL RSS nel campo URL.</li>
+          <li>Cliccare su <strong>"Analizza"</strong>.</li>
+          <li>Il software mostra la lista aggiornata: gli episodi già presenti appaiono come <strong>"Scaricato"</strong>, i nuovi come <strong>"Da Scaricare"</strong>.</li>
+          <li>Cliccare su <strong>"Scarica Tutto"</strong> per scaricare i soli episodi nuovi.</li>
+        </ol>
+        <p>Il sistema non scarica mai due volte lo stesso episodio. Questa operazione può essere eseguita con qualsiasi frequenza, anche giornalmente per i podcast ad alto ritmo di pubblicazione.</p>
+        <hr>
+        <p><em>Vai al Capitolo 5 per approfondire la gestione dei feed e le funzionalità OPML.</em></p>
+      </section>
+    </section>
+  
+
+</body></html>

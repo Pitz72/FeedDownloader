@@ -1,0 +1,168 @@
+<!DOCTYPE html><html lang="fr"><head>
+    <meta charset="utf-8">
+    <title>Chapitre 6 : Le moteur de téléchargement</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="book/theme.css">
+  </head>
+  <body>
+    <section class="level1">
+      <h1 id="chapitre-6--le-moteur-de-téléchargement">Chapitre 6 : Le moteur de téléchargement</h1>
+      <section class="level2">
+        <h2 id="61-architecture-du-moteur">6.1 Architecture du moteur</h2>
+        <p>Le moteur de téléchargement de FeedDownloader Pro est un système asynchrone multi-thread. Contrairement à un téléchargeur séquentiel, le logiciel gère plusieurs téléchargements simultanément via un système de file d'attente centrale.</p>
+        <p><strong>Composants principaux :</strong></p>
+        <ul>
+          <li><strong>La file d'attente :</strong> Une liste ordonnée de tous les téléchargements en attente. Chaque épisode ajouté au batch entre dans cette file et attend d'être assigné à un thread disponible.</li>
+          <li><strong>Les worker threads :</strong> Les processus qui exécutent physiquement les téléchargements. Le nombre de threads actifs est configurable. Chaque thread gère un téléchargement à la fois, de manière indépendante des autres.</li>
+          <li><strong>Le gestionnaire de base de données :</strong> Le composant qui met à jour en temps réel la base de données SQLite avec l'état de chaque téléchargement (démarré, terminé, échoué, pourcentage de progression).</li>
+          <li><strong>Le moniteur d'intégrité :</strong> Le processus qui, à la fin de chaque téléchargement, calcule et enregistre le hash SHA-256 du fichier téléchargé.</li>
+        </ul>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="62-téléchargements-parallèles--configuration">6.2 Téléchargements parallèles : configuration</h2>
+        <p>Le nombre de téléchargements simultanés est l'un des paramètres les plus importants à configurer. Une valeur insuffisante ralentit le processus ; une valeur excessive peut saturer la connexion, surcharger le serveur source ou générer des erreurs réseau.</p>
+        <p><strong>La valeur par défaut est 3 threads.</strong> Pour la plupart des utilisateurs avec une connexion domestique, cette valeur offre un bon équilibre entre vitesse et stabilité.</p>
+        <p><strong>Recommandations de configuration :</strong></p>
+        <table>
+          <thead>
+            <tr>
+              <th>Scénario</th>
+              <th>Threads recommandés</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Connexion lente ou serveur avec throttling</td>
+              <td>1</td>
+            </tr>
+            <tr>
+              <td>Connexion domestique standard</td>
+              <td>3 (par défaut)</td>
+            </tr>
+            <tr>
+              <td>Connexion fibre rapide</td>
+              <td>5</td>
+            </tr>
+            <tr>
+              <td>NAS avec connexion réseau lente</td>
+              <td>1</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          <strong>Comment modifier le nombre de threads :</strong>
+          Aller dans <strong>Paramètres → Download → Téléchargements parallèles</strong> et sélectionner l'un des trois presets disponibles : <strong>1</strong>, <strong>3</strong> ou <strong>5</strong>. La modification est appliquée immédiatement à la file en cours.
+        </p>
+        <p><em>Remarque sur les serveurs avec limites de connexion :</em> Certains serveurs d'hébergement de podcasts appliquent des limitations au nombre de connexions simultanées par adresse IP. En présence d'erreurs fréquentes <code>429 Too Many Requests</code> ou <code>503 Service Unavailable</code>, réduire le nombre de threads à 1 ou 2. Le mécanisme de retry gère automatiquement les échecs, mais réduire la charge prévient le problème à la source.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="63-gestion-des-erreurs-et-système-de-retry">6.3 Gestion des erreurs et système de retry</h2>
+        <p>Dans un téléchargement batch de centaines de fichiers, les erreurs réseau sont prévisibles. FeedDownloader Pro utilise une stratégie de <strong>retry avec backoff exponentiel</strong> : lorsqu'un téléchargement échoue, le système attend un intervalle croissant avant de réessayer, plutôt que de remettre immédiatement l'épisode en file d'attente.</p>
+        <p><strong>Cycle de retry :</strong></p>
+        <table>
+          <thead>
+            <tr>
+              <th>Tentative</th>
+              <th>Attente avant le retry</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1er échec</td>
+              <td>2 secondes</td>
+            </tr>
+            <tr>
+              <td>2e échec</td>
+              <td>4 secondes</td>
+            </tr>
+            <tr>
+              <td>3e échec</td>
+              <td>8 secondes</td>
+            </tr>
+            <tr>
+              <td>4e échec</td>
+              <td>16 secondes</td>
+            </tr>
+            <tr>
+              <td>5e échec (dernier)</td>
+              <td>L'épisode est marqué comme <strong>« Erreur »</strong> définitive</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>Si un serveur est temporairement surchargé, le système lui laisse le temps de récupérer avant de réessayer. La plupart des erreurs transitoires se résolvent dès la deuxième ou troisième tentative.</p>
+        <p><strong>Erreurs définitives (non soumises au retry) :</strong></p>
+        <ul>
+          <li><code>404 Not Found</code> : Le fichier n'existe pas sur le serveur. De nouvelles tentatives sont inutiles.</li>
+          <li><code>403 Forbidden</code> : Le serveur a refusé la requête par manque d'autorisation.</li>
+          <li>Erreurs de validation SSRF : L'URL n'a pas passé les contrôles de sécurité internes.</li>
+        </ul>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="64-stall-detection">6.4 Stall detection</h2>
+        <p>Un téléchargement bloqué est un scénario dans lequel la connexion TCP est techniquement active et les paquets continuent d'arriver, mais le flux de données s'est interrompu. Le système d'exploitation ne signale pas d'erreur car la connexion est encore ouverte ; le fichier continue d'apparaître « en téléchargement » sans progresser.</p>
+        <p>Cette situation se produit fréquemment avec :</p>
+        <ul>
+          <li>Des serveurs sous charge qui appliquent le throttling après avoir envoyé les premiers octets.</li>
+          <li>Des problèmes de routage réseau intermédiaires.</li>
+          <li>Des fichiers audio volumineux servis par des CDN avec des limitations de bande passante.</li>
+        </ul>
+        <p>
+          <strong>Détection :</strong>
+          Chaque téléchargement actif est surveillé par un processus watchdog qui enregistre les octets reçus toutes les 10 secondes. Si pendant <strong>60 secondes consécutives</strong> aucun nouvel octet n'arrive (ou moins de 1 Ko, seuil excluant les keep-alive TCP), le téléchargement est considéré comme bloqué et :
+        </p>
+        <ol>
+          <li>La connexion est interrompue.</li>
+          <li>Le fichier <code>.part</code> partiel est supprimé.</li>
+          <li>L'épisode est remis en file d'attente avec le cycle de retry normal.</li>
+        </ol>
+        <p>Le processus est transparent pour l'utilisateur : dans la barre de progression individuelle, une brève réinitialisation du pourcentage est visible, suivie de la reprise du téléchargement. Si le blocage était causé par une condition transitoire, le nouveau téléchargement démarre normalement. Si le problème persiste au-delà du nombre maximal de tentatives, l'épisode est marqué comme <strong>« Erreur »</strong>.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="65-fichiers-part--le-système-anti-corruption">6.5 Fichiers <code>.part</code> : le système anti-corruption</h2>
+        <p>Chaque fichier audio est téléchargé avec l'extension temporaire <code>.part</code> pendant le transfert. Le fichier est renommé avec l'extension définitive (<code>.mp3</code>, <code>.m4a</code>, <code>.ogg</code>, etc.) <strong>uniquement</strong> après que :</p>
+        <ol>
+          <li>Le transfert est complété à 100 %.</li>
+          <li>La taille du fichier correspond à celle déclarée dans l'en-tête HTTP (<code>Content-Length</code>), si disponible.</li>
+          <li>Le hash SHA-256 a été calculé et enregistré dans la base de données.</li>
+        </ol>
+        <p>Ce mécanisme garantit que dans le dossier de destination ne se trouvent jamais de fichiers audio partiels ou corrompus avec une extension définitive. En cas d'interruption soudaine du programme ou d'extinction de l'ordinateur, des fichiers <code>.part</code> résiduels se trouveront dans le dossier : le logiciel les supprimera et les retéléchargera lors de la session suivante.</p>
+        <p><em>Emplacement des fichiers <code>.part</code> :</em> Dans le même dossier de destination que les fichiers complétés. Ces fichiers ne doivent pas être ouverts avec un lecteur audio : étant partiels, ils provoqueraient des erreurs de lecture.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="66-interruption-et-reprise-des-sessions">6.6 Interruption et reprise des sessions</h2>
+        <p>
+          <strong>Arrêter le batch :</strong>
+          Le bouton <strong>« Arrêter »</strong> (dans la barre de progression globale) interrompt tous les threads actifs de manière ordonnée, vide la file d'attente et supprime les fichiers <code>.part</code> partiels. Les fichiers déjà complétés restent dans la base de données. Lors de la prochaine analyse du même feed, les épisodes interrompus apparaîtront comme <strong>« À télécharger »</strong>.
+        </p>
+        <p>
+          <strong>Fermeture du programme pendant un téléchargement :</strong>
+          Si l'on ferme la fenêtre principale (le programme continue dans la zone de notification) ou si l'on utilise <strong>« Quitter »</strong> depuis le menu du tray pendant un téléchargement actif, le logiciel affiche un avertissement indiquant le nombre de téléchargements en cours et demande une confirmation. En choisissant de quitter, les téléchargements actifs sont interrompus de manière contrôlée et les fichiers <code>.part</code> sont conservés.
+        </p>
+        <p>
+          <strong>Reprendre une session interrompue :</strong>
+          Au démarrage, si FeedDownloader Pro détecte dans la base de données des épisodes à l'état <strong>« En attente »</strong> ou <strong>« En cours »</strong> de la session précédente, il affiche une notification : <em>« X téléchargements en suspens trouvés lors de la session précédente. Voulez-vous les reprendre ? »</em>. En confirmant, le batch reprend immédiatement.
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="67-vitesse-de-téléchargement">6.7 Vitesse de téléchargement</h2>
+        <p>La vitesse affichée dans la barre inférieure est la <strong>somme agrégée</strong> de tous les threads actifs. Avec 3 threads actifs téléchargeant chacun à 2 MB/s, la vitesse totale affichée est d'environ 6 MB/s.</p>
+        <p><strong>Facteurs influençant la vitesse :</strong></p>
+        <ul>
+          <li><strong>Largeur de bande de la connexion :</strong> La limite maximale disponible.</li>
+          <li><strong>Vitesse du serveur source :</strong> De nombreux serveurs d'hébergement de podcasts appliquent des limitations de bande passante pour contenir les coûts. La vitesse d'un seul thread dépasse rarement 2 à 5 MB/s sur ces serveurs.</li>
+          <li><strong>Nombre de threads :</strong> Un nombre plus élevé de threads compense la lenteur des serveurs individuels en téléchargeant depuis plusieurs connexions simultanées.</li>
+          <li><strong>Taille des fichiers :</strong> Les fichiers de taille moyenne (20 à 80 Mo, correspondant à des épisodes de 30 à 60 minutes) offrent l'efficacité optimale, avec un overhead relatif de connexion réduit.</li>
+        </ul>
+        <hr>
+        <p><em>Voir le Chapitre 7 pour la configuration des chemins NAS et réseau.</em></p>
+      </section>
+    </section>
+  
+
+</body></html>

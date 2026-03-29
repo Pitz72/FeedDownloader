@@ -1,0 +1,123 @@
+<!DOCTYPE html><html lang="zh"><head>
+    <meta charset="utf-8">
+    <title>第 10 章：高级设置</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="book/theme.css">
+  </head>
+  <body>
+    <section class="level1">
+      <h1 id="第-10-章高级设置">第 10 章：高级设置</h1>
+      <section class="level2">
+        <h2 id="101-设置面板概览">10.1 设置面板概览</h2>
+        <p>设置面板可随时通过界面右上角的齿轮图标（⚙）访问。设置按主题分为五个选项卡：<strong>常规</strong>、<strong>下载</strong>、<strong>元数据</strong>、<strong>存档</strong>和<strong>高级</strong>。所有更改会自动保存，无需点击专用确认按钮。</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="102-下载">10.2 下载</h2>
+        <p>本节包含下载引擎的主要控件。内部技术参数（连接超时、重试次数、停滞检测）已固定在引擎中，无需手动配置。</p>
+        <section class="level3">
+          <h3 id="并行下载">并行下载</h3>
+          <p>同时进行的下载数量。可从三个预设值中选择：<strong>1</strong>、<strong>3</strong> 和 <strong>5</strong>。关于如何选择合适值的指南，参见第 6 章。</p>
+          <p><strong>默认值：</strong> 3</p>
+        </section>
+        <section class="level3">
+          <h3 id="速度限制">速度限制</h3>
+          <p>允许限制所有活动下载使用的总带宽，以避免干扰其他网络活动。</p>
+          <p><strong>可用值：</strong> <code>0</code> = 无限制（默认值）；任意正整数，单位为 KB/s。例如：<code>500</code> 将总消耗限制在约 4 Mbps。</p>
+          <hr>
+        </section>
+      </section>
+      <section class="level2">
+        <h2 id="103-关键词过滤">10.3 关键词过滤</h2>
+        <p>文本过滤器允许根据标题中包含的文本<strong>缩小显示的节目列表范围</strong>。这是一个快速查阅和选择工具，尤其适用于大型目录。</p>
+        <p>
+          <strong>如何使用过滤器：</strong>
+          过滤栏位于节目列表顶部，紧接在批量控件下方。输入一个或多个词语后，列表会实时更新，只显示标题包含<strong>所有输入词语</strong>的节目（AND 逻辑）。
+        </p>
+        <ul>
+          <li>要搜索包含词语"采访"的节目，输入 <code>采访</code>。</li>
+          <li>要搜索同时包含"采访"和"2024"的节目，输入 <code>采访 2024</code>。</li>
+          <li>过滤器不区分大小写：<code>Bonus</code> 和 <code>bonus</code> 产生相同结果。</li>
+        </ul>
+        <p><strong>典型使用场景：</strong></p>
+        <ul>
+          <li>在大型目录中快速找到特定季的节目。</li>
+          <li>选择要下载的节目子集，而无需滚动整个列表。</li>
+          <li>检查具有特定标题的节目是否已在数据库中。</li>
+        </ul>
+        <p><em>注意：</em> 过滤器仅作用于当前列表的显示，不会修改下载队列或数据库中节目的状态。要清除过滤器，清空文本栏即可。</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="104-常规">10.4 常规</h2>
+        <section class="level3">
+          <h3 id="语言">语言</h3>
+          <p>FeedDownloader Pro 提供 8 种语言：意大利语、English、Deutsch、Español、Français、Português、Русский、中文。</p>
+          <p>语言切换即时生效：界面无需重启即可更新。应用程序仅使用深色主题"Obsidian Command"：不提供浅色主题，也没有列表密度选择器。</p>
+          <hr>
+        </section>
+      </section>
+      <section class="level2">
+        <h2 id="105-安全性5-层反-ssrf-系统">10.5 安全性：5 层反 SSRF 系统</h2>
+        <p>本节为参考性文档说明：安全系统完全自动运行，无需用户进行任何配置。</p>
+        <p>
+          <strong>什么是 SSRF 攻击？</strong>
+          SSRF（服务器端请求伪造）是一种攻击类型，其中恶意 URL 不是指向公共资源，而是指向网络内部资源（如路由器管理面板、NAS 或本地服务器）。在下载器场景中，精心构造的 RSS feed 可能包含指向这些内部资源的音频 URL。
+        </p>
+        <p><strong>5 层验证：</strong></p>
+        <ol>
+          <li>
+            <p><strong>协议验证：</strong> 仅接受 <code>http://</code> 和 <code>https://</code> 协议。<code>file://</code>、<code>ftp://</code>、<code>data:</code>、<code>javascript:</code> 等协议会被立即拒绝。</p>
+          </li>
+          <li>
+            <p><strong>URL 语法验证：</strong> 对 URL 进行解析，验证其符合 RFC 3986 标准。</p>
+          </li>
+          <li>
+            <p><strong>DNS 解析与 IP 检查：</strong> URL 中的域名被解析为 IP 地址。如果解析失败，URL 被拒绝。如果解析成功，则在下一层验证生成的 IP 地址。</p>
+          </li>
+          <li>
+            <p><strong>私有和保留 IP 地址屏蔽：</strong> 屏蔽属于私有或保留地址段的所有 IP 地址，包括：</p>
+            <ul>
+              <li><code>10.0.0.0/8</code>、<code>172.16.0.0/12</code>、<code>192.168.0.0/16</code>（RFC 1918 私有网络）</li>
+              <li><code>127.0.0.0/8</code>（回环地址）</li>
+              <li><code>169.254.0.0/16</code>（链路本地地址）</li>
+              <li><code>::1/128</code>（IPv6 回环地址）</li>
+              <li><code>fc00::/7</code>（IPv6 唯一本地地址）</li>
+              <li>任何指向本地主机的地址。</li>
+            </ul>
+          </li>
+          <li>
+            <p><strong>非标准端口屏蔽：</strong> 仅接受 80 和 443 端口。带有非标准端口（例如 <code>:8080</code>、<code>:3000</code>、<code>:22</code>）的 URL 将被拒绝。</p>
+          </li>
+        </ol>
+        <p><em>企业环境注意事项：</em> 如果企业网络中包含可通过私有 IP 地址访问的内部播客服务器，反 SSRF 系统将屏蔽这些 URL。在这种情况下，请联系技术支持，以便进行将特定 IP 地址段加入内部白名单的自定义配置。</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="106-高级">10.6 高级</h2>
+        <section class="level3">
+          <h3 id="更新">更新</h3>
+          <p>FeedDownloader Pro 内置了自动更新系统。</p>
+          <p><strong>启动时自动检查：</strong> 在已安装版本（安装包）中，软件会在启动后 3 秒自动通过查询 GitHub 仓库检查是否有新更新。如果有新版本，下载会在后台开始，无需任何操作。</p>
+          <p><strong>手动检查：</strong> <strong>高级</strong>选项卡中的<strong>"检查更新"</strong>按钮可在任意时刻强制立即检查。</p>
+          <p>如果有新版本可用，软件会在后台下载，并显示<strong>"安装并重启"</strong>按钮。安装不会自动启动：决定权始终在用户手中。</p>
+          <p><strong>过程中显示的状态：</strong></p>
+          <ul>
+            <li><strong>正在检查更新…</strong> — 软件正在查询 GitHub 仓库。</li>
+            <li><strong>已是最新版本</strong> — 已安装的版本是最新版本。</li>
+            <li><strong>有新版本（vX.Y.Z）</strong> — 后台下载进行中。</li>
+            <li><strong>更新已就绪</strong> — 安装包已下载完成，可以安装。</li>
+          </ul>
+        </section>
+        <section class="level3">
+          <h3 id="重置数据库">重置数据库</h3>
+          <p>完全删除数据库，以空存档重新开始。<strong>此操作不可逆。</strong> 软件在继续操作前需要两次明确确认。磁盘上的音频文件不会被删除：仅清除软件的内部记忆（下载历史、元数据、统计数据）。</p>
+          <p><em>使用场景：</em> 仅在需要从完全空白的存档重新开始时使用，例如迁移到新系统后，或清除测试周期的数据时。</p>
+          <hr>
+          <p><em>参见第 11 章，了解常见问题的故障排查。</em></p>
+        </section>
+      </section>
+    </section>
+  
+
+</body></html>

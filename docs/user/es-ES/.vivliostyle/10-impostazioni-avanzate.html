@@ -1,0 +1,123 @@
+<!DOCTYPE html><html lang="es"><head>
+    <meta charset="utf-8">
+    <title>Capítulo 10: Configuración Avanzada</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="book/theme.css">
+  </head>
+  <body>
+    <section class="level1">
+      <h1 id="capítulo-10-configuración-avanzada">Capítulo 10: Configuración Avanzada</h1>
+      <section class="level2">
+        <h2 id="101-descripción-general-del-panel-de-configuración">10.1 Descripción General del Panel de Configuración</h2>
+        <p>El panel de configuración es accesible en cualquier momento mediante el icono de engranaje (⚙) en la esquina superior de la interfaz. Las opciones están organizadas en cinco pestañas temáticas: <strong>General</strong>, <strong>Descarga</strong>, <strong>Metadatos</strong>, <strong>Archivo</strong> y <strong>Avanzado</strong>. Todos los cambios se guardan automáticamente: no es necesario confirmarlos con un botón específico.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="102-descarga">10.2 Descarga</h2>
+        <p>Esta sección contiene los controles principales del motor de descarga. Los parámetros técnicos internos (timeout de conexión, número de reintentos, stall detection) están fijos en el motor y no requieren configuración manual.</p>
+        <section class="level3">
+          <h3 id="descargas-paralelas">Descargas Paralelas</h3>
+          <p>El número de descargas simultáneas. Seleccionable entre tres ajustes predefinidos: <strong>1</strong>, <strong>3</strong> y <strong>5</strong>. Para las directrices sobre cómo elegir el valor, véase el Capítulo 6.</p>
+          <p><strong>Valor predeterminado:</strong> 3</p>
+        </section>
+        <section class="level3">
+          <h3 id="límite-de-velocidad">Límite de Velocidad</h3>
+          <p>Permite limitar el ancho de banda agregado utilizado por todas las descargas activas, para evitar interferencias con otras actividades de red.</p>
+          <p><strong>Valores disponibles:</strong> <code>0</code> = sin límite (predeterminado); cualquier valor positivo en KB/s. Ejemplo: <code>500</code> limita el consumo total a aproximadamente 4 Mbps.</p>
+          <hr>
+        </section>
+      </section>
+      <section class="level2">
+        <h2 id="103-filtro-por-palabras-clave">10.3 Filtro por Palabras Clave</h2>
+        <p>El filtro de texto permite <strong>restringir la lista de episodios mostrados</strong> según el texto contenido en el título. Es una herramienta de consulta y selección rápida, especialmente útil con catálogos de gran tamaño.</p>
+        <p>
+          <strong>Cómo usar el filtro:</strong>
+          La barra de filtro está situada en la parte superior de la lista de episodios, inmediatamente debajo de los controles del batch. Al escribir uno o varios términos, la lista se actualiza en tiempo real mostrando únicamente los episodios cuyo título contiene <strong>todos los términos introducidos</strong> (lógica AND).
+        </p>
+        <ul>
+          <li>Para buscar episodios que contienen la palabra "entrevista", escribir <code>entrevista</code>.</li>
+          <li>Para buscar episodios que contienen tanto "entrevista" como "2024", escribir <code>entrevista 2024</code>.</li>
+          <li>El filtro no distingue entre mayúsculas y minúsculas: <code>Bonus</code> y <code>bonus</code> producen el mismo resultado.</li>
+        </ul>
+        <p><strong>Casos de uso típicos:</strong></p>
+        <ul>
+          <li>Localizar rápidamente los episodios de una temporada concreta en un catálogo extenso.</li>
+          <li>Seleccionar un subconjunto de episodios para descargar sin recorrer la lista completa.</li>
+          <li>Verificar si un episodio con un título determinado ya está presente en la base de datos.</li>
+        </ul>
+        <p><em>Nota:</em> El filtro actúa sobre la visualización de la lista actual y no modifica la cola de descarga ni el estado de los episodios en la base de datos. Para eliminar el filtro, vaciar la barra de texto.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="104-general">10.4 General</h2>
+        <section class="level3">
+          <h3 id="idioma">Idioma</h3>
+          <p>FeedDownloader Pro está disponible en 8 idiomas: Italiano, English, Deutsch, Español, Français, Português, Русский, 中文.</p>
+          <p>El cambio de idioma es inmediato: la interfaz se actualiza sin necesidad de reiniciar el software. La aplicación utiliza exclusivamente el tema oscuro «Obsidian Command»: no hay un tema claro disponible ni un selector de densidad de lista.</p>
+          <hr>
+        </section>
+      </section>
+      <section class="level2">
+        <h2 id="105-seguridad-el-sistema-anti-ssrf-de-5-niveles">10.5 Seguridad: El Sistema Anti-SSRF de 5 Niveles</h2>
+        <p>Esta sección está documentada a título informativo: el sistema de seguridad opera de forma completamente automática y no requiere configuración por parte del usuario.</p>
+        <p>
+          <strong>¿Qué es un ataque SSRF?</strong>
+          SSRF (Server-Side Request Forgery) es un tipo de ataque en el que una URL maliciosa, en lugar de apuntar a un recurso público, apunta a recursos internos de la red (como el panel de administración del router, un NAS o un servidor local). En el contexto de un descargador, un feed RSS construido de forma malintencionada podría incluir URL de audio que apunten a estos recursos internos.
+        </p>
+        <p><strong>Los 5 niveles de validación:</strong></p>
+        <ol>
+          <li>
+            <p><strong>Validación del protocolo:</strong> Solo se aceptan los protocolos <code>http://</code> y <code>https://</code>. Protocolos como <code>file://</code>, <code>ftp://</code>, <code>data:</code>, <code>javascript:</code> se rechazan de inmediato.</p>
+          </li>
+          <li>
+            <p><strong>Validación sintáctica de la URL:</strong> La URL se analiza para verificar la conformidad con el estándar RFC 3986.</p>
+          </li>
+          <li>
+            <p><strong>Resolución DNS con inspección de la IP:</strong> El dominio de la URL se resuelve en una dirección IP. Si la resolución falla, la URL se rechaza. Si tiene éxito, la dirección IP resultante se verifica en el siguiente nivel.</p>
+          </li>
+          <li>
+            <p><strong>Bloqueo de direcciones IP privadas y reservadas:</strong> Se bloquean todas las direcciones IP pertenecientes a rangos privados o reservados, incluidos:</p>
+            <ul>
+              <li><code>10.0.0.0/8</code>, <code>172.16.0.0/12</code>, <code>192.168.0.0/16</code> (redes privadas RFC 1918)</li>
+              <li><code>127.0.0.0/8</code> (loopback)</li>
+              <li><code>169.254.0.0/16</code> (link-local)</li>
+              <li><code>::1/128</code> (loopback IPv6)</li>
+              <li><code>fc00::/7</code> (unique local IPv6)</li>
+              <li>Cualquier dirección que apunte al host local.</li>
+            </ul>
+          </li>
+          <li>
+            <p><strong>Bloqueo de puertos no estándar:</strong> Solo se aceptan los puertos 80 y 443. Las URL con puertos no estándar (p. ej., <code>:8080</code>, <code>:3000</code>, <code>:22</code>) se rechazan.</p>
+          </li>
+        </ol>
+        <p><em>Nota para entornos empresariales:</em> Si la red corporativa incluye servidores de podcast internos accesibles mediante direcciones IP privadas, el sistema anti-SSRF bloqueará estas URL. En ese caso, contactar con el soporte para una configuración personalizada que incluya rangos específicos de direcciones IP en la lista blanca interna.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="106-avanzado">10.6 Avanzado</h2>
+        <section class="level3">
+          <h3 id="actualizaciones">Actualizaciones</h3>
+          <p>FeedDownloader Pro incluye un sistema de actualización automática integrado.</p>
+          <p><strong>Verificación automática al inicio:</strong> En la versión instalada (paquete), el software comprueba automáticamente la disponibilidad de nuevas actualizaciones 3 segundos después del inicio, consultando el repositorio de GitHub. Si hay una nueva versión disponible, la descarga comienza en segundo plano sin requerir ninguna acción.</p>
+          <p><strong>Verificación manual:</strong> El botón <strong>"Buscar actualizaciones"</strong> en la pestaña <strong>Avanzado</strong> fuerza una comprobación inmediata en cualquier momento.</p>
+          <p>Si hay una nueva versión disponible, el software la descarga en segundo plano y muestra el botón <strong>"Instalar y reiniciar"</strong>. La instalación nunca se inicia automáticamente: la decisión corresponde siempre al usuario.</p>
+          <p><strong>Estados mostrados durante el proceso:</strong></p>
+          <ul>
+            <li><strong>Comprobando actualizaciones…</strong> — el software está consultando el repositorio de GitHub.</li>
+            <li><strong>Estás actualizado</strong> — la versión instalada es la más reciente.</li>
+            <li><strong>Nueva versión disponible (vX.Y.Z)</strong> — descarga en curso en segundo plano.</li>
+            <li><strong>Actualización lista</strong> — el paquete se ha descargado y está listo para instalarse.</li>
+          </ul>
+        </section>
+        <section class="level3">
+          <h3 id="restablecer-base-de-datos">Restablecer Base de Datos</h3>
+          <p>Elimina completamente la base de datos y comienza con un archivo vacío. <strong>Esta operación es irreversible.</strong> El software solicita una doble confirmación explícita antes de continuar. Los archivos de audio en el disco no se eliminan: únicamente se borra la memoria interna del software (historial de descargas, metadatos, estadísticas).</p>
+          <p><em>Cuándo usarlo:</em> Exclusivamente cuando se desea empezar con un archivo completamente vacío, por ejemplo tras una migración a un nuevo sistema o para eliminar los datos de un ciclo de pruebas.</p>
+          <hr>
+          <p><em>Véase el Capítulo 11 para la resolución de los problemas más comunes.</em></p>
+        </section>
+      </section>
+    </section>
+  
+
+</body></html>

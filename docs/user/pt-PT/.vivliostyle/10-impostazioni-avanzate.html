@@ -1,0 +1,123 @@
+<!DOCTYPE html><html lang="pt"><head>
+    <meta charset="utf-8">
+    <title>Capítulo 10: Definições Avançadas</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="book/theme.css">
+  </head>
+  <body>
+    <section class="level1">
+      <h1 id="capítulo-10-definições-avançadas">Capítulo 10: Definições Avançadas</h1>
+      <section class="level2">
+        <h2 id="101-visão-geral-do-painel-de-definições">10.1 Visão Geral do Painel de Definições</h2>
+        <p>O painel de definições está acessível em qualquer momento através do ícone de engrenagem (⚙) no canto superior da interface. As definições estão organizadas em cinco separadores temáticos: <strong>Geral</strong>, <strong>Download</strong>, <strong>Metadados</strong>, <strong>Arquivo</strong> e <strong>Avançadas</strong>. Todas as alterações são guardadas automaticamente: não é necessário confirmar com um botão dedicado.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="102-download">10.2 Download</h2>
+        <p>Esta secção contém os controlos principais do motor de transferência. Os parâmetros técnicos internos (tempo limite de ligação, número de novas tentativas, deteção de paragens) são fixos no motor e não requerem configuração manual.</p>
+        <section class="level3">
+          <h3 id="transferências-paralelas">Transferências paralelas</h3>
+          <p>O número de transferências simultâneas. Selecionável entre três valores: <strong>1</strong>, <strong>3</strong> e <strong>5</strong>. Para as diretrizes sobre a escolha do valor, ver o Capítulo 6.</p>
+          <p><strong>Valor predefinido:</strong> 3</p>
+        </section>
+        <section class="level3">
+          <h3 id="limite-de-velocidade">Limite de velocidade</h3>
+          <p>Permite limitar a largura de banda agregada utilizada por todas as transferências ativas, para evitar interferências com outras atividades de rede.</p>
+          <p><strong>Valores disponíveis:</strong> <code>0</code> = sem limite (predefinido); qualquer valor positivo em KB/s. Exemplo: <code>500</code> limita o consumo total a cerca de 4 Mbps.</p>
+          <hr>
+        </section>
+      </section>
+      <section class="level2">
+        <h2 id="103-filtro-por-palavras-chave">10.3 Filtro por Palavras-Chave</h2>
+        <p>O filtro de texto permite <strong>restringir a lista de episódios apresentados</strong> com base no texto contido no título. É uma ferramenta de consulta e seleção rápida, útil em particular com catálogos de grandes dimensões.</p>
+        <p>
+          <strong>Como utilizar o filtro:</strong>
+          A barra de filtro está posicionada na parte superior da lista de episódios, imediatamente abaixo dos controlos do lote. Ao escrever um ou mais termos, a lista é atualizada em tempo real mostrando apenas os episódios cujo título contém <strong>todos os termos introduzidos</strong> (lógica AND).
+        </p>
+        <ul>
+          <li>Para procurar episódios que contêm a palavra "entrevista", escrever <code>entrevista</code>.</li>
+          <li>Para procurar episódios que contêm tanto "entrevista" como "2024", escrever <code>entrevista 2024</code>.</li>
+          <li>O filtro não distingue maiúsculas de minúsculas: <code>Bónus</code> e <code>bónus</code> produzem o mesmo resultado.</li>
+        </ul>
+        <p><strong>Cenários de utilização típicos:</strong></p>
+        <ul>
+          <li>Identificar rapidamente os episódios de uma temporada específica num catálogo extenso.</li>
+          <li>Selecionar um subconjunto de episódios para transferir sem percorrer toda a lista.</li>
+          <li>Verificar se um episódio com um determinado título já está presente na base de dados.</li>
+        </ul>
+        <p><em>Nota:</em> O filtro atua sobre a apresentação da lista atual e não modifica a fila de transferência nem o estado dos episódios na base de dados. Para remover o filtro, esvaziar a barra de texto.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="104-geral">10.4 Geral</h2>
+        <section class="level3">
+          <h3 id="idioma">Idioma</h3>
+          <p>O FeedDownloader Pro está disponível em 8 idiomas: Italiano, English, Deutsch, Español, Français, Português, Русский, 中文.</p>
+          <p>A mudança de idioma é imediata: a interface é atualizada sem necessidade de reiniciar o software. A aplicação utiliza exclusivamente o tema escuro "Obsidian Command": não está disponível um tema claro nem um seletor de densidade da lista.</p>
+          <hr>
+        </section>
+      </section>
+      <section class="level2">
+        <h2 id="105-segurança-o-sistema-anti-ssrf-a-5-níveis">10.5 Segurança: O Sistema Anti-SSRF a 5 Níveis</h2>
+        <p>Esta secção está documentada a título informativo: o sistema de segurança opera de forma completamente automática e não requer configuração por parte do utilizador.</p>
+        <p>
+          <strong>O que é um ataque SSRF?</strong>
+          SSRF (Server-Side Request Forgery) é um tipo de ataque em que um URL malicioso, em vez de apontar para um recurso público, aponta para recursos internos da rede (como o painel de administração do router, um NAS ou um servidor local). No contexto de um sistema de transferência, um feed RSS construído de forma maliciosa poderia incluir URLs de áudio que apontam para estes recursos internos.
+        </p>
+        <p><strong>Os 5 níveis de validação:</strong></p>
+        <ol>
+          <li>
+            <p><strong>Validação do protocolo:</strong> São aceites apenas os protocolos <code>http://</code> e <code>https://</code>. Protocolos como <code>file://</code>, <code>ftp://</code>, <code>data:</code>, <code>javascript:</code> são recusados imediatamente.</p>
+          </li>
+          <li>
+            <p><strong>Validação sintática do URL:</strong> O URL é analisado para verificar a conformidade com a norma RFC 3986.</p>
+          </li>
+          <li>
+            <p><strong>Resolução DNS com inspeção do IP:</strong> O domínio no URL é resolvido para um endereço IP. Se a resolução falhar, o URL é recusado. Se a resolução for bem-sucedida, o endereço IP resultante é verificado no nível seguinte.</p>
+          </li>
+          <li>
+            <p><strong>Bloqueio de endereços IP privados e reservados:</strong> São bloqueados todos os endereços IP pertencentes a intervalos privados ou reservados, incluindo:</p>
+            <ul>
+              <li><code>10.0.0.0/8</code>, <code>172.16.0.0/12</code>, <code>192.168.0.0/16</code> (redes privadas RFC 1918)</li>
+              <li><code>127.0.0.0/8</code> (loopback)</li>
+              <li><code>169.254.0.0/16</code> (link-local)</li>
+              <li><code>::1/128</code> (loopback IPv6)</li>
+              <li><code>fc00::/7</code> (unique local IPv6)</li>
+              <li>Qualquer endereço que aponte para o anfitrião local.</li>
+            </ul>
+          </li>
+          <li>
+            <p><strong>Bloqueio de portas não padrão:</strong> São aceites apenas as portas 80 e 443. Os URLs com portas não padrão (ex.: <code>:8080</code>, <code>:3000</code>, <code>:22</code>) são recusados.</p>
+          </li>
+        </ol>
+        <p><em>Nota para ambientes empresariais:</em> Se a rede empresarial inclui servidores de podcasts internos acessíveis através de endereços IP privados, o sistema anti-SSRF bloqueará estes URLs. Neste caso, contactar o suporte para uma configuração personalizada que inclua intervalos específicos de endereços IP na lista de permissões interna.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="106-avançadas">10.6 Avançadas</h2>
+        <section class="level3">
+          <h3 id="atualizações">Atualizações</h3>
+          <p>O FeedDownloader Pro inclui um sistema de atualização automática integrado.</p>
+          <p><strong>Verificação automática no arranque:</strong> Na versão instalada (pacote), o software verifica automaticamente a disponibilidade de novas atualizações 3 segundos após o arranque, consultando o repositório GitHub. Se uma nova versão estiver disponível, a transferência inicia em segundo plano sem requerer qualquer ação.</p>
+          <p><strong>Verificação manual:</strong> O botão <strong>"Verificar atualizações"</strong> no separador <strong>Avançadas</strong> força uma verificação imediata em qualquer momento.</p>
+          <p>Se uma nova versão estiver disponível, o software transfere-a em segundo plano e apresenta o botão <strong>"Instalar e reiniciar"</strong>. A instalação nunca é iniciada automaticamente: a decisão cabe sempre ao utilizador.</p>
+          <p><strong>Estados apresentados durante o processo:</strong></p>
+          <ul>
+            <li><strong>A verificar atualizações…</strong> — o software está a consultar o repositório GitHub.</li>
+            <li><strong>Está atualizado</strong> — a versão instalada é a mais recente.</li>
+            <li><strong>Nova versão disponível (vX.Y.Z)</strong> — transferência em curso em segundo plano.</li>
+            <li><strong>Atualização pronta</strong> — o pacote foi transferido e está pronto para instalação.</li>
+          </ul>
+        </section>
+        <section class="level3">
+          <h3 id="repor-base-de-dados">Repor base de dados</h3>
+          <p>Elimina completamente a base de dados e recomeça com um arquivo vazio. <strong>Esta operação é irreversível.</strong> O software solicita uma dupla confirmação explícita antes de continuar. Os ficheiros de áudio no disco não são eliminados: é reposta exclusivamente a memória interna do software (histórico de transferências, metadados, estatísticas).</p>
+          <p><em>Quando utilizar:</em> Exclusivamente quando se pretende recomeçar com um arquivo completamente vazio, por exemplo após uma migração para um novo sistema ou para remover os dados de um ciclo de testes.</p>
+          <hr>
+          <p><em>Ver o Capítulo 11 para a resolução dos problemas mais comuns.</em></p>
+        </section>
+      </section>
+    </section>
+  
+
+</body></html>

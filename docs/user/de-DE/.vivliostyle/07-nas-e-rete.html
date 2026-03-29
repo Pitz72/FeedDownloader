@@ -1,0 +1,112 @@
+<!DOCTYPE html><html lang="de"><head>
+    <meta charset="utf-8">
+    <title>Kapitel 7: NAS, Netzlaufwerke und SMB-Pfade</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="book/theme.css">
+  </head>
+  <body>
+    <section class="level1">
+      <h1 id="kapitel-7-nas-netzlaufwerke-und-smb-pfade">Kapitel 7: NAS, Netzlaufwerke und SMB-Pfade</h1>
+      <section class="level2">
+        <h2 id="71-warum-netzlaufwerke-einen-spezifischen-ansatz-erfordern">7.1 Warum Netzlaufwerke einen spezifischen Ansatz erfordern</h2>
+        <p>Die meisten Desktop-Download-Anwendungen verwalten lokale Pfade (<code>C:\</code>, <code>D:\</code>) korrekt und zeigen unvorhersehbares Verhalten, wenn das Ziel ein NAS, ein freigegebener Windows-Server oder ein SMB-Laufwerk ist. Der Grund ist technischer Natur: Netzlaufwerke sind von Natur aus weniger zuverlässig als lokale Datenträger. Das NAS kann ausgeschaltet sein, das lokale Netzwerk kann Latenzspitzen erleiden, SMB-Anmeldedaten können ablaufen. Jede Operation auf einem nicht reagierenden Netzwerkpfad kann den Haupt-Thread der Anwendung für Dutzende von Sekunden blockieren und die Oberfläche unresponsiv machen.</p>
+        <p>FeedDownloader Pro verwaltet diese Szenarien korrekt. Für Benutzer, die auf NAS archivieren, ist dieses Kapitel unerlässlich.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="72-wie-die-netzwerkpfad-validierung-funktioniert">7.2 Wie die Netzwerkpfad-Validierung funktioniert</h2>
+        <p>Jedes Mal, wenn ein Zielpfad eingestellt wird, der mit <code>\\</code> beginnt (UNC-Pfad, typisch für SMB) oder einem gemappten Netzlaufwerk entspricht (z. B. <code>Z:\</code>), aktiviert FeedDownloader Pro automatisch das <strong>Netzwerkpfad-Validierungsmodul</strong>.</p>
+        <p>Dieses Modul führt drei Operationen auf einem <strong>separaten Thread</strong> aus, ohne den Oberflächen-Thread jemals einzubeziehen:</p>
+        <ol>
+          <li><strong>Erreichbarkeitstest:</strong> Versucht, auf das Stammverzeichnis des Netzwerkpfads zuzugreifen. Ist das NAS nicht eingeschaltet oder das Netzwerk nicht verfügbar, schlägt diese Operation fehl.</li>
+          <li><strong>Lesezugriffstest:</strong> Prüft, ob der Zielordner vorhanden und lesbar ist.</li>
+          <li><strong>Schreibzugriffstest:</strong> Erstellt und löscht dann eine temporäre Datei (<code>_fdp_write_test_[timestamp].tmp</code>) im Zielordner, um die Schreibberechtigungen zu prüfen.</li>
+        </ol>
+        <p>Die gesamte Sequenz hat ein <strong>Timeout von 8 Sekunden</strong>. Wird innerhalb dieses Intervalls keine Antwort empfangen, betrachtet die Software den Pfad als nicht verfügbar und zeigt eine Warnung an, ohne die Oberfläche zu blockieren.</p>
+        <p><em>Begründung des Timeouts:</em> Die meisten Consumer-NAS-Geräte (Synology, QNAP, WD MyCloud) benötigen 3–6 Sekunden, um den Ruhemodus zu verlassen. 8 Sekunden ist ein ausreichendes Intervall, um diese Wiederherstellung abzuwarten, während es kurz genug ist, um für den Benutzer keine spürbare Wartezeit darzustellen.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="73-einen-nas-pfad-konfigurieren">7.3 Einen NAS-Pfad konfigurieren</h2>
+        <p>
+          <strong>Methode 1 — Direkter UNC-Pfad:</strong>
+          Den Pfad im Format <code>\\Servername\Freigabename\Ordner</code> eingeben:
+        </p>
+        <pre class="language-text"><code class="language-text">\\MYNAS\Podcast\Archiv
+\\192.168.1.100\media\podcast
+\\NAS-SYNOLOGY\video\audio_archive</code></pre>
+        <p>Der Pfad kann direkt in das Zielpfad-Textfeld eingegeben oder über das Ordnerauswahl-Dialogfenster ausgewählt werden, das unter Windows die Navigation von Netzwerkpfaden unterstützt.</p>
+        <p>
+          <strong>Methode 2 — Gemapptes Netzlaufwerk:</strong>
+          Ist das NAS bereits als Netzlaufwerk unter Windows gemappt (z. B. <code>Z:</code> → <code>\\MYNAS\Podcast</code>), kann <code>Z:\Archiv</code> als Zielordner ausgewählt werden. FeedDownloader Pro erkennt automatisch, dass es sich um einen Netzwerkpfad handelt, und aktiviert die Validierung.
+        </p>
+        <p>
+          <strong>Methode 3 — macOS und Linux (Mount Point):</strong>
+          Unter macOS und Linux werden SMB-Netzwerkpfade nach dem Einhängen als normale Ordner im Dateisystem präsentiert (z. B. <code>/Volumes/MYNAS/Podcast</code> unter macOS, <code>/mnt/nas/podcast</code> unter Linux). Diese Pfade können direkt als Zielordner verwendet werden.
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="74-smb-anmeldedaten-und-authentifizierung">7.4 SMB-Anmeldedaten und Authentifizierung</h2>
+        <p>Die Zugangsdaten zum NAS müssen auf Betriebssystemebene konfiguriert werden, nicht innerhalb von FeedDownloader Pro.</p>
+        <p><strong>Unter Windows:</strong></p>
+        <ol>
+          <li>Den <strong>Explorer</strong> öffnen und zum NAS-Pfad navigieren (<code>\\MYNAS\</code>).</li>
+          <li>Die Anmeldedaten eingeben und <strong>„Anmeldedaten speichern"</strong> aktivieren.</li>
+          <li>Die Anmeldedaten werden im <strong>Windows-Anmeldeinformations-Manager</strong> gespeichert (<code>Systemsteuerung → Anmeldeinformationsverwaltung → Windows-Anmeldeinformationen</code>).</li>
+          <li>FeedDownloader Pro greift wie jede andere Anwendung auf das NAS zu, ohne weitere Anmeldedaten anzufordern.</li>
+        </ol>
+        <p>
+          <strong>Unter macOS:</strong>
+          Die SMB-Anmeldedaten werden beim Einhängen der Freigabe angefordert (aus dem Finder: <strong>Gehe zu → Mit Server verbinden</strong> → <code>smb://192.168.1.100/Freigabename</code>). macOS speichert diese im Schlüsselbund.
+        </p>
+        <p>
+          <strong>Unter Linux:</strong>
+          Die Freigabe mit den Anmeldedaten in der <code>fstab</code>-Datei oder über ein grafisches Werkzeug wie GNOME Files einhängen. Alternativ <code>smbclient</code> oder <code>mount -t cifs</code> über das Terminal verwenden.
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="75-diagnose-von-problemen-mit-netzwerkpfaden">7.5 Diagnose von Problemen mit Netzwerkpfaden</h2>
+        <p>Bei der Warnung „Netzwerkpfad nicht erreichbar" folgende Punkte in der angegebenen Reihenfolge prüfen.</p>
+        <p>
+          <strong>1. Ist das NAS eingeschaltet und gestartet?</strong>
+          Die Statusanzeigen des Geräts prüfen. Viele Consumer-NAS-Geräte wechseln nach einer Inaktivitätsphase in den Ruhemodus. Vor dem Start des Downloads das NAS-Administrationsfenster im Browser öffnen, um die Verfügbarkeit zu prüfen.
+        </p>
+        <p>
+          <strong>2. Ist das NAS über das Netzwerk erreichbar?</strong>
+          Aus der Eingabeaufforderung (Windows) oder dem Terminal (macOS/Linux):
+          <code>ping 192.168.1.100</code>
+          Mit der IP-Adresse des NAS ersetzen. Erhält der Befehl eine Antwort, ist die grundlegende Netzwerkkonnektivität funktionsfähig.
+        </p>
+        <p>
+          <strong>3. Ist die SMB-Freigabe zugänglich?</strong>
+          Versuchen, den Pfad <code>\\192.168.1.100\Freigabename</code> direkt im Windows-Explorer zu öffnen. Schlägt dies fehl, liegt das Problem in der SMB-Konfiguration des NAS, nicht in FeedDownloader Pro.
+        </p>
+        <p>
+          <strong>4. Sind die Schreibberechtigungen korrekt?</strong>
+          Manuell eine Datei im Zielordner über den Dateimanager erstellen. Ist dies nicht möglich, verfügt der Benutzer, mit dem auf das NAS zugegriffen wird, nicht über Schreibberechtigungen für diese Freigabe. Die Berechtigungen über das NAS-Administrationsfenster konfigurieren.
+        </p>
+        <p>
+          <strong>5. Blockiert die Firewall SMB-Verbindungen?</strong>
+          Das SMB-Protokoll verwendet Port 445 (und in einigen Fällen Port 139). Prüfen, ob die System-Firewall oder eine Drittanbieter-Firewall diese Ports für Verbindungen im lokalen Netzwerk blockiert.
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="76-optimale-leistung-auf-nas">7.6 Optimale Leistung auf NAS</h2>
+        <p>Downloads auf NAS weisen eine zusätzliche Komplexität gegenüber Downloads auf lokale Datenträger auf: Die Dateien werden über das Netzwerk geschrieben, und die Geschwindigkeit hängt sowohl von der LAN-Bandbreite als auch von der Schreibkapazität des NAS ab.</p>
+        <p><strong>Operative Hinweise:</strong></p>
+        <ul>
+          <li><strong>Kabelgebundene Verbindung (Ethernet) verwenden:</strong> Wi-Fi führt zu Latenz und Instabilität bei Netzwerk-Schreiboperationen. Für große Archive bietet eine kabelgebundene Gigabit-Ethernet-Verbindung deutlich bessere Leistung.</li>
+          <li><strong>Parallele Threads reduzieren:</strong> Das gleichzeitige Schreiben vieler Dateien auf ein NAS kann dessen I/O sättigen. Mit 2–3 parallelen Threads werden oft bessere Ergebnisse erzielt als mit der maximalen verfügbaren Anzahl.</li>
+          <li><strong>Überschneidungen mit NAS-Backups vermeiden:</strong> Führt das NAS automatische Backups durch, sollten keine Batch-Downloads in denselben Zeitfenstern gestartet werden, da der Wettbewerb um die Festplatten-I/O beide Operationen verlangsamt.</li>
+          <li><strong>Lokalen Cache verwenden:</strong> Bei sehr großen Archiven kann zuerst auf ein schnelles lokales Laufwerk heruntergeladen und die Dateien nach Abschluss des Downloads auf das NAS verschoben werden.</li>
+        </ul>
+        <hr>
+        <p><em>Siehe Kapitel 8 für die Konfiguration der Umbenennungsvorlage und der Metadatenfunktionen.</em></p>
+      </section>
+    </section>
+  
+
+</body></html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html><html lang="pt"><head>
+    <meta charset="utf-8">
+    <title>Capítulo 7: NAS, Discos de Rede e Caminhos SMB</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="book/theme.css">
+  </head>
+  <body>
+    <section class="level1">
+      <h1 id="capítulo-7-nas-discos-de-rede-e-caminhos-smb">Capítulo 7: NAS, Discos de Rede e Caminhos SMB</h1>
+      <section class="level2">
+        <h2 id="71-por-que-os-discos-de-rede-requerem-uma-abordagem-específica">7.1 Por que os Discos de Rede Requerem uma Abordagem Específica</h2>
+        <p>A maioria das aplicações de transferência de ambiente de trabalho gere corretamente os caminhos locais (<code>C:\</code>, <code>D:\</code>) e apresenta comportamentos imprevisíveis quando o destino é um NAS, um servidor Windows partilhado ou uma unidade SMB. O motivo é técnico: os discos de rede são intrinsecamente menos fiáveis do que os discos locais. O NAS pode estar desligado, a rede local pode sofrer picos de latência, as credenciais SMB podem expirar. Qualquer operação num caminho de rede que não responde pode bloquear o processo principal da aplicação durante dezenas de segundos, tornando a interface não responsiva.</p>
+        <p>O FeedDownloader Pro gere corretamente estes cenários. Para os utilizadores que arquivam em NAS, este capítulo é essencial.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="72-como-funciona-a-validação-do-caminho-de-rede">7.2 Como Funciona a Validação do Caminho de Rede</h2>
+        <p>Sempre que é definido um caminho de destino que começa com <code>\\</code> (caminho UNC, típico de SMB) ou corresponde a uma unidade de rede mapeada (ex.: <code>Z:\</code>), o FeedDownloader Pro ativa automaticamente o <strong>módulo de validação do caminho de rede</strong>.</p>
+        <p>Este módulo executa três operações numa <strong>transferência separada</strong>, sem nunca envolver o processo da interface:</p>
+        <ol>
+          <li><strong>Teste de acessibilidade:</strong> Tenta aceder à raiz do caminho de rede. Se o NAS não estiver ligado ou a rede não estiver disponível, esta operação falha.</li>
+          <li><strong>Teste de acesso em leitura:</strong> Verifica que a pasta de destino existe e é legível.</li>
+          <li><strong>Teste de acesso em escrita:</strong> Cria e depois elimina um ficheiro temporário (<code>_fdp_write_test_[timestamp].tmp</code>) na pasta de destino para verificar as permissões de escrita.</li>
+        </ol>
+        <p>Toda a sequência tem um <strong>tempo limite de 8 segundos</strong>. Se dentro deste intervalo não for recebida resposta, o software considera o caminho indisponível e apresenta um aviso, sem bloquear a interface.</p>
+        <p><em>Justificação do tempo limite:</em> A maioria dos NAS domésticos (Synology, QNAP, WD MyCloud) demora 3–6 segundos a sair do modo de suspensão. 8 segundos é um intervalo suficiente para aguardar este restabelecimento, sendo suficientemente curto para não constituir uma espera percetível para o utilizador.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="73-configurar-um-caminho-nas">7.3 Configurar um Caminho NAS</h2>
+        <p>
+          <strong>Método 1 — Caminho UNC direto:</strong>
+          Introduzir o caminho no formato <code>\\NomeServidor\NomePartilha\Pasta</code>:
+        </p>
+        <pre class="language-text"><code class="language-text">\\MYNAS\Podcast\Arquivo
+\\192.168.1.100\media\podcast
+\\NAS-SYNOLOGY\video\audio_archive</code></pre>
+        <p>O caminho pode ser introduzido diretamente no campo de texto do destino, ou através da janela de seleção de pasta, que no Windows suporta a navegação pelos caminhos de rede.</p>
+        <p>
+          <strong>Método 2 — Unidade de rede mapeada:</strong>
+          Se o NAS já estiver mapeado como unidade de rede no Windows (ex.: <code>Z:</code> → <code>\\MYNAS\Podcast</code>), é possível selecionar <code>Z:\Arquivo</code> como pasta de destino. O FeedDownloader Pro reconhece automaticamente que se trata de um caminho de rede e ativa a validação.
+        </p>
+        <p>
+          <strong>Método 3 — macOS e Linux (ponto de montagem):</strong>
+          No macOS e no Linux, os caminhos de rede SMB são apresentados como pastas normais no sistema de ficheiros após a montagem (ex.: <code>/Volumes/MYNAS/Podcast</code> no macOS, <code>/mnt/nas/podcast</code> no Linux). Estes caminhos podem ser utilizados diretamente como pasta de destino.
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="74-credenciais-smb-e-autenticação">7.4 Credenciais SMB e Autenticação</h2>
+        <p>As credenciais de acesso ao NAS devem ser configuradas ao nível do sistema operativo, e não dentro do FeedDownloader Pro.</p>
+        <p><strong>No Windows:</strong></p>
+        <ol>
+          <li>Abrir o <strong>Explorador de Ficheiros</strong> e navegar até ao caminho do NAS (<code>\\MYNAS\</code>).</li>
+          <li>Introduzir as credenciais quando solicitadas e marcar <strong>"Memorizar credenciais"</strong>.</li>
+          <li>As credenciais são guardadas no <strong>Gestor de Credenciais do Windows</strong> (<code>Painel de Controlo → Gestão de credenciais → Credenciais do Windows</code>).</li>
+          <li>O FeedDownloader Pro, como qualquer outra aplicação, acederá ao NAS sem solicitar credenciais adicionais.</li>
+        </ol>
+        <p>
+          <strong>No macOS:</strong>
+          As credenciais SMB são solicitadas ao montar a partilha (a partir do Finder: <strong>Ir → Ligar ao Servidor</strong> → <code>smb://192.168.1.100/NomePartilha</code>). O macOS memoriza-as no Porta-Chaves.
+        </p>
+        <p>
+          <strong>No Linux:</strong>
+          Montar a partilha com as credenciais no ficheiro <code>fstab</code> ou através de uma ferramenta gráfica como o GNOME Files. Em alternativa, utilizar <code>smbclient</code> ou <code>mount -t cifs</code> a partir do terminal.
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="75-diagnóstico-de-problemas-com-caminhos-de-rede">7.5 Diagnóstico de Problemas com Caminhos de Rede</h2>
+        <p>Em caso de aviso "Caminho de rede inacessível", verificar os seguintes pontos na ordem indicada.</p>
+        <p>
+          <strong>1. O NAS está ligado e iniciado?</strong>
+          Verificar as luzes do dispositivo. Muitos NAS domésticos entram em modo de suspensão após um período de inatividade. Antes de iniciar a transferência, abrir o painel de administração do NAS no browser para verificar a sua disponibilidade.
+        </p>
+        <p>
+          <strong>2. O NAS é acessível a partir da rede?</strong>
+          A partir da Linha de Comandos (Windows) ou do Terminal (macOS/Linux):
+          <code>ping 192.168.1.100</code>
+          Substituir pelo endereço IP do NAS. Se o comando receber resposta, a conectividade de rede básica está a funcionar.
+        </p>
+        <p>
+          <strong>3. A partilha SMB é acessível?</strong>
+          Tentar abrir o caminho <code>\\192.168.1.100\NomePartilha</code> diretamente a partir do Explorador de Ficheiros do Windows. Se a operação falhar, o problema reside na configuração SMB do NAS, e não no FeedDownloader Pro.
+        </p>
+        <p>
+          <strong>4. As permissões de escrita estão corretas?</strong>
+          Criar manualmente um ficheiro na pasta de destino através do gestor de ficheiros. Se a operação não for permitida, o utilizador com o qual se acede ao NAS não tem permissões de escrita nessa partilha. Configurar as permissões a partir do painel de administração do NAS.
+        </p>
+        <p>
+          <strong>5. A firewall bloqueia as ligações SMB?</strong>
+          O protocolo SMB utiliza a porta 445 (e em alguns casos a porta 139). Verificar que a firewall do sistema ou de terceiros não bloqueia estas portas para as ligações na rede local.
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="76-desempenho-ideal-no-nas">7.6 Desempenho Ideal no NAS</h2>
+        <p>As transferências para NAS apresentam uma complexidade adicional em relação às transferências para disco local: os ficheiros são escritos através da rede e a velocidade depende tanto da largura de banda da LAN como da capacidade de escrita do NAS.</p>
+        <p><strong>Indicações operacionais:</strong></p>
+        <ul>
+          <li><strong>Utilizar uma ligação por cabo (Ethernet):</strong> O Wi-Fi introduz latência e instabilidade nas operações de escrita em rede. Para arquivos de grandes dimensões, uma ligação Gigabit Ethernet por cabo oferece um desempenho significativamente melhor.</li>
+          <li><strong>Reduzir as transferências paralelas:</strong> A escrita simultânea de muitos ficheiros num NAS pode saturar o seu I/O. Com 2–3 transferências paralelas obtêm-se frequentemente melhores resultados do que utilizando o número máximo disponível.</li>
+          <li><strong>Evitar sobreposições com as cópias de segurança do NAS:</strong> Se o NAS executa cópias de segurança automáticas, evitar iniciar transferências em lote nas mesmas janelas temporais, pois a competição pelo I/O do disco abranda ambas as operações.</li>
+          <li><strong>Utilizar uma cache local:</strong> Para arquivos muito grandes, é possível transferir primeiro para um disco local rápido e mover os ficheiros para o NAS no final da transferência.</li>
+        </ul>
+        <hr>
+        <p><em>Ver o Capítulo 8 para a configuração do modelo de renomeação e das funcionalidades de metadados.</em></p>
+      </section>
+    </section>
+  
+
+</body></html>

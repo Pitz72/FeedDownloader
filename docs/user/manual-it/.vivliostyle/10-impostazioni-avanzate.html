@@ -1,0 +1,123 @@
+<!DOCTYPE html><html lang="it"><head>
+    <meta charset="utf-8">
+    <title>Capitolo 10: Impostazioni Avanzate</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="book/theme.css">
+  </head>
+  <body>
+    <section class="level1">
+      <h1 id="capitolo-10-impostazioni-avanzate">Capitolo 10: Impostazioni Avanzate</h1>
+      <section class="level2">
+        <h2 id="101-panoramica-del-pannello-impostazioni">10.1 Panoramica del Pannello Impostazioni</h2>
+        <p>Il pannello delle impostazioni è accessibile in qualsiasi momento tramite l'icona dell'ingranaggio (⚙) nell'angolo superiore dell'interfaccia. Le impostazioni sono organizzate in cinque schede tematiche: <strong>Generale</strong>, <strong>Download</strong>, <strong>Metadati</strong>, <strong>Archivio</strong> e <strong>Avanzate</strong>. Tutte le modifiche vengono salvate automaticamente: non è necessario confermare con un pulsante dedicato.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="102-download">10.2 Download</h2>
+        <p>Questa sezione contiene i controlli principali del motore di download. I parametri tecnici interni (timeout di connessione, numero di retry, stall detection) sono fissi nel motore e non richiedono configurazione manuale.</p>
+        <section class="level3">
+          <h3 id="thread-paralleli">Thread Paralleli</h3>
+          <p>Il numero di download simultanei. Selezionabile tra tre preset: <strong>1</strong>, <strong>3</strong> e <strong>5</strong>. Per le linee guida sulla scelta del valore, vedi il Capitolo 6.</p>
+          <p><strong>Valore predefinito:</strong> 3</p>
+        </section>
+        <section class="level3">
+          <h3 id="limite-di-velocità">Limite di Velocità</h3>
+          <p>Consente di limitare la banda aggregata utilizzata da tutti i download attivi, per evitare interferenze con altre attività di rete.</p>
+          <p><strong>Valori disponibili:</strong> <code>0</code> = nessun limite (predefinito); qualsiasi valore positivo in KB/s. Esempio: <code>500</code> limita il consumo totale a circa 4 Mbps.</p>
+          <hr>
+        </section>
+      </section>
+      <section class="level2">
+        <h2 id="103-filtro-per-parole-chiave">10.3 Filtro per Parole Chiave</h2>
+        <p>Il filtro testuale consente di <strong>restringere la lista degli episodi visualizzati</strong> in base al testo contenuto nel titolo. È uno strumento di consultazione e selezione rapida, utile in particolare con cataloghi di grandi dimensioni.</p>
+        <p>
+          <strong>Come utilizzare il filtro:</strong>
+          La barra di filtro è posizionata nella parte superiore della lista degli episodi, immediatamente sotto i controlli del batch. Digitando uno o più termini, la lista si aggiorna in tempo reale mostrando solo gli episodi il cui titolo contiene <strong>tutti i termini inseriti</strong> (logica AND).
+        </p>
+        <ul>
+          <li>Per cercare episodi che contengono la parola "intervista", digitare <code>intervista</code>.</li>
+          <li>Per cercare episodi che contengono sia "intervista" sia "2024", digitare <code>intervista 2024</code>.</li>
+          <li>Il filtro non distingue tra maiuscole e minuscole: <code>Bonus</code> e <code>bonus</code> producono lo stesso risultato.</li>
+        </ul>
+        <p><strong>Scenari d'uso tipici:</strong></p>
+        <ul>
+          <li>Individuare rapidamente gli episodi di una stagione specifica in un catalogo esteso.</li>
+          <li>Selezionare un sottoinsieme di episodi da scaricare senza scorrere l'intera lista.</li>
+          <li>Verificare se un episodio con un determinato titolo è già presente nel database.</li>
+        </ul>
+        <p><em>Nota:</em> Il filtro agisce sulla visualizzazione della lista corrente e non modifica la coda di download né lo stato degli episodi nel database. Per rimuovere il filtro, svuotare la barra di testo.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="104-generale">10.4 Generale</h2>
+        <section class="level3">
+          <h3 id="lingua">Lingua</h3>
+          <p>FeedDownloader Pro è disponibile in 8 lingue: Italiano, English, Deutsch, Español, Français, Português, Русский, 中文.</p>
+          <p>Il cambio di lingua è immediato: l'interfaccia si aggiorna senza necessità di riavviare il software. L'applicazione utilizza esclusivamente il tema scuro "Obsidian Command": non è disponibile un tema chiaro né un selettore di densità della lista.</p>
+          <hr>
+        </section>
+      </section>
+      <section class="level2">
+        <h2 id="105-sicurezza-il-sistema-anti-ssrf-a-5-livelli">10.5 Sicurezza: Il Sistema Anti-SSRF a 5 Livelli</h2>
+        <p>Questa sezione è documentata a titolo informativo: il sistema di sicurezza opera in modo completamente automatico e non richiede configurazione da parte dell'utente.</p>
+        <p>
+          <strong>Cos'è un attacco SSRF?</strong>
+          SSRF (Server-Side Request Forgery) è un tipo di attacco in cui un URL malevolo, invece di puntare a una risorsa pubblica, punta a risorse interne della rete (come il pannello di amministrazione del router, un NAS o un server locale). Nel contesto di un downloader, un feed RSS costruito ad arte potrebbe includere URL audio che puntano a queste risorse interne.
+        </p>
+        <p><strong>I 5 livelli di validazione:</strong></p>
+        <ol>
+          <li>
+            <p><strong>Validazione del protocollo:</strong> Sono accettati solo i protocolli <code>http://</code> e <code>https://</code>. Protocolli come <code>file://</code>, <code>ftp://</code>, <code>data:</code>, <code>javascript:</code> vengono rifiutati immediatamente.</p>
+          </li>
+          <li>
+            <p><strong>Validazione sintattica dell'URL:</strong> L'URL viene analizzato per verificare la conformità allo standard RFC 3986.</p>
+          </li>
+          <li>
+            <p><strong>Risoluzione DNS con ispezione dell'IP:</strong> Il dominio nell'URL viene risolto in un indirizzo IP. Se la risoluzione fallisce, l'URL viene rifiutato. Se la risoluzione ha successo, l'indirizzo IP risultante viene verificato al livello successivo.</p>
+          </li>
+          <li>
+            <p><strong>Blocco degli indirizzi IP privati e riservati:</strong> Vengono bloccati tutti gli indirizzi IP appartenenti a intervalli privati o riservati, inclusi:</p>
+            <ul>
+              <li><code>10.0.0.0/8</code>, <code>172.16.0.0/12</code>, <code>192.168.0.0/16</code> (reti private RFC 1918)</li>
+              <li><code>127.0.0.0/8</code> (loopback)</li>
+              <li><code>169.254.0.0/16</code> (link-local)</li>
+              <li><code>::1/128</code> (loopback IPv6)</li>
+              <li><code>fc00::/7</code> (unique local IPv6)</li>
+              <li>Qualsiasi indirizzo che punti all'host locale.</li>
+            </ul>
+          </li>
+          <li>
+            <p><strong>Blocco delle porte non standard:</strong> Sono accettate solo le porte 80 e 443. Gli URL con porte non standard (es. <code>:8080</code>, <code>:3000</code>, <code>:22</code>) vengono rifiutati.</p>
+          </li>
+        </ol>
+        <p><em>Nota per ambienti aziendali:</em> Se la rete aziendale include server di podcast interni raggiungibili tramite indirizzi IP privati, il sistema anti-SSRF bloccherà questi URL. In tal caso, contattare il supporto per una configurazione personalizzata che includa specifici intervalli di indirizzi IP nella whitelist interna.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="106-avanzate">10.6 Avanzate</h2>
+        <section class="level3">
+          <h3 id="aggiornamenti">Aggiornamenti</h3>
+          <p>FeedDownloader Pro include un sistema di aggiornamento automatico integrato.</p>
+          <p><strong>Verifica automatica all'avvio:</strong> Nella versione installata (pacchetto), il software controlla automaticamente la disponibilità di nuovi aggiornamenti 3 secondi dopo l'avvio, interrogando il repository GitHub. Se una nuova versione è disponibile, il download inizia in background senza richiedere alcuna azione.</p>
+          <p><strong>Verifica manuale:</strong> Il pulsante <strong>"Controlla Aggiornamenti"</strong> nella scheda <strong>Avanzate</strong> forza una verifica immediata in qualsiasi momento.</p>
+          <p>Se una nuova versione è disponibile, il software la scarica in background e mostra il pulsante <strong>"Installa e Riavvia"</strong>. L'installazione non viene mai avviata automaticamente: la decisione spetta sempre all'utente.</p>
+          <p><strong>Stati visualizzati durante il processo:</strong></p>
+          <ul>
+            <li><strong>Verifica in corso…</strong> — il software sta interrogando il repository GitHub.</li>
+            <li><strong>Sei aggiornato</strong> — la versione installata è la più recente.</li>
+            <li><strong>Nuova versione disponibile (vX.Y.Z)</strong> — download in corso in background.</li>
+            <li><strong>Aggiornamento pronto</strong> — il pacchetto è stato scaricato ed è pronto per l'installazione.</li>
+          </ul>
+        </section>
+        <section class="level3">
+          <h3 id="reset-database">Reset Database</h3>
+          <p>Elimina completamente il database e ricomincia con un archivio vuoto. <strong>Questa operazione è irreversibile.</strong> Il software richiede una doppia conferma esplicita prima di procedere. I file audio sul disco non vengono eliminati: viene azzerata esclusivamente la memoria interna del software (cronologia dei download, metadati, statistiche).</p>
+          <p><em>Quando utilizzarlo:</em> Esclusivamente quando si intende ripartire da un archivio completamente vuoto, ad esempio dopo una migrazione su un nuovo sistema o per rimuovere i dati di un ciclo di test.</p>
+          <hr>
+          <p><em>Vai al Capitolo 11 per la risoluzione dei problemi più comuni.</em></p>
+        </section>
+      </section>
+    </section>
+  
+
+</body></html>

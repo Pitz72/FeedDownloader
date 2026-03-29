@@ -1,0 +1,172 @@
+<!DOCTYPE html><html lang="zh"><head>
+    <meta charset="utf-8">
+    <title>第 11 章：故障排查</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="book/theme.css">
+  </head>
+  <body>
+    <section class="level1">
+      <h1 id="第-11-章故障排查">第 11 章：故障排查</h1>
+      <section class="level2">
+        <h2 id="111-如何使用本章">11.1 如何使用本章</h2>
+        <p>本章收集了用户最常遇到的问题，包括最可能的原因和分步解决方案。每个问题按其在界面上的表现形式描述，而非以内部技术术语表述。</p>
+        <p>如果本列表中没有你遇到的问题，请查看 <code>logs/</code> 文件夹中的日志文件（参见第 10 章），并在联系支持时附上问题发生时的会话日志。</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="feed-与分析问题">Feed 与分析问题</h2>
+        <hr>
+        <section class="level3">
+          <h3 id="问题连接错误或分析-feed-时超时">问题："连接错误"或分析 feed 时"超时"</h3>
+          <p><strong>表现方式：</strong> 点击<strong>"分析"</strong>后几秒钟，出现错误消息提示超时或连接失败。列表保持为空。</p>
+          <p><strong>可能原因与解决方案：</strong></p>
+          <ul>
+            <li><strong>feed 服务器不可用。</strong> 在浏览器中打开 feed URL。如果浏览器返回错误（页面未找到、"无法访问此网站"），问题在于播客服务器：除了稍后重试，没有其他处理方式。</li>
+            <li><strong>互联网连接不可用或不稳定。</strong> 检查其他网站是否可以访问。如果连接不稳定，请等待稳定后再重试。</li>
+            <li><strong>企业防火墙或代理阻止了请求。</strong> 在企业环境中，到某些主机的流量可能被阻止。尝试从家庭网络访问，以确认问题是否特定于企业网络。</li>
+          </ul>
+          <hr>
+        </section>
+        <section class="level3">
+          <h3 id="问题feed-已分析但节目列表为空">问题：Feed 已分析但节目列表为空</h3>
+          <p><strong>表现方式：</strong> 分析完成无错误，但节目列表不显示任何内容（或显示 0 个节目）。</p>
+          <p><strong>可能原因与解决方案：</strong></p>
+          <ul>
+            <li><strong>Feed 中没有节目。</strong> 在浏览器中打开 URL，验证 XML 文档是否包含 <code>&lt;item&gt;</code> 或 <code>&lt;entry&gt;</code> 标签。如果没有，该播客尚未发布任何节目。</li>
+            <li><strong>Feed 使用了非标准格式。</strong> FeedDownloader Pro 支持 RSS 2.0 和 Atom 1.0。某些专有平台生成的 feed 可能具有非常规结构。在这种情况下，软件会在分析消息中显示具体警告。</li>
+            <li><strong>所有节目已在数据库中。</strong> 如果 feed 之前已分析过，节目会显示为<strong>"已下载"</strong>状态（浅绿色）。滚动列表查看是否有此状态指示器。</li>
+          </ul>
+          <hr>
+        </section>
+        <section class="level3">
+          <h3 id="问题feed-只显示最新-n-个节目而非完整历史目录">问题：Feed 只显示最新 N 个节目，而非完整历史目录</h3>
+          <p><strong>表现方式：</strong> 分析一个已知有数百个节目的播客，但列表只显示 50 或 100 个。</p>
+          <p><strong>原因：</strong> 此限制由播客发布者或其托管平台设定，与 FeedDownloader Pro 无关。许多平台将 RSS feed 限制为最近 50–100 个节目，以减轻其服务器负载。软件只下载 feed 提供的数据。</p>
+          <p><strong>可能的替代方案：</strong></p>
+          <ul>
+            <li>检查播客是否提供"完整 feed"作为备用 URL（某些平台提供此选项）。</li>
+            <li>查阅播客网站或分发平台（Spotify、Apple Podcasts）以获取较早节目的链接。</li>
+            <li>某些平台接受 URL 参数以请求完整 feed（例如 <code>?limit=0</code> 或 <code>?paged=all</code>）：请查阅特定平台的文档。</li>
+          </ul>
+          <hr>
+        </section>
+      </section>
+      <section class="level2">
+        <h2 id="下载问题">下载问题</h2>
+        <hr>
+        <section class="level3">
+          <h3 id="问题许多节目显示错误-404状态">问题：许多节目显示"错误 404"状态</h3>
+          <p><strong>表现方式：</strong> 批量下载后，多个节目显示<strong>"错误"</strong>状态，消息为 <code>404 Not Found</code>。</p>
+          <p><strong>原因：</strong> 这些节目仍然存在于 RSS feed（XML 文档）中，但它们指向的音频文件已从服务器上删除。这种情况在已停播或迁移到其他平台的播客中很常见。</p>
+          <p><strong>可采取的措施：</strong></p>
+          <ul>
+            <li>无法下载服务器上已不存在的文件。</li>
+            <li>如果是活跃播客且错误数量似乎过多，请联系播客发布者：可能是临时迁移或可解决的技术问题。</li>
+            <li>404 错误的节目会自动从后续批量任务中排除，无需手动从列表中删除。</li>
+          </ul>
+          <hr>
+        </section>
+        <section class="level3">
+          <h3 id="问题下载已开始但进度非常慢">问题：下载已开始但进度非常慢</h3>
+          <p><strong>表现方式：</strong> 进度条在移动，但相对于可用带宽，速度非常低（仅几 KB/s）。</p>
+          <p><strong>可能原因与解决方案：</strong></p>
+          <ul>
+            <li><strong>播客服务器施加了带宽限制。</strong> 许多托管服务器为控制成本而进行限速。对于惩罚多连接的服务器，将线程减少到 1 可能会改善情况。</li>
+            <li><strong>Wi-Fi 连接不稳定。</strong> 对于密集的批量下载，请使用有线连接（Ethernet）。</li>
+            <li><strong>目标磁盘速度较慢。</strong> 通过 Wi-Fi 连接的 NAS 或 USB 2.0 设备的写入可能成为瓶颈。考虑先下载到快速本地磁盘。</li>
+            <li><strong>互联网连接实际受限。</strong> 通过测速工具检查实际下载速度。如果结果低于预期，问题在于连接本身。</li>
+          </ul>
+          <hr>
+        </section>
+        <section class="level3">
+          <h3 id="问题一个节目卡在较高百分比始终无法完成">问题：一个节目卡在较高百分比，始终无法完成</h3>
+          <p><strong>表现方式：</strong> 某个下载显示较高百分比（90%、95%、99%），但无法达到 100%，进度不再更新。</p>
+          <p><strong>原因：</strong> 服务器发送了几乎全部文件内容，但在完成前中断了传输。停滞检测将在收到最后数据的 60 秒内检测到此情况，并自动重新开始下载。</p>
+          <p><strong>如果多次尝试后问题仍然持续：</strong> 服务器上的文件可能已损坏或被截断。达到最大尝试次数后，节目将被标记为<strong>"错误"</strong>，消息指出声明大小与收到大小之间存在差异。</p>
+          <hr>
+        </section>
+        <section class="level3">
+          <h3 id="问题软件已下载-mp3-文件但音频播放器报告文件已损坏">问题：软件已下载 <code>.mp3</code> 文件，但音频播放器报告文件已损坏</h3>
+          <p><strong>表现方式：</strong> 下载显示为已完成（绿色状态），但用音频播放器打开文件时返回错误或文件无法播放。</p>
+          <p><strong>原因：</strong> 由于 <code>.part</code> 文件机制和大小验证，这种情况本不应发生。如果发生，服务器上的原始文件可能已经损坏（发布者的问题），或者发生了磁盘写入错误。</p>
+          <p><strong>解决方案：</strong></p>
+          <ol>
+            <li>在列表中右键点击节目 → <strong>"强制重新下载"</strong>。</li>
+            <li>如果重新下载的文件仍然损坏，问题在于播客服务器上的源文件。可通过在浏览器中直接打开文件 URL 来验证。</li>
+            <li>执行存档检查（参见第 9 章），检查存档中其他文件是否有问题。</li>
+          </ol>
+          <hr>
+        </section>
+      </section>
+      <section class="level2">
+        <h2 id="nas-与网络问题">NAS 与网络问题</h2>
+        <hr>
+        <section class="level3">
+          <h3 id="问题网络路径不可访问但-nas-明明已开机">问题："网络路径不可访问"，但 NAS 明明已开机</h3>
+          <p><strong>表现方式：</strong> 软件显示路径不可访问警告，但 NAS 通过文件管理器可以正常访问。</p>
+          <p><strong>按顺序检查以下解决方案：</strong></p>
+          <ol>
+            <li><strong>检查路径是否准确。</strong> 大小写差异（<code>\\MYNAS\podcast</code> 与 <code>\\MYNAS\Podcast</code>）在某些系统上可能导致错误。</li>
+            <li><strong>SMB 凭据是否已保存？</strong> 打开文件资源管理器，尝试手动访问 <code>\\MYNAS\共享名</code>。如果提示输入密码，凭据未保存在 Windows 凭据管理器中。输入凭据并勾选<strong>"记住我的凭据"</strong>。</li>
+            <li><strong>Windows 防火墙是否阻止了 FeedDownloader Pro？</strong> 前往<code>控制面板 → Windows Defender 防火墙 → 允许的应用</code>，确认 FeedDownloader Pro 已列出并允许访问。</li>
+            <li><strong>NAS 是否支持 SMBv2/3？</strong> 某些较旧的 NAS 只支持 SMBv1，该协议在 Windows 11 上默认已禁用。更新 NAS 固件，或从 NAS 管理面板启用 SMBv1。</li>
+          </ol>
+          <hr>
+        </section>
+        <section class="level3">
+          <h3 id="问题nas-上的下载在几分钟后中断">问题：NAS 上的下载在几分钟后中断</h3>
+          <p><strong>表现方式：</strong> 批量任务正常开始，下载了几个节目，然后因写入错误或路径不可访问错误而卡住。</p>
+          <p><strong>原因：</strong> NAS 在下载过程中进入了休眠模式。某些消费级 NAS 的节能功能可能在活跃传输期间也会启动，如果设备配置为只监控网络流量而忽略 SMB 连接的话。</p>
+          <p><strong>解决方案：</strong></p>
+          <ul>
+            <li>在批量下载期间从 NAS 管理面板临时禁用休眠模式。</li>
+            <li>将线程数减少到 1：持续的写入流比间歇性的密集突发更有效地防止休眠激活。</li>
+          </ul>
+          <hr>
+        </section>
+      </section>
+      <section class="level2">
+        <h2 id="常规问题">常规问题</h2>
+        <hr>
+        <section class="level3">
+          <h3 id="问题界面响应迟缓">问题：界面响应迟缓</h3>
+          <p><strong>表现方式：</strong> 点击需要 1–2 秒才有反应，列表滚动不流畅，程序看起来很慢。</p>
+          <p><strong>可能原因：</strong></p>
+          <ul>
+            <li><strong>数据库体积过大。</strong> 当数据库中有数万个节目时，某些操作可能变慢。仅在存档中包含大量错误节目或不打算恢复的数据时，才考虑使用<strong>重置数据库</strong>（<strong>设置 → 高级</strong>）。</li>
+            <li><strong>内存不足的设备上线程数过多。</strong> 在内存少于 4 GB 的系统上运行 5 个活动线程，进程可能变慢。将线程减少到 1 或 3。</li>
+            <li><strong>防病毒软件实时扫描 <code>.part</code> 文件。</strong> 某些安全软件会拦截每次磁盘写入操作，从而降低下载速度。将目标文件夹添加到防病毒软件的排除列表中。</li>
+          </ul>
+          <hr>
+        </section>
+        <section class="level3">
+          <h3 id="问题软件无法启动或打开后立即关闭">问题：软件无法启动，或打开后立即关闭</h3>
+          <p><strong>表现方式：</strong> 启动程序后，进程短暂出现在任务管理器中，然后消失，界面从未显示。</p>
+          <p><strong>解决方案：</strong></p>
+          <ol>
+            <li><strong>检查日志。</strong> 访问 <code>%APPDATA%\FeedDownloaderPro\logs\</code>（Windows）或 <code>~/.config/FeedDownloaderPro/logs/</code>（Linux）。用文本编辑器打开最新的日志文件：最后一行应指明问题原因。</li>
+            <li><strong>数据库损坏。</strong> 如果日志在启动时指示 SQLite 错误，<code>feeddownloader.db</code> 文件可能已损坏。用备份文件替换它（参见第 9 章）。如果没有备份，将其重命名为 <code>feeddownloader.db.bak</code>：软件将在下次启动时创建一个新的空数据库（历史记录将丢失）。</li>
+            <li><strong>重新安装软件。</strong> 卸载 FeedDownloader Pro 并安装最新版本。卸载操作不会删除数据库和设置。</li>
+          </ol>
+          <hr>
+        </section>
+        <section class="level3">
+          <h3 id="问题我丢失了数据库数据是否可以恢复">问题：我丢失了数据库数据——是否可以恢复？</h3>
+          <p><strong>表现方式：</strong> 数据库被意外删除、损坏，或在没有预先备份的情况下执行了重置。</p>
+          <p><strong>恢复可能性：</strong></p>
+          <ul>
+            <li><strong>有备份可用：</strong> 在程序关闭的情况下，将备份的 <code>feeddownloader.db</code> 文件复制到应用程序的用户数据文件夹（路径参见第 2 章）。</li>
+            <li><strong>没有备份：</strong> 磁盘上的音频文件仍然存在——只是软件的记忆丢失了。可以通过重新分析 feed 来部分重建存档：磁盘上已有文件的节目将被系统识别，不会重新下载。</li>
+            <li><strong>预防措施：</strong> 定期将 <code>feeddownloader.db</code> 文件手动复制到安全位置，或将 feed 列表以 OPML 格式导出（参见第 5 章）作为配置备份。建议在每次迁移或软件更新前执行此备份。</li>
+          </ul>
+          <hr>
+          <p><em>本章是 Runtime FeedDownloader Pro 高级使用手册的最后一章。</em></p>
+          <p><em>如需本手册未涵盖的帮助，请参阅官方发布页面，或联系 Ecosystem Runtime | Digital Core 的技术支持。</em></p>
+          <hr>
+          <p><em>Ecosystem Runtime | Digital Core — 为长久而生的工具。</em></p>
+        </section>
+      </section>
+    </section>
+  
+
+</body></html>

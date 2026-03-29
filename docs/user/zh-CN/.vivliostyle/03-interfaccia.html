@@ -1,0 +1,139 @@
+<!DOCTYPE html><html lang="zh"><head>
+    <meta charset="utf-8">
+    <title>第 3 章：界面导览</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="book/theme.css">
+  </head>
+  <body>
+    <section class="level1">
+      <h1 id="第-3-章界面导览">第 3 章：界面导览</h1>
+      <section class="level2">
+        <h2 id="31-主窗口结构">3.1 主窗口结构</h2>
+        <p>打开 FeedDownloader Pro 后，界面在垂直方向上分为三个功能区域：</p>
+        <ul>
+          <li><strong>命令区（顶部）：</strong> URL 输入栏和主要控件。所有操作均从此处发起。</li>
+          <li><strong>工作区（中部）：</strong> 主要区域，显示已分析的节目及其相关信息和单个下载控件。</li>
+          <li><strong>状态区（底部）：</strong> 全局进度条，显示当前批量任务的信息。</li>
+        </ul>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="32-命令栏顶部">3.2 命令栏（顶部）</h2>
+        <p><strong>URL 字段：</strong> 用于输入要分析的播客 RSS 地址的文本栏。接受直接指向 XML/RSS 文件的 URL。支持 <strong>drag and drop</strong>：可以直接从浏览器将链接拖放到此区域。</p>
+        <p><strong>"分析"按钮：</strong> 启动 feed 分析。软件访问 URL，读取 RSS 文件，并填充节目列表。根据 feed 大小和连接速度，此操作通常需要 1 至 5 秒。</p>
+        <p><strong>目标路径字段：</strong> 显示已下载文件的保存文件夹。点击旁边的文件夹图标可打开选择窗口。设置的路径在会话之间保持不变。</p>
+        <p><strong>设置图标（⚙）：</strong> 打开设置面板。可在任意时刻访问，即使在下载进行中也可操作。详情参见第 10 章。</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="33-节目列表中部">3.3 节目列表（中部）</h2>
+        <p>分析 feed 后，此区域将显示可用节目列表。每行代表一个节目，包含以下信息。</p>
+        <p><strong>主要列：</strong></p>
+        <ul>
+          <li><strong>标题：</strong> RSS feed 中定义的节目名称。</li>
+          <li><strong>日期：</strong> 节目的原始发布日期。</li>
+          <li><strong>时长：</strong> 节目时长（若 feed 中有此信息）。</li>
+          <li><strong>大小：</strong> 文件估计大小（若 feed 中有此信息）。下载前为声明值；下载后反映文件实际大小。</li>
+          <li><strong>状态：</strong> 单个节目状态的视觉指示器。参见第 3.4 节。</li>
+          <li><strong>操作：</strong> 每个节目的单独控制按钮。</li>
+        </ul>
+        <p>
+          <strong>排序：</strong>
+          列标题可点击以对列表排序（按日期、按标题、按大小）。默认行为是将最新节目显示在顶部。
+        </p>
+        <p>
+          <strong>多选：</strong>
+          按住 <code>Ctrl</code> 并点击可逐个选择多个节目。<code>Shift</code> + 点击可选择一个范围。可对选中的节目应用批量操作（开始下载、从列表中移除）。
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="34-节目状态">3.4 节目状态</h2>
+        <p>列表中每个节目都标有彩色状态指示器。理解这些状态对于正确解读存档情况至关重要。</p>
+        <table>
+          <thead>
+            <tr>
+              <th>状态</th>
+              <th>颜色</th>
+              <th>含义</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>待下载</strong></td>
+              <td>灰色</td>
+              <td>节目存在于 feed 中，但从未被下载过。</td>
+            </tr>
+            <tr>
+              <td><strong>排队中</strong></td>
+              <td>蓝色</td>
+              <td>节目已加入队列，等待轮次。</td>
+            </tr>
+            <tr>
+              <td><strong>下载中</strong></td>
+              <td>动态浅蓝色</td>
+              <td>正在进行下载。单元格还会显示进度百分比。</td>
+            </tr>
+            <tr>
+              <td><strong>已完成</strong></td>
+              <td>绿色</td>
+              <td>文件已成功下载、重命名并验证。</td>
+            </tr>
+            <tr>
+              <td><strong>错误</strong></td>
+              <td>红色</td>
+              <td>经过所有自动重试后下载仍失败。悬停提示显示错误代码。</td>
+            </tr>
+            <tr>
+              <td><strong>已下载</strong></td>
+              <td>浅绿色</td>
+              <td>数据库中已记录此节目为已下载。不会重新下载。</td>
+            </tr>
+          </tbody>
+        </table>
+        <p><em>关于<strong>"已下载"</strong>状态的说明：</em> 此状态是数据库优先理念的体现。当分析之前已处理过的 feed 时，大多数节目会显示为此状态：软件已知它们存在于存档中。只有上次下载后新发布的节目才会显示为<strong>"待下载"</strong>。</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="35-单个下载控件">3.5 单个下载控件</h2>
+        <p>每行右侧有两个按钮。</p>
+        <p><strong>下载图标（↓）：</strong> 将单个节目添加到下载队列。如果节目已处于<strong>"已完成"</strong>或<strong>"已下载"</strong>状态，系统会在执行强制重新下载前要求确认。</p>
+        <p><strong>信息图标（ℹ）：</strong> 打开一个包含节目完整详情的面板：音频原始 URL、封面图片 URL、详细描述、磁盘上的文件路径（若已下载）、SHA-256 哈希值以及技术元数据。此面板对存档验证和诊断很有用。</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="36-批量控件顶部右侧区域">3.6 批量控件（顶部右侧区域）</h2>
+        <p>这些按钮对整个下载队列进行操作，而非单个节目。</p>
+        <p><strong>"全部下载"：</strong> 将所有处于<strong>"待下载"</strong>状态的节目添加到队列。数据库中已有记录的节目会被自动排除。</p>
+        <p><strong>"停止"：</strong> 中断批量任务并清空队列。已完成的文件保留在数据库中。<code>.part</code> 文件将被删除。下次分析同一 feed 时，被中断的节目将重新显示为<strong>"待下载"</strong>。</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="37-全局进度条底部">3.7 全局进度条（底部）</h2>
+        <p>底部栏始终可见，显示当前批量任务的整体状态：</p>
+        <ul>
+          <li><strong>进度条：</strong> 按已完成文件数占队列总数的比例填充。</li>
+          <li><strong>文件计数器：</strong> 例如 <code>47 / 312 个节目</code>——已完成文件数占队列总数。</li>
+          <li><strong>平均速度：</strong> 所有活动线程的综合下载速度，以 MB/s 或 KB/s 表示。</li>
+          <li><strong>预计时间：</strong> 完成批量任务所需剩余时间的估计值，根据过去 30 秒的平均速度计算。</li>
+        </ul>
+        <p><em>注意：</em> 在下载初期，由于可用于计算的数据有限，剩余时间估计可能波动较大。完成前 10–15 个文件后，估计值将变得更加可靠。</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="38-系统托盘图标">3.8 系统托盘图标</h2>
+        <p>点击 X 关闭主窗口时，FeedDownloader Pro 不会终止进程，而是最小化到系统通知区域（system tray，位于 Windows 或 macOS 时钟附近）。这是有意为之的设计：窗口不可见时，下载在后台继续进行。</p>
+        <p><strong>托盘右键菜单：</strong></p>
+        <ul>
+          <li><strong>打开 FeedDownloader Pro：</strong> 将主窗口恢复到前台。</li>
+          <li><strong>下载状态：</strong> 显示摘要行（例如 <code>Downloading: 3 active, 47/312 completed</code>）。</li>
+          <li><strong>退出：</strong> 关闭程序并中止所有活动下载。</li>
+        </ul>
+        <p><em>实用提示：</em> 如需在不保持窗口打开的情况下执行大型下载，可启动批量任务后关闭窗口，让计算机持续运行。存档将在任务完成时可用。</p>
+        <hr>
+        <p><em>参见第 4 章，了解从首次分析到下载完成的完整工作流程。</em></p>
+      </section>
+    </section>
+  
+
+</body></html>

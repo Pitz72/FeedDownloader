@@ -1,0 +1,139 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="utf-8">
+    <title>Chapter 3: Interface Tour</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="book/theme.css">
+  </head>
+  <body>
+    <section class="level1">
+      <h1 id="chapter-3-interface-tour">Chapter 3: Interface Tour</h1>
+      <section class="level2">
+        <h2 id="31-anatomy-of-the-main-window">3.1 Anatomy of the Main Window</h2>
+        <p>When FeedDownloader Pro opens, the interface is organised vertically into three functional zones:</p>
+        <ul>
+          <li><strong>Command zone (top):</strong> The URL input bar and main controls. All operations are initiated from here.</li>
+          <li><strong>Working zone (centre):</strong> The main area, where analysed episodes are displayed with their related information and individual download controls.</li>
+          <li><strong>Status zone (bottom):</strong> The global progress bar with information about the current batch.</li>
+        </ul>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="32-the-command-bar-top">3.2 The Command Bar (Top)</h2>
+        <p><strong>URL Field:</strong> The text bar where you enter the RSS address of the podcast to analyse. Accepts direct URLs to XML/RSS files. Supports <strong>drag and drop</strong>: you can drag a link directly from a browser onto this area.</p>
+        <p><strong>"Analyse" Button:</strong> Starts the feed analysis. The software contacts the URL, reads the RSS file, and populates the episode list. The operation generally takes between 1 and 5 seconds, depending on the size of the feed and the connection speed.</p>
+        <p><strong>Destination Path Field:</strong> Indicates the folder in which downloaded files will be saved. Clicking the adjacent folder icon opens the selection window. The configured path is retained between sessions.</p>
+        <p><strong>Settings Icon (⚙):</strong> Opens the settings panel. It is accessible at any time, even during an active download. For details, see Chapter 10.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="33-the-episode-list-centre">3.3 The Episode List (Centre)</h2>
+        <p>After a feed is analysed, this area is populated with the list of available episodes. Each row represents an episode and contains the following information.</p>
+        <p><strong>Main columns:</strong></p>
+        <ul>
+          <li><strong>Title:</strong> The name of the episode as defined in the RSS feed.</li>
+          <li><strong>Date:</strong> The original publication date of the episode.</li>
+          <li><strong>Duration:</strong> The duration of the episode (when available in the feed).</li>
+          <li><strong>Size:</strong> The estimated file size (when available in the feed). Before download, this figure is declarative; after download, it reflects the actual file size.</li>
+          <li><strong>Status:</strong> The visual status indicator for the individual episode. See section 3.4.</li>
+          <li><strong>Actions:</strong> The individual control buttons for each episode.</li>
+        </ul>
+        <p>
+          <strong>Sorting:</strong>
+          Column headers are clickable to sort the list (by date, by title, by size). The default behaviour is to display the most recent episodes at the top.
+        </p>
+        <p>
+          <strong>Multiple selection:</strong>
+          Hold <code>Ctrl</code> and click on multiple episodes to select them individually. <code>Shift</code> + click selects a range. Collective actions (start download, remove from list) can be applied to the selected episodes.
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="34-episode-statuses">3.4 Episode Statuses</h2>
+        <p>Each episode in the list is marked with a coloured status indicator. Understanding these statuses is essential for correctly interpreting the state of the archive.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Colour</th>
+              <th>Meaning</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>To Download</strong></td>
+              <td>Grey</td>
+              <td>The episode is present in the feed but has never been downloaded.</td>
+            </tr>
+            <tr>
+              <td><strong>Queued</strong></td>
+              <td>Blue</td>
+              <td>The episode has been added to the queue and is waiting its turn.</td>
+            </tr>
+            <tr>
+              <td><strong>In Progress</strong></td>
+              <td>Animated light blue</td>
+              <td>The download is in progress. The cell also shows the completion percentage.</td>
+            </tr>
+            <tr>
+              <td><strong>Completed</strong></td>
+              <td>Green</td>
+              <td>The file has been downloaded, renamed, and verified correctly.</td>
+            </tr>
+            <tr>
+              <td><strong>Error</strong></td>
+              <td>Red</td>
+              <td>The download failed after all automatic retries. The tooltip shows the error code.</td>
+            </tr>
+            <tr>
+              <td><strong>Downloaded</strong></td>
+              <td>Muted green</td>
+              <td>The database already records this episode as downloaded. It will not be re-downloaded.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p><em>Note on <strong>"Downloaded"</strong> status:</em> This status is the result of the Database-First philosophy. When analysing a feed that has previously been processed, most episodes will appear in this status: the software already knows they are present in the archive. Only episodes published after the last download will appear as <strong>"To Download"</strong>.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="35-individual-download-controls">3.5 Individual Download Controls</h2>
+        <p>Two buttons are present to the right of each row in the list.</p>
+        <p><strong>Download Icon (↓):</strong> Adds the individual episode to the download queue. If the episode is already in <strong>"Completed"</strong> or <strong>"Downloaded"</strong> status, the system requests confirmation before proceeding with a forced re-download.</p>
+        <p><strong>Information Icon (ℹ):</strong> Opens a panel with the complete episode details: original audio URL, cover image URL, extended description, file path on disk (if already downloaded), SHA-256 hash, and technical metadata. This panel is useful for archive verification and diagnostics.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="36-batch-controls-top-right-area">3.6 Batch Controls (Top, Right Area)</h2>
+        <p>These buttons operate on the entire download queue, not on individual episodes.</p>
+        <p><strong>"Download All":</strong> Adds all episodes in <strong>"To Download"</strong> status to the queue. Episodes already present in the database are excluded automatically.</p>
+        <p><strong>"Stop":</strong> Interrupts the batch and clears the queue. Files already completed remain in the database. <code>.part</code> files are deleted. The next time the same feed is analysed, interrupted episodes will appear again as <strong>"To Download"</strong>.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="37-the-global-progress-bar-bottom">3.7 The Global Progress Bar (Bottom)</h2>
+        <p>The bottom bar is always visible and shows the overall status of the current batch:</p>
+        <ul>
+          <li><strong>Progress bar:</strong> Fills proportionally to the number of completed files out of the total queue.</li>
+          <li><strong>File counter:</strong> For example <code>47 / 312 episodes</code> — number of completed files out of the total queue.</li>
+          <li><strong>Average speed:</strong> Aggregate download speed of all active threads, expressed in MB/s or KB/s.</li>
+          <li><strong>Estimated time:</strong> Estimate of the time remaining to complete the batch, calculated on the average speed of the last 30 seconds.</li>
+        </ul>
+        <p><em>Note:</em> The estimated time remaining may vary significantly in the early stages of a download, when the data available for calculation is still limited. It becomes more reliable after the first 10–15 completed files.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="38-the-system-tray-icon">3.8 The System Tray Icon</h2>
+        <p>When the main window is closed by clicking the X, FeedDownloader Pro does not terminate the process: it minimises to the system notification area (system tray, near the Windows or macOS clock). This behaviour is intentional: downloads continue in the background whilst the window is not visible.</p>
+        <p><strong>Tray context menu (right-click on the icon):</strong></p>
+        <ul>
+          <li><strong>Open FeedDownloader Pro:</strong> Brings the main window back to the foreground.</li>
+          <li><strong>Download Status:</strong> Shows a summary line (e.g. <code>Downloading: 3 active, 47/312 completed</code>).</li>
+          <li><strong>Quit:</strong> Closes the programme and stops all active downloads.</li>
+        </ul>
+        <p><em>Practical note:</em> To run a large download without keeping the window open, start the batch, close the window, and leave the computer running. The archive will be available once the process completes.</p>
+        <hr>
+        <p><em>Go to Chapter 4 for a complete workflow from the first analysis to download.</em></p>
+      </section>
+    </section>
+  
+
+</body></html>

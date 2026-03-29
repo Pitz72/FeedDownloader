@@ -1,0 +1,83 @@
+<!DOCTYPE html><html lang="de"><head>
+    <meta charset="utf-8">
+    <title>Kapitel 1: Einführung und Philosophie</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="book/theme.css">
+  </head>
+  <body>
+    <section class="level1">
+      <h1 id="kapitel-1-einführung-und-philosophie">Kapitel 1: Einführung und Philosophie</h1>
+      <section class="level2">
+        <h2 id="11-was-ist-runtime-feeddownloader-pro">1.1 Was ist Runtime FeedDownloader Pro?</h2>
+        <p>Um die Software zu beschreiben, empfiehlt es sich, beim Problem anzusetzen, das sie löst.</p>
+        <p>Täglich werden tausende Podcast-Episoden veröffentlicht, verteilt und angehört. Im Laufe der Zeit verschwindet jedoch ein beträchtlicher Teil dieser Inhalte: Der Moderator stellt die Zahlung für den Hosting-Dienst ein, die Verbreitungsplattform stellt den Betrieb ein, das CDN, das die Audiodateien hostet, wird abgeschaltet. Eine Episode, die vor drei Jahren angehört wurde, könnte heute unwiederbringlich unerreichbar sein — nicht weil sie absichtlich gelöscht wurde, sondern weil niemand eine Kopie aufbewahrt hat.</p>
+        <p><strong>Runtime FeedDownloader Pro</strong> wurde entwickelt, um auf dieses Problem zu reagieren. Es ist kein einfaches Podcast-Download-Tool: Es ist eine professionelle Anwendung für die <strong>systematische Konservierung und Archivierung</strong> von Audioinhalten aus RSS-Feeds. Es wurde für Archivare, Verleger, Radiosender, Inhaltsproduzenten und Enthusiasten entwickelt, für die die Tondokumentation dieselbe konservatorische Sorgfalt erfordert wie andere Arten von Dokumenten.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="12-für-wen-ist-die-software-gedacht">1.2 Für wen ist die Software gedacht?</h2>
+        <p>FeedDownloader Pro begegnet verschiedenen Anforderungen:</p>
+        <ul>
+          <li>
+            <p><strong>Der Archivar:</strong> Möchte den gesamten Katalog eines historischen Podcasts herunterladen, bevor er entfernt wird. Er benötigt ein System, das sich an bereits heruntergeladene Episoden erinnert, Duplikate vermeidet und die Integrität jeder Datei überprüft.</p>
+          </li>
+          <li>
+            <p><strong>Der Radioredakteur:</strong> Verwaltet eine Inhaltsbibliothek auf einem gemeinsamen NAS. Er benötigt ein Tool, das auf Netzwerkpfaden ohne Blockierungen arbeitet, Dateien vorhersehbar organisiert und Berichte im CSV-Format für sein Team erstellt.</p>
+          </li>
+          <li>
+            <p><strong>Der Verleger:</strong> Möchte eine lokale Kopie aller Podcasts seines Netzwerks pflegen, Metadaten für Content-Management-Systeme exportieren und den Archivstatus im Laufe der Zeit überwachen.</p>
+          </li>
+          <li>
+            <p><strong>Der Enthusiast:</strong> Möchte seine Lieblingspodcasts auf der eigenen Festplatte speichern, übersichtlich organisiert, ohne von der Verfügbarkeit der Internetverbindung abhängig zu sein oder das Risiko einzugehen, beschädigte Dateien zu erhalten.</p>
+          </li>
+        </ul>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="13-die-database-first-philosophie">1.3 Die „Database-First"-Philosophie</h2>
+        <p>Der grundlegende Unterschied zwischen FeedDownloader Pro und einem generischen Download-Tool liegt im Ansatz zur Datenverwaltung.</p>
+        <p>Die meisten Download-Tools funktionieren so: Sie analysieren die auf der Festplatte vorhandenen Dateien, vergleichen sie mit dem RSS-Feed und laden das Fehlende herunter. Dieser Ansatz hat eine kritische Schwäche: <strong>Die Festplatte ist keine zuverlässige Quelle der Wahrheit</strong>. Dateien können verschoben, umbenannt, beschädigt oder versehentlich gelöscht werden. Wenn der Podcast-Ordner von <code>C:\Podcast</code> nach <code>D:\Archiv</code> verschoben wird, verliert das Tool den Verweis auf bereits heruntergeladene Episoden und beginnt, den gesamten Katalog erneut herunterzuladen.</p>
+        <p>FeedDownloader Pro verfolgt einen anderen Ansatz. Im Mittelpunkt jeder Operation steht eine <strong>SQLite-Datenbank</strong>, die jede analysierte oder heruntergeladene Episode aufzeichnet: die ursprüngliche URL, den Dateipfad auf der Festplatte, das Download-Datum, den SHA-256-Hash des Inhalts und die Audiometadaten. Die Datenbank ist das persistente Gedächtnis der Software. Unabhängig vom physischen Speicherort der Dateien bewahrt die Datenbank den vollständigen Zustand des Archivs.</p>
+        <p>Diese Architektur hat direkte praktische Konsequenzen:</p>
+        <ol>
+          <li><strong>Keine Duplikate.</strong> Auch wenn derselbe Feed mehrfach analysiert wird, erkennt das System die bereits in der Datenbank vorhandenen Episoden und fügt sie nicht erneut in die Warteschlange ein.</li>
+          <li><strong>Resilienz gegenüber Verschiebungen.</strong> Das Archiv kann auf eine neue Festplatte oder ein NAS verschoben werden: Der Verlauf bleibt in der Datenbank intakt.</li>
+          <li><strong>Persistenter Zustand zwischen Sitzungen.</strong> Wenn das Programm während eines Batch-Downloads von 300 Episoden geschlossen wird, ist die Warteschlange beim nächsten Öffnen in demselben Zustand verfügbar, in dem sie zurückgelassen wurde.</li>
+          <li><strong>Vorgangsprotokoll.</strong> Jede heruntergeladene Datei ist dokumentiert: Download-Datum, Quell-URL und Ergebnis der Integritätsprüfung.</li>
+        </ol>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="14-die-drei-säulen-der-software">1.4 Die drei Säulen der Software</h2>
+        <p>Neben dem Database-First-Ansatz basiert FeedDownloader Pro auf drei technischen Prinzipien mit direkten Auswirkungen auf die Funktionalität.</p>
+        <section class="level3">
+          <h3 id="netzwerk-resilienz">Netzwerk-Resilienz</h3>
+          <p>Das sequenzielle Herunterladen hunderter Audiodateien über das Internet ist keine triviale Operation. Server können überlastet sein, Verbindungen können unterbrochen werden, Übertragungen können Dateien beschädigen. FeedDownloader Pro bewältigt diese Szenarien mit drei Mechanismen:</p>
+          <ul>
+            <li><strong>Retry mit exponentiellem Backoff:</strong> Wenn ein Download fehlschlägt, wiederholt die Software den Versuch nicht sofort. Stattdessen wartet sie ein wachsendes Intervall: 2 Sekunden, dann 4, dann 8, bis zum konfigurierten Maximum. Dieser Ansatz, der in verteilten Systemen üblich ist, erhöht die Erfolgswahrscheinlichkeit, ohne die Last auf dem Quellserver zu verschlimmern.</li>
+            <li><strong>Stall-Erkennung:</strong> Ein blockierter Download ist problematischer als ein fehlgeschlagener. Wenn ein Server beginnt, Daten zu senden, und dann aufhört, ohne die Verbindung zu schließen, würde eine Software ohne diese Prüfung unbegrenzt warten. FeedDownloader Pro überwacht den Datenfluss in Echtzeit: Wenn 60 Sekunden lang keine neuen Bytes ankommen, wird der Download unterbrochen und automatisch wieder in die Warteschlange eingereiht.</li>
+            <li><strong>Anti-Korruptions-<code>.part</code>-Dateien:</strong> Jede Datei wird mit der temporären Erweiterung <code>.part</code> heruntergeladen. Erst nach dem vollständigen und verifizierten Abschluss der Übertragung wird die Datei in die endgültige Erweiterung (<code>.mp3</code>, <code>.m4a</code> usw.) umbenannt. Im Falle einer plötzlichen Unterbrechung sind im Zielordner keine partiellen oder beschädigten Audiodateien vorhanden: nur verbleibende <code>.part</code>-Dateien, die die Software in der nächsten Sitzung löscht und erneut herunterlädt.</li>
+          </ul>
+        </section>
+        <section class="level3">
+          <h3 id="integrierte-sicherheit">Integrierte Sicherheit</h3>
+          <p>FeedDownloader Pro verarbeitet URLs aus externen Quellen (RSS-Feeds). Eine bösartig konstruierte URL, die auf interne Netzwerkressourcen zeigt (einen Router, ein NAS, einen lokalen Server), könnte für den Zugriff auf vertrauliche Informationen verwendet werden — ein Angriff, der als <strong>SSRF (Server-Side Request Forgery)</strong> bekannt ist.</p>
+          <p>Um dieses Risiko zu verhindern, wird jede URL einer Validierung auf <strong>5 Ebenen</strong> unterzogen, bevor sie verarbeitet wird: Protokollverifizierung, DNS-Auflösung mit Überprüfung der resultierenden IP-Adresse, Blockierung privater Adressbereiche (RFC 1918), Blockierung von Nicht-HTTP/HTTPS-Protokollen und Pfadnormalisierung. Dieses Verfahren ist für den Benutzer vollständig automatisch und transparent.</p>
+        </section>
+        <section class="level3">
+          <h3 id="nas--und-netzwerkpfad-unterstützung">NAS- und Netzwerkpfad-Unterstützung</h3>
+          <p>FeedDownloader Pro ist für den Betrieb mit Archiven auf Netzwerklaufwerken ausgelegt. Die Verwaltung von SMB-Pfaden — dem von NAS, Windows-Servern und Netzwerkfreigaben verwendeten Protokoll — ist in Desktop-Anwendungen eine häufige Fehlerquelle: Ein nicht erreichbares Netzwerklaufwerk kann die gesamte Benutzeroberfläche für eine beträchtliche Zeit blockieren. FeedDownloader Pro löst dieses Problem, indem die Netzwerkpfad-Validierung in einem separaten Thread mit einem Timeout von 8 Sekunden ausgeführt wird. Die Benutzeroberfläche bleibt stets reaktionsfähig, unabhängig vom Zustand des Netzwerkpfads.</p>
+          <hr>
+        </section>
+      </section>
+      <section class="level2">
+        <h2 id="15-inhalt-des-handbuchs">1.5 Inhalt des Handbuchs</h2>
+        <p>Dieses Handbuch behandelt die vollständige Verwendung von FeedDownloader Pro, von der Installation bis zu den erweiterten Funktionen. Es muss nicht der Reihe nach gelesen werden: Jedes Kapitel ist eigenständig und kann unabhängig nachgeschlagen werden.</p>
+        <p>Für einen ersten Einstieg in die Software empfiehlt es sich, <strong>Kapitel 4 (Das erste Archiv)</strong> zu befolgen, das einen vollständigen Workflow von der Feed-Analyse bis zum Download beschreibt. Wer die Software bereits kennt, kann über das Inhaltsverzeichnis direkt zum gewünschten Kapitel gelangen.</p>
+        <hr>
+        <p><em>Ecosystem Runtime | Digital Core — Werkzeuge, die dauern sollen.</em></p>
+      </section>
+    </section>
+  
+
+</body></html>

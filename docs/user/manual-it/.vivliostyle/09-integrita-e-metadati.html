@@ -1,0 +1,190 @@
+<!DOCTYPE html><html lang="it"><head>
+    <meta charset="utf-8">
+    <title>Capitolo 9: Integrità, Statistiche e Archiviazione</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="book/theme.css">
+  </head>
+  <body>
+    <section class="level1">
+      <h1 id="capitolo-9-integrità-statistiche-e-archiviazione">Capitolo 9: Integrità, Statistiche e Archiviazione</h1>
+      <section class="level2">
+        <h2 id="91-perché-verificare-lintegrità-dei-file">9.1 Perché Verificare l'Integrità dei File</h2>
+        <p>Il completamento di un download non garantisce che il file ricevuto sia integro. Un pacchetto di rete perso durante il trasferimento, un errore di scrittura su disco o un'interruzione nell'ultimo secondo possono produrre un file formalmente "presente" ma corrotto. In assenza di una verifica esplicita, un archivio apparentemente completo può contenere file audio non riproducibili, la cui corruzione viene rilevata solo durante la riproduzione.</p>
+        <p>FeedDownloader Pro affronta questo problema con due meccanismi complementari: la <strong>verifica della dimensione</strong> (durante il download) e la <strong>verifica SHA-256</strong> (al completamento).</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="92-la-verifica-sha-256">9.2 La Verifica SHA-256</h2>
+        <p><strong>SHA-256</strong> (Secure Hash Algorithm 256-bit) è una funzione crittografica che produce un'impronta digitale di 64 caratteri esadecimali per qualsiasi file. Due file identici producono sempre lo stesso hash; una differenza di anche un solo bit produce un hash completamente diverso.</p>
+        <p>Per ogni file scaricato, FeedDownloader Pro:</p>
+        <ol>
+          <li>Calcola l'hash SHA-256 del file al termine del download.</li>
+          <li>Salva l'hash nel database, insieme al percorso del file e alla data di calcolo.</li>
+          <li>Se il feed RSS include un hash di riferimento (alcuni feed moderni includono il campo <code>&lt;podcast:integrity&gt;</code>), lo confronta con quello calcolato. In caso di discrepanza, il file viene marcato come <strong>"Corrotto"</strong> e reinserito in coda per un nuovo download.</li>
+        </ol>
+        <p><strong>Utilizzi pratici:</strong></p>
+        <ul>
+          <li>È possibile verificare in qualsiasi momento futuro che un file non sia stato modificato, corrotto o sostituito: basta ricalcolare l'hash e confrontarlo con quello registrato nel database.</li>
+          <li>Dopo lo spostamento dei file su un nuovo disco o una migrazione, il <strong>Health Check</strong> (vedi la sezione 9.4) consente di verificare che tutti i file siano ancora presenti.</li>
+          <li>In contesti professionali, l'hash SHA-256 costituisce un riferimento verificabile dell'integrità del contenuto al momento del download.</li>
+        </ul>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="93-i-metadati-audio-estratti">9.3 I Metadati Audio Estratti</h2>
+        <p>Al completamento di ogni download, FeedDownloader Pro estrae automaticamente i <strong>metadati tecnici</strong> del file audio. Queste informazioni vengono lette direttamente dal file (non dal feed RSS) e registrate nel database.</p>
+        <p><strong>Metadati estratti:</strong></p>
+        <table>
+          <thead>
+            <tr>
+              <th>Campo</th>
+              <th>Descrizione</th>
+              <th>Esempio</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Bitrate</strong></td>
+              <td>Qualità audio in kilobit al secondo</td>
+              <td><code>128 kbps</code>, <code>320 kbps</code></td>
+            </tr>
+            <tr>
+              <td><strong>Sample rate</strong></td>
+              <td>Frequenza di campionamento</td>
+              <td><code>44100 Hz</code>, <code>48000 Hz</code></td>
+            </tr>
+            <tr>
+              <td><strong>Dimensione su disco</strong></td>
+              <td>Dimensione reale del file scaricato</td>
+              <td><code>67.4 MB</code></td>
+            </tr>
+          </tbody>
+        </table>
+        <p>Questi valori vengono registrati nel database e sono inclusi nell'esportazione CSV (vedi la sezione 9.6).</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="94-health-check-verifica-dellintegrità-dellarchivio">9.4 Health Check: Verifica dell'Integrità dell'Archivio</h2>
+        <p>Nel tempo, un archivio può subire modifiche esterne al software: file spostati o eliminati direttamente dal filesystem. Il <strong>Health Check</strong> verifica lo stato dell'archivio rispetto a quanto registrato nel database.</p>
+        <p>
+          <strong>Come eseguire il Health Check:</strong>
+          Andare in <strong>Impostazioni → Archivio → Health Check</strong> e cliccare su <strong>"Avvia Verifica"</strong>.
+        </p>
+        <p>Il processo analizza ogni file registrato nel database e verifica che il file esista ancora nel percorso registrato. Al termine, viene mostrato un riepilogo con tre indicatori:</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Indicatore</th>
+              <th>Significato</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Totale</strong></td>
+              <td>Numero totale di episodi nel database</td>
+            </tr>
+            <tr>
+              <td><strong>Presenti</strong></td>
+              <td>File che esistono nel percorso registrato</td>
+            </tr>
+            <tr>
+              <td><strong>Mancanti</strong></td>
+              <td>File non trovati nel percorso registrato</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>La schermata mostra anche lo <strong>spazio disco totale</strong> occupato dai file presenti.</p>
+        <p>In presenza di file mancanti, il software elenca i primi 5 con il nome del podcast e il nome del file. Per recuperare un file mancante, utilizzare la funzione <strong>"Forza Re-Download"</strong> disponibile dal menu contestuale dell'episodio nella lista principale.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="95-statistiche-dellarchivio">9.5 Statistiche dell'Archivio</h2>
+        <p>La sezione statistiche è accessibile da <strong>Impostazioni → Archivio</strong> e fornisce una panoramica sintetica dei dati registrati nel database:</p>
+        <ul>
+          <li><strong>File scaricati:</strong> Numero totale di episodi presenti nel database.</li>
+          <li><strong>Podcast:</strong> Numero di feed distinti rappresentati nell'archivio.</li>
+          <li><strong>Intervallo temporale:</strong> Data del primo e dell'ultimo episodio scaricato.</li>
+        </ul>
+        <p>Le statistiche vengono aggiornate automaticamente a ogni apertura del pannello Impostazioni.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="96-esportazione-csv">9.6 Esportazione CSV</h2>
+        <p>L'esportazione CSV genera un file con i dati di ogni episodio presente nel database. È utile per integrare FeedDownloader Pro con altri strumenti (fogli di calcolo, sistemi di gestione dei contenuti, script di automazione).</p>
+        <p>
+          <strong>Come esportare:</strong>
+          Andare in <strong>Impostazioni → Archivio → Esporta CSV</strong> e scegliere il percorso in cui salvare il file.
+        </p>
+        <p><strong>Colonne dell'esportazione:</strong></p>
+        <table>
+          <thead>
+            <tr>
+              <th>Colonna</th>
+              <th>Contenuto</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>Podcast</code></td>
+              <td>Nome del podcast</td>
+            </tr>
+            <tr>
+              <td><code>Episode Title</code></td>
+              <td>Titolo dell'episodio</td>
+            </tr>
+            <tr>
+              <td><code>Publish Date</code></td>
+              <td>Data di pubblicazione</td>
+            </tr>
+            <tr>
+              <td><code>Downloaded At</code></td>
+              <td>Data e ora del download</td>
+            </tr>
+            <tr>
+              <td><code>File Size (bytes)</code></td>
+              <td>Dimensione del file in byte</td>
+            </tr>
+            <tr>
+              <td><code>Bitrate (kbps)</code></td>
+              <td>Bitrate audio in kilobit al secondo</td>
+            </tr>
+            <tr>
+              <td><code>Sample Rate (Hz)</code></td>
+              <td>Frequenza di campionamento in hertz</td>
+            </tr>
+            <tr>
+              <td><code>SHA-256 Checksum</code></td>
+              <td>Hash SHA-256 del file</td>
+            </tr>
+            <tr>
+              <td><code>Validation Status</code></td>
+              <td>Esito dell'ultimo controllo di integrità</td>
+            </tr>
+            <tr>
+              <td><code>GUID</code></td>
+              <td>Identificatore univoco dell'episodio nel feed RSS</td>
+            </tr>
+          </tbody>
+        </table>
+        <p><em>Formato del file:</em> CSV con separatore virgola (<code>,</code>), codifica UTF-8 con BOM (per compatibilità con Microsoft Excel). I campi contenenti virgole sono racchiusi tra virgolette.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="97-migrazione-dellarchivio">9.7 Migrazione dell'Archivio</h2>
+        <p>Per spostare l'archivio su un nuovo disco o una nuova cartella, utilizzare la funzione integrata di migrazione, che mantiene il database sincronizzato con la nuova posizione dei file.</p>
+        <p><strong>Procedura:</strong></p>
+        <ol>
+          <li>Andare in <strong>Impostazioni → Archivio → Migra Archivio</strong>.</li>
+          <li>Selezionare la <strong>nuova cartella di destinazione</strong> tramite la finestra di selezione.</li>
+          <li>Il software sposta fisicamente tutti i file audio nella nuova cartella e aggiorna i percorsi nel database.</li>
+          <li>Al termine viene mostrato un riepilogo: numero di file spostati ed eventuali errori.</li>
+        </ol>
+        <p><em>Attenzione:</em> La migrazione sposta i file dalla cartella corrente a quella nuova. I file vengono rimossi dalla posizione originale. Verificare che il disco di destinazione disponga di spazio sufficiente prima di avviare l'operazione.</p>
+        <p><em>Spostamento su un nuovo computer:</em> Copiare sia la cartella dei file audio sia il file <code>feeddownloader.db</code> (dalla cartella dati utente descritta nel Capitolo 2). Sul nuovo computer, installare FeedDownloader Pro, copiare il database nella cartella dati utente e utilizzare la funzione di migrazione se il percorso dell'archivio è cambiato.</p>
+        <hr>
+        <p><em>Vai al Capitolo 10 per le impostazioni avanzate del software.</em></p>
+      </section>
+    </section>
+  
+
+</body></html>

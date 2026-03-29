@@ -1,0 +1,123 @@
+<!DOCTYPE html><html lang="fr"><head>
+    <meta charset="utf-8">
+    <title>Chapitre 10 : Paramètres avancés</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="book/theme.css">
+  </head>
+  <body>
+    <section class="level1">
+      <h1 id="chapitre-10--paramètres-avancés">Chapitre 10 : Paramètres avancés</h1>
+      <section class="level2">
+        <h2 id="101-vue-densemble-du-panneau-paramètres">10.1 Vue d'ensemble du panneau Paramètres</h2>
+        <p>Le panneau des paramètres est accessible à tout moment via l'icône d'engrenage (⚙) dans le coin supérieur de l'interface. Les paramètres sont organisés en cinq onglets thématiques : <strong>Général</strong>, <strong>Download</strong>, <strong>Métadonnées</strong>, <strong>Archive</strong> et <strong>Avancé</strong>. Toutes les modifications sont enregistrées automatiquement : aucune confirmation avec un bouton dédié n'est nécessaire.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="102-download">10.2 Download</h2>
+        <p>Cette section contient les contrôles principaux du moteur de téléchargement. Les paramètres techniques internes (timeout de connexion, nombre de retries, stall detection) sont fixes dans le moteur et ne nécessitent pas de configuration manuelle.</p>
+        <section class="level3">
+          <h3 id="téléchargements-parallèles">Téléchargements parallèles</h3>
+          <p>Le nombre de téléchargements simultanés. Sélectionnable parmi trois presets : <strong>1</strong>, <strong>3</strong> et <strong>5</strong>. Pour les recommandations sur le choix de la valeur, voir le Chapitre 6.</p>
+          <p><strong>Valeur par défaut :</strong> 3</p>
+        </section>
+        <section class="level3">
+          <h3 id="limite-de-vitesse">Limite de vitesse</h3>
+          <p>Permet de limiter la bande passante agrégée utilisée par tous les téléchargements actifs, pour éviter les interférences avec d'autres activités réseau.</p>
+          <p><strong>Valeurs disponibles :</strong> <code>0</code> = aucune limite (par défaut) ; toute valeur positive en KB/s. Exemple : <code>500</code> limite la consommation totale à environ 4 Mbps.</p>
+          <hr>
+        </section>
+      </section>
+      <section class="level2">
+        <h2 id="103-filtre-par-mots-clés">10.3 Filtre par mots-clés</h2>
+        <p>Le filtre textuel permet de <strong>restreindre la liste des épisodes affichés</strong> en fonction du texte contenu dans le titre. C'est un outil de consultation et de sélection rapide, particulièrement utile avec les catalogues de grande taille.</p>
+        <p>
+          <strong>Comment utiliser le filtre :</strong>
+          La barre de filtre est positionnée dans la partie supérieure de la liste des épisodes, immédiatement sous les contrôles du batch. En saisissant un ou plusieurs termes, la liste se met à jour en temps réel en affichant uniquement les épisodes dont le titre contient <strong>tous les termes saisis</strong> (logique AND).
+        </p>
+        <ul>
+          <li>Pour rechercher les épisodes contenant le mot « interview », saisir <code>interview</code>.</li>
+          <li>Pour rechercher les épisodes contenant à la fois « interview » et « 2024 », saisir <code>interview 2024</code>.</li>
+          <li>Le filtre ne distingue pas les majuscules des minuscules : <code>Bonus</code> et <code>bonus</code> produisent le même résultat.</li>
+        </ul>
+        <p><strong>Cas d'utilisation typiques :</strong></p>
+        <ul>
+          <li>Identifier rapidement les épisodes d'une saison spécifique dans un catalogue étendu.</li>
+          <li>Sélectionner un sous-ensemble d'épisodes à télécharger sans parcourir toute la liste.</li>
+          <li>Vérifier si un épisode avec un titre particulier est déjà présent dans la base de données.</li>
+        </ul>
+        <p><em>Remarque :</em> Le filtre agit sur l'affichage de la liste en cours et ne modifie ni la file de téléchargement ni l'état des épisodes dans la base de données. Pour supprimer le filtre, vider la barre de texte.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="104-général">10.4 Général</h2>
+        <section class="level3">
+          <h3 id="langue">Langue</h3>
+          <p>FeedDownloader Pro est disponible en 8 langues : Italiano, English, Deutsch, Español, Français, Português, Русский, 中文.</p>
+          <p>Le changement de langue est immédiat : l'interface se met à jour sans nécessiter de redémarrage du logiciel. L'application utilise exclusivement le thème sombre « Obsidian Command » : aucun thème clair ni sélecteur de densité de liste n'est disponible.</p>
+          <hr>
+        </section>
+      </section>
+      <section class="level2">
+        <h2 id="105-sécurité--le-système-anti-ssrf-à-5-niveaux">10.5 Sécurité : le système anti-SSRF à 5 niveaux</h2>
+        <p>Cette section est documentée à titre informatif : le système de sécurité fonctionne de manière entièrement automatique et ne nécessite aucune configuration de la part de l'utilisateur.</p>
+        <p>
+          <strong>Qu'est-ce qu'une attaque SSRF ?</strong>
+          SSRF (Server-Side Request Forgery) est un type d'attaque dans lequel une URL malveillante, au lieu de pointer vers une ressource publique, pointe vers des ressources internes du réseau (comme le panneau d'administration du routeur, un NAS ou un serveur local). Dans le contexte d'un téléchargeur, un feed RSS construit de manière malveillante pourrait inclure des URL audio pointant vers ces ressources internes.
+        </p>
+        <p><strong>Les 5 niveaux de validation :</strong></p>
+        <ol>
+          <li>
+            <p><strong>Validation du protocole :</strong> Seuls les protocoles <code>http://</code> et <code>https://</code> sont acceptés. Les protocoles tels que <code>file://</code>, <code>ftp://</code>, <code>data:</code>, <code>javascript:</code> sont rejetés immédiatement.</p>
+          </li>
+          <li>
+            <p><strong>Validation syntaxique de l'URL :</strong> L'URL est analysée pour vérifier sa conformité au standard RFC 3986.</p>
+          </li>
+          <li>
+            <p><strong>Résolution DNS avec inspection de l'IP :</strong> Le domaine dans l'URL est résolu en adresse IP. Si la résolution échoue, l'URL est rejetée. Si la résolution réussit, l'adresse IP résultante est vérifiée au niveau suivant.</p>
+          </li>
+          <li>
+            <p><strong>Blocage des adresses IP privées et réservées :</strong> Toutes les adresses IP appartenant à des plages privées ou réservées sont bloquées, notamment :</p>
+            <ul>
+              <li><code>10.0.0.0/8</code>, <code>172.16.0.0/12</code>, <code>192.168.0.0/16</code> (réseaux privés RFC 1918)</li>
+              <li><code>127.0.0.0/8</code> (loopback)</li>
+              <li><code>169.254.0.0/16</code> (link-local)</li>
+              <li><code>::1/128</code> (loopback IPv6)</li>
+              <li><code>fc00::/7</code> (unique local IPv6)</li>
+              <li>Toute adresse pointant vers l'hôte local.</li>
+            </ul>
+          </li>
+          <li>
+            <p><strong>Blocage des ports non standard :</strong> Seuls les ports 80 et 443 sont acceptés. Les URL avec des ports non standard (ex. <code>:8080</code>, <code>:3000</code>, <code>:22</code>) sont rejetées.</p>
+          </li>
+        </ol>
+        <p><em>Remarque pour les environnements d'entreprise :</em> Si le réseau de l'entreprise inclut des serveurs de podcasts internes accessibles via des adresses IP privées, le système anti-SSRF bloquera ces URL. Dans ce cas, contacter le support pour une configuration personnalisée incluant des plages d'adresses IP spécifiques dans la liste blanche interne.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="106-avancé">10.6 Avancé</h2>
+        <section class="level3">
+          <h3 id="mises-à-jour">Mises à jour</h3>
+          <p>FeedDownloader Pro inclut un système de mise à jour automatique intégré.</p>
+          <p><strong>Vérification automatique au démarrage :</strong> Dans la version installée (package), le logiciel vérifie automatiquement la disponibilité de nouvelles mises à jour 3 secondes après le démarrage, en interrogeant le dépôt GitHub. Si une nouvelle version est disponible, le téléchargement démarre en arrière-plan sans nécessiter aucune action.</p>
+          <p><strong>Vérification manuelle :</strong> Le bouton <strong>« Vérifier les mises à jour »</strong> dans l'onglet <strong>Avancé</strong> force une vérification immédiate à tout moment.</p>
+          <p>Si une nouvelle version est disponible, le logiciel la télécharge en arrière-plan et affiche le bouton <strong>« Installer et redémarrer »</strong>. L'installation n'est jamais lancée automatiquement : la décision appartient toujours à l'utilisateur.</p>
+          <p><strong>États affichés pendant le processus :</strong></p>
+          <ul>
+            <li><strong>Vérification en cours…</strong> — le logiciel interroge le dépôt GitHub.</li>
+            <li><strong>À jour</strong> — la version installée est la plus récente.</li>
+            <li><strong>Nouvelle version disponible (vX.Y.Z)</strong> — téléchargement en cours en arrière-plan.</li>
+            <li><strong>Mise à jour prête</strong> — le package a été téléchargé et est prêt à être installé.</li>
+          </ul>
+        </section>
+        <section class="level3">
+          <h3 id="réinitialiser-la-base-de-données">Réinitialiser la base de données</h3>
+          <p>Supprime complètement la base de données et repart avec une archive vide. <strong>Cette opération est irréversible.</strong> Le logiciel demande une double confirmation explicite avant de procéder. Les fichiers audio sur le disque ne sont pas supprimés : seule la mémoire interne du logiciel est effacée (historique des téléchargements, métadonnées, statistiques).</p>
+          <p><em>Quand l'utiliser :</em> Uniquement lorsque l'on souhaite repartir d'une archive entièrement vide, par exemple après une migration vers un nouveau système ou pour supprimer les données d'un cycle de test.</p>
+          <hr>
+          <p><em>Voir le Chapitre 11 pour la résolution des problèmes les plus courants.</em></p>
+        </section>
+      </section>
+    </section>
+  
+
+</body></html>

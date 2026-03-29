@@ -1,0 +1,139 @@
+<!DOCTYPE html><html lang="it"><head>
+    <meta charset="utf-8">
+    <title>Capitolo 3: Tour dell'Interfaccia</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="book/theme.css">
+  </head>
+  <body>
+    <section class="level1">
+      <h1 id="capitolo-3-tour-dellinterfaccia">Capitolo 3: Tour dell'Interfaccia</h1>
+      <section class="level2">
+        <h2 id="31-anatomia-della-finestra-principale">3.1 Anatomia della Finestra Principale</h2>
+        <p>All'apertura di FeedDownloader Pro, l'interfaccia è organizzata verticalmente in tre zone funzionali:</p>
+        <ul>
+          <li><strong>Zona di comando (in alto):</strong> La barra di inserimento URL e i controlli principali. Da qui si avviano tutte le operazioni.</li>
+          <li><strong>Zona di lavoro (al centro):</strong> L'area principale, dove vengono visualizzati gli episodi analizzati con le relative informazioni e i controlli di download individuali.</li>
+          <li><strong>Zona di stato (in basso):</strong> La barra di avanzamento globale con le informazioni sul batch in corso.</li>
+        </ul>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="32-la-barra-di-comando-in-alto">3.2 La Barra di Comando (In Alto)</h2>
+        <p><strong>Campo URL:</strong> La barra di testo dove si inserisce l'indirizzo RSS del podcast da analizzare. Accetta URL diretti a file XML/RSS. Supporta il <strong>drag and drop</strong>: è possibile trascinare un link direttamente da un browser su quest'area.</p>
+        <p><strong>Pulsante "Analizza":</strong> Avvia l'analisi del feed. Il software contatta l'URL, legge il file RSS e popola la lista degli episodi. L'operazione richiede generalmente da 1 a 5 secondi, in base alla dimensione del feed e alla velocità della connessione.</p>
+        <p><strong>Campo Percorso di Destinazione:</strong> Indica la cartella in cui verranno salvati i file scaricati. Cliccando sull'icona della cartella adiacente si apre la finestra di selezione. Il percorso impostato viene mantenuto tra le sessioni.</p>
+        <p><strong>Icona Impostazioni (⚙):</strong> Apre il pannello delle impostazioni. È accessibile in qualsiasi momento, anche durante un download in corso. Per i dettagli, vedi il Capitolo 10.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="33-la-lista-degli-episodi-al-centro">3.3 La Lista degli Episodi (Al Centro)</h2>
+        <p>Dopo l'analisi di un feed, quest'area viene popolata con la lista degli episodi disponibili. Ogni riga rappresenta un episodio e contiene le seguenti informazioni.</p>
+        <p><strong>Colonne principali:</strong></p>
+        <ul>
+          <li><strong>Titolo:</strong> Il nome dell'episodio come definito nel feed RSS.</li>
+          <li><strong>Data:</strong> La data di pubblicazione originale dell'episodio.</li>
+          <li><strong>Durata:</strong> La durata dell'episodio (quando disponibile nel feed).</li>
+          <li><strong>Dimensione:</strong> La dimensione stimata del file (quando disponibile nel feed). Prima del download, il dato è dichiarativo; dopo il download, riflette la dimensione reale del file.</li>
+          <li><strong>Stato:</strong> L'indicatore visivo dello stato del singolo episodio. Vedi la sezione 3.4.</li>
+          <li><strong>Azioni:</strong> I pulsanti di controllo individuali per ogni episodio.</li>
+        </ul>
+        <p>
+          <strong>Ordinamento:</strong>
+          Le intestazioni delle colonne sono cliccabili per ordinare la lista (per data, per titolo, per dimensione). Il comportamento predefinito è la visualizzazione con gli episodi più recenti in cima.
+        </p>
+        <p>
+          <strong>Selezione multipla:</strong>
+          Tenendo premuto <code>Ctrl</code> e cliccando su più episodi è possibile selezionarli singolarmente. <code>Shift</code> + clic seleziona un intervallo. Sugli episodi selezionati è possibile applicare azioni collettive (avvio download, rimozione dalla lista).
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="34-gli-stati-degli-episodi">3.4 Gli Stati degli Episodi</h2>
+        <p>Ogni episodio nella lista è contrassegnato da un indicatore di stato colorato. Comprendere questi stati è essenziale per interpretare correttamente la situazione dell'archivio.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Stato</th>
+              <th>Colore</th>
+              <th>Significato</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Da Scaricare</strong></td>
+              <td>Grigio</td>
+              <td>L'episodio è presente nel feed ma non è mai stato scaricato.</td>
+            </tr>
+            <tr>
+              <td><strong>In Coda</strong></td>
+              <td>Blu</td>
+              <td>L'episodio è stato aggiunto alla coda e attende il proprio turno.</td>
+            </tr>
+            <tr>
+              <td><strong>In Corso</strong></td>
+              <td>Azzurro animato</td>
+              <td>Il download è in corso. La cella mostra anche la percentuale di avanzamento.</td>
+            </tr>
+            <tr>
+              <td><strong>Completato</strong></td>
+              <td>Verde</td>
+              <td>Il file è stato scaricato, rinominato e verificato correttamente.</td>
+            </tr>
+            <tr>
+              <td><strong>Errore</strong></td>
+              <td>Rosso</td>
+              <td>Il download non è riuscito dopo tutti i tentativi automatici. Il tooltip mostra il codice di errore.</td>
+            </tr>
+            <tr>
+              <td><strong>Scaricato</strong></td>
+              <td>Verde tenue</td>
+              <td>Il database registra già questo episodio come scaricato. Non verrà riscaricato.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p><em>Nota sullo stato <strong>"Scaricato"</strong>:</em> Questo stato è il risultato della filosofia Database-First. Quando si analizza un feed già elaborato in precedenza, la maggior parte degli episodi risulta in questo stato: il software sa già che sono presenti nell'archivio. Solo gli episodi pubblicati dopo l'ultimo download appariranno come <strong>"Da Scaricare"</strong>.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="35-i-controlli-di-download-individuali">3.5 I Controlli di Download Individuali</h2>
+        <p>A destra di ogni riga nella lista sono presenti due pulsanti.</p>
+        <p><strong>Icona Download (↓):</strong> Aggiunge il singolo episodio alla coda di download. Se l'episodio è già in stato <strong>"Completato"</strong> o <strong>"Scaricato"</strong>, il sistema richiede conferma prima di procedere a un re-download forzato.</p>
+        <p><strong>Icona Informazioni (ℹ):</strong> Apre un pannello con i dettagli completi dell'episodio: URL originale dell'audio, URL dell'immagine di copertina, descrizione estesa, percorso del file sul disco (se già scaricato), hash SHA-256 e metadati tecnici. Questo pannello è utile per la verifica e la diagnostica dell'archivio.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="36-i-controlli-del-batch-in-alto-area-destra">3.6 I Controlli del Batch (In Alto, Area Destra)</h2>
+        <p>Questi pulsanti operano sull'intera coda di download, non sui singoli episodi.</p>
+        <p><strong>"Scarica Tutto":</strong> Aggiunge alla coda tutti gli episodi in stato <strong>"Da Scaricare"</strong>. Gli episodi già presenti nel database vengono esclusi automaticamente.</p>
+        <p><strong>"Ferma":</strong> Interrompe il batch e svuota la coda. I file già completati rimangono nel database. I file <code>.part</code> vengono eliminati. Alla successiva analisi dello stesso feed, gli episodi interrotti appariranno nuovamente come <strong>"Da Scaricare"</strong>.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="37-la-barra-di-avanzamento-globale-in-basso">3.7 La Barra di Avanzamento Globale (In Basso)</h2>
+        <p>La barra inferiore è sempre visibile e mostra lo stato complessivo del batch in corso:</p>
+        <ul>
+          <li><strong>Barra di avanzamento:</strong> Riempimento proporzionale al numero di file completati sul totale della coda.</li>
+          <li><strong>Contatore file:</strong> Ad esempio <code>47 / 312 episodi</code> — numero di file completati sul totale della coda.</li>
+          <li><strong>Velocità media:</strong> Velocità di download aggregata di tutti i thread attivi, espressa in MB/s o KB/s.</li>
+          <li><strong>Tempo stimato:</strong> Stima del tempo rimanente per completare il batch, calcolata sulla velocità media degli ultimi 30 secondi.</li>
+        </ul>
+        <p><em>Nota:</em> La stima del tempo rimanente può variare significativamente nelle prime fasi di un download, quando i dati disponibili per il calcolo sono ancora limitati. Diventa più affidabile dopo i primi 10–15 file completati.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="38-licona-nel-system-tray">3.8 L'Icona nel System Tray</h2>
+        <p>Quando si chiude la finestra principale cliccando sulla X, FeedDownloader Pro non termina il processo: si riduce nell'area di notifica di sistema (system tray, vicino all'orologio di Windows o macOS). Questo comportamento è intenzionale: i download proseguono in background mentre la finestra non è visibile.</p>
+        <p><strong>Menu contestuale del tray (clic destro sull'icona):</strong></p>
+        <ul>
+          <li><strong>Apri FeedDownloader Pro:</strong> Riporta in primo piano la finestra principale.</li>
+          <li><strong>Stato Download:</strong> Mostra una riga di riepilogo (es. <code>Downloading: 3 active, 47/312 completed</code>).</li>
+          <li><strong>Esci:</strong> Chiude il programma e interrompe tutti i download attivi.</li>
+        </ul>
+        <p><em>Nota pratica:</em> Per eseguire un download di grandi dimensioni senza tenere la finestra aperta, avviare il batch, chiudere la finestra e lasciare il computer in esecuzione. L'archivio sarà disponibile al completamento del processo.</p>
+        <hr>
+        <p><em>Vai al Capitolo 4 per un workflow completo dalla prima analisi al download.</em></p>
+      </section>
+    </section>
+  
+
+</body></html>

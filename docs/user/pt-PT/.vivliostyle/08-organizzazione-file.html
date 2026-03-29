@@ -1,0 +1,169 @@
+<!DOCTYPE html><html lang="pt"><head>
+    <meta charset="utf-8">
+    <title>Capítulo 8: Organização de Ficheiros, Modelos e Metadados</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="book/theme.css">
+  </head>
+  <body>
+    <section class="level1">
+      <h1 id="capítulo-8-organização-de-ficheiros-modelos-e-metadados">Capítulo 8: Organização de Ficheiros, Modelos e Metadados</h1>
+      <section class="level2">
+        <h2 id="81-o-problema-dos-nomes-sem-significado">8.1 O Problema dos Nomes Sem Significado</h2>
+        <p>Quando um ficheiro de áudio é publicado num servidor de podcasts, o seu nome original é frequentemente pouco legível: <code>ep_2024_03_15_FINAL_v2_mixdown.mp3</code>, <code>podcast-episode-187-compressed.m4a</code>, ou mesmo apenas <code>abc123def456.mp3</code> são exemplos comuns. Estes nomes fazem sentido para os sistemas do produtor, mas tornam um arquivo difícil de consultar.</p>
+        <p>O FeedDownloader Pro resolve este problema através do <strong>sistema de modelos de renomeação</strong>: um mecanismo que permite definir um formato de nome personalizado para todos os ficheiros transferidos, utilizando informações extraídas diretamente do feed RSS.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="82-como-funciona-o-modelo">8.2 Como Funciona o Modelo</h2>
+        <p>Um modelo de renomeação é uma cadeia de texto que pode conter texto fixo e <strong>tokens</strong> — variáveis entre chavetas simples (<code>{ }</code>). No final de cada transferência, o software substitui cada token pelo valor correspondente do episódio.</p>
+        <p><strong>Exemplo:</strong></p>
+        <p>Modelo configurado: <code>{date} - {podcast} - {title}</code></p>
+        <p>Resultado: <code>2024-03-15 - O Podcast do Mário - Episódio 187: A inteligência artificial explicada.mp3</code></p>
+        <p>A extensão do ficheiro (<code>.mp3</code>, <code>.m4a</code>, etc.) é adicionada automaticamente com base no formato do ficheiro original: não faz parte do modelo.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="83-os-tokens-disponíveis">8.3 Os Tokens Disponíveis</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Token</th>
+              <th>Descrição</th>
+              <th>Exemplo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>{title}</code></td>
+              <td>Título do episódio do feed RSS</td>
+              <td><code>Episódio 187: A IA explicada</code></td>
+            </tr>
+            <tr>
+              <td><code>{podcast}</code></td>
+              <td>Nome do podcast (título do canal RSS)</td>
+              <td><code>O Podcast do Mário</code></td>
+            </tr>
+            <tr>
+              <td><code>{date}</code></td>
+              <td>Data de publicação no formato <code>YYYY-MM-DD</code></td>
+              <td><code>2024-03-15</code></td>
+            </tr>
+            <tr>
+              <td><code>{year}</code></td>
+              <td>Ano de publicação</td>
+              <td><code>2024</code></td>
+            </tr>
+            <tr>
+              <td><code>{month}</code></td>
+              <td>Mês de publicação (2 dígitos)</td>
+              <td><code>03</code></td>
+            </tr>
+            <tr>
+              <td><code>{day}</code></td>
+              <td>Dia de publicação (2 dígitos)</td>
+              <td><code>15</code></td>
+            </tr>
+          </tbody>
+        </table>
+        <p><em>Nota:</em> Se no modelo for inserido um texto entre chavetas que não corresponde a nenhum dos tokens listados (por exemplo <code>{episode}</code>), o texto é mantido inalterado no nome do ficheiro resultante.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="84-modelos-recomendados">8.4 Modelos Recomendados</h2>
+        <p>
+          <strong>Modelo predefinido:</strong>
+          <code>{title}</code>
+          O modelo predefinido utiliza apenas o título do episódio. É adequado para catálogos com títulos descritivos.
+        </p>
+        <p>
+          <strong>Para uso geral (recomendado):</strong>
+          <code>{date} - {title}</code>
+          Resultado: <code>2024-03-15 - Episódio 187: A IA explicada.mp3</code>
+        </p>
+        <p>Este formato é recomendado porque a ordenação alfabética dos ficheiros coincide com a ordenação cronológica.</p>
+        <p>
+          <strong>Para arquivos com múltiplos podcasts (pasta partilhada):</strong>
+          <code>{podcast} - {date} - {title}</code>
+          Resultado: <code>O Podcast do Mário - 2024-03-15 - Episódio 187.mp3</code>
+        </p>
+        <p>Útil quando todos os podcasts são guardados na mesma pasta de destino.</p>
+        <p>
+          <strong>Para organização em subpastas por ano e mês:</strong>
+          <code>{year}/{month}/{date} - {title}</code>
+          Cria uma estrutura de subpastas automática (ver a secção 8.7).
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="85-normalização-automática-dos-nomes">8.5 Normalização Automática dos Nomes</h2>
+        <p>Alguns caracteres não são permitidos nos nomes de ficheiros nos principais sistemas operativos: <code>/</code>, <code>\</code>, <code>:</code>, <code>*</code>, <code>?</code>, <code>"</code>, <code>&lt;</code>, <code>&gt;</code>, <code>|</code> no Windows.</p>
+        <p>O FeedDownloader Pro aplica automaticamente uma <strong>normalização</strong> ao nome resultante do modelo:</p>
+        <ul>
+          <li>Os caracteres não permitidos são substituídos por um hífen (<code>-</code>) ou removidos.</li>
+          <li>Os espaços duplos são reduzidos a um espaço único.</li>
+          <li>Os hífens ou espaços iniciais e finais são eliminados.</li>
+          <li>O nome é truncado a 240 caracteres se ultrapassar o limite do sistema de ficheiros.</li>
+        </ul>
+        <p><em>Nota sobre títulos longos:</em> Alguns podcasts utilizam títulos muito descritivos (mais de 150 caracteres). A utilização do token <code>{title}</code> no modelo pode produzir nomes de ficheiros muito longos. Nestes casos, combinar <code>{date}</code> como elemento cronológico principal pode limitar o comprimento total do nome.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="86-configurar-o-modelo">8.6 Configurar o Modelo</h2>
+        <p>O modelo de renomeação configura-se em <strong>Definições → Metadados</strong>.</p>
+        <p>O campo de texto aceita qualquer combinação de texto e tokens. Sob o campo está disponível uma pré-visualização em tempo real que mostra o resultado do modelo aplicado a um episódio de exemplo, para verificar o formato antes de guardar.</p>
+        <p>O modelo predefinido é <code>{title}</code>.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="87-organização-em-subpastas">8.7 Organização em Subpastas</h2>
+        <p>No modelo é possível utilizar o carácter <code>/</code> para criar uma estrutura de <strong>subpastas</strong> automática dentro da pasta de destino.</p>
+        <p>
+          <strong>Exemplo — organização por ano e mês:</strong>
+          <code>{year}/{month}/{date} - {title}</code>
+        </p>
+        <p>
+          Com uma pasta de destino <code>D:\Arquivo Podcasts\O Podcast do Mário\</code>, o resultado será:
+          <code>D:\Arquivo Podcasts\O Podcast do Mário\ ├── 2024\ │ ├── 01\ │ │ ├── 2024-01-08 - Primeiro Episódio do Ano.mp3 │ │ └── 2024-01-22 - Segundo Episódio.mp3 │ └── 03\ │ └── 2024-03-15 - Episódio 187.mp3 └── 2023\ └── 12\ └── 2023-12-20 - Último Episódio de 2023.mp3</code>
+        </p>
+        <p>As subpastas são criadas automaticamente se não existirem.</p>
+        <p><em>Atenção:</em> O carácter <code>\</code> (barra invertida) não é suportado como separador de caminho no modelo. Utilizar sempre <code>/</code> (barra oblíqua), que o software traduz corretamente para o sistema operativo em uso.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="88-ficheiro-sidecar-json">8.8 Ficheiro Sidecar .json</h2>
+        <p>No separador <strong>Definições → Metadados</strong> está disponível o botão de alternância <strong>"Ficheiro sidecar .json"</strong>.</p>
+        <p>Quando ativado, para cada ficheiro de áudio transferido é criado um ficheiro <code>.json</code> com o mesmo nome na mesma pasta. O ficheiro contém os metadados do episódio em formato estruturado:</p>
+        <pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"title"</span><span class="token operator">:</span> <span class="token string">"Episódio 187: A IA explicada"</span><span class="token punctuation">,</span>
+  <span class="token property">"podcast"</span><span class="token operator">:</span> <span class="token string">"O Podcast do Mário"</span><span class="token punctuation">,</span>
+  <span class="token property">"date"</span><span class="token operator">:</span> <span class="token string">"2024-03-15"</span><span class="token punctuation">,</span>
+  <span class="token property">"sourceUrl"</span><span class="token operator">:</span> <span class="token string">"https://media.exemplo.pt/ep187.mp3"</span>
+<span class="token punctuation">}</span></code></pre>
+        <p><strong>Cenários de utilização:</strong></p>
+        <ul>
+          <li>Integração com scripts de automação ou sistemas que leem os metadados diretamente do sistema de ficheiros sem consultar a base de dados.</li>
+          <li>Conservação dos metadados de forma independente da base de dados, útil em caso de migração ou reconstrução do arquivo.</li>
+        </ul>
+        <p>Esta opção está desativada por predefinição.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="89-etiquetagem-id3">8.9 Etiquetagem ID3</h2>
+        <p>No separador <strong>Definições → Metadados</strong> está disponível o botão de alternância <strong>"Etiquetagem ID3"</strong>.</p>
+        <p>Quando ativado, no final de cada transferência o software escreve os metadados diretamente dentro do ficheiro <code>.mp3</code>, nas etiquetas ID3 padrão:</p>
+        <ul>
+          <li><strong>Título:</strong> O título do episódio</li>
+          <li><strong>Artista:</strong> O nome do podcast</li>
+          <li><strong>Ano:</strong> O ano de publicação</li>
+          <li><strong>Capa:</strong> A imagem do podcast (se disponível no feed RSS)</li>
+        </ul>
+        <p>As etiquetas ID3 são reconhecidas pelos principais leitores de áudio (Windows Media Player, VLC, iTunes, Foobar2000) e permitem visualizar as informações do episódio independentemente do nome do ficheiro.</p>
+        <p><em>Nota:</em> A etiquetagem ID3 aplica-se exclusivamente aos ficheiros <code>.mp3</code>. Os ficheiros noutros formatos (<code>.m4a</code>, <code>.ogg</code>, <code>.opus</code>) não são modificados, mesmo com esta opção ativa.</p>
+        <p>Esta opção está desativada por predefinição.</p>
+        <hr>
+        <p><em>Ver o Capítulo 9 para a verificação de integridade e a gestão do arquivo.</em></p>
+      </section>
+    </section>
+  
+
+</body></html>

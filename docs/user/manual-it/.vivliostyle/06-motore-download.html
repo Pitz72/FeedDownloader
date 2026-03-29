@@ -1,0 +1,168 @@
+<!DOCTYPE html><html lang="it"><head>
+    <meta charset="utf-8">
+    <title>Capitolo 6: Il Motore di Download</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="book/theme.css">
+  </head>
+  <body>
+    <section class="level1">
+      <h1 id="capitolo-6-il-motore-di-download">Capitolo 6: Il Motore di Download</h1>
+      <section class="level2">
+        <h2 id="61-architettura-del-motore">6.1 Architettura del Motore</h2>
+        <p>Il motore di download di FeedDownloader Pro è un sistema asincrono a thread multipli. A differenza di un downloader sequenziale, il software gestisce più download contemporaneamente attraverso un sistema di coda centrale.</p>
+        <p><strong>Componenti principali:</strong></p>
+        <ul>
+          <li><strong>La coda:</strong> Una lista ordinata di tutti i download in attesa. Ogni episodio aggiunto al batch entra in questa coda e attende di essere assegnato a un thread disponibile.</li>
+          <li><strong>I worker thread:</strong> I processi che eseguono fisicamente i download. Il numero di thread attivi è configurabile. Ogni thread gestisce un download alla volta, in modo indipendente dagli altri.</li>
+          <li><strong>Il database manager:</strong> Il componente che aggiorna in tempo reale il database SQLite con lo stato di ogni download (avviato, completato, fallito, percentuale di avanzamento).</li>
+          <li><strong>Il monitor di integrità:</strong> Il processo che, al completamento di ogni download, calcola e registra l'hash SHA-256 del file scaricato.</li>
+        </ul>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="62-download-paralleli-configurazione">6.2 Download Paralleli: Configurazione</h2>
+        <p>Il numero di download simultanei è uno dei parametri più rilevanti da configurare. Un valore insufficiente rallenta il processo; un valore eccessivo può saturare la connessione, sovraccaricare il server sorgente o generare errori di rete.</p>
+        <p><strong>Il valore predefinito è 3 thread.</strong> Per la maggior parte degli utenti con connessione domestica, questo valore offre un buon equilibrio tra velocità e stabilità.</p>
+        <p><strong>Linee guida per la configurazione:</strong></p>
+        <table>
+          <thead>
+            <tr>
+              <th>Scenario</th>
+              <th>Thread consigliati</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Connessione lenta o server con throttling</td>
+              <td>1</td>
+            </tr>
+            <tr>
+              <td>Connessione domestica standard</td>
+              <td>3 (predefinito)</td>
+            </tr>
+            <tr>
+              <td>Connessione in fibra veloce</td>
+              <td>5</td>
+            </tr>
+            <tr>
+              <td>NAS con connessione di rete lenta</td>
+              <td>1</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          <strong>Come modificare il numero di thread:</strong>
+          Andare in <strong>Impostazioni → Download → Thread Paralleli</strong> e selezionare uno dei tre preset disponibili: <strong>1</strong>, <strong>3</strong> o <strong>5</strong>. La modifica viene applicata immediatamente alla coda in corso.
+        </p>
+        <p><em>Nota sui server con limiti di connessione:</em> Alcuni server di hosting podcast applicano limitazioni al numero di connessioni simultanee per singolo indirizzo IP. In presenza di errori frequenti <code>429 Too Many Requests</code> o <code>503 Service Unavailable</code>, ridurre il numero di thread a 1 o 2. Il meccanismo di retry gestisce automaticamente i fallimenti, ma ridurre il carico previene il problema alla radice.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="63-gestione-degli-errori-e-sistema-di-retry">6.3 Gestione degli Errori e Sistema di Retry</h2>
+        <p>In un download batch di centinaia di file, gli errori di rete sono prevedibili. FeedDownloader Pro utilizza una strategia di <strong>retry con backoff esponenziale</strong>: quando un download fallisce, il sistema attende un intervallo crescente prima di riprovare, anziché rimettere immediatamente l'episodio in coda.</p>
+        <p><strong>Ciclo di retry:</strong></p>
+        <table>
+          <thead>
+            <tr>
+              <th>Tentativo</th>
+              <th>Attesa prima del retry</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1° fallimento</td>
+              <td>2 secondi</td>
+            </tr>
+            <tr>
+              <td>2° fallimento</td>
+              <td>4 secondi</td>
+            </tr>
+            <tr>
+              <td>3° fallimento</td>
+              <td>8 secondi</td>
+            </tr>
+            <tr>
+              <td>4° fallimento</td>
+              <td>16 secondi</td>
+            </tr>
+            <tr>
+              <td>5° fallimento (ultimo)</td>
+              <td>L'episodio viene marcato come <strong>"Errore"</strong> definitivo</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>Se un server è temporaneamente sovraccarico, il sistema dà al server il tempo di recuperare prima di riprovare. La maggior parte degli errori transienti si risolve entro il secondo o il terzo tentativo.</p>
+        <p><strong>Errori definitivi (non soggetti a retry):</strong></p>
+        <ul>
+          <li><code>404 Not Found</code>: Il file non esiste sul server. Nuovi tentativi non sono utili.</li>
+          <li><code>403 Forbidden</code>: Il server ha rifiutato la richiesta per mancanza di autorizzazione.</li>
+          <li>Errori di validazione SSRF: L'URL non ha superato i controlli di sicurezza interni.</li>
+        </ul>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="64-stall-detection">6.4 Stall Detection</h2>
+        <p>Un download bloccato è uno scenario in cui la connessione TCP è tecnicamente attiva e i pacchetti continuano ad arrivare, ma il flusso di dati si è interrotto. Il sistema operativo non segnala errori poiché la connessione è ancora aperta; il file continua a risultare "in download" senza progredire.</p>
+        <p>Questa condizione si verifica frequentemente con:</p>
+        <ul>
+          <li>Server sotto carico che applicano il throttling dopo aver inviato i primi byte.</li>
+          <li>Problemi di routing di rete intermedi.</li>
+          <li>File audio di grandi dimensioni serviti da CDN con limitazioni di banda.</li>
+        </ul>
+        <p>
+          <strong>Rilevamento:</strong>
+          Ogni download attivo è monitorato da un processo watchdog che registra i byte ricevuti ogni 10 secondi. Se per <strong>60 secondi consecutivi</strong> non arrivano nuovi byte (o arrivano meno di 1 KB, soglia che esclude i keep-alive TCP), il download viene considerato bloccato e:
+        </p>
+        <ol>
+          <li>La connessione viene interrotta.</li>
+          <li>Il file <code>.part</code> parziale viene eliminato.</li>
+          <li>L'episodio viene reinserito in coda con il normale ciclo di retry.</li>
+        </ol>
+        <p>Il processo è trasparente per l'utente: nella barra di avanzamento individuale è visibile un breve reset della percentuale, seguito dalla ripresa del download. Se il blocco era causato da una condizione transitoria, il nuovo download parte normalmente. Se il problema persiste oltre i tentativi massimi, l'episodio viene marcato come <strong>"Errore"</strong>.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="65-file-part-il-sistema-anti-corruzione">6.5 File <code>.part</code>: Il Sistema Anti-Corruzione</h2>
+        <p>Ogni file audio viene scaricato con l'estensione temporanea <code>.part</code> durante il trasferimento. Il file viene rinominato con l'estensione definitiva (<code>.mp3</code>, <code>.m4a</code>, <code>.ogg</code>, ecc.) <strong>solo</strong> dopo che:</p>
+        <ol>
+          <li>Il trasferimento è completato al 100%.</li>
+          <li>La dimensione del file corrisponde a quella dichiarata nell'intestazione HTTP (<code>Content-Length</code>), se disponibile.</li>
+          <li>L'hash SHA-256 è stato calcolato e registrato nel database.</li>
+        </ol>
+        <p>Questo meccanismo garantisce che nella cartella di destinazione non siano mai presenti file audio parziali o corrotti con estensione definitiva. In caso di interruzione improvvisa del programma o di spegnimento del computer, nella cartella si troveranno file <code>.part</code> residui: il software li eliminerà e riscaricherà alla sessione successiva.</p>
+        <p><em>Posizione dei file <code>.part</code>:</em> Nella stessa cartella di destinazione dei file completati. Questi file non devono essere aperti con un player audio: essendo parziali, causerebbero errori di lettura.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="66-interruzione-e-ripresa-delle-sessioni">6.6 Interruzione e Ripresa delle Sessioni</h2>
+        <p>
+          <strong>Fermare il Batch:</strong>
+          Il pulsante <strong>"Ferma"</strong> (nella barra di avanzamento globale) interrompe tutti i thread attivi in modo ordinato, svuota la coda ed elimina i file <code>.part</code> parziali. I file già completati rimangono nel database. Alla successiva analisi dello stesso feed, gli episodi interrotti appariranno come <strong>"Da Scaricare"</strong>.
+        </p>
+        <p>
+          <strong>Chiusura del programma durante un download:</strong>
+          Se si chiude la finestra principale (il programma continua nel system tray) oppure si utilizza <strong>"Esci"</strong> dal menu del tray durante un download attivo, il software mostra un avviso con il numero di download in corso e richiede conferma. Scegliendo di uscire, i download attivi vengono interrotti in modo controllato e i file <code>.part</code> vengono mantenuti.
+        </p>
+        <p>
+          <strong>Riprendere una sessione interrotta:</strong>
+          All'avvio, se FeedDownloader Pro rileva nel database episodi in stato <strong>"In Coda"</strong> o <strong>"In Corso"</strong> dalla sessione precedente, mostra una notifica: <em>"Trovati X download in sospeso dalla sessione precedente. Vuoi riprenderli?"</em>. Confermando, il batch riprende immediatamente.
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="67-velocità-di-download">6.7 Velocità di Download</h2>
+        <p>La velocità visualizzata nella barra inferiore è la <strong>somma aggregata</strong> di tutti i thread attivi. Con 3 thread attivi che scaricano ciascuno a 2 MB/s, la velocità totale visualizzata è di circa 6 MB/s.</p>
+        <p><strong>Fattori che influenzano la velocità:</strong></p>
+        <ul>
+          <li><strong>Larghezza di banda della connessione:</strong> Il limite massimo disponibile.</li>
+          <li><strong>Velocità del server sorgente:</strong> Molti server di hosting podcast applicano limitazioni di banda per contenere i costi. La velocità di un singolo thread raramente supera i 2–5 MB/s su questi server.</li>
+          <li><strong>Numero di thread:</strong> Un numero maggiore di thread compensa la lentezza dei singoli server scaricando da più connessioni simultanee.</li>
+          <li><strong>Dimensione dei file:</strong> File di dimensione media (20–80 MB, corrispondenti a episodi di 30–60 minuti) offrono l'efficienza ottimale, con un overhead relativo di connessione ridotto.</li>
+        </ul>
+        <hr>
+        <p><em>Vai al Capitolo 7 per la configurazione dei percorsi NAS e di rete.</em></p>
+      </section>
+    </section>
+  
+
+</body></html>

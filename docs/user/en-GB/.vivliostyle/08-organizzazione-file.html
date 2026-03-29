@@ -1,0 +1,169 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="utf-8">
+    <title>Chapter 8: File Organisation, Templates, and Metadata</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="book/theme.css">
+  </head>
+  <body>
+    <section class="level1">
+      <h1 id="chapter-8-file-organisation-templates-and-metadata">Chapter 8: File Organisation, Templates, and Metadata</h1>
+      <section class="level2">
+        <h2 id="81-the-problem-of-non-meaningful-names">8.1 The Problem of Non-Meaningful Names</h2>
+        <p>When an audio file is published on a podcast server, its original name is often difficult to read: <code>ep_2024_03_15_FINAL_v2_mixdown.mp3</code>, <code>podcast-episode-187-compressed.m4a</code>, or even just <code>abc123def456.mp3</code> are common examples. These names make sense for the producer's systems, but make an archive difficult to browse.</p>
+        <p>FeedDownloader Pro resolves this problem through the <strong>rename template system</strong>: a mechanism that allows you to define a custom name format for all downloaded files, using information extracted directly from the RSS feed.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="82-how-the-template-works">8.2 How the Template Works</h2>
+        <p>A rename template is a text string that can contain fixed text and <strong>tokens</strong> — variables enclosed in single curly braces (<code>{ }</code>). Upon completion of each download, the software replaces each token with the corresponding value for the episode.</p>
+        <p><strong>Example:</strong></p>
+        <p>Configured template: <code>{date} - {podcast} - {title}</code></p>
+        <p>Result: <code>2024-03-15 - Mario's Podcast - Episode 187: Artificial Intelligence Explained.mp3</code></p>
+        <p>The file extension (<code>.mp3</code>, <code>.m4a</code>, etc.) is added automatically based on the format of the original file: it is not part of the template.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="83-available-tokens">8.3 Available Tokens</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Token</th>
+              <th>Description</th>
+              <th>Example</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>{title}</code></td>
+              <td>Episode title from the RSS feed</td>
+              <td><code>Episode 187: AI Explained</code></td>
+            </tr>
+            <tr>
+              <td><code>{podcast}</code></td>
+              <td>Podcast name (RSS channel title)</td>
+              <td><code>Mario's Podcast</code></td>
+            </tr>
+            <tr>
+              <td><code>{date}</code></td>
+              <td>Publication date in <code>YYYY-MM-DD</code> format</td>
+              <td><code>2024-03-15</code></td>
+            </tr>
+            <tr>
+              <td><code>{year}</code></td>
+              <td>Publication year</td>
+              <td><code>2024</code></td>
+            </tr>
+            <tr>
+              <td><code>{month}</code></td>
+              <td>Publication month (2 digits)</td>
+              <td><code>03</code></td>
+            </tr>
+            <tr>
+              <td><code>{day}</code></td>
+              <td>Publication day (2 digits)</td>
+              <td><code>15</code></td>
+            </tr>
+          </tbody>
+        </table>
+        <p><em>Note:</em> If text is entered in the template within curly braces that does not correspond to any of the listed tokens (for example <code>{episode}</code>), the text is left unchanged in the resulting file name.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="84-recommended-templates">8.4 Recommended Templates</h2>
+        <p>
+          <strong>Default template:</strong>
+          <code>{title}</code>
+          The default template uses the episode title alone. It is suitable for catalogues with descriptive titles.
+        </p>
+        <p>
+          <strong>For general use (recommended):</strong>
+          <code>{date} - {title}</code>
+          Result: <code>2024-03-15 - Episode 187: AI Explained.mp3</code>
+        </p>
+        <p>This format is recommended because alphabetical sorting of the files coincides with chronological ordering.</p>
+        <p>
+          <strong>For multi-podcast archives (shared folder):</strong>
+          <code>{podcast} - {date} - {title}</code>
+          Result: <code>Mario's Podcast - 2024-03-15 - Episode 187.mp3</code>
+        </p>
+        <p>Useful when all podcasts are saved in the same destination folder.</p>
+        <p>
+          <strong>For organisation into subfolders by year and month:</strong>
+          <code>{year}/{month}/{date} - {title}</code>
+          Creates an automatic subfolder structure (see section 8.7).
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="85-automatic-name-normalisation">8.5 Automatic Name Normalisation</h2>
+        <p>Some characters are not permitted in file names on the main operating systems: <code>/</code>, <code>\</code>, <code>:</code>, <code>*</code>, <code>?</code>, <code>"</code>, <code>&lt;</code>, <code>&gt;</code>, <code>|</code> on Windows.</p>
+        <p>FeedDownloader Pro automatically applies <strong>normalisation</strong> to the name produced by the template:</p>
+        <ul>
+          <li>Non-permitted characters are replaced with a hyphen (<code>-</code>) or removed.</li>
+          <li>Double spaces are reduced to a single space.</li>
+          <li>Leading and trailing hyphens or spaces are removed.</li>
+          <li>The name is truncated to 240 characters if it exceeds the filesystem limit.</li>
+        </ul>
+        <p><em>Note on long titles:</em> Some podcasts use very descriptive titles (over 150 characters). Using the <code>{title}</code> token in the template may produce very long file names. In these cases, pairing <code>{date}</code> as the primary chronological element can limit the overall length of the name.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="86-configuring-the-template">8.6 Configuring the Template</h2>
+        <p>The rename template is configured in <strong>Settings → Metadata</strong>.</p>
+        <p>The text field accepts any combination of text and tokens. Beneath the field, a real-time preview is available showing the result of the template applied to a sample episode, to verify the format before saving.</p>
+        <p>The default template is <code>{title}</code>.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="87-organisation-into-subfolders">8.7 Organisation into Subfolders</h2>
+        <p>In the template it is possible to use the <code>/</code> character to create an automatic <strong>subfolder</strong> structure within the destination folder.</p>
+        <p>
+          <strong>Example — organisation by year and month:</strong>
+          <code>{year}/{month}/{date} - {title}</code>
+        </p>
+        <p>
+          With a destination folder of <code>D:\Podcast Archive\Mario's Podcast\</code>, the result will be:
+          <code>D:\Podcast Archive\Mario's Podcast\ ├── 2024\ │ ├── 01\ │ │ ├── 2024-01-08 - First Episode of the Year.mp3 │ │ └── 2024-01-22 - Second Episode.mp3 │ └── 03\ │ └── 2024-03-15 - Episode 187.mp3 └── 2023\ └── 12\ └── 2023-12-20 - Last Episode of 2023.mp3</code>
+        </p>
+        <p>Subfolders are created automatically if they do not exist.</p>
+        <p><em>Caution:</em> The <code>\</code> (backslash) character is not supported as a path separator in the template. Always use <code>/</code> (forward slash), which the software correctly translates for the operating system in use.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="88-sidecar-json-files">8.8 Sidecar JSON Files</h2>
+        <p>The <strong>"Sidecar .json File"</strong> toggle is available in the <strong>Settings → Metadata</strong> tab.</p>
+        <p>When enabled, for each downloaded audio file a <code>.json</code> file is created with the same name in the same folder. The file contains the episode metadata in structured format:</p>
+        <pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"title"</span><span class="token operator">:</span> <span class="token string">"Episode 187: AI Explained"</span><span class="token punctuation">,</span>
+  <span class="token property">"podcast"</span><span class="token operator">:</span> <span class="token string">"Mario's Podcast"</span><span class="token punctuation">,</span>
+  <span class="token property">"date"</span><span class="token operator">:</span> <span class="token string">"2024-03-15"</span><span class="token punctuation">,</span>
+  <span class="token property">"sourceUrl"</span><span class="token operator">:</span> <span class="token string">"https://media.example.com/ep187.mp3"</span>
+<span class="token punctuation">}</span></code></pre>
+        <p><strong>Use cases:</strong></p>
+        <ul>
+          <li>Integration with automation scripts or systems that read metadata directly from the filesystem without querying the database.</li>
+          <li>Preserving metadata independently of the database, useful in the event of archive migration or reconstruction.</li>
+        </ul>
+        <p>This option is disabled by default.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="89-id3-tagging">8.9 ID3 Tagging</h2>
+        <p>The <strong>"ID3 Tagging"</strong> toggle is available in the <strong>Settings → Metadata</strong> tab.</p>
+        <p>When enabled, upon completion of each download the software writes metadata directly into the <code>.mp3</code> file, in the standard ID3 tags:</p>
+        <ul>
+          <li><strong>Title:</strong> The episode title</li>
+          <li><strong>Artist:</strong> The podcast name</li>
+          <li><strong>Year:</strong> The publication year</li>
+          <li><strong>Cover art:</strong> The podcast image (if available in the RSS feed)</li>
+        </ul>
+        <p>ID3 tags are recognised by major audio players (Windows Media Player, VLC, iTunes, Foobar2000) and allow episode information to be displayed independently of the file name.</p>
+        <p><em>Note:</em> ID3 tagging applies exclusively to <code>.mp3</code> files. Files in other formats (<code>.m4a</code>, <code>.ogg</code>, <code>.opus</code>) are not modified, even with this option active.</p>
+        <p>This option is disabled by default.</p>
+        <hr>
+        <p><em>Go to Chapter 9 for integrity verification and archive management.</em></p>
+      </section>
+    </section>
+  
+
+</body></html>

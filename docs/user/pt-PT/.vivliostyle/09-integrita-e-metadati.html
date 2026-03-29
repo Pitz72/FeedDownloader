@@ -1,0 +1,190 @@
+<!DOCTYPE html><html lang="pt"><head>
+    <meta charset="utf-8">
+    <title>Capítulo 9: Integridade, Estatísticas e Arquivo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="book/theme.css">
+  </head>
+  <body>
+    <section class="level1">
+      <h1 id="capítulo-9-integridade-estatísticas-e-arquivo">Capítulo 9: Integridade, Estatísticas e Arquivo</h1>
+      <section class="level2">
+        <h2 id="91-por-que-verificar-a-integridade-dos-ficheiros">9.1 Por que Verificar a Integridade dos Ficheiros</h2>
+        <p>A conclusão de uma transferência não garante que o ficheiro recebido esteja íntegro. Um pacote de rede perdido durante a transferência, um erro de escrita no disco ou uma interrupção no último segundo podem produzir um ficheiro formalmente "presente" mas corrompido. Na ausência de uma verificação explícita, um arquivo aparentemente completo pode conter ficheiros de áudio não reproduzíveis, cuja corrupção só é detetada durante a reprodução.</p>
+        <p>O FeedDownloader Pro aborda este problema com dois mecanismos complementares: a <strong>verificação do tamanho</strong> (durante a transferência) e a <strong>verificação SHA-256</strong> (no final).</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="92-a-verificação-sha-256">9.2 A Verificação SHA-256</h2>
+        <p><strong>SHA-256</strong> (Secure Hash Algorithm 256-bit) é uma função criptográfica que produz uma impressão digital de 64 caracteres hexadecimais para qualquer ficheiro. Dois ficheiros idênticos produzem sempre o mesmo hash; uma diferença de apenas um bit produz um hash completamente diferente.</p>
+        <p>Para cada ficheiro transferido, o FeedDownloader Pro:</p>
+        <ol>
+          <li>Calcula o hash SHA-256 do ficheiro no final da transferência.</li>
+          <li>Guarda o hash na base de dados, juntamente com o caminho do ficheiro e a data de cálculo.</li>
+          <li>Se o feed RSS incluir um hash de referência (alguns feeds modernos incluem o campo <code>&lt;podcast:integrity&gt;</code>), compara-o com o calculado. Em caso de discrepância, o ficheiro é marcado como <strong>"Corrompido"</strong> e reinserido na fila para uma nova transferência.</li>
+        </ol>
+        <p><strong>Utilizações práticas:</strong></p>
+        <ul>
+          <li>É possível verificar em qualquer momento futuro que um ficheiro não foi modificado, corrompido ou substituído: basta recalcular o hash e compará-lo com o registado na base de dados.</li>
+          <li>Após mover os ficheiros para um novo disco ou durante uma migração, o <strong>Health Check</strong> (ver a secção 9.4) permite verificar que todos os ficheiros ainda estão presentes.</li>
+          <li>Em contextos profissionais, o hash SHA-256 constitui uma referência verificável da integridade do conteúdo no momento da transferência.</li>
+        </ul>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="93-os-metadados-de-áudio-extraídos">9.3 Os Metadados de Áudio Extraídos</h2>
+        <p>No final de cada transferência, o FeedDownloader Pro extrai automaticamente os <strong>metadados técnicos</strong> do ficheiro de áudio. Estas informações são lidas diretamente do ficheiro (e não do feed RSS) e registadas na base de dados.</p>
+        <p><strong>Metadados extraídos:</strong></p>
+        <table>
+          <thead>
+            <tr>
+              <th>Campo</th>
+              <th>Descrição</th>
+              <th>Exemplo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Bitrate</strong></td>
+              <td>Qualidade de áudio em quilobits por segundo</td>
+              <td><code>128 kbps</code>, <code>320 kbps</code></td>
+            </tr>
+            <tr>
+              <td><strong>Sample rate</strong></td>
+              <td>Frequência de amostragem</td>
+              <td><code>44100 Hz</code>, <code>48000 Hz</code></td>
+            </tr>
+            <tr>
+              <td><strong>Tamanho em disco</strong></td>
+              <td>Tamanho real do ficheiro transferido</td>
+              <td><code>67,4 MB</code></td>
+            </tr>
+          </tbody>
+        </table>
+        <p>Estes valores são registados na base de dados e estão incluídos na exportação CSV (ver a secção 9.6).</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="94-health-check-verificação-da-integridade-do-arquivo">9.4 Health Check: Verificação da Integridade do Arquivo</h2>
+        <p>Com o tempo, um arquivo pode sofrer alterações externas ao software: ficheiros movidos ou eliminados diretamente a partir do sistema de ficheiros. O <strong>Health Check</strong> verifica o estado do arquivo em relação ao que está registado na base de dados.</p>
+        <p>
+          <strong>Como executar o Health Check:</strong>
+          Aceder a <strong>Definições → Arquivo → Health Check</strong> e clicar em <strong>"Iniciar verificação"</strong>.
+        </p>
+        <p>O processo analisa cada ficheiro registado na base de dados e verifica que o ficheiro ainda existe no caminho registado. No final, é apresentado um resumo com três indicadores:</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Indicador</th>
+              <th>Significado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Total</strong></td>
+              <td>Número total de episódios na base de dados</td>
+            </tr>
+            <tr>
+              <td><strong>Presentes</strong></td>
+              <td>Ficheiros que existem no caminho registado</td>
+            </tr>
+            <tr>
+              <td><strong>Em falta</strong></td>
+              <td>Ficheiros não encontrados no caminho registado</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>O ecrã mostra também o <strong>espaço em disco total</strong> ocupado pelos ficheiros presentes.</p>
+        <p>Na presença de ficheiros em falta, o software lista os primeiros 5 com o nome do podcast e o nome do ficheiro. Para recuperar um ficheiro em falta, utilizar a função <strong>"Forçar nova transferência"</strong> disponível no menu de contexto do episódio na lista principal.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="95-estatísticas-do-arquivo">9.5 Estatísticas do Arquivo</h2>
+        <p>A secção de estatísticas está acessível em <strong>Definições → Arquivo</strong> e fornece uma visão geral sintética dos dados registados na base de dados:</p>
+        <ul>
+          <li><strong>Ficheiros transferidos:</strong> Número total de episódios presentes na base de dados.</li>
+          <li><strong>Podcasts:</strong> Número de feeds distintos representados no arquivo.</li>
+          <li><strong>Intervalo temporal:</strong> Data do primeiro e do último episódio transferido.</li>
+        </ul>
+        <p>As estatísticas são atualizadas automaticamente a cada abertura do painel Definições.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="96-exportação-csv">9.6 Exportação CSV</h2>
+        <p>A exportação CSV gera um ficheiro com os dados de cada episódio presente na base de dados. É útil para integrar o FeedDownloader Pro com outras ferramentas (folhas de cálculo, sistemas de gestão de conteúdos, scripts de automação).</p>
+        <p>
+          <strong>Como exportar:</strong>
+          Aceder a <strong>Definições → Arquivo → Exportar CSV</strong> e escolher o caminho onde guardar o ficheiro.
+        </p>
+        <p><strong>Colunas da exportação:</strong></p>
+        <table>
+          <thead>
+            <tr>
+              <th>Coluna</th>
+              <th>Conteúdo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>Podcast</code></td>
+              <td>Nome do podcast</td>
+            </tr>
+            <tr>
+              <td><code>Episode Title</code></td>
+              <td>Título do episódio</td>
+            </tr>
+            <tr>
+              <td><code>Publish Date</code></td>
+              <td>Data de publicação</td>
+            </tr>
+            <tr>
+              <td><code>Downloaded At</code></td>
+              <td>Data e hora da transferência</td>
+            </tr>
+            <tr>
+              <td><code>File Size (bytes)</code></td>
+              <td>Tamanho do ficheiro em bytes</td>
+            </tr>
+            <tr>
+              <td><code>Bitrate (kbps)</code></td>
+              <td>Bitrate de áudio em quilobits por segundo</td>
+            </tr>
+            <tr>
+              <td><code>Sample Rate (Hz)</code></td>
+              <td>Frequência de amostragem em hertz</td>
+            </tr>
+            <tr>
+              <td><code>SHA-256 Checksum</code></td>
+              <td>Hash SHA-256 do ficheiro</td>
+            </tr>
+            <tr>
+              <td><code>Validation Status</code></td>
+              <td>Resultado do último controlo de integridade</td>
+            </tr>
+            <tr>
+              <td><code>GUID</code></td>
+              <td>Identificador único do episódio no feed RSS</td>
+            </tr>
+          </tbody>
+        </table>
+        <p><em>Formato do ficheiro:</em> CSV com separador vírgula (<code>,</code>), codificação UTF-8 com BOM (para compatibilidade com o Microsoft Excel). Os campos que contêm vírgulas são delimitados por aspas.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="97-migração-do-arquivo">9.7 Migração do Arquivo</h2>
+        <p>Para mover o arquivo para um novo disco ou uma nova pasta, utilizar a função integrada de migração, que mantém a base de dados sincronizada com a nova localização dos ficheiros.</p>
+        <p><strong>Procedimento:</strong></p>
+        <ol>
+          <li>Aceder a <strong>Definições → Arquivo → Migrar arquivo</strong>.</li>
+          <li>Selecionar a <strong>nova pasta de destino</strong> através da janela de seleção.</li>
+          <li>O software move fisicamente todos os ficheiros de áudio para a nova pasta e atualiza os caminhos na base de dados.</li>
+          <li>No final é apresentado um resumo: número de ficheiros movidos e eventuais erros.</li>
+        </ol>
+        <p><em>Atenção:</em> A migração move os ficheiros da pasta atual para a nova. Os ficheiros são removidos da localização original. Verificar que o disco de destino tem espaço suficiente antes de iniciar a operação.</p>
+        <p><em>Transferência para um novo computador:</em> Copiar tanto a pasta dos ficheiros de áudio como o ficheiro <code>feeddownloader.db</code> (da pasta de dados do utilizador descrita no Capítulo 2). No novo computador, instalar o FeedDownloader Pro, copiar a base de dados para a pasta de dados do utilizador e utilizar a função de migração se o caminho do arquivo tiver mudado.</p>
+        <hr>
+        <p><em>Ver o Capítulo 10 para as definições avançadas do software.</em></p>
+      </section>
+    </section>
+  
+
+</body></html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html><html lang="fr"><head>
+    <meta charset="utf-8">
+    <title>Chapitre 3 : Tour de l'interface</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="book/theme.css">
+  </head>
+  <body>
+    <section class="level1">
+      <h1 id="chapitre-3--tour-de-linterface">Chapitre 3 : Tour de l'interface</h1>
+      <section class="level2">
+        <h2 id="31-anatomie-de-la-fenêtre-principale">3.1 Anatomie de la fenêtre principale</h2>
+        <p>À l'ouverture de FeedDownloader Pro, l'interface est organisée verticalement en trois zones fonctionnelles :</p>
+        <ul>
+          <li><strong>Zone de commande (en haut) :</strong> La barre de saisie URL et les contrôles principaux. Toutes les opérations sont lancées depuis ici.</li>
+          <li><strong>Zone de travail (au centre) :</strong> La zone principale, où les épisodes analysés sont affichés avec leurs informations et les contrôles de téléchargement individuels.</li>
+          <li><strong>Zone d'état (en bas) :</strong> La barre de progression globale avec les informations sur le batch en cours.</li>
+        </ul>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="32-la-barre-de-commande-en-haut">3.2 La barre de commande (en haut)</h2>
+        <p><strong>Champ URL :</strong> La barre de texte où saisir l'adresse RSS du podcast à analyser. Accepte les URL directes vers des fichiers XML/RSS. Prend en charge le <strong>drag and drop</strong> : il est possible de faire glisser un lien directement depuis un navigateur vers cette zone.</p>
+        <p><strong>Bouton « Analyser » :</strong> Lance l'analyse du feed. Le logiciel contacte l'URL, lit le fichier RSS et remplit la liste des épisodes. L'opération prend généralement 1 à 5 secondes, selon la taille du feed et la vitesse de la connexion.</p>
+        <p><strong>Champ Chemin de destination :</strong> Indique le dossier dans lequel les fichiers téléchargés seront enregistrés. Cliquer sur l'icône de dossier adjacente ouvre la fenêtre de sélection. Le chemin défini est conservé entre les sessions.</p>
+        <p><strong>Icône Paramètres (⚙) :</strong> Ouvre le panneau des paramètres. Accessible à tout moment, même pendant un téléchargement en cours. Pour les détails, voir le Chapitre 10.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="33-la-liste-des-épisodes-au-centre">3.3 La liste des épisodes (au centre)</h2>
+        <p>Après l'analyse d'un feed, cette zone est remplie avec la liste des épisodes disponibles. Chaque ligne représente un épisode et contient les informations suivantes.</p>
+        <p><strong>Colonnes principales :</strong></p>
+        <ul>
+          <li><strong>Titre :</strong> Le nom de l'épisode tel que défini dans le feed RSS.</li>
+          <li><strong>Date :</strong> La date de publication originale de l'épisode.</li>
+          <li><strong>Durée :</strong> La durée de l'épisode (lorsque disponible dans le feed).</li>
+          <li><strong>Taille :</strong> La taille estimée du fichier (lorsque disponible dans le feed). Avant le téléchargement, la donnée est déclarative ; après le téléchargement, elle reflète la taille réelle du fichier.</li>
+          <li><strong>État :</strong> L'indicateur visuel de l'état de chaque épisode. Voir la section 3.4.</li>
+          <li><strong>Actions :</strong> Les boutons de contrôle individuels pour chaque épisode.</li>
+        </ul>
+        <p>
+          <strong>Tri :</strong>
+          Les en-têtes de colonnes sont cliquables pour trier la liste (par date, par titre, par taille). Le comportement par défaut est l'affichage des épisodes les plus récents en tête de liste.
+        </p>
+        <p>
+          <strong>Sélection multiple :</strong>
+          En maintenant <code>Ctrl</code> enfoncé et en cliquant sur plusieurs épisodes, il est possible de les sélectionner individuellement. <code>Shift</code> + clic sélectionne une plage. Des actions collectives peuvent être appliquées aux épisodes sélectionnés (lancer le téléchargement, supprimer de la liste).
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="34-les-états-des-épisodes">3.4 Les états des épisodes</h2>
+        <p>Chaque épisode dans la liste est marqué par un indicateur d'état coloré. Comprendre ces états est essentiel pour interpréter correctement la situation de l'archive.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>État</th>
+              <th>Couleur</th>
+              <th>Signification</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>À télécharger</strong></td>
+              <td>Gris</td>
+              <td>L'épisode est présent dans le feed mais n'a jamais été téléchargé.</td>
+            </tr>
+            <tr>
+              <td><strong>En attente</strong></td>
+              <td>Bleu</td>
+              <td>L'épisode a été ajouté à la file d'attente et attend son tour.</td>
+            </tr>
+            <tr>
+              <td><strong>En cours</strong></td>
+              <td>Bleu animé</td>
+              <td>Le téléchargement est en cours. La cellule affiche également le pourcentage de progression.</td>
+            </tr>
+            <tr>
+              <td><strong>Terminé</strong></td>
+              <td>Vert</td>
+              <td>Le fichier a été téléchargé, renommé et vérifié correctement.</td>
+            </tr>
+            <tr>
+              <td><strong>Erreur</strong></td>
+              <td>Rouge</td>
+              <td>Le téléchargement a échoué après toutes les tentatives automatiques. L'infobulle affiche le code d'erreur.</td>
+            </tr>
+            <tr>
+              <td><strong>Téléchargé</strong></td>
+              <td>Vert atténué</td>
+              <td>La base de données enregistre déjà cet épisode comme téléchargé. Il ne sera pas retéléchargé.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p><em>Remarque sur l'état <strong>« Téléchargé »</strong> :</em> Cet état est le résultat de la philosophie Database-First. Lors de l'analyse d'un feed déjà traité précédemment, la plupart des épisodes apparaissent dans cet état : le logiciel sait déjà qu'ils sont présents dans l'archive. Seuls les épisodes publiés après le dernier téléchargement apparaîtront comme <strong>« À télécharger »</strong>.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="35-les-contrôles-de-téléchargement-individuels">3.5 Les contrôles de téléchargement individuels</h2>
+        <p>À droite de chaque ligne dans la liste se trouvent deux boutons.</p>
+        <p><strong>Icône Télécharger (↓) :</strong> Ajoute l'épisode individuel à la file de téléchargement. Si l'épisode est déjà à l'état <strong>« Terminé »</strong> ou <strong>« Téléchargé »</strong>, le système demande une confirmation avant de procéder à un re-téléchargement forcé.</p>
+        <p><strong>Icône Informations (ℹ) :</strong> Ouvre un panneau avec les détails complets de l'épisode : URL d'origine du fichier audio, URL de l'image de couverture, description étendue, chemin du fichier sur le disque (s'il a déjà été téléchargé), hash SHA-256 et métadonnées techniques. Ce panneau est utile pour la vérification et le diagnostic de l'archive.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="36-les-contrôles-du-batch-en-haut-zone-droite">3.6 Les contrôles du batch (en haut, zone droite)</h2>
+        <p>Ces boutons opèrent sur l'ensemble de la file de téléchargement, et non sur les épisodes individuels.</p>
+        <p><strong>« Tout télécharger » :</strong> Ajoute à la file tous les épisodes à l'état <strong>« À télécharger »</strong>. Les épisodes déjà présents dans la base de données sont exclus automatiquement.</p>
+        <p><strong>« Arrêter » :</strong> Interrompt le batch et vide la file d'attente. Les fichiers déjà complétés restent dans la base de données. Les fichiers <code>.part</code> sont supprimés. Lors de la prochaine analyse du même feed, les épisodes interrompus apparaîtront à nouveau comme <strong>« À télécharger »</strong>.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="37-la-barre-de-progression-globale-en-bas">3.7 La barre de progression globale (en bas)</h2>
+        <p>La barre inférieure est toujours visible et affiche l'état d'ensemble du batch en cours :</p>
+        <ul>
+          <li><strong>Barre de progression :</strong> Remplissage proportionnel au nombre de fichiers complétés sur le total de la file.</li>
+          <li><strong>Compteur de fichiers :</strong> Par exemple <code>47 / 312 épisodes</code> — nombre de fichiers complétés sur le total de la file.</li>
+          <li><strong>Vitesse moyenne :</strong> Vitesse de téléchargement agrégée de tous les threads actifs, exprimée en MB/s ou KB/s.</li>
+          <li><strong>Temps estimé :</strong> Estimation du temps restant pour compléter le batch, calculée sur la vitesse moyenne des 30 dernières secondes.</li>
+        </ul>
+        <p><em>Remarque :</em> L'estimation du temps restant peut varier significativement dans les premières phases d'un téléchargement, lorsque les données disponibles pour le calcul sont encore limitées. Elle devient plus fiable après les 10 à 15 premiers fichiers complétés.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="38-licône-dans-la-zone-de-notification-système">3.8 L'icône dans la zone de notification système</h2>
+        <p>Lorsque l'on ferme la fenêtre principale en cliquant sur le X, FeedDownloader Pro ne termine pas le processus : il se réduit dans la zone de notification système (system tray, près de l'horloge de Windows ou macOS). Ce comportement est intentionnel : les téléchargements se poursuivent en arrière-plan pendant que la fenêtre n'est pas visible.</p>
+        <p><strong>Menu contextuel du tray (clic droit sur l'icône) :</strong></p>
+        <ul>
+          <li><strong>Ouvrir FeedDownloader Pro :</strong> Ramène la fenêtre principale au premier plan.</li>
+          <li><strong>État Téléchargement :</strong> Affiche une ligne récapitulative (ex. <code>Downloading: 3 active, 47/312 completed</code>).</li>
+          <li><strong>Quitter :</strong> Ferme le programme et interrompt tous les téléchargements actifs.</li>
+        </ul>
+        <p><em>Remarque pratique :</em> Pour effectuer un téléchargement volumineux sans maintenir la fenêtre ouverte, lancer le batch, fermer la fenêtre et laisser l'ordinateur en fonctionnement. L'archive sera disponible à la fin du processus.</p>
+        <hr>
+        <p><em>Voir le Chapitre 4 pour un workflow complet de la première analyse au téléchargement.</em></p>
+      </section>
+    </section>
+  
+
+</body></html>

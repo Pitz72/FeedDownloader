@@ -1,0 +1,64 @@
+{
+  "@context": [
+    "https://schema.org",
+    "https://www.w3.org/ns/pub-context"
+  ],
+  "type": "Book",
+  "conformsTo": "https://github.com/vivliostyle/vivliostyle-cli",
+  "name": "Runtime FeedDownloader Pro - Manual de Uso Avanzado",
+  "author": "Ecosystem Runtime",
+  "inLanguage": "es",
+  "dateModified": "2026-03-29T00:03:07.775Z",
+  "readingOrder": [
+    {
+      "url": "book/cover.html",
+      "name": "Runtime FeedDownloader Pro - Manual de Uso Avanzado"
+    },
+    {
+      "url": "01-introduzione.html",
+      "name": "Capítulo 1: Introducción y Filosofía"
+    },
+    {
+      "url": "02-installazione.html",
+      "name": "Capítulo 2: Instalación y Primer Inicio"
+    },
+    {
+      "url": "03-interfaccia.html",
+      "name": "Capítulo 3: Tour de la Interfaz"
+    },
+    {
+      "url": "04-primo-archivio.html",
+      "name": "Capítulo 4: El Primer Archivo — Guía Paso a Paso"
+    },
+    {
+      "url": "05-gestione-feed.html",
+      "name": "Capítulo 5: Gestión de Feeds"
+    },
+    {
+      "url": "06-motore-download.html",
+      "name": "Capítulo 6: El Motor de Descarga"
+    },
+    {
+      "url": "07-nas-e-rete.html",
+      "name": "Capítulo 7: NAS, Discos de Red y Rutas SMB"
+    },
+    {
+      "url": "08-organizzazione-file.html",
+      "name": "Capítulo 8: Organización de Archivos, Plantillas y Metadatos"
+    },
+    {
+      "url": "09-integrita-e-metadati.html",
+      "name": "Capítulo 9: Integridad, Estadísticas y Almacenamiento"
+    },
+    {
+      "url": "10-impostazioni-avanzate.html",
+      "name": "Capítulo 10: Configuración Avanzada"
+    },
+    {
+      "url": "11-troubleshooting.html",
+      "name": "Capítulo 11: Solución de Problemas"
+    }
+  ],
+  "resources": [],
+  "links": []
+}

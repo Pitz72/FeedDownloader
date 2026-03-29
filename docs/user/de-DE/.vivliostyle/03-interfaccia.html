@@ -1,0 +1,139 @@
+<!DOCTYPE html><html lang="de"><head>
+    <meta charset="utf-8">
+    <title>Kapitel 3: Tour durch die Benutzeroberfläche</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="book/theme.css">
+  </head>
+  <body>
+    <section class="level1">
+      <h1 id="kapitel-3-tour-durch-die-benutzeroberfläche">Kapitel 3: Tour durch die Benutzeroberfläche</h1>
+      <section class="level2">
+        <h2 id="31-aufbau-des-hauptfensters">3.1 Aufbau des Hauptfensters</h2>
+        <p>Beim Öffnen von FeedDownloader Pro ist die Oberfläche vertikal in drei Funktionsbereiche unterteilt:</p>
+        <ul>
+          <li><strong>Befehlsbereich (oben):</strong> Die URL-Eingabeleiste und die Hauptsteuerelemente. Von hier aus werden alle Vorgänge gestartet.</li>
+          <li><strong>Arbeitsbereich (Mitte):</strong> Der Hauptbereich, in dem die analysierten Episoden mit den zugehörigen Informationen und den individuellen Download-Steuerelementen angezeigt werden.</li>
+          <li><strong>Statusbereich (unten):</strong> Die globale Fortschrittsleiste mit Informationen zum laufenden Batch.</li>
+        </ul>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="32-die-befehlsleiste-oben">3.2 Die Befehlsleiste (Oben)</h2>
+        <p><strong>URL-Feld:</strong> Die Texteingabeleiste, in die die RSS-Adresse des zu analysierenden Podcasts eingegeben wird. Akzeptiert direkte URLs zu XML/RSS-Dateien. Unterstützt Drag and Drop: Ein Link kann direkt aus einem Browser in diesen Bereich gezogen werden.</p>
+        <p><strong>Schaltfläche „Analysieren":</strong> Startet die Feed-Analyse. Die Software kontaktiert die URL, liest die RSS-Datei und füllt die Episodenliste. Der Vorgang dauert in der Regel 1 bis 5 Sekunden, abhängig von der Größe des Feeds und der Verbindungsgeschwindigkeit.</p>
+        <p><strong>Feld „Zielpfad":</strong> Gibt den Ordner an, in dem die heruntergeladenen Dateien gespeichert werden. Ein Klick auf das benachbarte Ordnersymbol öffnet das Auswahldialogfenster. Der eingestellte Pfad wird zwischen den Sitzungen gespeichert.</p>
+        <p><strong>Symbol Einstellungen (⚙):</strong> Öffnet den Einstellungsbereich. Jederzeit erreichbar, auch während eines laufenden Downloads. Weitere Informationen siehe Kapitel 10.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="33-die-episodenliste-mitte">3.3 Die Episodenliste (Mitte)</h2>
+        <p>Nach der Analyse eines Feeds wird dieser Bereich mit der Liste der verfügbaren Episoden gefüllt. Jede Zeile repräsentiert eine Episode und enthält die folgenden Informationen.</p>
+        <p><strong>Hauptspalten:</strong></p>
+        <ul>
+          <li><strong>Titel:</strong> Der Name der Episode, wie im RSS-Feed definiert.</li>
+          <li><strong>Datum:</strong> Das ursprüngliche Veröffentlichungsdatum der Episode.</li>
+          <li><strong>Dauer:</strong> Die Länge der Episode (sofern im Feed verfügbar).</li>
+          <li><strong>Größe:</strong> Die geschätzte Dateigröße (sofern im Feed verfügbar). Vor dem Download ist der Wert deklarativ; nach dem Download gibt er die tatsächliche Dateigröße an.</li>
+          <li><strong>Status:</strong> Die visuelle Statusanzeige der einzelnen Episode. Siehe Abschnitt 3.4.</li>
+          <li><strong>Aktionen:</strong> Die individuellen Steuerungsschaltflächen für jede Episode.</li>
+        </ul>
+        <p>
+          <strong>Sortierung:</strong>
+          Die Spaltenüberschriften können angeklickt werden, um die Liste zu sortieren (nach Datum, Titel oder Größe). Das Standardverhalten ist die Anzeige mit den neuesten Episoden oben.
+        </p>
+        <p>
+          <strong>Mehrfachauswahl:</strong>
+          Durch Halten von <code>Strg</code> und Klicken auf mehrere Episoden können diese einzeln ausgewählt werden. <code>Umschalt</code> + Klick wählt einen Bereich aus. Auf ausgewählte Episoden können Sammelaktionen angewendet werden (Download starten, aus der Liste entfernen).
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="34-die-episodenstatus">3.4 Die Episodenstatus</h2>
+        <p>Jede Episode in der Liste ist mit einer farbigen Statusanzeige versehen. Das Verständnis dieser Status ist wesentlich, um den Zustand des Archivs korrekt zu interpretieren.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Farbe</th>
+              <th>Bedeutung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Herunterzuladen</strong></td>
+              <td>Grau</td>
+              <td>Die Episode ist im Feed vorhanden, wurde aber noch nie heruntergeladen.</td>
+            </tr>
+            <tr>
+              <td><strong>In der Warteschlange</strong></td>
+              <td>Blau</td>
+              <td>Die Episode wurde zur Warteschlange hinzugefügt und wartet auf ihre Reihenfolge.</td>
+            </tr>
+            <tr>
+              <td><strong>In Bearbeitung</strong></td>
+              <td>Animiertes Hellblau</td>
+              <td>Der Download läuft. Die Zelle zeigt auch den Fortschritt in Prozent an.</td>
+            </tr>
+            <tr>
+              <td><strong>Abgeschlossen</strong></td>
+              <td>Grün</td>
+              <td>Die Datei wurde heruntergeladen, umbenannt und korrekt verifiziert.</td>
+            </tr>
+            <tr>
+              <td><strong>Fehler</strong></td>
+              <td>Rot</td>
+              <td>Der Download ist nach allen automatischen Versuchen fehlgeschlagen. Der Tooltip zeigt den Fehlercode an.</td>
+            </tr>
+            <tr>
+              <td><strong>Heruntergeladen</strong></td>
+              <td>Blassgrün</td>
+              <td>Die Datenbank verzeichnet diese Episode bereits als heruntergeladen. Sie wird nicht erneut heruntergeladen.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p><em>Hinweis zum Status <strong>„Heruntergeladen"</strong>:</em> Dieser Status ist das Ergebnis der Database-First-Philosophie. Wenn ein bereits früher verarbeiteter Feed analysiert wird, befinden sich die meisten Episoden in diesem Status: Die Software weiß bereits, dass sie im Archiv vorhanden sind. Nur nach dem letzten Download veröffentlichte Episoden erscheinen als <strong>„Herunterzuladen"</strong>.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="35-die-individuellen-download-steuerelemente">3.5 Die individuellen Download-Steuerelemente</h2>
+        <p>Rechts neben jeder Zeile in der Liste befinden sich zwei Schaltflächen.</p>
+        <p><strong>Symbol Download (↓):</strong> Fügt die einzelne Episode der Download-Warteschlange hinzu. Befindet sich die Episode bereits im Status <strong>„Abgeschlossen"</strong> oder <strong>„Heruntergeladen"</strong>, fordert das System eine Bestätigung an, bevor ein erzwungener Re-Download durchgeführt wird.</p>
+        <p><strong>Symbol Informationen (ℹ):</strong> Öffnet ein Detailfenster mit vollständigen Episodeninformationen: Original-URL der Audiodatei, URL des Cover-Bilds, erweiterte Beschreibung, Dateipfad auf dem Datenträger (sofern bereits heruntergeladen), SHA-256-Hash und technische Metadaten. Dieses Fenster ist nützlich für die Verifizierung und Diagnose des Archivs.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="36-die-batch-steuerelemente-oben-rechter-bereich">3.6 Die Batch-Steuerelemente (Oben, rechter Bereich)</h2>
+        <p>Diese Schaltflächen wirken auf die gesamte Download-Warteschlange, nicht auf einzelne Episoden.</p>
+        <p><strong>„Alles herunterladen":</strong> Fügt alle Episoden im Status <strong>„Herunterzuladen"</strong> zur Warteschlange hinzu. Episoden, die bereits in der Datenbank vorhanden sind, werden automatisch ausgeschlossen.</p>
+        <p><strong>„Stoppen":</strong> Unterbricht den Batch und leert die Warteschlange. Bereits abgeschlossene Dateien bleiben in der Datenbank. <code>.part</code>-Dateien werden gelöscht. Bei der nächsten Analyse desselben Feeds erscheinen unterbrochene Episoden wieder als <strong>„Herunterzuladen"</strong>.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="37-die-globale-fortschrittsleiste-unten">3.7 Die globale Fortschrittsleiste (Unten)</h2>
+        <p>Die untere Leiste ist stets sichtbar und zeigt den Gesamtstatus des laufenden Batches:</p>
+        <ul>
+          <li><strong>Fortschrittsleiste:</strong> Füllung proportional zur Anzahl der abgeschlossenen Dateien im Verhältnis zur Gesamtwarteschlange.</li>
+          <li><strong>Dateizähler:</strong> Beispiel: <code>47 / 312 Episoden</code> — Anzahl der abgeschlossenen Dateien im Verhältnis zur Gesamtwarteschlange.</li>
+          <li><strong>Durchschnittsgeschwindigkeit:</strong> Aggregierte Download-Geschwindigkeit aller aktiven Threads, angegeben in MB/s oder KB/s.</li>
+          <li><strong>Geschätzte Zeit:</strong> Schätzung der verbleibenden Zeit zum Abschluss des Batches, berechnet auf Basis der Durchschnittsgeschwindigkeit der letzten 30 Sekunden.</li>
+        </ul>
+        <p><em>Hinweis:</em> Die Schätzung der verbleibenden Zeit kann in den ersten Phasen eines Downloads erheblich schwanken, wenn die für die Berechnung verfügbaren Daten noch begrenzt sind. Sie wird nach den ersten 10–15 abgeschlossenen Dateien zuverlässiger.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="38-das-system-tray-symbol">3.8 Das System-Tray-Symbol</h2>
+        <p>Wenn das Hauptfenster durch Klicken auf das X geschlossen wird, beendet FeedDownloader Pro den Prozess nicht, sondern minimiert sich in den Systembenachrichtigungsbereich (System Tray, in der Nähe der Windows- oder macOS-Uhr). Dieses Verhalten ist beabsichtigt: Downloads werden im Hintergrund fortgesetzt, während das Fenster nicht sichtbar ist.</p>
+        <p><strong>Kontextmenü des Tray-Symbols (Rechtsklick auf das Symbol):</strong></p>
+        <ul>
+          <li><strong>FeedDownloader Pro öffnen:</strong> Bringt das Hauptfenster in den Vordergrund.</li>
+          <li><strong>Download-Status:</strong> Zeigt eine Zusammenfassungszeile an (z. B. <code>Downloading: 3 active, 47/312 completed</code>).</li>
+          <li><strong>Beenden:</strong> Schließt das Programm und unterbricht alle aktiven Downloads.</li>
+        </ul>
+        <p><em>Praktischer Hinweis:</em> Um einen großen Download durchzuführen, ohne das Fenster geöffnet zu lassen, den Batch starten, das Fenster schließen und den Computer laufen lassen. Das Archiv steht nach Abschluss des Vorgangs zur Verfügung.</p>
+        <hr>
+        <p><em>Siehe Kapitel 4 für einen vollständigen Workflow von der ersten Analyse bis zum Download.</em></p>
+      </section>
+    </section>
+  
+
+</body></html>

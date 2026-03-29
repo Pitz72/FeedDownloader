@@ -1,0 +1,190 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="utf-8">
+    <title>Chapter 9: Integrity, Statistics, and Archiving</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="book/theme.css">
+  </head>
+  <body>
+    <section class="level1">
+      <h1 id="chapter-9-integrity-statistics-and-archiving">Chapter 9: Integrity, Statistics, and Archiving</h1>
+      <section class="level2">
+        <h2 id="91-why-verify-file-integrity">9.1 Why Verify File Integrity</h2>
+        <p>The completion of a download does not guarantee that the received file is intact. A network packet lost during transfer, a disk write error, or an interruption in the last second can produce a file that is formally "present" but corrupted. Without an explicit verification, an apparently complete archive can contain unplayable audio files whose corruption is only detected during playback.</p>
+        <p>FeedDownloader Pro addresses this problem with two complementary mechanisms: <strong>size verification</strong> (during download) and <strong>SHA-256 verification</strong> (upon completion).</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="92-sha-256-verification">9.2 SHA-256 Verification</h2>
+        <p><strong>SHA-256</strong> (Secure Hash Algorithm 256-bit) is a cryptographic function that produces a 64-character hexadecimal fingerprint for any file. Two identical files always produce the same hash; a difference of even a single bit produces a completely different hash.</p>
+        <p>For each downloaded file, FeedDownloader Pro:</p>
+        <ol>
+          <li>Calculates the SHA-256 hash of the file at the end of the download.</li>
+          <li>Saves the hash in the database, together with the file path and the date of calculation.</li>
+          <li>If the RSS feed includes a reference hash (some modern feeds include the <code>&lt;podcast:integrity&gt;</code> field), it compares it with the calculated one. In the event of a discrepancy, the file is marked as <strong>"Corrupted"</strong> and re-queued for a new download.</li>
+        </ol>
+        <p><strong>Practical uses:</strong></p>
+        <ul>
+          <li>It is possible to verify at any future point that a file has not been modified, corrupted, or replaced: simply recalculate the hash and compare it with the one recorded in the database.</li>
+          <li>After moving files to a new drive or following a migration, the <strong>Health Check</strong> (see section 9.4) allows you to verify that all files are still present.</li>
+          <li>In professional contexts, the SHA-256 hash constitutes a verifiable reference of content integrity at the time of download.</li>
+        </ul>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="93-extracted-audio-metadata">9.3 Extracted Audio Metadata</h2>
+        <p>Upon completion of each download, FeedDownloader Pro automatically extracts the <strong>technical metadata</strong> from the audio file. This information is read directly from the file (not from the RSS feed) and recorded in the database.</p>
+        <p><strong>Extracted metadata:</strong></p>
+        <table>
+          <thead>
+            <tr>
+              <th>Field</th>
+              <th>Description</th>
+              <th>Example</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Bitrate</strong></td>
+              <td>Audio quality in kilobits per second</td>
+              <td><code>128 kbps</code>, <code>320 kbps</code></td>
+            </tr>
+            <tr>
+              <td><strong>Sample rate</strong></td>
+              <td>Sampling frequency</td>
+              <td><code>44100 Hz</code>, <code>48000 Hz</code></td>
+            </tr>
+            <tr>
+              <td><strong>Size on disk</strong></td>
+              <td>Actual size of the downloaded file</td>
+              <td><code>67.4 MB</code></td>
+            </tr>
+          </tbody>
+        </table>
+        <p>These values are recorded in the database and are included in the CSV export (see section 9.6).</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="94-health-check-archive-integrity-verification">9.4 Health Check: Archive Integrity Verification</h2>
+        <p>Over time, an archive may undergo external modifications outside the software: files moved or deleted directly from the filesystem. The <strong>Health Check</strong> verifies the state of the archive against what is recorded in the database.</p>
+        <p>
+          <strong>How to run the Health Check:</strong>
+          Go to <strong>Settings → Archive → Health Check</strong> and click <strong>"Start Check"</strong>.
+        </p>
+        <p>The process analyses each file recorded in the database and verifies that the file still exists at the recorded path. Upon completion, a summary is shown with three indicators:</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Indicator</th>
+              <th>Meaning</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Total</strong></td>
+              <td>Total number of episodes in the database</td>
+            </tr>
+            <tr>
+              <td><strong>Present</strong></td>
+              <td>Files that exist at the recorded path</td>
+            </tr>
+            <tr>
+              <td><strong>Missing</strong></td>
+              <td>Files not found at the recorded path</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>The screen also shows the <strong>total disk space</strong> occupied by the present files.</p>
+        <p>If missing files are found, the software lists the first 5 with the podcast name and file name. To recover a missing file, use the <strong>"Force Re-Download"</strong> function available from the episode context menu in the main list.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="95-archive-statistics">9.5 Archive Statistics</h2>
+        <p>The statistics section is accessible from <strong>Settings → Archive</strong> and provides a concise overview of the data recorded in the database:</p>
+        <ul>
+          <li><strong>Downloaded files:</strong> Total number of episodes present in the database.</li>
+          <li><strong>Podcasts:</strong> Number of distinct feeds represented in the archive.</li>
+          <li><strong>Time range:</strong> Date of the first and last downloaded episode.</li>
+        </ul>
+        <p>Statistics are automatically updated each time the Settings panel is opened.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="96-csv-export">9.6 CSV Export</h2>
+        <p>The CSV export generates a file with the data of each episode present in the database. It is useful for integrating FeedDownloader Pro with other tools (spreadsheets, content management systems, automation scripts).</p>
+        <p>
+          <strong>How to export:</strong>
+          Go to <strong>Settings → Archive → Export CSV</strong> and choose the path in which to save the file.
+        </p>
+        <p><strong>Export columns:</strong></p>
+        <table>
+          <thead>
+            <tr>
+              <th>Column</th>
+              <th>Content</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>Podcast</code></td>
+              <td>Podcast name</td>
+            </tr>
+            <tr>
+              <td><code>Episode Title</code></td>
+              <td>Episode title</td>
+            </tr>
+            <tr>
+              <td><code>Publish Date</code></td>
+              <td>Publication date</td>
+            </tr>
+            <tr>
+              <td><code>Downloaded At</code></td>
+              <td>Date and time of download</td>
+            </tr>
+            <tr>
+              <td><code>File Size (bytes)</code></td>
+              <td>File size in bytes</td>
+            </tr>
+            <tr>
+              <td><code>Bitrate (kbps)</code></td>
+              <td>Audio bitrate in kilobits per second</td>
+            </tr>
+            <tr>
+              <td><code>Sample Rate (Hz)</code></td>
+              <td>Sampling frequency in hertz</td>
+            </tr>
+            <tr>
+              <td><code>SHA-256 Checksum</code></td>
+              <td>SHA-256 hash of the file</td>
+            </tr>
+            <tr>
+              <td><code>Validation Status</code></td>
+              <td>Result of the last integrity check</td>
+            </tr>
+            <tr>
+              <td><code>GUID</code></td>
+              <td>Unique identifier of the episode in the RSS feed</td>
+            </tr>
+          </tbody>
+        </table>
+        <p><em>File format:</em> CSV with comma separator (<code>,</code>), UTF-8 encoding with BOM (for compatibility with Microsoft Excel). Fields containing commas are enclosed in quotation marks.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="97-archive-migration">9.7 Archive Migration</h2>
+        <p>To move the archive to a new drive or a new folder, use the built-in migration function, which keeps the database synchronised with the new file location.</p>
+        <p><strong>Procedure:</strong></p>
+        <ol>
+          <li>Go to <strong>Settings → Archive → Migrate Archive</strong>.</li>
+          <li>Select the <strong>new destination folder</strong> via the selection window.</li>
+          <li>The software physically moves all audio files to the new folder and updates the paths in the database.</li>
+          <li>Upon completion, a summary is shown: number of files moved and any errors.</li>
+        </ol>
+        <p><em>Caution:</em> The migration moves files from the current folder to the new one. Files are removed from the original location. Verify that the destination drive has sufficient space before starting the operation.</p>
+        <p><em>Moving to a new computer:</em> Copy both the audio files folder and the <code>feeddownloader.db</code> file (from the user data folder described in Chapter 2). On the new computer, install FeedDownloader Pro, copy the database to the user data folder, and use the migration function if the archive path has changed.</p>
+        <hr>
+        <p><em>Go to Chapter 10 for the advanced software settings.</em></p>
+      </section>
+    </section>
+  
+
+</body></html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html><html lang="zh"><head>
+    <meta charset="utf-8">
+    <title>第 7 章：NAS、网络磁盘与 SMB 路径</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="book/theme.css">
+  </head>
+  <body>
+    <section class="level1">
+      <h1 id="第-7-章nas网络磁盘与-smb-路径">第 7 章：NAS、网络磁盘与 SMB 路径</h1>
+      <section class="level2">
+        <h2 id="71-为何网络磁盘需要特殊处理">7.1 为何网络磁盘需要特殊处理</h2>
+        <p>大多数桌面下载应用程序能正确处理本地路径（<code>C:\</code>、<code>D:\</code>），但当目标是 NAS、共享 Windows 服务器或 SMB 驱动器时，行为往往不可预测。原因是技术性的：网络磁盘本质上不如本地磁盘可靠。NAS 可能已关机，局域网可能出现延迟峰值，SMB 凭据可能过期。任何对无响应的网络路径的操作都可能将应用程序的主线程阻塞数十秒，导致界面失去响应。</p>
+        <p>FeedDownloader Pro 能正确处理这些情况。对于在 NAS 上归档的用户，本章至关重要。</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="72-网络路径验证的工作方式">7.2 网络路径验证的工作方式</h2>
+        <p>每当设置的目标路径以 <code>\\</code>（UNC 路径，典型的 SMB 格式）开头，或对应映射的网络驱动器（例如 <code>Z:\</code>）时，FeedDownloader Pro 会自动激活<strong>网络路径验证模块</strong>。</p>
+        <p>此模块在<strong>独立线程</strong>上执行三项操作，完全不涉及界面线程：</p>
+        <ol>
+          <li><strong>可达性测试：</strong> 尝试访问网络路径的根目录。如果 NAS 未开机或网络不可用，此操作将失败。</li>
+          <li><strong>读取权限测试：</strong> 验证目标文件夹存在且可读。</li>
+          <li><strong>写入权限测试：</strong> 在目标文件夹中创建并删除一个临时文件（<code>_fdp_write_test_[时间戳].tmp</code>），以验证写入权限。</li>
+        </ol>
+        <p>整个序列的<strong>超时时间为 8 秒</strong>。如果在此时间内未收到响应，软件将认为路径不可用并显示警告，而不会阻塞界面。</p>
+        <p><em>超时时间的设定依据：</em> 大多数消费级 NAS（Synology、QNAP、WD MyCloud）从休眠模式唤醒需要 3–6 秒。8 秒的时间足够等待此恢复过程，同时对用户来说足够短，不会感觉是明显的等待。</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="73-配置-nas-路径">7.3 配置 NAS 路径</h2>
+        <p>
+          <strong>方法 1——直接 UNC 路径：</strong>
+          以 <code>\\服务器名\共享名\文件夹</code> 格式输入路径：
+        </p>
+        <pre class="language-text"><code class="language-text">\\MYNAS\Podcast\Archivio
+\\192.168.1.100\media\podcast
+\\NAS-SYNOLOGY\video\audio_archive</code></pre>
+        <p>路径可以直接输入到目标文本字段中，也可以通过文件夹选择窗口输入，Windows 上的该窗口支持浏览网络路径。</p>
+        <p>
+          <strong>方法 2——映射网络驱动器：</strong>
+          如果 NAS 已在 Windows 中映射为网络驱动器（例如 <code>Z:</code> → <code>\\MYNAS\Podcast</code>），可以选择 <code>Z:\Archivio</code> 作为目标文件夹。FeedDownloader Pro 会自动识别这是网络路径并激活验证。
+        </p>
+        <p>
+          <strong>方法 3——macOS 和 Linux（挂载点）：</strong>
+          在 macOS 和 Linux 上，SMB 网络路径在挂载后作为普通文件夹呈现在文件系统中（macOS 上例如 <code>/Volumes/MYNAS/Podcast</code>，Linux 上例如 <code>/mnt/nas/podcast</code>）。这些路径可以直接用作目标文件夹。
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="74-smb-凭据与身份验证">7.4 SMB 凭据与身份验证</h2>
+        <p>NAS 的访问凭据必须在操作系统级别配置，而非在 FeedDownloader Pro 内部配置。</p>
+        <p><strong>在 Windows 上：</strong></p>
+        <ol>
+          <li>打开<strong>文件资源管理器</strong>，导航至 NAS 路径（<code>\\MYNAS\</code>）。</li>
+          <li>在提示时输入凭据，勾选<strong>"记住我的凭据"</strong>。</li>
+          <li>凭据将保存在 <strong>Windows 凭据管理器</strong>中（<code>控制面板 → 凭据管理器 → Windows 凭据</code>）。</li>
+          <li>FeedDownloader Pro 与任何其他应用程序一样，无需额外凭据即可访问 NAS。</li>
+        </ol>
+        <p>
+          <strong>在 macOS 上：</strong>
+          挂载共享时会提示输入 SMB 凭据（在 Finder 中：<strong>前往 → 连接服务器</strong> → <code>smb://192.168.1.100/共享名</code>）。macOS 将其存储在钥匙串中。
+        </p>
+        <p>
+          <strong>在 Linux 上：</strong>
+          通过 <code>fstab</code> 文件或 GNOME Files 等图形工具使用凭据挂载共享。或者从终端使用 <code>smbclient</code> 或 <code>mount -t cifs</code>。
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="75-网络路径问题诊断">7.5 网络路径问题诊断</h2>
+        <p>如果出现"网络路径不可访问"警告，请按以下顺序检查各项。</p>
+        <p>
+          <strong>1. NAS 是否已开机并启动完成？</strong>
+          检查设备指示灯。许多消费级 NAS 在一段时间不活动后会进入休眠模式。在开始下载前，从浏览器打开 NAS 管理面板以确认其可用性。
+        </p>
+        <p>
+          <strong>2. NAS 是否可通过网络访问？</strong>
+          从命令提示符（Windows）或终端（macOS/Linux）执行：
+          <code>ping 192.168.1.100</code>
+          将 IP 地址替换为 NAS 的实际地址。如果命令收到响应，说明基本网络连接正常。
+        </p>
+        <p>
+          <strong>3. SMB 共享是否可访问？</strong>
+          尝试直接在 Windows 文件资源管理器中打开路径 <code>\\192.168.1.100\共享名</code>。如果操作失败，问题在于 NAS 的 SMB 配置，而非 FeedDownloader Pro。
+        </p>
+        <p>
+          <strong>4. 写入权限是否正确？</strong>
+          通过文件管理器手动在目标文件夹中创建一个文件。如果操作不被允许，用于访问 NAS 的用户在该共享上没有写入权限。请从 NAS 管理面板配置权限。
+        </p>
+        <p>
+          <strong>5. 防火墙是否阻止了 SMB 连接？</strong>
+          SMB 协议使用端口 445（某些情况下还使用端口 139）。请确认系统防火墙或第三方防火墙未阻止局域网上这些端口的连接。
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="76-在-nas-上获得最佳性能">7.6 在 NAS 上获得最佳性能</h2>
+        <p>在 NAS 上下载比在本地磁盘上下载有额外的复杂性：文件通过网络写入，速度取决于局域网带宽和 NAS 的写入能力。</p>
+        <p><strong>操作建议：</strong></p>
+        <ul>
+          <li><strong>使用有线连接（Ethernet）：</strong> Wi-Fi 会为网络写入操作引入延迟和不稳定性。对于大型存档，有线千兆以太网连接提供明显更好的性能。</li>
+          <li><strong>减少并行线程数：</strong> 同时向 NAS 写入多个文件可能使其 I/O 饱和。通常 2–3 个并行线程比使用最大可用数量效果更好。</li>
+          <li><strong>避免与 NAS 备份重叠：</strong> 如果 NAS 执行自动备份，请避免在相同时间窗口内启动批量下载，因为磁盘 I/O 竞争会降低两者的速度。</li>
+          <li><strong>使用本地缓存：</strong> 对于非常大的存档，可以先下载到快速本地磁盘，在下载完成后再将文件移至 NAS。</li>
+        </ul>
+        <hr>
+        <p><em>参见第 8 章，了解重命名模板和元数据功能的配置。</em></p>
+      </section>
+    </section>
+  
+
+</body></html>

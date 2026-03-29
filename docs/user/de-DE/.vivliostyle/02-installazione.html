@@ -1,0 +1,126 @@
+<!DOCTYPE html><html lang="de"><head>
+    <meta charset="utf-8">
+    <title>Kapitel 2: Installation und erster Start</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="book/theme.css">
+  </head>
+  <body>
+    <section class="level1">
+      <h1 id="kapitel-2-installation-und-erster-start">Kapitel 2: Installation und erster Start</h1>
+      <section class="level2">
+        <h2 id="21-systemvoraussetzungen">2.1 Systemvoraussetzungen</h2>
+        <p>Runtime FeedDownloader Pro ist eine Desktop-Anwendung auf Basis der Electron-Technologie. Sie ist eigenständig und erfordert keine Installation zusätzlicher Laufzeitumgebungen (Node.js, .NET, Java): Alles Notwendige ist im Installationspaket enthalten.</p>
+        <p><strong>Mindestanforderungen:</strong></p>
+        <table>
+          <thead>
+            <tr>
+              <th>Betriebssystem</th>
+              <th>Mindestversion</th>
+              <th>Architektur</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Windows</td>
+              <td>10 (Build 1903) oder Windows 11</td>
+              <td>64-Bit (x64)</td>
+            </tr>
+            <tr>
+              <td>macOS</td>
+              <td>11.0 Big Sur</td>
+              <td>Intel x64 oder Apple Silicon (M1/M2/M3)</td>
+            </tr>
+            <tr>
+              <td>Linux</td>
+              <td>Ubuntu 22.04 LTS, Debian 11, Fedora 36 oder gleichwertige Distributionen</td>
+              <td>64-Bit (x64)</td>
+            </tr>
+          </tbody>
+        </table>
+        <p><strong>Empfohlene Hardwareanforderungen:</strong></p>
+        <ul>
+          <li><strong>RAM:</strong> 4 GB (8 GB empfohlen für große Archive mit mehreren aktiven Threads)</li>
+          <li><strong>Speicherplatz:</strong> 200 MB für die Programminstallation zuzüglich des für das Audioarchiv benötigten Speicherplatzes</li>
+          <li><strong>Verbindung:</strong> Breitband (mindestens 10 Mbps, um parallele Downloads effektiv zu nutzen)</li>
+        </ul>
+        <p><em>Hinweis für Linux-Benutzer:</em> Die Software wird im Format <code>.AppImage</code> vertrieben, das eigenständig und auf jeder modernen Distribution mit aktuellen glibc-Bibliotheken ohne herkömmliche Installationsprozedur verwendbar ist.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="22-installation-unter-windows">2.2 Installation unter Windows</h2>
+        <ol>
+          <li>Die Installationsdatei <code>Runtime-FeedDownloader-Pro-Setup-0.7.5.exe</code> von der offiziellen Release-Seite herunterladen.</li>
+          <li>Die heruntergeladene Datei mit einem Doppelklick öffnen, um das Installationsprogramm zu starten.</li>
+          <li>Falls Windows die Meldung <strong>„Windows hat Ihren PC geschützt"</strong> (SmartScreen) anzeigt, auf <strong>„Weitere Informationen"</strong> und anschließend auf <strong>„Trotzdem ausführen"</strong> klicken. Diese Meldung ist bei Software üblich, die außerhalb des Microsoft Store vertrieben wird und noch keine ausreichende Verbreitung für das Windows-Reputationssystem erreicht hat.</li>
+          <li>Den Anweisungen auf dem Bildschirm folgen: den Lizenzvertrag akzeptieren, den Installationsordner auswählen und auf <strong>„Installieren"</strong> klicken.</li>
+          <li>Nach Abschluss der Installation stehen eine Verknüpfung auf dem <strong>Desktop</strong> und ein Eintrag im <strong>Start</strong>-Menü zur Verfügung.</li>
+        </ol>
+        <p>
+          <strong>Installations- und Datenpfade:</strong>
+          Das Programm wird in <code>C:\Program Files\Runtime FeedDownloader Pro\</code> installiert. Die Datenbank und die Konfigurationsdateien werden separat in <code>C:\Users\[IhrName]\AppData\Roaming\FeedDownloaderPro\</code> gespeichert. Diese Trennung stellt sicher, dass die Deinstallation des Programms die Archivdaten nicht beeinträchtigt.
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="23-installation-unter-macos">2.3 Installation unter macOS</h2>
+        <ol>
+          <li>Die Datei <code>Runtime-FeedDownloader-Pro-0.7.5.dmg</code> herunterladen.</li>
+          <li>Die <code>.dmg</code>-Datei mit einem Doppelklick öffnen. Es erscheint ein Fenster mit dem Anwendungssymbol.</li>
+          <li>Das Symbol von <strong>FeedDownloader Pro</strong> in den Ordner <strong>Programme</strong> ziehen, wie durch den Pfeil im <code>.dmg</code>-Fenster angezeigt.</li>
+          <li><strong>Erster Start unter macOS:</strong> Da die Software nicht über den Mac App Store vertrieben wird, zeigt macOS beim ersten Öffnen eine Sicherheitswarnung an. So geht man vor:
+            <ul>
+              <li>Zu <strong>Systemeinstellungen → Datenschutz &amp; Sicherheit</strong> navigieren.</li>
+              <li>Im Abschnitt „Sicherheit" erscheint die Meldung <em>„FeedDownloader Pro wurde blockiert..."</em>.</li>
+              <li>Auf <strong>„Trotzdem öffnen"</strong> und anschließend im Bestätigungsdialog auf <strong>„Öffnen"</strong> klicken.</li>
+              <li>Bei späteren Starts öffnet sich die Software normal mit einem Doppelklick.</li>
+            </ul>
+          </li>
+        </ol>
+        <p><em>Hinweis für Apple-Silicon-Benutzer (M1/M2/M3):</em> Eine native ARM-Version ist verfügbar. Für optimale Leistung die <code>.dmg</code>-Datei mit dem Suffix <code>-arm64</code> herunterladen. Die x64-Version ist über Rosetta 2 verwendbar, die ARM-Version ist jedoch effizienter.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="24-installation-unter-linux">2.4 Installation unter Linux</h2>
+        <ol>
+          <li>Die Datei <code>Runtime-FeedDownloader-Pro-0.7.5.AppImage</code> herunterladen.</li>
+          <li>Die Datei als ausführbar markieren. Die verfügbaren Methoden sind:
+            <ul>
+              <li><strong>Über die grafische Oberfläche:</strong> Rechtsklick auf die Datei → Eigenschaften → Reiter Berechtigungen → Häkchen bei „Datei als Programm ausführen erlauben".</li>
+              <li><strong>Über das Terminal:</strong> <code>chmod +x Runtime-FeedDownloader-Pro-0.7.5.AppImage</code></li>
+            </ul>
+          </li>
+          <li>Die Datei mit einem Doppelklick oder über das Terminal starten: <code>./Runtime-FeedDownloader-Pro-0.7.5.AppImage</code></li>
+        </ol>
+        <p>
+          <strong>Desktop-Integration (optional):</strong>
+          Um FeedDownloader Pro zum Launcher und Anwendungsmenü hinzuzufügen, kann <strong>AppImageLauncher</strong> verwendet werden (in den Repositories der meisten Distributionen verfügbar), der AppImage-Dateien automatisch in das System integriert.
+        </p>
+        <p><em>Hinweis für Sandbox-Umgebungen:</em> Auf Distributionen mit <strong>Flatpak</strong> oder in Umgebungen mit Dateisystemzugriffsbeschränkungen kann die Software möglicherweise keine SMB-Netzwerkpfade erreichen. In diesem Fall sicherstellen, dass das Netzwerkdateisystem eingehängt und über den Dateimanager erreichbar ist, bevor das Programm gestartet wird.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="25-der-erste-start">2.5 Der erste Start</h2>
+        <p>Beim ersten Öffnen ist die Software sofort einsatzbereit. Es ist keine Erstkonfiguration, Kontoerstellung oder Lizenzeingabe erforderlich. Die Oberfläche zeigt die URL-Eingabeleiste in der Mitte und eine leere Episodenliste.</p>
+        <p>
+          <strong>Beim ersten Start erstellte Dateien:</strong>
+          Das Programm erstellt automatisch folgende Dateien im Benutzerdatenordner:
+        </p>
+        <ul>
+          <li><code>feeddownloader.db</code> — Die SQLite-Hauptdatenbank. Enthält die vollständige Download-Chronik, die Episodenmetadaten und den Archivstatus. <strong>Diese Datei darf nicht gelöscht werden.</strong></li>
+          <li><code>settings.json</code> — Die Benutzereinstellungen (Sprache, Anzahl der Threads, Standard-Zielordner usw.).</li>
+          <li><code>logs/</code> — Der Ordner für Protokolldateien, nützlich für die Diagnose bei Problemen.</li>
+        </ul>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="26-updates">2.6 Updates</h2>
+        <p>Wenn eine neue Version verfügbar ist, zeigt die Software eine Benachrichtigung in der unteren Leiste der Oberfläche an. Die Installation des Updates erfordert stets die ausdrückliche Zustimmung des Benutzers.</p>
+        <p>Vor dem Update führt die Software automatisch ein Backup der Datenbank durch. Die Archivdaten werden bei einem Update in keinem Fall verändert: Ausschließlich die Programmdateien werden ersetzt.</p>
+        <p><em>Hinweis:</em> Vor dem Update auf eine Major-Version (z. B. von 0.7.x auf 0.8.x) wird empfohlen, eine manuelle Kopie der Datei <code>feeddownloader.db</code> an einem sicheren Speicherort zu erstellen.</p>
+        <hr>
+        <p><em>Siehe Kapitel 3 für eine detaillierte Beschreibung der Oberflächenelemente.</em></p>
+      </section>
+    </section>
+  
+
+</body></html>

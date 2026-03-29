@@ -1,0 +1,83 @@
+<!DOCTYPE html><html lang="zh"><head>
+    <meta charset="utf-8">
+    <title>第 1 章：简介与设计理念</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="book/theme.css">
+  </head>
+  <body>
+    <section class="level1">
+      <h1 id="第-1-章简介与设计理念">第 1 章：简介与设计理念</h1>
+      <section class="level2">
+        <h2 id="11-什么是-runtime-feeddownloader-pro">1.1 什么是 Runtime FeedDownloader Pro？</h2>
+        <p>描述这款软件，最好从它所解决的问题入手。</p>
+        <p>每天，数以千计的播客节目被发布、分发和收听。然而随着时间推移，相当一部分内容会消失：主播停止支付托管服务费用，分发平台停止运营，托管音频文件的 CDN 被关闭。三年前收听过的某个节目，今天可能已永久无法访问——并非被有意删除，而是因为没有人保留了一份副本。</p>
+        <p><strong>Runtime FeedDownloader Pro</strong> 正是为解决这一问题而生。它不是一个简单的播客下载工具，而是一款专业应用程序，专为<strong>系统性保存和归档</strong>来自 RSS feed 的音频内容而设计。其目标用户包括：档案管理员、出版商、广播电台、内容制作者，以及一切需要以与其他文档同等严格标准来保存声音资料的用户。</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="12-适用人群">1.2 适用人群</h2>
+        <p>FeedDownloader Pro 满足多种不同需求：</p>
+        <ul>
+          <li>
+            <p><strong>档案管理员：</strong> 希望在某个历史播客被下线之前下载其完整目录。需要一个能记住已下载节目、避免重复、并验证每个文件完整性的系统。</p>
+          </li>
+          <li>
+            <p><strong>广播制作人：</strong> 在共享 NAS 上管理内容库。需要一款能在网络路径上稳定运行、以可预期的方式组织文件、并能为团队生成 CSV 格式报告的工具。</p>
+          </li>
+          <li>
+            <p><strong>出版商：</strong> 希望保存本网络所有播客的本地副本，将元数据导出至内容管理系统，并长期监控存档状态。</p>
+          </li>
+          <li>
+            <p><strong>爱好者：</strong> 希望将喜爱的播客整齐地保存在本地磁盘，不依赖互联网连接的可用性，也不必担心收到损坏的文件。</p>
+          </li>
+        </ul>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="13-数据库优先理念">1.3 "数据库优先"理念</h2>
+        <p>FeedDownloader Pro 与通用下载工具的根本区别在于其数据管理方式。</p>
+        <p>大多数下载工具的工作方式是：分析磁盘上已有的文件，与 RSS feed 进行比对，然后下载缺少的内容。这种方式有一个关键缺陷：<strong>磁盘并非可靠的真实来源</strong>。文件可能被移动、重命名、损坏或意外删除。如果将播客文件夹从 <code>C:\Podcast</code> 移动到 <code>D:\Archivio</code>，该工具就会丢失对已下载节目的引用，并重新下载整个目录。</p>
+        <p>FeedDownloader Pro 采用不同的方式。每次操作的核心是一个 <strong>SQLite 数据库</strong>，它记录每一个已分析或已下载的节目：原始 URL、文件在磁盘上的路径、下载日期、内容的 SHA-256 哈希值以及音频元数据。数据库是软件的持久记忆。无论文件的物理位置如何变化，数据库始终保存着存档的完整状态。</p>
+        <p>这一架构带来直接的实际影响：</p>
+        <ol>
+          <li><strong>无重复项。</strong> 即使多次分析同一个 feed，系统也能识别数据库中已有的节目，不会重复加入队列。</li>
+          <li><strong>移动位置后仍具弹性。</strong> 可以将存档迁移至新磁盘或 NAS，历史记录在数据库中保持完整。</li>
+          <li><strong>跨会话的持久状态。</strong> 如果程序在批量下载 300 个节目途中被关闭，重新打开后队列仍处于关闭前的状态。</li>
+          <li><strong>操作日志。</strong> 每个已下载的文件均有记录：下载日期、源 URL 以及完整性验证状态。</li>
+        </ol>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="14-软件的三大支柱">1.4 软件的三大支柱</h2>
+        <p>除数据库优先方式外，FeedDownloader Pro 还围绕三项技术原则构建，这些原则对功能有直接影响。</p>
+        <section class="level3">
+          <h3 id="网络弹性">网络弹性</h3>
+          <p>在互联网上按顺序下载数百个音频文件，并非没有复杂性。服务器可能过载，连接可能中断，传输可能导致文件损坏。FeedDownloader Pro 通过三种机制处理这些情况：</p>
+          <ul>
+            <li><strong>指数退避重试：</strong> 当某次下载失败时，软件不会立即重试，而是等待一个递增的间隔：2 秒，然后 4 秒，然后 8 秒，直到配置的最大限制。这种方式是分布式系统中的标准做法，能在不加重源服务器负载的情况下提高成功率。</li>
+            <li><strong>停滞检测：</strong> 卡住的下载比失败的下载更麻烦。如果服务器开始发送数据后突然停止却未关闭连接，没有此项检测的软件将无限期等待。FeedDownloader Pro 实时监控数据流：如果连续 60 秒内没有新字节到达，该下载将自动中止并重新加入队列。</li>
+            <li><strong>防损坏 <code>.part</code> 文件：</strong> 每个文件下载时使用临时扩展名 <code>.part</code>。只有在传输完全完成并经过验证后，文件才会被重命名为最终扩展名（<code>.mp3</code>、<code>.m4a</code> 等）。如果发生意外中断，目标文件夹中不会出现残缺或损坏的音频文件——只有残留的 <code>.part</code> 文件，软件会在下次会话中删除并重新下载它们。</li>
+          </ul>
+        </section>
+        <section class="level3">
+          <h3 id="内置安全性">内置安全性</h3>
+          <p>FeedDownloader Pro 处理来自外部来源（RSS feed）的 URL。一个恶意构造的 URL，如果指向网络内部资源（路由器、NAS、本地服务器），可能被用于访问敏感信息——这种攻击称为 <strong>SSRF（服务器端请求伪造）</strong>。</p>
+          <p>为防范此风险，每个 URL 在处理前都会经过 <strong>5 层验证</strong>：协议检查、DNS 解析与目标 IP 地址检查、私有地址段屏蔽（RFC 1918）、非 HTTP/HTTPS 协议屏蔽以及路径规范化。此过程对用户完全自动且透明。</p>
+        </section>
+        <section class="level3">
+          <h3 id="nas-与网络路径支持">NAS 与网络路径支持</h3>
+          <p>FeedDownloader Pro 专为在网络磁盘上操作存档而设计。SMB 路径管理——NAS、Windows 服务器和网络共享所使用的协议——是桌面应用程序中常见的问题来源：一个无法访问的网络磁盘可能导致整个界面长时间卡住。FeedDownloader Pro 通过在独立线程上执行网络路径验证（超时 8 秒）来解决这一问题。无论网络路径状态如何，界面始终保持响应。</p>
+          <hr>
+        </section>
+      </section>
+      <section class="level2">
+        <h2 id="15-手册内容">1.5 手册内容</h2>
+        <p>本手册涵盖 FeedDownloader Pro 的完整使用方法，从安装到高级功能。无需按顺序阅读：每章相互独立，可单独查阅。</p>
+        <p>初次接触本软件，建议阅读<strong>第 4 章（第一个存档）</strong>，该章节演示了从分析 feed 到完成下载的完整工作流程。已熟悉软件的用户可通过总目录直接跳转至所需章节。</p>
+        <hr>
+        <p><em>Ecosystem Runtime | Digital Core — 为长久而生的工具。</em></p>
+      </section>
+    </section>
+  
+
+</body></html>

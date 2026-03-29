@@ -46,9 +46,9 @@ Il set documentale sarà diviso in tre livelli:
 1.  ✅ Traduzione del Manuale in FR, DE, ES, PT, RU, ZH — 12 file per lingua, cartelle `fr-FR/`, `de-DE/`, `es-ES/`, `pt-PT/`, `ru-RU/`, `zh-CN/`.
 2.  ✅ Terminologia UI coerente per ogni lingua, nomi file identici all'originale italiano.
 
-### Fase 4: Integrazione e Build - [ ] IN SOSPESO
+### Fase 4: Integrazione e Build - ✅ IN COMPLETAMENTO
 1.  [ ] Integrazione dei nuovi file nel sistema di Help dell'app (aggiornamento `ipc.ts` se necessario).
-2.  [ ] **Generazione PDF** del manuale in tutte le 8 lingue — da fare in una sessione dedicata.
+2.  ✅ **Generazione PDF editoriale** del manuale in tutte le 8 lingue completata con successo tramite Vivliostyle (Paged Media).
 
 ---
 
@@ -70,7 +70,7 @@ Il set documentale sarà diviso in tre livelli:
 - ✅ Creazione del folder `docs/user/` e `docs/academic/`.
 - ✅ Stesura e revisione del **User Manual (IT)** — 12 capitoli completi.
 - ✅ Localizzazione del manuale in 7 lingue (EN-GB, FR, DE, ES, PT, RU, ZH).
-- [ ] Generazione **PDF** del manuale in tutte le 8 lingue.
+- ✅ Generazione **PDF editoriale** del manuale in tutte le 8 lingue completata (script `build-all-books.cjs`).
 - [ ] Stesura della prima bozza del **Scientific Paper (IT)**.
 
 ---
