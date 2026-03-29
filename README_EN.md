@@ -32,4 +32,18 @@ The software is Cross-Platform and runs natively on:
 - **Linux**: Modern distributions (Ubuntu, Debian, Fedora) via AppImage or .deb
 - Active Internet connection
 
+## Download
+
+Official packages for all platforms are available on [GitHub Releases](https://github.com/Pitz72/FeedDownloader/releases), built automatically via GitHub Actions.
+
+| Platform | Format | Notes |
+|---|---|---|
+| Windows 10/11 | `.exe` (NSIS installer) | Unsigned — see SmartScreen note |
+| macOS 11+ | `.dmg` / `.zip` | Unsigned — see Gatekeeper note |
+| Linux | `.AppImage` / `.deb` | No signing required |
+
+**Windows — SmartScreen warning:** On first launch, Windows Defender may show a "Windows protected your PC — Unknown Publisher" screen. The software is safe. Click **More info** → **Run anyway**.
+
+**macOS — Gatekeeper warning:** The package is not signed with an Apple Developer certificate. On first launch, macOS may block it. To open: right-click the app → **Open**, or go to **System Settings → Privacy & Security → Open Anyway**.
+
 *Developed with Electron & React technology to ensure performance and stability.*

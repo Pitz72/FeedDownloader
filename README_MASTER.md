@@ -48,7 +48,18 @@ Il software è Cross-Platform e gira nativamente su:
 - **Linux**: Distribuzioni moderne (Ubuntu 20.04+, Debian 11+, Fedora 34+) — `.AppImage` o `.deb`
 - Connessione Internet attiva
 
-## Download e Build
-I pacchetti ufficiali per tutte le piattaforme sono disponibili su [GitHub Releases](https://github.com/Pitz72/FeedDownloader/releases) e vengono generati automaticamente tramite GitHub Actions ad ogni rilascio.
+## Download
+
+I pacchetti per tutte le piattaforme sono disponibili su [GitHub Releases](https://github.com/Pitz72/FeedDownloader/releases) e vengono generati automaticamente tramite GitHub Actions.
+
+| Piattaforma | Formato | Note |
+|---|---|---|
+| Windows 10/11 | `.exe` (installer NSIS) | Software non firmato — vedi nota SmartScreen |
+| macOS 11+ | `.dmg` / `.zip` | Software non firmato — vedi nota Gatekeeper |
+| Linux | `.AppImage` / `.deb` | Nessuna firma richiesta |
+
+**Windows — avviso SmartScreen:** Al primo avvio, Windows Defender potrebbe mostrare la schermata "PC protetto da Windows — Autore sconosciuto". Il software è sicuro. Fare clic su **Ulteriori informazioni** → **Esegui comunque**.
+
+**macOS — avviso Gatekeeper:** Il pacchetto non è firmato con un certificato Apple Developer. Al primo avvio, macOS potrebbe bloccarlo. Per aprirlo: fare clic destro sull'app → **Apri**, oppure andare in **Impostazioni di sistema → Privacy e sicurezza → Apri comunque**.
 
 *Sviluppato con tecnologia Electron & React per garantire prestazioni e stabilità.*

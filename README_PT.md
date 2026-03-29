@@ -28,4 +28,18 @@ O software é multiplataforma e roda nativamente em:
 - **Linux**: Distribuições modernas (Ubuntu, Debian, Fedora) via AppImage ou .deb
 - Conexão ativa com a Internet
 
+## Download
+
+Os pacotes oficiais para todas as plataformas estão disponíveis em [GitHub Releases](https://github.com/Pitz72/FeedDownloader/releases) e são gerados automaticamente via GitHub Actions.
+
+| Plataforma | Formato | Notas |
+|---|---|---|
+| Windows 10/11 | `.exe` (instalador NSIS) | Não assinado — ver nota SmartScreen |
+| macOS 11+ | `.dmg` / `.zip` | Não assinado — ver nota Gatekeeper |
+| Linux | `.AppImage` / `.deb` | Nenhuma assinatura necessária |
+
+**Windows — aviso SmartScreen:** No primeiro lançamento, o Windows Defender pode mostrar o ecrã "O Windows protegeu o seu PC — Editor desconhecido". O software é seguro. Clique em **Mais informações** → **Executar mesmo assim**.
+
+**macOS — aviso Gatekeeper:** O pacote não está assinado com um certificado Apple Developer. No primeiro lançamento, o macOS pode bloqueá-lo. Para abrir: clique com o botão direito na app → **Abrir**, ou vá a **Definições do Sistema → Privacidade e Segurança → Abrir mesmo assim**.
+
 *Desenvolvido com tecnologia Electron & React para garantir desempenho e estabilidade.*

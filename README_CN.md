@@ -28,4 +28,18 @@ Runtime FeedDownloader Pro 是一款专为档案管理员、出版商和爱好�
 - **Linux**: 现代发行版 (Ubuntu, Debian, Fedora) 通过 AppImage 或 .deb
 - 活跃的互联网连接
 
+## 下载
+
+所有平台的官方安装包均可在 [GitHub Releases](https://github.com/Pitz72/FeedDownloader/releases) 上获取，并通过 GitHub Actions 自动构建。
+
+| 平台 | 格式 | 说明 |
+|---|---|---|
+| Windows 10/11 | `.exe`（NSIS 安装程序） | 未签名 — 请参阅 SmartScreen 说明 |
+| macOS 11+ | `.dmg` / `.zip` | 未签名 — 请参阅 Gatekeeper 说明 |
+| Linux | `.AppImage` / `.deb` | 无需签名 |
+
+**Windows — SmartScreen 警告：** 首次启动时，Windows Defender 可能会显示"Windows 已保护您的电脑 — 未知发布者"屏幕。该软件是安全的。请点击**更多信息** → **仍要运行**。
+
+**macOS — Gatekeeper 警告：** 该软件包未使用 Apple Developer 证书签名。首次启动时，macOS 可能会阻止它。打开方式：右键点击应用程序 → **打开**，或前往**系统设置 → 隐私与安全性 → 仍要打开**。
+
 *使用 Electron & React 技术开发，以确保性能和稳定性。*
