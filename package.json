@@ -2,6 +2,11 @@
   "name": "runtime-feeddownloader-pro",
   "private": true,
   "version": "0.7.5",
+  "description": "Professional podcast archiving tool — batch download, network resilience, SHA-256 integrity",
+  "author": {
+    "name": "Simone Pizzi",
+    "email": "info@runtimeradio.it"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",
