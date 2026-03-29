@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run lint && tsc && vite build && electron-builder",
+    "build": "npm run lint && tsc && vite build && electron-builder --publish never",
+    "release": "npm run lint && tsc && vite build && electron-builder --publish always",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "test": "vitest run",
@@ -134,7 +135,7 @@
     },
     "publish": {
       "provider": "github",
-      "owner": "GITHUB_OWNER",
+      "owner": "Pitz72",
       "repo": "FeedDownloader",
       "releaseType": "release"
     }

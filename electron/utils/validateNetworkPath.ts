@@ -3,7 +3,13 @@ import type { PathValidationResult } from '../../shared/types';
 
 function detectNetworkPath(dirPath: string): boolean {
     // Windows UNC paths: \\server\share or //server/share
-    return dirPath.startsWith('\\\\') || dirPath.startsWith('//');
+    // macOS mounted network shares: /Volumes/sharename
+    // Linux mounted network shares: /mnt/... or /media/...
+    return dirPath.startsWith('\\\\') ||
+           dirPath.startsWith('//') ||
+           dirPath.startsWith('/Volumes/') ||
+           dirPath.startsWith('/mnt/') ||
+           dirPath.startsWith('/media/');
 }
 
 /**

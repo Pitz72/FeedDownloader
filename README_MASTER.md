@@ -43,9 +43,12 @@ La verifica condotta il 28 marzo 2026 conferma la copertura del 100% per:
 
 ## Requisiti di Sistema
 Il software è Cross-Platform e gira nativamente su:
-- **Windows**: 10/11 (64-bit)
-- **macOS**: 11.0 (Big Sur) o superiore (Intel & Apple Silicon)
-- **Linux**: Distribuzioni moderne (Ubuntu, Debian, Fedora) tramite AppImage o .deb
+- **Windows**: 10/11 (64-bit) — installer NSIS (`.exe`)
+- **macOS**: 11.0 (Big Sur) o superiore, Intel & Apple Silicon — Disk Image (`.dmg`) o `.zip`
+- **Linux**: Distribuzioni moderne (Ubuntu 20.04+, Debian 11+, Fedora 34+) — `.AppImage` o `.deb`
 - Connessione Internet attiva
+
+## Download e Build
+I pacchetti ufficiali per tutte le piattaforme sono disponibili su [GitHub Releases](https://github.com/Pitz72/FeedDownloader/releases) e vengono generati automaticamente tramite GitHub Actions ad ogni rilascio.
 
 *Sviluppato con tecnologia Electron & React per garantire prestazioni e stabilità.*

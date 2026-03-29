@@ -3,9 +3,13 @@
 > **Il modo più potente per archiviare i tuoi podcast.**
 
 ![Version](https://img.shields.io/badge/version-0.7.5-blue)
+![Build](https://github.com/Pitz72/FeedDownloader/actions/workflows/build.yml/badge.svg)
 ![Electron](https://img.shields.io/badge/Electron-30-47848F?logo=electron)
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)
+![Windows](https://img.shields.io/badge/Windows-0078D6?logo=windows&logoColor=white)
+![macOS](https://img.shields.io/badge/macOS-000000?logo=apple&logoColor=white)
+![Linux](https://img.shields.io/badge/Linux-FCC624?logo=linux&logoColor=black)
 
 ## Panoramica
 
@@ -47,7 +51,17 @@
 
 La cronologia completa delle versioni si trova in [`docs/changelog/`](docs/changelog/).
 
-## Quick Start
+## Download
+
+| Piattaforma | Formato | Link |
+|---|---|---|
+| Windows 10/11 | NSIS Installer (`.exe`) | [GitHub Releases](https://github.com/Pitz72/FeedDownloader/releases) |
+| macOS 11+ | Disk Image (`.dmg`) | [GitHub Releases](https://github.com/Pitz72/FeedDownloader/releases) |
+| Linux | AppImage / `.deb` | [GitHub Releases](https://github.com/Pitz72/FeedDownloader/releases) |
+
+I build per tutte le piattaforme sono prodotti automaticamente da GitHub Actions ad ogni release.
+
+## Quick Start (sviluppo)
 
 ```bash
 # Installa dipendenze
@@ -56,8 +70,11 @@ npm install
 # Avvia in modalità sviluppo
 npm run dev
 
-# Build di produzione
+# Build locale (no publish)
 npm run build
+
+# Build + publish su GitHub Releases (richiede tag v*)
+npm run release
 ```
 
 ## Stack Tecnologico
@@ -78,7 +95,12 @@ npm run build
 
 ## Requisiti di Sistema
 
-- **OS:** Windows 10+, macOS 10.15+, Linux
+| Piattaforma | Requisito minimo |
+|---|---|
+| Windows | 10 / 11 (64-bit) |
+| macOS | 11.0 Big Sur o superiore |
+| Linux | Ubuntu 20.04+, Debian 11+, Fedora 34+ (o equivalente) |
+
 - **RAM:** 4 GB (raccomandato)
 - **Disco:** Spazio sufficiente per gli archivi podcast
 
