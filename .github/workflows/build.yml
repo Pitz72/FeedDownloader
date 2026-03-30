@@ -100,7 +100,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         run: npm run release
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
 
       # ── 8. Carica artifacts ──────────────────────────────────────────────────
       #    Conservati 30 giorni — utili per test prima del rilascio ufficiale

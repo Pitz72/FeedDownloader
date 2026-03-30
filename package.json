@@ -1,7 +1,7 @@
 {
   "name": "runtime-feeddownloader-pro",
   "private": true,
-  "version": "0.7.6",
+  "version": "1.0.0",
   "description": "Professional podcast archiving tool — batch download, network resilience, SHA-256 integrity",
   "author": {
     "name": "Simone Pizzi",
@@ -141,7 +141,7 @@
     "publish": {
       "provider": "github",
       "owner": "Pitz72",
-      "repo": "FeedDownloader",
+      "repo": "FeedDownloader-Releases",
       "releaseType": "release"
     }
   }

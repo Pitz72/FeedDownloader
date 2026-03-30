@@ -10,6 +10,7 @@ Cronologia completa delle versioni in [`changelog/`](changelog/).
 
 | Versione | Data | Tema |
 |----------|------|------|
+| [1.0.0](changelog/1.0.0.md) | 30 mar 2026 | Release Ufficiale — v1.0.0 stabile, infrastruttura auto-update su bridge repository pubblico |
 | [0.7.6](changelog/0.7.6.md) | 29 mar 2026 | Health Check: Ripristino Episodi Mancanti — pulsante "Segna come non scaricati", transazione atomica SQLite |
 | [0.7.5](changelog/0.7.5.md) | 28 mar 2026 | Supporto NAS/SMB + Electron Auto-Update |
 | [0.6.6](changelog/0.6.6.md) | 26 mar 2026 | Filtro Durata Episodi — filtro min/max minuti, parseDurationMinutes (HH:MM:SS/MM:SS/sec), durata in ogni riga |
