@@ -7,8 +7,8 @@ A differenza dei normali player, questo software è ottimizzato per il download 
 
 ## Caratteristiche Principali
 - **Motore "Database-First":** Il sistema ricorda cosa hai scaricato indipendentemente dai file su disco (SQLite).
-- **Auto-Update:** Aggiornamenti automatici integrati tramite GitHub Releases (v0.7.6).
-- **Supporto NAS/SMB:** Validazione nativa e timeout (8s) per percorsi di rete per prevenire freeze dell'interfaccia (v0.7.6).
+- **Auto-Update:** Aggiornamenti automatici integrati tramite GitHub Releases (v1.0.0).
+- **Supporto NAS/SMB:** Validazione nativa e timeout (8s) per percorsi di rete per prevenire freeze dell'interfaccia (v0.7.5).
 - **Health Check:** Ripristino automatico degli episodi mancanti su disco con rincosincronizzazione del database (v0.7.6).
 - **Integrità Dati:** Calcolo automatico SHA-256 e estrazione metadati audio (bitrate, sample rate) post-download (v0.7.4).
 - **Migrazione Archivio:** Sposta l'intera libreria in un nuovo percorso/disco con aggiornamento automatico del DB (v0.6.10).
@@ -24,7 +24,7 @@ A differenza dei normali player, questo software è ottimizzato per il download 
 - **Performance:** Lista virtualizzata — gestisce feed con migliaia di episodi senza rallentamenti.
 - **Help Integrato:** Guida utente completa consultabile direttamente all'interno dell'applicazione.
 
-## Certificazione Multilingua (v0.7.6)
+## Certificazione Multilingua (v1.0.0)
 Il software è ufficialmente certificato per il supporto completo in **8 lingue**:
 - **Italiano (IT)** — Lingua nativa e di riferimento.
 - **English (EN)** — Lingua di fallback globale.
@@ -51,7 +51,7 @@ Il software è Cross-Platform e gira nativamente su:
 
 ## Download
 
-I pacchetti per tutte le piattaforme sono disponibili su [GitHub Releases](https://github.com/Pitz72/FeedDownloader/releases) e vengono generati automaticamente tramite GitHub Actions.
+I pacchetti per tutte le piattaforme sono disponibili su [GitHub Releases](https://github.com/Pitz72/FeedDownloader-Releases/releases) e vengono generati automaticamente tramite GitHub Actions.
 
 | Piattaforma | Formato | Note |
 |---|---|---|
