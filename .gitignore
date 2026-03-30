@@ -26,4 +26,6 @@ dist-ssr
 
 builds/
 distribuzione-windows/
+distribuzione-macos/
+distribuzione-linux/
 PORTING/
