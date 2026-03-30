@@ -2,7 +2,7 @@
 
 > **Il modo più potente per archiviare i tuoi podcast.**
 
-![Version](https://img.shields.io/badge/version-0.7.5-blue)
+![Version](https://img.shields.io/badge/version-0.7.6-blue)
 ![Build](https://github.com/Pitz72/FeedDownloader/actions/workflows/build.yml/badge.svg)
 ![Electron](https://img.shields.io/badge/Electron-30-47848F?logo=electron)
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)
@@ -18,8 +18,8 @@
 ### ✨ Caratteristiche Principali
 
 - 🔄 **Batch Download** — Scarica tutti gli episodi con un solo click
-- 🚀 **Auto-Update** — Aggiornamenti automatici integrati tramite GitHub (v0.7.5)
-- 🔌 **Supporto NAS/SMB** — Validazione automatica e timeout per percorsi di rete (v0.7.5)
+- 🚀 **Auto-Update** — Aggiornamenti automatici integrati tramite GitHub (v0.7.6)
+- 🔌 **Supporto NAS/SMB** — Validazione automatica e timeout per percorsi di rete (v0.7.6)
 - 🛡️ **Integrità Dati** — Checksum SHA-256 e metadati audio (bitrate/Hz) post-download (v0.7.4)
 - 📂 **Migrazione Archivio** — Sposta l'intera libreria in un nuovo percorso con un click (v0.6.10)
 - 🧠 **Smart Truncate** — Prevenzione automatica dei limiti `MAX_PATH` di Windows
@@ -28,6 +28,7 @@
 - 🎵 **Estensione Reale** — Rileva e salva il formato corretto (`.m4a`, `.ogg`, `.opus`…) (v0.4.3)
 - 📊 **Statistiche Archivio** — Dashboard con contatori e periodi (v0.4.0)
 - ⚡ **Concorrenza Configurabile** — 1, 3 o 5 download paralleli (v0.4.0)
+- 🩺 **Health Check** — Ripristino automatico degli episodi mancanti su disco (v0.7.6)
 - 📅 **Filtri per Data** — Filtra episodi per intervallo date (v0.4.0)
 - 🔔 **Notifiche OS** — Notifica nativa al completamento batch (v0.4.0)
 - 🧪 **Test Suite** — 189 test automatici con Vitest (v0.4.1+)

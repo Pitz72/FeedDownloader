@@ -23,7 +23,7 @@ Runtime FeedDownloader Pro 是一款基于 Electron 技术的桌面应用程序�
 
 ## 2.2 在 Windows 上安装
 
-1.  从官方发布页面下载安装文件 `Runtime-FeedDownloader-Pro-Setup-0.7.5.exe`。
+1.  从官方发布页面下载安装文件 `Runtime-FeedDownloader-Pro-Setup-0.7.6.exe`。
 2.  双击下载的文件以启动安装程序。
 3.  如果 Windows 显示 **"Windows 已保护你的电脑"**（SmartScreen）警告，请点击 **"更多信息"**，然后点击 **"仍要运行"**。此警告是通过 Microsoft Store 以外渠道分发、且尚未达到 Windows 信誉系统所需采用门槛的软件的标准提示。
 4.  按照屏幕提示操作：接受许可协议，选择安装文件夹，然后点击 **"安装"**。
@@ -36,7 +36,7 @@ Runtime FeedDownloader Pro 是一款基于 Electron 技术的桌面应用程序�
 
 ## 2.3 在 macOS 上安装
 
-1.  下载文件 `Runtime-FeedDownloader-Pro-0.7.5.dmg`。
+1.  下载文件 `Runtime-FeedDownloader-Pro-0.7.6.dmg`。
 2.  双击 `.dmg` 文件将其打开。将弹出一个包含应用程序图标的窗口。
 3.  将 **FeedDownloader Pro** 图标拖入 **应用程序** 文件夹，如 `.dmg` 窗口中的箭头所示。
 4.  **macOS 首次启动：** 由于软件不通过 Mac App Store 分发，首次打开时 macOS 会显示安全警告。处理方法：
@@ -51,11 +51,11 @@ Runtime FeedDownloader Pro 是一款基于 Electron 技术的桌面应用程序�
 
 ## 2.4 在 Linux 上安装
 
-1.  下载文件 `Runtime-FeedDownloader-Pro-0.7.5.AppImage`。
+1.  下载文件 `Runtime-FeedDownloader-Pro-0.7.6.AppImage`。
 2.  将文件设为可执行。可通过以下方式之一操作：
     *   **通过图形界面：** 右键点击文件 → 属性 → 权限选项卡 → 勾选"允许将文件作为程序执行"。
-    *   **通过终端：** `chmod +x Runtime-FeedDownloader-Pro-0.7.5.AppImage`
-3.  双击文件启动，或在终端中执行：`./Runtime-FeedDownloader-Pro-0.7.5.AppImage`
+    *   **通过终端：** `chmod +x Runtime-FeedDownloader-Pro-0.7.6.AppImage`
+3.  双击文件启动，或在终端中执行：`./Runtime-FeedDownloader-Pro-0.7.6.AppImage`
 
 **桌面集成（可选）：**
 如需将 FeedDownloader Pro 添加到启动器和应用程序菜单，可使用 **AppImageLauncher**（大多数发行版的软件源中均有提供），它能自动将 AppImage 文件集成到系统中。

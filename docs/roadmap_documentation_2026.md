@@ -1,4 +1,4 @@
-# Roadmap Documentazione Multilingua: FeedDownloader Pro (v0.7.5)
+# Roadmap Documentazione Multilingua: FeedDownloader Pro (v0.7.6)
 
 **Data:** 28 marzo 2026
 **Obiettivo:** Creare un ecosistema documentale completo (User + Tech + Academic) in 8 lingue per la distribuzione professionale del software.

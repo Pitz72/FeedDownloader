@@ -4,8 +4,8 @@
 > - `archivio/report_analisi_v040_rimanenti.md` (generato 20 marzo 2026)
 > - `archivio/report_stato_attuale_2026-03-21.md` (generato 21 marzo 2026)
 >
-> Aggiornato il 28 marzo 2026 — v0.7.5 completata.
-> **Stato: COMPLETATO — Archiviato il 28 marzo 2026. Tutte le feature implementate o deliberatamente abortite.**
+Aggiornato il 29 marzo 2026 — v0.7.6 completata.
+**Stato: COMPLETATO — Archiviato il 29 marzo 2026. Tutte le feature implementate o deliberatamente abortite.**
 >
 > **Legenda:** 🔲 = Da fare | ✅ = Già implementato | ❌ = Abortito
 

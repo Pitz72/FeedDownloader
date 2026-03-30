@@ -1,6 +1,6 @@
-# Report di Verifica: Multilingua & Localizzazione (v0.7.5)
+# Report di Verifica: Multilingua & Localizzazione (v0.7.6)
 
-**Data della verifica:** 28 marzo 2026
+**Data della verifica:** 29 marzo 2026
 **Responsabile:** Gemini CLI (Audit AI)
 **Stato finale:** ✅ CERTIFICATO (100% Copertura)
 
