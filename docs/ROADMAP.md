@@ -222,11 +222,12 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 - **File:** `src/components/EpisodeList.tsx`
 - **Fix applicato:** `BYTES_PER_SECOND` aggiornato da `16_000` (128 kbps) a `24_000` (192 kbps) come default più realistico per i podcast moderni.
 
-### D8 🟢 ✅ v1.1.8 `country-flag-icons` in production dependencies — non usato
+### D8 🟢 ✅ v1.1.8 / v1.1.12 `country-flag-icons` in production dependencies
 
-- **Stato:** ✅ v1.1.8
-- **File:** `package.json`
-- **Fix applicato:** `npm uninstall country-flag-icons` — pacchetto (~150 KB) rimosso perché non importato da nessun file del progetto.
+- **Stato:** ✅ v1.1.12
+- **File:** `package.json`, `src/components/IntroScreen.tsx`
+- **Fix originale (v1.1.8):** `npm uninstall country-flag-icons` — rimosso sulla base dell'assunzione errata che non fosse usato.
+- **Correzione (v1.1.12):** Il pacchetto era usato da `IntroScreen.tsx` per 8 bandiere SVG. Reinstallato come dipendenza reale. Gli SVG React components (`GB`, `IT`, `FR`, …) ripristinati. Le emoji Unicode introdotte come workaround in v1.1.11 rimosse (Windows non le renderizza come bandiere).
 
 ### D9 🟢 ✅ v1.1.9 Hover state gestiti via JS `onMouseEnter/Leave` invece di CSS
 

@@ -2,8 +2,15 @@ import { ipcRenderer, contextBridge } from 'electron'
 import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveStats, HealthCheckResult, DiskSpaceInfo, MigrationResult, MigrationProgress, PathValidationResult, UpdateStatus } from '../shared/types'
 import { IPC_CHANNELS as CH } from '../shared/types'
 
-// Set platform data-attribute on <html> before React renders (used for macOS traffic-light CSS)
-document.documentElement.dataset.platform = process.platform;
+// Set platform data-attribute on <html> for macOS traffic-light CSS.
+// ESM preloads in Electron load asynchronously; documentElement may be null at module
+// evaluation time, so we defer to DOMContentLoaded when needed.
+const applyPlatform = () => { document.documentElement.dataset.platform = process.platform; };
+if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', applyPlatform);
+} else {
+    applyPlatform();
+}
 
 // --------- Expose API to the Renderer process ---------
 contextBridge.exposeInMainWorld('api', {
