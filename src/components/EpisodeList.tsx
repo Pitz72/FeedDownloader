@@ -284,7 +284,7 @@ export const EpisodeList: React.FC = () => {
                         <button
                             onClick={() => handleDownload(episode)}
                             disabled={!isOnline}
-                            className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1.5 rounded-full transition-all disabled:cursor-not-allowed"
+                            className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] p-1.5 rounded-full transition-all disabled:cursor-not-allowed"
                             style={{ background: 'var(--color-primary-container)', color: 'var(--color-on-primary-container)' }}
                             title={isOnline ? t('episodes.download') : t('toast.offline_error')}
                         >

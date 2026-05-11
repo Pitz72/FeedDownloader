@@ -52,8 +52,8 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 | D7 | Bug | Stima disco usa 128 kbps fisso | 🟢 | ✅ v1.1.7 |
 | D8 | Bug | `country-flag-icons` inutilizzato in `dependencies` | 🟢 | ✅ v1.1.8 |
 | D9 | Bug | Hover state gestiti via JS `onMouseEnter/Leave` invece di CSS | 🟢 | ✅ v1.1.9 |
-| D10 | Bug | Commenti `// vX.Y.Z —` inquinano il codice | 🟢 | 🔲 |
-| D11 | Bug | Download button invisibile da tastiera (`opacity-0`) | 🟢 | 🔲 |
+| D10 | Bug | Commenti `// vX.Y.Z —` inquinano il codice | 🟢 | ✅ v1.1.10 |
+| D11 | Bug | Download button invisibile da tastiera (`opacity-0`) | 🟢 | ✅ v1.1.11 |
 | E1 | Feature | Vista coda download con episodi in-flight | 🔵 | 🔲 |
 | E2 | Feature | Rimozione/pausa singolo elemento dalla coda | 🔵 | 🔲 |
 | E3 | Feature | Tracking fallimenti nel batch (log errori) | 🔵 | 🔲 |
@@ -234,19 +234,17 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 - **File:** `src/index.css` + tutti i componenti TSX
 - **Fix applicato:** Tutti gli `onMouseEnter`/`onMouseLeave` rimossi da 10 file. Aggiunte classi utility CSS nel design system: `.hover-text-primary`, `.hover-text-surface`, `.hover-bg-surface-high`, `.hover-bg-container`, `.hover-bg-highest`, `.hover-danger`, `.hover-stop`, `.feed-item`, `.settings-nav-item`, `.episode-row`, `.lang-btn-hover` e altre. Per i pattern con background rgba (dove lo stile inline impedisce l'override), usato `!important` circoscritto alle regole `:hover`.
 
-### D10 🟢 Commenti `// vX.Y.Z —` inquinano il codice sorgente
+### D10 🟢 ✅ v1.1.10 Commenti `// vX.Y.Z —` inquinano il codice sorgente
 
-- **Stato:** 🔲
-- **File:** Diffuso — `ipc.ts`, `EpisodeList.tsx`, `DownloadService.ts`, altri
-- **Problema:** ~80 commenti del tipo `// v0.5.0 — Ghost episode detection` annotano quando è stata aggiunta una feature. Questo è il ruolo di `CHANGELOG.md` e `git log`, non del codice sorgente. Rendono difficile la lettura del flusso logico.
-- **Fix:** Rimozione progressiva durante refactoring; mantenere solo commenti sul "perché" non sul "quando".
+- **Stato:** ✅ v1.1.10
+- **File:** `src/App.tsx`, `src/i18n.ts`, `src/components/EpisodeList.tsx`, `src/components/ConfirmModal.tsx`, `src/components/SettingsModal.tsx`, `src/components/UrlInput.tsx`, `src/vite-env.d.ts`, `electron/ipc.ts`, `electron/main.ts`, `electron/preload.ts`, `electron/services/DatabaseService.ts`, `electron/services/DownloadService.ts`, `electron/services/LibraryService.ts`
+- **Fix applicato:** Rimossi ~50 commenti `// vX.Y.Z —`. Dove il testo conteneva il "perché" è stato conservato il commento senza prefisso versione; dove descriveva solo "cosa fa il codice" è stato rimosso completamente.
 
-### D11 🟢 Pulsante download invisibile da navigazione tastiera
+### D11 🟢 ✅ v1.1.11 Pulsante download invisibile da navigazione tastiera
 
-- **Stato:** 🔲
-- **File:** `src/components/EpisodeList.tsx:364`
-- **Problema:** Il pulsante download ha `opacity-0 group-hover:opacity-100`. Il `focus:opacity-100` c'è ma non è visivamente evidente. Un utente che naviga con Tab non vede il pulsante attivato e non ha feedback visivo del focus.
-- **Fix:** Aggiungere `focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-primary` e assicurarsi che lo stile focus sia visibile nel tema dark.
+- **Stato:** ✅ v1.1.11
+- **File:** `src/components/EpisodeList.tsx`
+- **Fix applicato:** Sostituito `focus:opacity-100` con `focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]`. Il pulsante diventa visibile e con anello di focus colorato quando raggiunto via Tab, senza interferire col comportamento mouse.
 
 ---
 
