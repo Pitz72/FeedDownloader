@@ -32,6 +32,18 @@ export const EpisodeList: React.FC = () => {
     const [maxDuration, setMaxDuration] = useState<number>(0);
     const [showDurationFilter, setShowDurationFilter] = useState(false);
 
+    // Reset all filters when switching feed (D1)
+    useEffect(() => {
+        setSearchQuery('');
+        setDateFrom('');
+        setDateTo('');
+        setShowDateFilter(false);
+        setStatusFilter('all');
+        setMinDuration(0);
+        setMaxDuration(0);
+        setShowDurationFilter(false);
+    }, [currentFeed?.url]);
+
     // Sync new episodes (v0.5.3)
     const [isSyncing, setIsSyncing] = useState(false);
 

@@ -43,7 +43,7 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 | C5 | Bug | Filtro "New" include episodi in download | 🟠 | ✅ v1.0.8 |
 | C6 | Bug | `addFeed` INSERT OR IGNORE — metadata sidebar stale | 🟠 | ✅ v1.0.9 |
 | C7 | Bug | `FeedService` fa due richieste HTTP per feed | 🟠 | ✅ v1.1.0 |
-| D1 | Bug | Filtri episodi non si resettano al cambio feed | 🟡 | 🔲 |
+| D1 | Bug | Filtri episodi non si resettano al cambio feed | 🟡 | ✅ v1.1.1 |
 | D2 | Bug | `import()` dinamico di librerie dentro loop/callback | 🟡 | 🔲 |
 | D3 | Bug | `renderEpisodeRow` non memoized — Virtuoso ri-renderizza tutto | 🟡 | 🔲 |
 | D4 | Bug | macOS: `titleBarStyle: hidden` senza compensazione traffic light | 🟡 | 🔲 |
@@ -180,12 +180,11 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 
 ## D — Bug Medi e Lievi 🟡🟢
 
-### D1 🟡 Filtri episodi persistono al cambio feed
+### D1 🟡 ✅ v1.1.1 Filtri episodi persistono al cambio feed
 
-- **Stato:** 🔲
-- **File:** `src/components/EpisodeList.tsx:19-34`
-- **Problema:** `searchQuery`, `dateFrom`, `dateTo`, `statusFilter`, `minDuration`, `maxDuration` vivono in stato locale e non si resettano quando `currentFeed` cambia. Passare da un feed all'altro con un filtro data attivo mostra "0 episodi" senza spiegazione.
-- **Fix:** `useEffect(() => { setSearchQuery(''); setDateFrom(''); ... }, [currentFeed?.url])`.
+- **Stato:** ✅ v1.1.1
+- **File:** `src/components/EpisodeList.tsx`
+- **Fix applicato:** `useEffect` con dipendenza `[currentFeed?.url]` azzera tutti gli stati filtro (searchQuery, dateFrom, dateTo, statusFilter, minDuration, maxDuration e i relativi flag `show*`) al cambio feed.
 
 ### D2 🟡 `import()` dinamico di librerie dentro loop e callback
 
