@@ -1,7 +1,7 @@
 # Roadmap FeedDownloader Pro — Fonte di Verità
 
-**Versione di riferimento:** 1.1.0
-**Ultimo aggiornamento:** 11 maggio 2026
+**Versione di riferimento:** 1.1.16
+**Ultimo aggiornamento:** 12 maggio 2026
 
 Questo è l'unico documento autorevole per tutto il lavoro pendente post-v1.0.0.
 I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_2026.md`) sono archiviati in `archivio/`.
@@ -57,9 +57,9 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 | E1 | Feature | Vista coda download con episodi in-flight | 🔵 | ✅ v1.1.13 |
 | E2 | Feature | Rimozione/pausa singolo elemento dalla coda | 🔵 | ✅ v1.1.13 |
 | E3 | Feature | Tracking fallimenti nel batch (log errori) | 🔵 | ✅ v1.1.13 |
-| E4 | Feature | Ordinamento episodi (data asc/desc, durata) | 🔵 | 🔲 |
-| E5 | Feature | Re-download episodio già scaricato | 🔵 | 🔲 |
-| E6 | Feature | Path download visibile nella UI principale | 🔵 | 🔲 |
+| E4 | Feature | Ordinamento episodi (data asc/desc, durata) | 🔵 | ✅ v1.1.14 |
+| E5 | Feature | Re-download episodio già scaricato | 🔵 | ✅ v1.1.15 |
+| E6 | Feature | Path download visibile nella UI principale | 🔵 | ✅ v1.1.16 |
 | E7 | Feature | `lastUpdated` sidebar aggiornato al sync | 🔵 | 🔲 |
 | F1 | Feature | Vista archivio integrata in-app | 🟣 | 🔲 |
 | F2 | Feature | Badge "N nuovi" per feed in sidebar | 🟣 | 🔲 |
@@ -269,23 +269,23 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 - **File:** `electron/ipc.ts`, `src/store/useStore.ts`, `src/App.tsx`, `src/components/GlobalProgressBar.tsx`
 - **Fix applicato:** Array `failedDownloads: FailedDownload[]` accumulato durante il batch; inviato con `BATCH_COMPLETED`. `GlobalProgressBar` mostra bottone espandibile con conteggio errori e lista titoli con codice errore tradotto (via `ERROR_CODE_MAP`). Progress bar diventa gradiente rosso se ci sono fallimenti.
 
-### E4 🔵 Ordinamento episodi
+### E4 🔵 ✅ v1.1.14 Ordinamento episodi
 
-- **Stato:** 🔲
-- **Descrizione:** Gli episodi sono sempre nell'ordine del feed RSS (tipicamente più recenti prima). Non c'è modo di invertire per ascolto sequenziale di podcast narrativi o storici.
-- **Approccio:** Toggle `▲/▼` nella filter bar; `[...filteredEpisodes].reverse()` o sort per `pubDate`. Persistere la preferenza per feed.
+- **Stato:** ✅ v1.1.14
+- **File:** `src/components/EpisodeList.tsx`, `src/locales/*.json`
+- **Fix applicato:** Pulsante `Ordina` (icona `swap_vert`) nella filter bar apre un pannello con 5 opzioni: ordine del feed (default), data più recente, data meno recente, durata più lunga, durata più corta. Il sort è applicato in `filteredEpisodes` useMemo dopo tutti gli altri filtri. Reset automatico al cambio feed. Chiavi i18n in tutte e 8 le lingue.
 
-### E5 🔵 Re-download di un episodio già scaricato
+### E5 🔵 ✅ v1.1.15 Re-download di un episodio già scaricato
 
-- **Stato:** 🔲
-- **Descrizione:** Se un file è corrotto, l'utente deve fare reset status manuale + ri-download. Non esiste un pulsante "Riscarca" diretto. Per l'uso Data Hoarding (verifica integrità + re-fetch) è una funzione attesa.
-- **Approccio:** Aggiungere nel menu hover episodio (accanto a folder_open e restart_alt) un terzo pulsante `download` visibile anche sugli episodi completati.
+- **Stato:** ✅ v1.1.15
+- **File:** `src/components/EpisodeList.tsx`, `src/locales/*.json`
+- **Fix applicato:** Pulsante `download` on-hover aggiunto nella riga degli episodi completati (prima di `restart_alt` e `folder_open`). Chiama `handleDownload(episode)` direttamente senza necessità di reset manuale dello stato. Disabilitato offline.
 
-### E6 🔵 Path download visibile nella UI principale
+### E6 🔵 ✅ v1.1.16 Path download visibile nella UI principale
 
-- **Stato:** 🔲
-- **Descrizione:** L'utente non sa dove vanno i file senza aprire Settings. Il path attivo non è mostrato da nessuna parte nella UI principale. Per un tool di archiviazione massiva è un'informazione critica sempre visibile.
-- **Approccio:** Footer della sidebar o riga sotto l'input URL con il path troncato e icona folder; click → apre la cartella in explorer.
+- **Stato:** ✅ v1.1.16
+- **File:** `shared/types.ts`, `electron/ipc.ts`, `electron/preload.ts`, `src/vite-env.d.ts`, `src/store/useStore.ts`, `src/App.tsx`, `src/components/EpisodeList.tsx`, `src/components/SettingsModal.tsx`, `src/components/Sidebar.tsx`
+- **Fix applicato:** Footer sidebar mostra le ultime 2 componenti del path attivo (es. `Documenti/Podcast`) con icona `folder`. Click → `shell.openPath()` via nuovo IPC `OPEN_FOLDER`. Path salvato in Zustand store (`downloadPath`), inizializzato in `App.tsx` al mount, aggiornato da `EpisodeList` e `SettingsModal` ad ogni cambio.
 
 ### E7 🔵 `lastUpdated` sidebar non si aggiorna dopo sync
 
