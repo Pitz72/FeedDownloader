@@ -139,7 +139,9 @@ export const EpisodeList: React.FC = () => {
                 const url = getEnclosureUrl(ep);
                 const guid = ep.guid || url || '';
                 const isDownloaded = guid ? downloadedGuids.includes(guid) : false;
-                return statusFilter === 'downloaded' ? isDownloaded : !isDownloaded;
+                const isInProgress = url ? url in downloads : false;
+                if (statusFilter === 'downloaded') return isDownloaded;
+                return !isDownloaded && !isInProgress;
             });
         }
 
@@ -154,7 +156,7 @@ export const EpisodeList: React.FC = () => {
         }
 
         return episodes;
-    }, [currentFeed, searchQuery, dateFrom, dateTo, downloadedGuids, statusFilter, minDuration, maxDuration]);
+    }, [currentFeed, searchQuery, dateFrom, dateTo, downloadedGuids, downloads, statusFilter, minDuration, maxDuration]);
 
     const isOnline = useOnlineStatus();
 
