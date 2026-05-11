@@ -28,7 +28,7 @@ export class DownloadService {
 
                 console.error(`Download attempt ${i + 1} failed:`, error);
 
-                // v0.6.1 — On integrity failure, delete .part to force a fresh download
+                // on integrity failure, delete .part to force a fresh download
                 if (err.message === 'INTEGRITY_CHECK_FAILED') {
                     await fs.remove(`${outputPath}.part`).catch(() => { });
                 }
@@ -46,7 +46,6 @@ export class DownloadService {
     private async attemptDownload(url: string, outputPath: string, onProgress: (loaded: number, total: number) => void, speedLimitKBps?: number, signal?: AbortSignal) {
         const tempPath = `${outputPath}.part`;
 
-        // v0.6.1 — Check for existing partial download to resume via HTTP Range
         let resumedBytes = 0;
         try {
             const stat = await fs.stat(tempPath);
@@ -58,8 +57,6 @@ export class DownloadService {
         let writer: fs.WriteStream | null = null;
 
         try {
-            // v0.4.7 — connection timeout prevents hanging on unresponsive servers
-            // v0.6.1 — include Range header when resuming a partial download
             const response = await axios({
                 url,
                 method: 'GET',
@@ -69,16 +66,15 @@ export class DownloadService {
                 ...(resumedBytes > 0 ? { headers: { Range: `bytes=${resumedBytes}-` } } : {}),
             });
 
-            // v0.5.0 — Ghost episode detection: 404 means file was removed from server
+            // 404 means file was removed from server
             if (response.status === 404) {
                 await fs.remove(tempPath).catch(() => { });
                 throw new Error('EPISODE_NOT_FOUND');
             }
 
-            // v0.6.1 — Server returned 206 Partial Content: resume is active
             const isResuming = resumedBytes > 0 && response.status === 206;
 
-            // v0.6.1 — Server ignored Range (responded 200): discard partial file, start fresh
+            // server ignored Range (200 not 206): discard partial, start fresh
             if (resumedBytes > 0 && response.status === 200) {
                 await fs.remove(tempPath).catch(() => { });
                 resumedBytes = 0;
@@ -89,20 +85,19 @@ export class DownloadService {
                 : fs.createWriteStream(tempPath);
 
             const contentLength = response.headers['content-length'];
-            // v0.6.1 — For 206 responses, Content-Length is remaining bytes; add resumed offset for total
+            // for 206 responses, Content-Length is remaining bytes; add resumed offset for total
             const totalBytes = contentLength
                 ? (isResuming ? resumedBytes + parseInt(contentLength) : parseInt(contentLength))
                 : 0;
 
             let loaded = resumedBytes; // Start progress counter from resume offset
 
-            // v0.6.5 — crea throttle stream se limite configurato
             const throttle = speedLimitKBps && speedLimitKBps > 0
                 ? createThrottleStream(speedLimitKBps * 1024)
                 : null;
 
             return new Promise<void>((resolve, reject) => {
-                // v0.4.7 — stall detection: abort if no data received for STALL_TIMEOUT_MS
+                // abort if no data received for STALL_TIMEOUT_MS
                 let stallTimer: ReturnType<typeof setTimeout> | null = null;
 
                 const resetStallTimer = () => {
@@ -110,7 +105,7 @@ export class DownloadService {
                     stallTimer = setTimeout(() => {
                         response.data.destroy();
                         writer!.close();
-                        // v0.6.1 — Keep .part file on stall so next attempt can resume
+                        // keep .part on stall so next attempt can resume
                         reject(new Error('DOWNLOAD_STALLED'));
                     }, STALL_TIMEOUT_MS);
                 };
@@ -137,7 +132,7 @@ export class DownloadService {
                 writer!.on('finish', async () => {
                     if (stallTimer) clearTimeout(stallTimer);
 
-                    // v0.5.0 — Integrity check: only for full downloads (not resumed partial content)
+                    // skip integrity check on resumed partial content
                     if (contentLength && !isResuming) {
                         const expected = parseInt(contentLength);
                         if (expected > 0 && Math.abs(loaded - expected) / expected > 0.01) {

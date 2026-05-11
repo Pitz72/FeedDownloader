@@ -39,22 +39,21 @@ const batchTracker = new BatchTracker();
 // Track AbortControllers for in-flight downloads — keyed by target file path
 const activeDownloads = new Map<string, AbortController>();
 
-// v0.5.1 — Rate limiting for PARSE_FEED: max 1 request per URL every 3 seconds
+// max 1 parse request per URL every 3 seconds
 const parseFeedLastCall = new Map<string, number>();
 const PARSE_FEED_COOLDOWN_MS = 3000;
 
-// v0.6.3 — In-memory feed cache: avoids re-fetching on repeated clicks
+// in-memory feed cache: avoids re-fetching on repeated clicks
 const feedCache = new Map<string, { feed: unknown; timestamp: number }>();
 const FEED_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
-// UI locale synced from Renderer (v0.4.10 — OS notification localization)
+// UI locale synced from renderer for localized OS notifications
 let uiLocale = 'en';
 
 export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
     // ── Feed Parsing ──────────────────────────────────────
     ipcMain.handle(CH.PARSE_FEED, async (_, url: string) => {
-        // v0.4.4 — validate URL before fetching
         const check = validateUrl(url);
         if (!check.valid) {
             throw new Error(check.error);
@@ -62,13 +61,13 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
         const now = Date.now();
 
-        // v0.6.3 — Return cached feed if still fresh (avoids double HTTP round-trip on every click)
+        // return cached feed if fresh (avoids double HTTP round-trip on repeat clicks)
         const cached = feedCache.get(url);
         if (cached && (now - cached.timestamp) < FEED_CACHE_TTL_MS) {
             return cached.feed;
         }
 
-        // v0.5.1 — rate limit: reject duplicate requests for the same URL within cooldown window
+        // reject duplicate requests within cooldown window
         const lastCall = parseFeedLastCall.get(url);
         if (lastCall !== undefined && (now - lastCall) < PARSE_FEED_COOLDOWN_MS) {
             throw new Error('RATE_LIMITED');
@@ -118,7 +117,6 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
     // ── Download Engine ──────────────────────────────────
     ipcMain.handle(CH.START_DOWNLOAD, async (_, { url, title, podcastTitle, guid, pubDate, feedImageUrl }: DownloadRequest) => {
-        // v0.4.4 — validate download URL
         const check = validateUrl(url);
         if (!check.valid) {
             throw new Error(check.error);
@@ -129,9 +127,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
             baseDir = path.join(app.getPath('documents'), 'FeedDownloader', 'downloads');
         }
 
-        // v0.4.3 — detect real extension from enclosure URL
         const ext = extractExtension(url);
-        // v0.5.4 — apply naming template
         const namingTemplate = libraryService.getNamingTemplate();
         const resolvedName = applyTemplate(namingTemplate, {
             title,
@@ -165,7 +161,6 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                     pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded, total });
                 }, speedLimitKBps, 3, controller.signal);
 
-                // v0.7.4 — Compute SHA-256 checksum and extract audio metadata
                 let fileSize: number | undefined;
                 let checksum: string | undefined;
                 let bitrate: number | undefined;
@@ -206,7 +201,6 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                     });
                 }
 
-                // v0.6.4 — Write ID3 tags if enabled
                 if (libraryService.getId3Enabled()) {
                     await writeId3Tags(targetFile, {
                         title,
@@ -216,7 +210,6 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                     }).catch((e) => console.error('[ID3] Failed to write tags:', e));
                 }
 
-                // v0.5.5 — Write sidecar .json if enabled
                 if (libraryService.getSidecarEnabled()) {
                     const sidecarPath = path.join(
                         path.dirname(targetFile),
@@ -250,7 +243,6 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                 activeDownloads.delete(targetFile);
                 const finishedTotal = batchTracker.complete();
                 if (finishedTotal !== null) {
-                    // OS Notification — localized (v0.4.10)
                     if (Notification.isSupported()) {
                         const notificationBodies: Record<string, string> = {
                             en: `Download complete: ${finishedTotal} files downloaded.`,
@@ -412,7 +404,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         }
     });
 
-    // ── Concurrency (v0.4.0) ─────────────────────────────
+    // ── Concurrency ───────────────────────────────────────
     ipcMain.handle(CH.GET_CONCURRENCY, async () => {
         return libraryService.getConcurrency();
     });
@@ -423,18 +415,18 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         return true;
     });
 
-    // ── Archive Stats (v0.4.0) ───────────────────────────
+    // ── Archive Stats ─────────────────────────────────────
     ipcMain.handle(CH.GET_ARCHIVE_STATS, async () => {
         return libraryService.getArchiveStats();
     });
 
-    // ── Locale Sync (v0.4.10) ────────────────────────────
+    // ── Locale Sync ──────────────────────────────────────
     ipcMain.handle(CH.SET_LOCALE, async (_, locale: string) => {
         uiLocale = locale;
         return true;
     });
 
-    // ── Naming Template (v0.5.4) ────────────────────────────
+    // ── Naming Template ──────────────────────────────────────
     ipcMain.handle(CH.GET_NAMING_TEMPLATE, async () => {
         return libraryService.getNamingTemplate();
     });
@@ -444,7 +436,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         return true;
     });
 
-    // ── Sidecar JSON (v0.5.5) ────────────────────────────────
+    // ── Sidecar JSON ──────────────────────────────────────────
     ipcMain.handle(CH.GET_SIDECAR_ENABLED, async () => {
         return libraryService.getSidecarEnabled();
     });
@@ -454,7 +446,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         return true;
     });
 
-    // ── ID3 Tagging (v0.6.4) ────────────────────────────────
+    // ── ID3 Tagging ────────────────────────────────────────
     ipcMain.handle(CH.GET_ID3_ENABLED, async () => {
         return libraryService.getId3Enabled();
     });
@@ -464,7 +456,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         return true;
     });
 
-    // ── Speed Throttle (v0.6.5) ─────────────────────────────────
+    // ── Speed Throttle ────────────────────────────────────────
     ipcMain.handle(CH.GET_SPEED_LIMIT, async () => {
         return libraryService.getSpeedLimit();
     });
@@ -474,7 +466,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         return true;
     });
 
-    // ── Disk Space (v0.6.9) ──────────────────────────────────────
+    // ── Disk Space ────────────────────────────────────────────
     ipcMain.handle(CH.CHECK_DISK_SPACE, async (_, dirPath: string): Promise<DiskSpaceInfo | null> => {
         try {
             // Walk up to find the first existing ancestor directory
@@ -495,7 +487,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         }
     });
 
-    // ── Health Check (v0.6.0) ────────────────────────────────
+    // ── Health Check ────────────────────────────────────────
     ipcMain.handle(CH.RUN_HEALTH_CHECK, async () => {
         const entries = libraryService.getArchive();
         let baseDir = libraryService.getDownloadPath();
@@ -535,19 +527,19 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         return result;
     });
 
-    // ── Mark Missing Files as Not Downloaded (v0.7.6) ───────────
+    // ── Mark Missing as Not Downloaded ──────────────────────
     ipcMain.handle(CH.MARK_MISSING_NOT_DOWNLOADED, async (_, guids: string[]): Promise<boolean> => {
         libraryService.removeMissingFiles(guids);
         pushEvent(mainWindow, CH.DOWNLOADS_UPDATED, libraryService.getDownloadedEpisodes());
         return true;
     });
 
-    // ── Network Path Validation (v0.7.5) ────────────────────────
+    // ── Network Path Validation ──────────────────────────────
     ipcMain.handle(CH.VALIDATE_PATH, async (_, dirPath: string): Promise<PathValidationResult> => {
         return validateNetworkPath(dirPath);
     });
 
-    // ── Auto-Update (v0.7.5) ─────────────────────────────────────
+    // ── Auto-Update ───────────────────────────────────────────
     {
         const pushUpdateStatus = (status: UpdateStatus) => pushEvent(mainWindow, CH.UPDATE_STATUS, status);
 
@@ -578,7 +570,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         });
     }
 
-    // ── Archive Migration (v0.6.10) ──────────────────────────
+    // ── Archive Migration ────────────────────────────────────
     ipcMain.handle(CH.MIGRATE_ARCHIVE, async (_, newPath: string): Promise<MigrationResult> => {
         const currentPath = libraryService.getDownloadPath();
 

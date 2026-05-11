@@ -36,7 +36,6 @@ function AppContent() {
     return () => removeListener();
   }, [updateDownload, incrementBatch, toast, t]);
 
-  // v0.5.0 — Ctrl+F focuses episode filter input
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'f') {

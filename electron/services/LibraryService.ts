@@ -47,7 +47,6 @@ export class LibraryService {
         this.db.removeDownloadedEpisode(guid);
     }
 
-    // v0.7.6 — Batch removal for missing files detected by health check
     removeMissingFiles(guids: string[]): void {
         this.db.removeMissingFiles(guids);
     }

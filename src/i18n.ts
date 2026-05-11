@@ -36,7 +36,6 @@ i18n
         },
     });
 
-// v0.4.10 — Sync UI locale to Main process for localized OS notifications
 i18n.on('languageChanged', (lng: string) => {
     if (typeof window !== 'undefined' && window.api?.setLocale) {
         window.api.setLocale(lng);

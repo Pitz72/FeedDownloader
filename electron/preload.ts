@@ -55,34 +55,34 @@ contextBridge.exposeInMainWorld('api', {
   // Archive Stats
   getArchiveStats: (): Promise<ArchiveStats> => ipcRenderer.invoke(CH.GET_ARCHIVE_STATS),
 
-  // Locale Sync (v0.4.10)
+  // Locale Sync
   setLocale: (locale: string): Promise<boolean> => ipcRenderer.invoke(CH.SET_LOCALE, locale),
 
-  // Naming Template (v0.5.4)
+  // Naming Template
   getNamingTemplate: (): Promise<string> => ipcRenderer.invoke(CH.GET_NAMING_TEMPLATE),
   setNamingTemplate: (template: string): Promise<boolean> => ipcRenderer.invoke(CH.SET_NAMING_TEMPLATE, template),
 
-  // Sidecar JSON (v0.5.5)
+  // Sidecar JSON
   getSidecarEnabled: (): Promise<boolean> => ipcRenderer.invoke(CH.GET_SIDECAR_ENABLED),
   setSidecarEnabled: (enabled: boolean): Promise<boolean> => ipcRenderer.invoke(CH.SET_SIDECAR_ENABLED, enabled),
 
-  // Health Check (v0.6.0)
+  // Health Check
   runHealthCheck: (): Promise<HealthCheckResult> => ipcRenderer.invoke(CH.RUN_HEALTH_CHECK),
-  // Mark missing files as not downloaded (v0.7.6)
+  // Mark missing files as not downloaded
   markMissingNotDownloaded: (guids: string[]): Promise<boolean> => ipcRenderer.invoke(CH.MARK_MISSING_NOT_DOWNLOADED, guids),
 
-  // ID3 Tagging (v0.6.4)
+  // ID3 Tagging
   getId3Enabled: (): Promise<boolean> => ipcRenderer.invoke(CH.GET_ID3_ENABLED),
   setId3Enabled: (enabled: boolean): Promise<boolean> => ipcRenderer.invoke(CH.SET_ID3_ENABLED, enabled),
 
-  // Speed Throttle (v0.6.5)
+  // Speed Throttle
   getSpeedLimit: (): Promise<number> => ipcRenderer.invoke(CH.GET_SPEED_LIMIT),
   setSpeedLimit: (kbps: number): Promise<boolean> => ipcRenderer.invoke(CH.SET_SPEED_LIMIT, kbps),
 
-  // Disk Space (v0.6.9)
+  // Disk Space
   checkDiskSpace: (dirPath: string): Promise<DiskSpaceInfo | null> => ipcRenderer.invoke(CH.CHECK_DISK_SPACE, dirPath),
 
-  // Archive Migration (v0.6.10)
+  // Archive Migration
   migrateArchive: (newPath: string): Promise<MigrationResult> => ipcRenderer.invoke(CH.MIGRATE_ARCHIVE, newPath),
   onMigrationProgress: (callback: (event: Electron.IpcRendererEvent, data: MigrationProgress) => void) => {
     const subscription = (_event: Electron.IpcRendererEvent, data: MigrationProgress) => callback(_event, data);
@@ -90,10 +90,10 @@ contextBridge.exposeInMainWorld('api', {
     return () => ipcRenderer.removeListener(CH.MIGRATION_PROGRESS, subscription);
   },
 
-  // Network Path Validation (v0.7.5)
+  // Network Path Validation
   validatePath: (dirPath: string): Promise<PathValidationResult> => ipcRenderer.invoke(CH.VALIDATE_PATH, dirPath),
 
-  // Auto-Update (v0.7.5)
+  // Auto-Update
   checkForUpdate: (): Promise<void> => ipcRenderer.invoke(CH.CHECK_FOR_UPDATE),
   installUpdate: (): Promise<void> => ipcRenderer.invoke(CH.INSTALL_UPDATE),
   onUpdateStatus: (callback: (event: Electron.IpcRendererEvent, status: UpdateStatus) => void) => {

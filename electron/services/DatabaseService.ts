@@ -56,7 +56,7 @@ export class DatabaseService {
             );
         `);
 
-        // v0.7.4 — Add integrity/metadata columns (no-op if already present)
+        // idempotent: add integrity/metadata columns if not already present
         for (const sql of [
             'ALTER TABLE archive ADD COLUMN fileSize INTEGER',
             'ALTER TABLE archive ADD COLUMN checksum TEXT',
@@ -115,7 +115,6 @@ export class DatabaseService {
         transaction();
     }
 
-    // v0.7.6 — Batch removal: marks a list of guids as not-downloaded (removes from downloads + archive)
     removeMissingFiles(guids: string[]): void {
         if (guids.length === 0) return;
         const placeholders = guids.map(() => '?').join(',');
@@ -162,8 +161,8 @@ export class DatabaseService {
     exportArchiveCSV(): string {
         const rows = this.db.prepare('SELECT * FROM archive ORDER BY downloadedAt DESC').all() as ArchiveEntry[];
 
-        // v0.4.8 — UTF-8 BOM for Excel compatibility
-        // v0.7.4 — Extended with file size, bitrate, sample rate, checksum, validation status
+        
+        // UTF-8 BOM for Excel compatibility
         let csv = '\uFEFFPodcast,Episode Title,Publish Date,Downloaded At,File Size (bytes),Bitrate (kbps),Sample Rate (Hz),SHA-256 Checksum,Validation Status,GUID\n';
 
         rows.forEach(r => {

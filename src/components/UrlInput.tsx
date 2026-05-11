@@ -41,7 +41,6 @@ export const UrlInput: React.FC = () => {
 
   const handleAnalyze = () => analyzeFeed(url);
 
-  // v0.5.0 — Drag & Drop RSS URL
   const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); };
   const handleDragLeave = (e: React.DragEvent) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragging(false); };
   const handleDrop = (e: React.DragEvent) => {

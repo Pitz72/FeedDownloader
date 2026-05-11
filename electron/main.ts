@@ -39,7 +39,7 @@ if (process.platform === 'linux') {
   app.commandLine.appendSwitch('ozone-platform-hint', 'auto');
 }
 
-// v0.5.0 — Tray icon (Windows / Linux only; macOS uses dock)
+// tray icon: Windows/Linux only, macOS uses dock
 function createTray() {
   try {
     // On Windows use .ico for reliable tray rendering; PNG works on Linux

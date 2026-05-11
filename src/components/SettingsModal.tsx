@@ -31,13 +31,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     const [isMarkingMissing, setIsMarkingMissing] = useState(false);
     const [isLoadingSettings, setIsLoadingSettings] = useState(false);
     const [activeCategory, setActiveCategory] = useState<NavCategory>('general');
-    // v0.6.10 — Migration state
     const [migrationProgress, setMigrationProgress] = useState<{ moved: number; total: number } | null>(null);
-    // v0.7.5 — Auto-update state
     const [updateStatus, setUpdateStatus] = useState<UpdateStatus>({ type: 'idle' });
     const isBatchDownloading = useStore((state: AppState) => state.isBatchDownloading);
 
-    // v0.6.10 — Subscribe to migration progress events
     useEffect(() => {
         if (!isOpen) return;
         const unsub = window.api.onMigrationProgress((_e, data: MigrationProgress) => {
@@ -46,7 +43,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         return unsub;
     }, [isOpen]);
 
-    // v0.7.5 — Subscribe to auto-update status events
     useEffect(() => {
         const unsub = window.api.onUpdateStatus((_e, status: UpdateStatus) => {
             setUpdateStatus(status);
@@ -85,7 +81,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     const handleChangeFolder = async () => {
         const path = await window.api.chooseFolder();
         if (!path) return;
-        // v0.7.5 — Validate path accessibility (supports SMB/NFS network paths)
         const validation = await window.api.validatePath(path);
         if (!validation.ok) {
             if (validation.error === 'TIMEOUT') {
@@ -102,7 +97,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         }
     };
 
-    // v0.6.10 — Migrate archive to a new location (NAS, external drive, etc.)
     const handleMigrateArchive = async () => {
         const currentPath = await window.api.getDownloadPath();
         if (!currentPath) {
@@ -592,7 +586,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                     )}
                                                 </div>
 
-                                                {/* Migrate Archive (v0.6.10) */}
+                                                {/* Migrate Archive */}
                                                 <div className="space-y-3">
                                                     <h3 style={sectionHeading('var(--color-secondary)')}>
                                                         <Icon name="hard_drive" size={14} />

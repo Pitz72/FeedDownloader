@@ -34,32 +34,32 @@ declare global {
             setConcurrency: (n: number) => Promise<boolean>;
             // Archive Stats
             getArchiveStats: () => Promise<ArchiveStats>;
-            // Locale Sync (v0.4.10)
+            // Locale Sync
             setLocale: (locale: string) => Promise<boolean>;
-            // Naming Template (v0.5.4)
+            // Naming Template
             getNamingTemplate: () => Promise<string>;
             setNamingTemplate: (template: string) => Promise<boolean>;
-            // Sidecar JSON (v0.5.5)
+            // Sidecar JSON
             getSidecarEnabled: () => Promise<boolean>;
             setSidecarEnabled: (enabled: boolean) => Promise<boolean>;
-            // Health Check (v0.6.0)
+            // Health Check
             runHealthCheck: () => Promise<HealthCheckResult>;
-            // Mark missing as not downloaded (v0.7.6)
+            // Mark missing as not downloaded
             markMissingNotDownloaded: (guids: string[]) => Promise<boolean>;
-            // ID3 Tagging (v0.6.4)
+            // ID3 Tagging
             getId3Enabled: () => Promise<boolean>;
             setId3Enabled: (enabled: boolean) => Promise<boolean>;
-            // Speed Throttle (v0.6.5)
+            // Speed Throttle
             getSpeedLimit: () => Promise<number>;
             setSpeedLimit: (kbps: number) => Promise<boolean>;
-            // Disk Space (v0.6.9)
+            // Disk Space
             checkDiskSpace: (dirPath: string) => Promise<DiskSpaceInfo | null>;
-            // Archive Migration (v0.6.10)
+            // Archive Migration
             migrateArchive: (newPath: string) => Promise<MigrationResult>;
             onMigrationProgress: (callback: (event: Electron.IpcRendererEvent, data: MigrationProgress) => void) => () => void;
-            // Network Path Validation (v0.7.5)
+            // Network Path Validation
             validatePath: (dirPath: string) => Promise<PathValidationResult>;
-            // Auto-Update (v0.7.5)
+            // Auto-Update
             checkForUpdate: () => Promise<void>;
             installUpdate: () => Promise<void>;
             onUpdateStatus: (callback: (event: Electron.IpcRendererEvent, status: UpdateStatus) => void) => () => void;

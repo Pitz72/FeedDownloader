@@ -54,7 +54,6 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     const { t } = useTranslation();
     const cfg = variantConfig[variant];
 
-    // v0.5.0 — Esc key closes the modal
     useEffect(() => {
         if (!isOpen) return;
         const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') onCancel(); };

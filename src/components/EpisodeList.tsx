@@ -44,16 +44,13 @@ export const EpisodeList: React.FC = () => {
     const { t } = useTranslation();
     const [searchQuery, setSearchQuery] = useState('');
 
-    // Date filter state (v0.4.0)
     const [dateFrom, setDateFrom] = useState('');
     const [dateTo, setDateTo] = useState('');
     const [showDateFilter, setShowDateFilter] = useState(false);
 
-    // Status filter (v0.5.2)
     type StatusFilter = 'all' | 'new' | 'downloaded';
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
-    // Duration filter state (v0.6.6)
     const [minDuration, setMinDuration] = useState<number>(0);
     const [maxDuration, setMaxDuration] = useState<number>(0);
     const [showDurationFilter, setShowDurationFilter] = useState(false);
@@ -70,7 +67,6 @@ export const EpisodeList: React.FC = () => {
         setShowDurationFilter(false);
     }, [currentFeed?.url]);
 
-    // Sync new episodes (v0.5.3)
     const [isSyncing, setIsSyncing] = useState(false);
 
     // Virtuoso scroll container — punta al <main id="main-scroll"> in App.tsx
@@ -119,7 +115,6 @@ export const EpisodeList: React.FC = () => {
         if (!currentFeed) return [];
         let episodes = currentFeed.episodes;
 
-        // v0.7.4 — Multi-word AND: all space-separated keywords must match title or snippet
         if (searchQuery) {
             const words = searchQuery.toLowerCase().split(/\s+/).filter(Boolean);
             episodes = episodes.filter((ep: Episode) => {
@@ -303,7 +298,6 @@ export const EpisodeList: React.FC = () => {
 
     if (!currentFeed) return null;
 
-    // v0.5.3 — Sync New
     const handleSyncNew = async () => {
         if (!currentFeed || !isOnline || isSyncing) return;
         setIsSyncing(true);
@@ -316,7 +310,6 @@ export const EpisodeList: React.FC = () => {
             });
             if (newEpisodes.length === 0) { toast.show(t('toast.sync_none'), 'info'); return; }
 
-            // v0.6.9 — Disk space check
             const CRITICAL_BYTES = 200 * 1024 * 1024;
             const downloadPath = await window.api.getDownloadPath().catch(() => '');
             const diskInfo = await window.api.checkDiskSpace(downloadPath).catch(() => null);
@@ -346,7 +339,6 @@ export const EpisodeList: React.FC = () => {
         });
         if (episodesToDownload.length === 0) { toast.show(t('toast.all_downloaded'), 'info'); return; }
 
-        // v0.6.9 — Disk space check
         const downloadPath = await window.api.getDownloadPath().catch(() => '');
         const diskInfo = await window.api.checkDiskSpace(downloadPath).catch(() => null);
         const CRITICAL_BYTES = 200 * 1024 * 1024;
@@ -539,7 +531,7 @@ export const EpisodeList: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Date Filter Panel (v0.4.0) */}
+                {/* Date Filter Panel */}
                 {showDateFilter && (
                     <div
                         className="flex flex-wrap items-center gap-3 p-3 rounded-lg"
@@ -568,7 +560,7 @@ export const EpisodeList: React.FC = () => {
                     </div>
                 )}
 
-                {/* Duration Filter Panel (v0.6.6) */}
+                {/* Duration Filter Panel */}
                 {showDurationFilter && (
                     <div
                         className="flex flex-wrap items-center gap-3 p-3 rounded-lg"
