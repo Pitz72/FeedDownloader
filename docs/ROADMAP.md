@@ -45,7 +45,7 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 | C7 | Bug | `FeedService` fa due richieste HTTP per feed | 🟠 | ✅ v1.1.0 |
 | D1 | Bug | Filtri episodi non si resettano al cambio feed | 🟡 | ✅ v1.1.1 |
 | D2 | Bug | `import()` dinamico di librerie dentro loop/callback | 🟡 | ✅ v1.1.2 |
-| D3 | Bug | `renderEpisodeRow` non memoized — Virtuoso ri-renderizza tutto | 🟡 | 🔲 |
+| D3 | Bug | `renderEpisodeRow` non memoized — Virtuoso ri-renderizza tutto | 🟡 | ✅ v1.1.3 |
 | D4 | Bug | macOS: `titleBarStyle: hidden` senza compensazione traffic light | 🟡 | 🔲 |
 | D5 | Bug | `statfs` richiede Node ≥ 18.15.0, declared `>=18.0.0` | 🟡 | 🔲 |
 | D6 | Bug | `SettingsModal` apre senza skeleton — valori flikkano | 🟡 | 🔲 |
@@ -192,12 +192,11 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 - **File:** `electron/ipc.ts`
 - **Fix applicato:** Convertiti in import statici in cima: `shell` aggiunto all'import electron, `parseAudioMetadata` da music-metadata, `sanitize` da sanitize-filename. Rimossi tutti e tre gli `await import()` inline.
 
-### D3 🟡 `renderEpisodeRow` non memoized — Virtuoso ri-renderizza tutto
+### D3 🟡 ✅ v1.1.3 `renderEpisodeRow` non memoized — Virtuoso ri-renderizza tutto
 
-- **Stato:** 🔲
-- **File:** `src/components/EpisodeList.tsx:269`
-- **Problema:** La funzione è definita dentro il corpo del componente senza `useCallback`. Ogni aggiornamento di stato (ogni tick di progress download) crea una nuova referenza, forzando Virtuoso a ri-renderizzare tutte le righe visibili.
-- **Fix:** `useCallback(renderEpisodeRow, [dependencies])`.
+- **Stato:** ✅ v1.1.3
+- **File:** `src/components/EpisodeList.tsx`
+- **Fix applicato:** `parseDurationMinutes`/`formatDuration`/`formatBytes` spostate fuori dal componente; `handleDownload` e `handleResetStatus` avvolte in `useCallback`; `renderEpisodeRow` avvolta in `useCallback` con dipendenze `[downloads, downloadedGuids, currentFeed, t, isOnline, handleDownload, handleResetStatus]`.
 
 ### D4 🟡 macOS: `titleBarStyle: hidden` senza padding per traffic light
 

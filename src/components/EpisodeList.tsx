@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useStore, AppState } from '../store/useStore';
 import { Icon } from './Icon';
 import { useToast } from '../context/ToastContext';
@@ -8,6 +8,32 @@ import { ConfirmModal } from './ConfirmModal';
 import type { Episode } from '../../shared/types';
 import { getEnclosureUrl } from '../../shared/getEnclosureUrl';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
+
+function parseDurationMinutes(duration?: string): number | null {
+    if (!duration) return null;
+    const trimmed = duration.trim();
+    if (/^\d+$/.test(trimmed)) return Math.floor(parseInt(trimmed, 10) / 60);
+    const parts = trimmed.split(':').map(p => parseInt(p, 10));
+    if (parts.some(isNaN)) return null;
+    if (parts.length === 3) return parts[0] * 60 + parts[1];
+    if (parts.length === 2) return parts[0];
+    return null;
+}
+
+function formatDuration(duration?: string): string | null {
+    const mins = parseDurationMinutes(duration);
+    if (mins === null) return null;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    if (h > 0) return `${h}h ${m}m`;
+    return `${m} min`;
+}
+
+function formatBytes(bytes: number): string {
+    if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
+    if (bytes >= 1024 ** 2) return `${Math.round(bytes / 1024 ** 2)} MB`;
+    return `${Math.round(bytes / 1024)} KB`;
+}
 
 export const EpisodeList: React.FC = () => {
     const currentFeed = useStore((state: AppState) => state.currentFeed);
@@ -77,34 +103,6 @@ export const EpisodeList: React.FC = () => {
         return () => removeListener();
     }, []);
 
-    // v0.6.6 — Parse itunes:duration string to minutes
-    const parseDurationMinutes = (duration?: string): number | null => {
-        if (!duration) return null;
-        const trimmed = duration.trim();
-        if (/^\d+$/.test(trimmed)) return Math.floor(parseInt(trimmed, 10) / 60);
-        const parts = trimmed.split(':').map(p => parseInt(p, 10));
-        if (parts.some(isNaN)) return null;
-        if (parts.length === 3) return parts[0] * 60 + parts[1];
-        if (parts.length === 2) return parts[0];
-        return null;
-    };
-
-    // v0.6.6 — Format duration for display
-    const formatDuration = (duration?: string): string | null => {
-        const mins = parseDurationMinutes(duration);
-        if (mins === null) return null;
-        const h = Math.floor(mins / 60);
-        const m = mins % 60;
-        if (h > 0) return `${h}h ${m}m`;
-        return `${m} min`;
-    };
-
-    // v0.6.9 — Format bytes for human-readable display
-    const formatBytes = (bytes: number): string => {
-        if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
-        if (bytes >= 1024 ** 2) return `${Math.round(bytes / 1024 ** 2)} MB`;
-        return `${Math.round(bytes / 1024)} KB`;
-    };
 
     // v0.6.9 — Estimate download size from episode durations (128 kbps)
     const estimateDownloadBytes = (episodes: Episode[]): number => {
@@ -174,7 +172,7 @@ export const EpisodeList: React.FC = () => {
 
     if (!currentFeed) return null;
 
-    const handleDownload = (episode: Episode, silent = false) => {
+    const handleDownload = useCallback((episode: Episode, silent = false) => {
         const url = getEnclosureUrl(episode);
         if (!url) { if (!silent) toast.show(t('toast.no_audio'), 'error'); return; }
         const guid = episode.guid || url;
@@ -188,7 +186,7 @@ export const EpisodeList: React.FC = () => {
             feedImageUrl: imageUrl
         });
         if (!silent) toast.show(t('toast.download_started'), 'info');
-    };
+    }, [currentFeed, t, toast]);
 
     // v0.5.3 — Sync New
     const handleSyncNew = async () => {
@@ -264,7 +262,7 @@ export const EpisodeList: React.FC = () => {
         if (path) { await window.api.setDownloadPath(path); toast.show(t('toast.folder_selected', { path }), 'success'); }
     };
 
-    const handleResetStatus = async (guid: string) => {
+    const handleResetStatus = useCallback(async (guid: string) => {
         setConfirmState({
             isOpen: true,
             title: t('episodes.reset_status'),
@@ -275,12 +273,12 @@ export const EpisodeList: React.FC = () => {
                 toast.show(t('toast.status_reset'), 'success');
             }
         });
-    };
+    }, [t, toast]);
 
     const imageUrl = typeof currentFeed.image === 'string' ? currentFeed.image : currentFeed.image?.url;
 
     // ── Episode row renderer ──────────────────────────────────────────────────
-    const renderEpisodeRow = (index: number, episode: Episode) => {
+    const renderEpisodeRow = useCallback((index: number, episode: Episode) => {
         const url = getEnclosureUrl(episode);
         const guid = episode.guid || url || '';
         const status = url ? downloads[url] : null;
@@ -386,7 +384,7 @@ export const EpisodeList: React.FC = () => {
                 </div>
             </div>
         );
-    };
+    }, [downloads, downloadedGuids, currentFeed, t, isOnline, handleDownload, handleResetStatus]);
 
     // ── Render ────────────────────────────────────────────────────────────────
     return (
