@@ -12,8 +12,8 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 
 | ID | Area | Titolo | Stato |
 |----|------|--------|-------|
-| A1 | Fix tecnico | Finestra su monitor secondario (Linux) | 🔲 Pianificato |
-| A2 | Fix tecnico | Menu contestuale mancante — incolla via mouse | 🔲 Pianificato |
+| A1 | Fix tecnico | Finestra su monitor secondario (Linux) | ✅ Implementato (v1.0.1) |
+| A2 | Fix tecnico | Menu contestuale mancante — incolla via mouse | ✅ Implementato (v1.0.1) |
 | A3 | Cross-platform | Verifica integrazione nativa Linux | 🔍 Da valutare |
 | B1 | Documentazione | Integrazione manuali in-app (help viewer) | 🔲 Pianificato |
 | B2 | Documentazione | Scientific Paper IT + traduzione EN | 🔲 Non avviato |
@@ -26,7 +26,7 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 
 ### A1 — Posizionamento finestra su monitor secondario (Linux)
 
-- **Stato:** 🔲 Pianificato
+- **Stato:** ✅ Implementato in v1.0.1
 - **Identificato:** 1 aprile 2026 — segnalazione utente Linux Mint
 - **File coinvolto:** `electron/main.ts`
 - **Analisi:** La finestra viene creata senza coordinate `x` e `y`. L'evento `ready-to-show` esegue `maximize()` prima di `show()`, lasciando al window manager la scelta del monitor — su Linux Mint questo risulta nel monitor secondario.
@@ -37,7 +37,7 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 
 ### A2 — Menu contestuale mancante (incolla via mouse)
 
-- **Stato:** 🔲 Pianificato
+- **Stato:** ✅ Implementato in v1.0.1
 - **Identificato:** 1 aprile 2026 — segnalazione utente
 - **File coinvolto:** `electron/main.ts`
 - **Analisi:** Electron disabilita i menu contestuali nativi nelle app pacchettizzate. Nessun handler per l'evento `context-menu` sui `webContents`. Il Ctrl+V funziona, il tasto destro no.

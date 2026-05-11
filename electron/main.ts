@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Tray, Menu } from 'electron'
+import { app, BrowserWindow, Tray, Menu, screen } from 'electron'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import { registerIpcHandlers } from './ipc'
@@ -103,8 +103,32 @@ function createWindow() {
 
   registerIpcHandlers(win);
 
+  // A2: context menu (cut/copy/paste/select-all) on right-click in input fields
+  win.webContents.on('context-menu', (_event, params) => {
+    const template: Electron.MenuItemConstructorOptions[] = [];
+    if (params.isEditable) {
+      template.push(
+        { role: 'cut' },
+        { role: 'copy' },
+        { role: 'paste' },
+        { type: 'separator' },
+        { role: 'selectAll' },
+      );
+    } else if (params.selectionText) {
+      template.push({ role: 'copy' });
+    }
+    if (template.length > 0) {
+      Menu.buildFromTemplate(template).popup({ window: win! });
+    }
+  });
+
   // Show window when ready to avoid flickering
   win.once('ready-to-show', () => {
+    // A1: on Linux the WM may place the window on a secondary monitor — force primary first
+    if (process.platform === 'linux') {
+      const { x, y } = screen.getPrimaryDisplay().workArea;
+      win?.setPosition(x, y);
+    }
     win?.maximize();
     win?.show();
   });
