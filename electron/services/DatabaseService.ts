@@ -88,6 +88,10 @@ export class DatabaseService {
         this.db.prepare('DELETE FROM feeds WHERE url = ?').run(url);
     }
 
+    touchFeed(url: string, lastUpdated: string): void {
+        this.db.prepare('UPDATE feeds SET lastUpdated = ? WHERE url = ?').run(lastUpdated, url);
+    }
+
     // ── Downloads ────────────────────────────────────────────
 
     getDownloadedEpisodes(): string[] {

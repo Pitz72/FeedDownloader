@@ -29,6 +29,10 @@ export class LibraryService {
         this.db.removeFeed(url);
     }
 
+    touchFeed(url: string, lastUpdated: string): void {
+        this.db.touchFeed(url, lastUpdated);
+    }
+
     // ── Downloads ────────────────────────────────────────────
 
     getDownloadedEpisodes(): string[] {

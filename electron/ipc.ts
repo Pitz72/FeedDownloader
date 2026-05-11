@@ -87,6 +87,11 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
         const feed = await feedService.parseFeed(url);
         feedCache.set(url, { feed, timestamp: now });
+
+        // Update lastUpdated in DB for this feed (only on fresh network fetch, not cache hits)
+        libraryService.touchFeed(url, new Date().toISOString());
+        pushEvent(mainWindow, CH.FEEDS_UPDATED, libraryService.getFeeds());
+
         return feed;
     });
 

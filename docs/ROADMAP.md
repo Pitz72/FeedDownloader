@@ -1,6 +1,6 @@
 # Roadmap FeedDownloader Pro — Fonte di Verità
 
-**Versione di riferimento:** 1.1.16
+**Versione di riferimento:** 1.1.17
 **Ultimo aggiornamento:** 12 maggio 2026
 
 Questo è l'unico documento autorevole per tutto il lavoro pendente post-v1.0.0.
@@ -60,7 +60,7 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 | E4 | Feature | Ordinamento episodi (data asc/desc, durata) | 🔵 | ✅ v1.1.14 |
 | E5 | Feature | Re-download episodio già scaricato | 🔵 | ✅ v1.1.15 |
 | E6 | Feature | Path download visibile nella UI principale | 🔵 | ✅ v1.1.16 |
-| E7 | Feature | `lastUpdated` sidebar aggiornato al sync | 🔵 | 🔲 |
+| E7 | Feature | `lastUpdated` sidebar aggiornato al sync | 🔵 | ✅ v1.1.17 |
 | F1 | Feature | Vista archivio integrata in-app | 🟣 | 🔲 |
 | F2 | Feature | Badge "N nuovi" per feed in sidebar | 🟣 | 🔲 |
 | F3 | Feature | Auto-refresh feed periodico in background | 🟣 | 🔲 |
@@ -287,12 +287,11 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 - **File:** `shared/types.ts`, `electron/ipc.ts`, `electron/preload.ts`, `src/vite-env.d.ts`, `src/store/useStore.ts`, `src/App.tsx`, `src/components/EpisodeList.tsx`, `src/components/SettingsModal.tsx`, `src/components/Sidebar.tsx`
 - **Fix applicato:** Footer sidebar mostra le ultime 2 componenti del path attivo (es. `Documenti/Podcast`) con icona `folder`. Click → `shell.openPath()` via nuovo IPC `OPEN_FOLDER`. Path salvato in Zustand store (`downloadPath`), inizializzato in `App.tsx` al mount, aggiornato da `EpisodeList` e `SettingsModal` ad ogni cambio.
 
-### E7 🔵 `lastUpdated` sidebar non si aggiorna dopo sync
+### E7 🔵 ✅ v1.1.17 `lastUpdated` sidebar aggiornato al sync
 
-- **Stato:** 🔲
-- **File:** `electron/services/DatabaseService.ts:76-85` (vedi anche C6)
-- **Descrizione:** Dopo "Sync New" il feed viene riparse in memoria ma il record `feeds` nel DB non viene aggiornato (`INSERT OR IGNORE`). La data mostrata in sidebar è sempre quella del primo add e non riflette l'ultimo sync.
-- **Fix:** Parte del fix C6 — `INSERT OR REPLACE` o UPDATE aggiorna anche `lastUpdated`.
+- **Stato:** ✅ v1.1.17
+- **File:** `electron/services/DatabaseService.ts`, `electron/services/LibraryService.ts`, `electron/ipc.ts`
+- **Fix applicato:** Aggiunto `touchFeed(url, lastUpdated)` in `DatabaseService` (`UPDATE feeds SET lastUpdated = ? WHERE url = ?`) e passthrough in `LibraryService`. In `ipc.ts`, handler `PARSE_FEED`: dopo ogni fetch di rete (non su cache hit), chiama `touchFeed` con `new Date().toISOString()` e pusha `FEEDS_UPDATED` per aggiornare la sidebar in tempo reale. Su cache hit la data resta invariata (nessuna fetch reale avvenuta).
 
 ---
 
