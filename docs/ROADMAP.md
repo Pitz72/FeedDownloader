@@ -1,6 +1,6 @@
 # Roadmap FeedDownloader Pro — Fonte di Verità
 
-**Versione di riferimento:** 1.0.5
+**Versione di riferimento:** 1.1.0
 **Ultimo aggiornamento:** 11 maggio 2026
 
 Questo è l'unico documento autorevole per tutto il lavoro pendente post-v1.0.0.
@@ -42,7 +42,7 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 | C4 | Bug | `stopBatch` non annulla i download in-flight | 🟠 | ✅ v1.0.7 |
 | C5 | Bug | Filtro "New" include episodi in download | 🟠 | ✅ v1.0.8 |
 | C6 | Bug | `addFeed` INSERT OR IGNORE — metadata sidebar stale | 🟠 | ✅ v1.0.9 |
-| C7 | Bug | `FeedService` fa due richieste HTTP per feed | 🟠 | 🔲 |
+| C7 | Bug | `FeedService` fa due richieste HTTP per feed | 🟠 | ✅ v1.1.0 |
 | D1 | Bug | Filtri episodi non si resettano al cambio feed | 🟡 | 🔲 |
 | D2 | Bug | `import()` dinamico di librerie dentro loop/callback | 🟡 | 🔲 |
 | D3 | Bug | `renderEpisodeRow` non memoized — Virtuoso ri-renderizza tutto | 🟡 | 🔲 |
@@ -169,12 +169,12 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 - **Problema:** `INSERT OR IGNORE` significa che un feed già presente nel DB non viene mai aggiornato. Titolo, immagine e `lastUpdated` restano quelli della prima aggiunta. Dopo "Sync New" il feed viene riparse in memoria ma la sidebar mostra dati stale finché l'utente non rimuove e ri-aggiunge il feed.
 - **Fix:** Sostituire con `INSERT OR REPLACE` oppure aggiungere `UPDATE feeds SET title=?, image=?, lastUpdated=? WHERE url=?` dopo la insert.
 
-### C7 🟠 `FeedService` fa due richieste HTTP per ogni parse
+### C7 🟠 ✅ v1.1.0 `FeedService` fa due richieste HTTP per ogni parse
 
-- **Stato:** 🔲
-- **File:** `electron/services/FeedService.ts:12-38`
+- **Stato:** ✅ v1.1.0
+- **File:** `electron/services/FeedService.ts`
 - **Problema:** Prima `axios.head()` (o GET stream fallback), poi `parser.parseURL()` che fa un'ulteriore GET completa. Risultato: 2-3 connessioni per feed. Inutile per feed XML standard; causa rate-limiting su feed server con limiti stretti.
-- **Fix:** Rimuovere il pre-check HEAD/GET; chiamare direttamente `parser.parseURL()` e controllare il content-type dalla risposta interna del parser, oppure wrappare in try/catch specifico per `INVALID_FEED_TYPE`.
+- **Fix applicato:** Rimosso il pre-check HEAD. Singola `axios.get()` con `responseType: 'text'`; content-type letto dall'header della risposta; contenuto passato a `parser.parseString(response.data)`. Ridotto da 2–3 richieste a 1 per ogni parsing.
 
 ---
 

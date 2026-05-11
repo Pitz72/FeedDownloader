@@ -10,33 +10,22 @@ export class FeedService {
 
   async parseFeed(url: string) {
     try {
-      // 1. Validate Content-Type
-      const headResponse = await axios.head(url, { timeout: 5000 }).catch(() => null);
-      // Fallback to GET with stream if HEAD fails (some servers block HEAD)
+      // Single HTTP request: fetch content + check Content-Type in one shot
+      const response = await axios.get<string>(url, {
+        timeout: 15000,
+        responseType: 'text',
+        headers: { 'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*' }
+      });
 
-      let contentType = headResponse?.headers['content-type'] || '';
-
-      if (!headResponse) {
-        // Try a lightweight GET
-        const getResponse = await axios.get(url, {
-          responseType: 'stream',
-          timeout: 5000
-        });
-        contentType = getResponse.headers['content-type'] || '';
-        getResponse.data.destroy(); // Close stream immediately
-      }
-
-      const validTypes = ['xml', 'rss', 'atom', 'rdf'];
+      const contentType = response.headers['content-type'] || '';
       const isHtml = contentType.includes('text/html') || contentType.includes('application/html');
-      const isXml = validTypes.some(t => contentType.includes(t));
+      const isXml = ['xml', 'rss', 'atom', 'rdf'].some(t => contentType.includes(t));
 
-      // Strict check: if it explicitly says HTML, reject it.
       if (isHtml && !isXml) {
-        throw new Error("INVALID_FEED_TYPE: The URL points to a webpage, not an RSS feed.");
+        throw new Error('INVALID_FEED_TYPE: The URL points to a webpage, not an RSS feed.');
       }
 
-      // 2. Parse
-      const feed = await this.parser.parseURL(url) as Record<string, unknown> & {
+      const feed = await this.parser.parseString(response.data) as Record<string, unknown> & {
         image?: unknown; itunes?: { image?: unknown }; items: Record<string, unknown>[];
       };
 
@@ -64,9 +53,9 @@ export class FeedService {
       console.error('Error parsing feed:', error);
       const errMsg = error instanceof Error ? error.message : String(error);
       if (errMsg.includes('INVALID_FEED_TYPE')) {
-        throw error; // Rethrow custom error
+        throw error;
       }
-      throw new Error("FAILED_TO_PARSE: Could not parse feed. " + errMsg);
+      throw new Error('FAILED_TO_PARSE: Could not parse feed. ' + errMsg);
     }
   }
 }
