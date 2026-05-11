@@ -33,6 +33,12 @@ if (process.platform === 'win32') {
   app.setAppUserModelId("com.runtime.feeddownloader.pro");
 }
 
+// A3: Wayland auto-detection — makes the app work on both X11 and Wayland
+// without this, the app forces X11 mode (via XWayland) on Wayland sessions
+if (process.platform === 'linux') {
+  app.commandLine.appendSwitch('ozone-platform-hint', 'auto');
+}
+
 // v0.5.0 — Tray icon (Windows / Linux only; macOS uses dock)
 function createTray() {
   try {
@@ -43,6 +49,9 @@ function createTray() {
     tray = new Tray(trayIcon);
   } catch (err) {
     console.error('[Tray] Failed to create system tray icon:', err);
+    if (process.platform === 'linux') {
+      console.warn('[Tray] On GNOME, install the AppIndicator extension: https://extensions.gnome.org/extension/615/');
+    }
     tray = null;
     return;
   }
@@ -68,14 +77,19 @@ function createTray() {
   tray.setContextMenu(contextMenu);
 
   // Left-click toggles window visibility
-  tray.on('click', () => {
+  // A3: some Linux DEs (certain GNOME+extension setups) fire double-click instead of click
+  const toggleWindow = () => {
     if (win?.isVisible()) {
       win.hide();
     } else {
       win?.show();
       win?.focus();
     }
-  });
+  };
+  tray.on('click', toggleWindow);
+  if (process.platform === 'linux') {
+    tray.on('double-click', toggleWindow);
+  }
 }
 
 function createWindow() {

@@ -10,6 +10,7 @@ Cronologia completa delle versioni in [`changelog/`](changelog/).
 
 | Versione | Data | Tema |
 |----------|------|------|
+| [1.0.4](changelog/1.0.4.md) | 11 mag 2026 | Compatibilità Linux completata: Wayland nativo, tray double-click, hint GNOME AppIndicator |
 | [1.0.3](changelog/1.0.3.md) | 11 mag 2026 | Fix monitor secondario Linux, menu contestuale, sidebar +200px, ricerca e ordinamento A–Z |
 | [1.0.0](changelog/1.0.0.md) | 30 mar 2026 | Release Ufficiale — v1.0.0 stabile, infrastruttura auto-update su bridge repository pubblico |
 | [0.7.6](changelog/0.7.6.md) | 29 mar 2026 | Health Check: Ripristino Episodi Mancanti — pulsante "Segna come non scaricati", transazione atomica SQLite |

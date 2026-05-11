@@ -14,7 +14,7 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 |----|------|--------|-------|
 | A1 | Fix tecnico | Finestra su monitor secondario (Linux) | ✅ Implementato (v1.0.3) |
 | A2 | Fix tecnico | Menu contestuale mancante — incolla via mouse | ✅ Implementato (v1.0.3) |
-| A3 | Cross-platform | Verifica integrazione nativa Linux | 🔍 Da valutare |
+| A3 | Cross-platform | Verifica integrazione nativa Linux | ✅ Implementato (v1.0.4) |
 | B1 | Documentazione | Integrazione manuali in-app (help viewer) | 🔲 Pianificato |
 | B2 | Documentazione | Scientific Paper IT + traduzione EN | 🔲 Non avviato |
 | B3 | Documentazione | ARCHITECTURE.md (developer docs) | 🔲 Non avviato |
@@ -46,10 +46,13 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
   - Generare un menu con `Menu.buildFromTemplate` contenente i ruoli standard: `cut`, `copy`, `paste`, `selectAll`
   - Mostrare il menu solo se il target è un elemento editabile (`inputFieldType !== 'none'` o `isEditable`)
 
-### A3 — Verifica integrazione nativa Linux
+### A3 — Integrazione nativa Linux
 
-- **Stato:** 🔍 Da valutare
-- **Descrizione:** Verificare se comportamenti legati al system tray, alle scorciatoie da tastiera o alla chiusura dell'app richiedono affinamenti specifici per i desktop environment Linux (Cinnamon, GNOME, KDE Plasma).
+- **Stato:** ✅ Implementato in v1.0.4
+- **Fix applicati in `electron/main.ts`:**
+  - **Wayland**: `app.commandLine.appendSwitch('ozone-platform-hint', 'auto')` — auto-detection X11/Wayland prima di `app.whenReady()`
+  - **Tray double-click**: aggiunto `tray.on('double-click', toggleWindow)` su Linux come fallback per i DE che non emettono `click`
+  - **Tray fail hint**: `console.warn` con link all'estensione GNOME AppIndicator quando la tray non si crea
 
 ---
 
