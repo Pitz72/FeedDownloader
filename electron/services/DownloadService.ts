@@ -9,21 +9,22 @@ const CONNECTION_TIMEOUT_MS = 30_000; // 30s
 const STALL_TIMEOUT_MS = 60_000; // 60s
 
 export class DownloadService {
-    async downloadFile(url: string, outputPath: string, onProgress: (loaded: number, total: number) => void, speedLimitKBps?: number, attempts = 3) {
+    async downloadFile(url: string, outputPath: string, onProgress: (loaded: number, total: number) => void, speedLimitKBps?: number, attempts = 3, signal?: AbortSignal) {
         for (let i = 0; i < attempts; i++) {
             try {
-                await this.attemptDownload(url, outputPath, onProgress, speedLimitKBps);
+                await this.attemptDownload(url, outputPath, onProgress, speedLimitKBps, signal);
                 return; // Success
             } catch (error: unknown) {
                 const err = error as { code?: string; message?: string };
 
                 // Critical Errors - Do not retry
+                if (err.message === 'DOWNLOAD_ABORTED') throw error; // abort is permanent
                 if (err.code === 'ENOSPC') throw new Error("DISK_FULL: No space left on device.");
                 if (err.code === 'EPERM' || err.code === 'EACCES') throw new Error("PERMISSION_DENIED: Access denied to write file.");
                 if (err.message === 'DISK_FULL') throw error;
                 if (err.message === 'DOWNLOAD_TIMEOUT') throw error;
                 if (err.message === 'DOWNLOAD_STALLED') throw error;
-                if (err.message === 'EPISODE_NOT_FOUND') throw error; // v0.5.0 — 404 is permanent, no retry
+                if (err.message === 'EPISODE_NOT_FOUND') throw error;
 
                 console.error(`Download attempt ${i + 1} failed:`, error);
 
@@ -42,7 +43,7 @@ export class DownloadService {
         }
     }
 
-    private async attemptDownload(url: string, outputPath: string, onProgress: (loaded: number, total: number) => void, speedLimitKBps?: number) {
+    private async attemptDownload(url: string, outputPath: string, onProgress: (loaded: number, total: number) => void, speedLimitKBps?: number, signal?: AbortSignal) {
         const tempPath = `${outputPath}.part`;
 
         // v0.6.1 — Check for existing partial download to resume via HTTP Range
@@ -64,6 +65,7 @@ export class DownloadService {
                 method: 'GET',
                 responseType: 'stream',
                 timeout: CONNECTION_TIMEOUT_MS,
+                signal,
                 ...(resumedBytes > 0 ? { headers: { Range: `bytes=${resumedBytes}-` } } : {}),
             });
 
@@ -164,8 +166,11 @@ export class DownloadService {
         } catch (error) {
             if (writer) writer.close();
 
-            // v0.4.7 — wrap axios timeout as DOWNLOAD_TIMEOUT
             const axiosErr = error as { code?: string };
+            if (axiosErr.code === 'ERR_CANCELED') {
+                await fs.remove(tempPath).catch(() => {});
+                throw new Error('DOWNLOAD_ABORTED');
+            }
             if (axiosErr.code === 'ECONNABORTED') {
                 throw new Error('DOWNLOAD_TIMEOUT');
             }

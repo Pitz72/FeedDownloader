@@ -34,6 +34,9 @@ function pushEvent(win: BrowserWindow, channel: string, data?: unknown) {
 // Track batch for OS notification (v0.4.2 — race-condition-safe)
 const batchTracker = new BatchTracker();
 
+// Track AbortControllers for in-flight downloads — keyed by target file path
+const activeDownloads = new Map<string, AbortController>();
+
 // v0.5.1 — Rate limiting for PARSE_FEED: max 1 request per URL every 3 seconds
 const parseFeedLastCall = new Map<string, number>();
 const PARSE_FEED_COOLDOWN_MS = 3000;
@@ -150,12 +153,15 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         // Track batch (v0.4.2 — atomic via BatchTracker)
         batchTracker.track();
 
+        const controller = new AbortController();
+        activeDownloads.set(targetFile, controller);
+
         queueService.add(async () => {
             try {
                 const speedLimitKBps = libraryService.getSpeedLimit();
                 await downloadService.downloadFile(url, targetFile, (loaded, total) => {
                     pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded, total });
-                }, speedLimitKBps);
+                }, speedLimitKBps, 3, controller.signal);
 
                 // v0.7.4 — Compute SHA-256 checksum and extract audio metadata
                 let fileSize: number | undefined;
@@ -230,14 +236,17 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                 pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded: 100, total: 100, completed: true });
                 pushEvent(mainWindow, CH.DOWNLOADS_UPDATED, libraryService.getDownloadedEpisodes());
             } catch (error) {
-                console.error("Download error:", error);
-                // v0.5.0 — propagate notFound flag for ghost episodes (404)
-                const isNotFound = (error as Error).message === 'EPISODE_NOT_FOUND';
-                pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, {
-                    url, loaded: 0, total: 0, error: true,
-                    ...(isNotFound ? { notFound: true } : {})
-                });
+                const isAborted = (error as Error).message === 'DOWNLOAD_ABORTED';
+                if (!isAborted) {
+                    console.error("Download error:", error);
+                    const isNotFound = (error as Error).message === 'EPISODE_NOT_FOUND';
+                    pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, {
+                        url, loaded: 0, total: 0, error: true,
+                        ...(isNotFound ? { notFound: true } : {})
+                    });
+                }
             } finally {
+                activeDownloads.delete(targetFile);
                 const finishedTotal = batchTracker.complete();
                 if (finishedTotal !== null) {
                     // OS Notification — localized (v0.4.10)
@@ -268,6 +277,10 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
     ipcMain.handle(CH.STOP_BATCH, async () => {
         queueService.clear();
+        for (const controller of activeDownloads.values()) {
+            controller.abort();
+        }
+        activeDownloads.clear();
         batchTracker.reset();
         return true;
     });
