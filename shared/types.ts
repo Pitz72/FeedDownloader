@@ -198,4 +198,6 @@ export const IPC_CHANNELS = {
     CHECK_FOR_UPDATE: 'check-for-update',
     INSTALL_UPDATE: 'install-update',
     UPDATE_STATUS: 'update-status',
+    // Open a directory in the system file manager
+    OPEN_FOLDER: 'open-folder',
 } as const;

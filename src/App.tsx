@@ -18,8 +18,13 @@ function AppContent() {
   const incrementBatch = useStore((state: AppState) => state.incrementBatch);
   const setQueueItems = useStore((state: AppState) => state.setQueueItems);
   const setBatchFailed = useStore((state: AppState) => state.setBatchFailed);
+  const setDownloadPath = useStore((state: AppState) => state.setDownloadPath);
   const toast = useToast();
   const { t } = useTranslation();
+
+  useEffect(() => {
+    window.api.getDownloadPath().then(setDownloadPath).catch(() => { });
+  }, [setDownloadPath]);
 
   useEffect(() => {
     const removeListener = window.api.onDownloadProgress((_event, data) => {

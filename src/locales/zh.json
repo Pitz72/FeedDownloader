@@ -39,7 +39,14 @@
         "sync_new": "同步新集",
         "duration_filter": "时长",
         "min_duration": "最短 (分钟)",
-        "max_duration": "最长 (分钟)"
+        "max_duration": "最长 (分钟)",
+        "sort_label": "排序",
+        "sort_default": "Feed顺序",
+        "sort_date_desc": "日期：最新",
+        "sort_date_asc": "日期：最旧",
+        "sort_dur_desc": "时长：最长",
+        "sort_dur_asc": "时长：最短",
+        "redownload": "重新下载"
     },
     "progress": {
         "downloading": "下载中...",

@@ -39,7 +39,14 @@
         "sync_new": "Синхронизировать новые",
         "duration_filter": "Длительность",
         "min_duration": "Мин (мин)",
-        "max_duration": "Макс (мин)"
+        "max_duration": "Макс (мин)",
+        "sort_label": "Сортировка",
+        "sort_default": "Порядок ленты",
+        "sort_date_desc": "Дата: сначала новые",
+        "sort_date_asc": "Дата: сначала старые",
+        "sort_dur_desc": "Длительность: длиннее",
+        "sort_dur_asc": "Длительность: короче",
+        "redownload": "Повторно скачать"
     },
     "progress": {
         "downloading": "Загрузка...",

@@ -420,6 +420,11 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         return true;
     });
 
+    // ── Open folder in file manager ──────────────────────
+    ipcMain.handle(CH.OPEN_FOLDER, async (_, dirPath: string) => {
+        await shell.openPath(dirPath);
+    });
+
     // ── Show in folder ───────────────────────────────────
     ipcMain.handle(CH.SHOW_IN_FOLDER, async (_, { podcastTitle, title, enclosureUrl, pubDate }: { podcastTitle: string; title: string; enclosureUrl?: string; pubDate?: string }) => {
         let baseDir = libraryService.getDownloadPath();

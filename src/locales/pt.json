@@ -39,7 +39,14 @@
         "sync_new": "Sincronizar Novos",
         "duration_filter": "Duração",
         "min_duration": "Mín (min)",
-        "max_duration": "Máx (min)"
+        "max_duration": "Máx (min)",
+        "sort_label": "Ordenar",
+        "sort_default": "Ordem do feed",
+        "sort_date_desc": "Data: mais recente",
+        "sort_date_asc": "Data: mais antigo",
+        "sort_dur_desc": "Duração: mais longa",
+        "sort_dur_asc": "Duração: mais curta",
+        "redownload": "Re-descarregar"
     },
     "progress": {
         "downloading": "A descarregar...",

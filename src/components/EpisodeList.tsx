@@ -39,6 +39,7 @@ export const EpisodeList: React.FC = () => {
     const currentFeed = useStore((state: AppState) => state.currentFeed);
     const downloads = useStore((state: AppState) => state.downloads);
     const startBatch = useStore((state: AppState) => state.startBatch);
+    const setDownloadPath = useStore((state: AppState) => state.setDownloadPath);
     const toast = useToast();
     const [downloadedGuids, setDownloadedGuids] = useState<string[]>([]);
     const { t } = useTranslation();
@@ -55,6 +56,10 @@ export const EpisodeList: React.FC = () => {
     const [maxDuration, setMaxDuration] = useState<number>(0);
     const [showDurationFilter, setShowDurationFilter] = useState(false);
 
+    type SortOrder = 'default' | 'date-desc' | 'date-asc' | 'dur-desc' | 'dur-asc';
+    const [sortOrder, setSortOrder] = useState<SortOrder>('default');
+    const [showSortPanel, setShowSortPanel] = useState(false);
+
     // Reset all filters when switching feed (D1)
     useEffect(() => {
         setSearchQuery('');
@@ -65,6 +70,8 @@ export const EpisodeList: React.FC = () => {
         setMinDuration(0);
         setMaxDuration(0);
         setShowDurationFilter(false);
+        setSortOrder('default');
+        setShowSortPanel(false);
     }, [currentFeed?.url]);
 
     const [isSyncing, setIsSyncing] = useState(false);
@@ -159,8 +166,21 @@ export const EpisodeList: React.FC = () => {
             });
         }
 
+        if (sortOrder !== 'default') {
+            episodes = [...episodes];
+            if (sortOrder === 'date-desc') {
+                episodes.sort((a, b) => new Date(b.pubDate || b.isoDate || '').getTime() - new Date(a.pubDate || a.isoDate || '').getTime());
+            } else if (sortOrder === 'date-asc') {
+                episodes.sort((a, b) => new Date(a.pubDate || a.isoDate || '').getTime() - new Date(b.pubDate || b.isoDate || '').getTime());
+            } else if (sortOrder === 'dur-desc') {
+                episodes.sort((a, b) => (parseDurationMinutes(b.itunes?.duration) ?? 0) - (parseDurationMinutes(a.itunes?.duration) ?? 0));
+            } else if (sortOrder === 'dur-asc') {
+                episodes.sort((a, b) => (parseDurationMinutes(a.itunes?.duration) ?? 0) - (parseDurationMinutes(b.itunes?.duration) ?? 0));
+            }
+        }
+
         return episodes;
-    }, [currentFeed, searchQuery, dateFrom, dateTo, downloadedGuids, downloads, statusFilter, minDuration, maxDuration]);
+    }, [currentFeed, searchQuery, dateFrom, dateTo, downloadedGuids, downloads, statusFilter, minDuration, maxDuration, sortOrder]);
 
     const isOnline = useOnlineStatus();
 
@@ -262,6 +282,15 @@ export const EpisodeList: React.FC = () => {
                         </div>
                     ) : isCompleted ? (
                         <div className="flex items-center gap-1">
+                            <button
+                                onClick={() => handleDownload(episode)}
+                                disabled={!isOnline}
+                                className="hover-text-primary opacity-0 group-hover:opacity-100 p-1 rounded transition-all disabled:cursor-not-allowed"
+                                style={{ color: 'var(--color-on-surface-variant)' }}
+                                title={t('episodes.redownload')}
+                            >
+                                <Icon name="download" size={16} />
+                            </button>
                             <button
                                 onClick={() => handleResetStatus(guid)}
                                 className="hover-text-warning opacity-0 group-hover:opacity-100 p-1 rounded transition-all"
@@ -366,7 +395,11 @@ export const EpisodeList: React.FC = () => {
 
     const handleChangeFolder = async () => {
         const path = await window.api.chooseFolder();
-        if (path) { await window.api.setDownloadPath(path); toast.show(t('toast.folder_selected', { path }), 'success'); }
+        if (path) {
+            await window.api.setDownloadPath(path);
+            setDownloadPath(path);
+            toast.show(t('toast.folder_selected', { path }), 'success');
+        }
     };
 
     const imageUrl = typeof currentFeed.image === 'string' ? currentFeed.image : currentFeed.image?.url;
@@ -522,6 +555,20 @@ export const EpisodeList: React.FC = () => {
                             {(minDuration > 0 || maxDuration > 0) && <span className="w-1.5 h-1.5 rounded-full bg-current ml-0.5" />}
                         </button>
 
+                        {/* Sort toggle */}
+                        <button
+                            onClick={() => setShowSortPanel(!showSortPanel)}
+                            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-all"
+                            style={showSortPanel || sortOrder !== 'default'
+                                ? { fontFamily: 'var(--font-label)', color: 'var(--color-primary)', background: 'rgba(173,198,255,0.12)', border: '1px solid var(--color-primary)' }
+                                : { fontFamily: 'var(--font-label)', color: 'var(--color-on-surface-variant)', background: 'transparent', border: '1px solid rgba(65,71,85,0.3)' }
+                            }
+                        >
+                            <Icon name="swap_vert" size={14} />
+                            {t('episodes.sort_label', 'Ordina')}
+                            {sortOrder !== 'default' && <span className="w-1.5 h-1.5 rounded-full bg-current ml-0.5" />}
+                        </button>
+
                         {/* Episode count */}
                         <div className="text-sm" style={{ fontFamily: 'var(--font-label)' }}>
                             <span style={{ color: 'var(--color-primary)', fontWeight: 700 }}>{filteredEpisodes.length}</span>
@@ -590,6 +637,27 @@ export const EpisodeList: React.FC = () => {
                                 {t('common.clear', 'Cancella')}
                             </button>
                         )}
+                    </div>
+                )}
+                {/* Sort Panel */}
+                {showSortPanel && (
+                    <div
+                        className="flex flex-wrap items-center gap-2 p-3 rounded-lg"
+                        style={{ background: 'var(--color-surface-container)', border: '1px solid rgba(65,71,85,0.2)' }}
+                    >
+                        {(['default', 'date-desc', 'date-asc', 'dur-desc', 'dur-asc'] as const).map(opt => (
+                            <button
+                                key={opt}
+                                onClick={() => setSortOrder(opt)}
+                                className="text-xs px-3 py-1.5 rounded-full transition-colors"
+                                style={sortOrder === opt
+                                    ? { fontFamily: 'var(--font-label)', background: 'var(--color-primary)', color: 'var(--color-on-primary-fixed)' }
+                                    : { fontFamily: 'var(--font-label)', background: 'var(--color-surface-container-high)', color: 'var(--color-on-surface-variant)' }
+                                }
+                            >
+                                {t(`episodes.sort_${opt.replace('-', '_')}`, opt)}
+                            </button>
+                        ))}
                     </div>
                 )}
             </div>

@@ -14,6 +14,7 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen }) => {
   const [feeds, setFeeds] = useState<FeedEntry[]>([]);
   const { currentFeed, setCurrentFeed } = useStore((state: AppState) => state);
+  const downloadPath = useStore((state: AppState) => state.downloadPath);
   const toast = useToast();
   const { t } = useTranslation();
   const [loadingUrl, setLoadingUrl] = useState<string | null>(null);
@@ -280,6 +281,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen }) => {
             {isSyncingAll ? t('sidebar.syncing', 'Sincronizzando...') : t('sidebar.sync_all', 'Sincronizza Tutti')}
           </button>
         )}
+
+        {/* Download path display */}
+        {downloadPath && (
+          <button
+            onClick={() => window.api.openFolder(downloadPath)}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left hover-bg-container transition-colors"
+            style={{ background: 'var(--color-surface-container-high)' }}
+            title={downloadPath}
+          >
+            <Icon name="folder" size={14} style={{ color: 'var(--color-primary)', flexShrink: 0 }} />
+            <span
+              className="text-[10px] truncate"
+              style={{ fontFamily: 'var(--font-label)', color: 'var(--color-on-surface-variant)' }}
+            >
+              {downloadPath.replace(/\\/g, '/').split('/').slice(-2).join('/')}
+            </span>
+          </button>
+        )}
+
         <div
           className="flex items-center justify-between pt-3"
           style={{ borderTop: '1px solid rgba(65,71,85,0.1)' }}

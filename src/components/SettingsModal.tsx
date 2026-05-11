@@ -34,6 +34,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     const [migrationProgress, setMigrationProgress] = useState<{ moved: number; total: number } | null>(null);
     const [updateStatus, setUpdateStatus] = useState<UpdateStatus>({ type: 'idle' });
     const isBatchDownloading = useStore((state: AppState) => state.isBatchDownloading);
+    const setStorePath = useStore((state: AppState) => state.setDownloadPath);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -92,6 +93,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         }
         await window.api.setDownloadPath(path);
         setDownloadPath(path);
+        setStorePath(path);
         if (validation.isNetworkPath) {
             toast.show(t('settings.path_network_detected'), 'info');
         }
@@ -113,6 +115,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         try {
             const result = await window.api.migrateArchive(newPath);
             setDownloadPath(newPath);
+            setStorePath(newPath);
             const msg = result.errors > 0
                 ? t('settings.migrate_done_errors', { moved: result.moved, errors: result.errors })
                 : t('settings.migrate_done', { moved: result.moved });

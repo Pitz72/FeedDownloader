@@ -25,6 +25,10 @@ export interface AppState {
     // E3 — Failure tracking
     batchFailed: FailedDownload[];
     setBatchFailed: (failed: FailedDownload[]) => void;
+
+    // E6 — Download path visible in UI
+    downloadPath: string;
+    setDownloadPath: (path: string) => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -83,4 +87,8 @@ export const useStore = create<AppState>((set) => ({
     // E3 — Failure tracking
     batchFailed: [],
     setBatchFailed: (failed) => set({ batchFailed: failed }),
+
+    // E6 — Download path visible in UI
+    downloadPath: '',
+    setDownloadPath: (path) => set({ downloadPath: path }),
 }));

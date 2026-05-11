@@ -61,6 +61,8 @@ declare global {
             onMigrationProgress: (callback: (event: Electron.IpcRendererEvent, data: MigrationProgress) => void) => () => void;
             // Network Path Validation
             validatePath: (dirPath: string) => Promise<PathValidationResult>;
+            // Open folder in file manager
+            openFolder: (dirPath: string) => Promise<void>;
             // Auto-Update
             checkForUpdate: () => Promise<void>;
             installUpdate: () => Promise<void>;

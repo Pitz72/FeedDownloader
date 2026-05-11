@@ -106,6 +106,9 @@ contextBridge.exposeInMainWorld('api', {
   // Network Path Validation
   validatePath: (dirPath: string): Promise<PathValidationResult> => ipcRenderer.invoke(CH.VALIDATE_PATH, dirPath),
 
+  // Open folder in file manager
+  openFolder: (dirPath: string): Promise<void> => ipcRenderer.invoke(CH.OPEN_FOLDER, dirPath),
+
   // Auto-Update
   checkForUpdate: (): Promise<void> => ipcRenderer.invoke(CH.CHECK_FOR_UPDATE),
   installUpdate: (): Promise<void> => ipcRenderer.invoke(CH.INSTALL_UPDATE),
