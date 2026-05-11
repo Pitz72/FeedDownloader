@@ -109,6 +109,9 @@ contextBridge.exposeInMainWorld('api', {
   // Open folder in file manager
   openFolder: (dirPath: string): Promise<void> => ipcRenderer.invoke(CH.OPEN_FOLDER, dirPath),
 
+  // M3U Export
+  exportM3U: (podcastTitle: string): Promise<boolean | null> => ipcRenderer.invoke(CH.EXPORT_M3U, podcastTitle),
+
   // Auto-Update
   checkForUpdate: (): Promise<void> => ipcRenderer.invoke(CH.CHECK_FOR_UPDATE),
   installUpdate: (): Promise<void> => ipcRenderer.invoke(CH.INSTALL_UPDATE),

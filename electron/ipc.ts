@@ -88,8 +88,9 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         const feed = await feedService.parseFeed(url);
         feedCache.set(url, { feed, timestamp: now });
 
-        // Update lastUpdated in DB for this feed (only on fresh network fetch, not cache hits)
+        // Update lastUpdated + episodeCount in DB (fresh network fetch only, not cache hits)
         libraryService.touchFeed(url, new Date().toISOString());
+        libraryService.updateEpisodeCount(url, ((feed as unknown) as { episodes?: unknown[] }).episodes?.length ?? 0);
         pushEvent(mainWindow, CH.FEEDS_UPDATED, libraryService.getFeeds());
 
         return feed;
@@ -269,6 +270,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                 pushQueueUpdated(mainWindow);
                 pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded: 100, total: 100, completed: true });
                 pushEvent(mainWindow, CH.DOWNLOADS_UPDATED, libraryService.getDownloadedEpisodes());
+                pushEvent(mainWindow, CH.FEEDS_UPDATED, libraryService.getFeeds());
             } catch (error) {
                 const errMsg = (error as Error).message || 'UNKNOWN';
                 const isAborted = errMsg === 'DOWNLOAD_ABORTED';
@@ -650,6 +652,30 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
             autoUpdater.quitAndInstall();
         });
     }
+
+    // ── M3U Playlist Export ──────────────────────────────────
+    ipcMain.handle(CH.EXPORT_M3U, async (_, podcastTitle: string): Promise<boolean | null> => {
+        const entries = libraryService.getArchiveByPodcast(podcastTitle).filter(e => e.filename);
+        if (entries.length === 0) return false;
+
+        const result = await dialog.showSaveDialog(mainWindow, {
+            defaultPath: `${sanitize(podcastTitle)}.m3u`,
+            filters: [{ name: 'M3U Playlist', extensions: ['m3u'] }]
+        });
+        if (result.canceled || !result.filePath) return null;
+
+        let baseDir = libraryService.getDownloadPath();
+        if (!baseDir) baseDir = path.join(app.getPath('documents'), 'FeedDownloader', 'downloads');
+
+        let content = '#EXTM3U\n';
+        for (const entry of entries) {
+            const filePath = path.join(baseDir, sanitize(entry.podcastTitle), entry.filename!);
+            content += `#EXTINF:-1,${entry.title}\n${filePath}\n`;
+        }
+
+        await fs.writeFile(result.filePath, content, 'utf-8');
+        return true;
+    });
 
     // ── Archive Migration ────────────────────────────────────
     ipcMain.handle(CH.MIGRATE_ARCHIVE, async (_, newPath: string): Promise<MigrationResult> => {

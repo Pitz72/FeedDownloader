@@ -245,14 +245,29 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen }) => {
                 >
                   {feed.title || t('sidebar.untitled', 'Untitled')}
                 </h3>
-                <p
-                  className="text-[10px] mt-0.5 truncate opacity-70"
-                  style={{ fontFamily: 'var(--font-label)' }}
-                >
-                  {feed.lastUpdated
-                    ? new Date(feed.lastUpdated).toLocaleDateString()
-                    : '—'}
-                </p>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <p
+                    className="text-[10px] truncate opacity-70"
+                    style={{ fontFamily: 'var(--font-label)' }}
+                  >
+                    {feed.lastUpdated
+                      ? new Date(feed.lastUpdated).toLocaleDateString()
+                      : '—'}
+                  </p>
+                  {feed.newCount != null && feed.newCount > 0 && (
+                    <span
+                      className="shrink-0 rounded-full px-1.5 font-extrabold"
+                      style={{
+                        background: 'var(--color-primary)',
+                        color: 'var(--color-on-primary-fixed)',
+                        fontSize: '9px',
+                        lineHeight: '14px',
+                      }}
+                    >
+                      {feed.newCount}
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Remove button */}

@@ -1,6 +1,6 @@
 # Roadmap FeedDownloader Pro — Fonte di Verità
 
-**Versione di riferimento:** 1.1.19
+**Versione di riferimento:** 1.1.21
 **Ultimo aggiornamento:** 11 maggio 2026
 
 Questo è l'unico documento autorevole per tutto il lavoro pendente post-v1.0.0.
@@ -62,10 +62,10 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 | E6 | Feature | Path download visibile nella UI principale | 🔵 | ✅ v1.1.16 |
 | E7 | Feature | `lastUpdated` sidebar aggiornato al sync | 🔵 | ✅ v1.1.17 |
 | F1 | Feature | Vista archivio integrata in-app | 🟣 | 🔲 |
-| F2 | Feature | Badge "N nuovi" per feed in sidebar | 🟣 | 🔲 |
+| F2 | Feature | Badge "N nuovi" per feed in sidebar | 🟣 | ✅ v1.1.20 |
 | F3 | Feature | Auto-refresh feed periodico in background | 🟣 | 🔲 |
 | F4 | Feature | Selezione multipla episodi (Shift/Ctrl+click) | 🟣 | ✅ v1.1.18 |
-| F5 | Feature | Export playlist M3U | 🟣 | 🔲 |
+| F5 | Feature | Export playlist M3U | 🟣 | ✅ v1.1.21 |
 | F6 | Feature | Velocità/ETA inline per download attivo | 🟣 | ✅ v1.1.19 |
 | G1 | UI/UX | Pannello download laterale (replace GlobalProgressBar) | ⚪ | 🔲 |
 | G2 | UI/UX | Sidebar ridimensionabile via drag | ⚪ | 🔲 |
@@ -302,10 +302,11 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 - **Stato:** 🔲
 - **Descrizione:** L'archivio esiste nel DB e nell'export CSV, ma non è navigabile dall'app. Una scheda "Archivio" con tabella virtualizzata (react-virtuoso), ricerca per titolo/podcast, ordinamento per data/dimensione, e filtro per podcast. Mostrerebbe anche checksum e bitrate.
 
-### F2 🟣 Badge "N nuovi" per feed nella sidebar
+### F2 🟣 ✅ v1.1.20 Badge "N nuovi" per feed nella sidebar
 
-- **Stato:** 🔲
-- **Descrizione:** Ogni voce feed mostra quanti episodi non sono ancora stati scaricati — calcolato al momento del parse. L'utente vede subito quale feed ha episodi da scaricare senza aprirlo.
+- **Stato:** ✅ v1.1.20
+- **File:** `shared/types.ts`, `electron/services/DatabaseService.ts`, `electron/services/LibraryService.ts`, `electron/ipc.ts`, `src/components/Sidebar.tsx`
+- **Implementazione:** `episodeCount` persistito in DB ad ogni parse; `getFeeds()` computa `newCount = MAX(0, episodeCount - downloadedByPodcastTitle)` via JOIN con archive. Badge pill (9px, colore primary) nella sidebar accanto alla data. `FEEDS_UPDATED` pushato anche al completamento di ogni download per aggiornamento in tempo reale.
 
 ### F3 🟣 Auto-refresh feed periodico in background
 
@@ -318,10 +319,11 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 - **File:** `src/components/EpisodeList.tsx`, `src/locales/*.json`
 - **Implementazione:** `selectedGuids: Set<string>` + `lastSelectedGuidRef` + `filteredEpisodesRef`. Click semplice → selezione singola, Ctrl/Cmd+click → toggle individuale, Shift+click → range. Checkbox visibile on-hover e quando selezionato. Pulsante "Scarica Selezionati (N)" appare nel podcast header. Selezione azzerata al cambio feed e dopo avvio download.
 
-### F5 🟣 Export playlist M3U
+### F5 🟣 ✅ v1.1.21 Export playlist M3U
 
-- **Stato:** 🔲
-- **Descrizione:** Esportare la lista degli episodi scaricati (o di un feed) come file `.m3u` con i path locali, per aprirli direttamente in VLC, mpv, Plex o qualsiasi media player esterno.
+- **Stato:** ✅ v1.1.21
+- **File:** `shared/types.ts`, `electron/services/DatabaseService.ts`, `electron/services/LibraryService.ts`, `electron/ipc.ts`, `electron/preload.ts`, `src/vite-env.d.ts`, `src/components/EpisodeList.tsx`, `src/locales/*.json`
+- **Implementazione:** Pulsante "Esporta M3U" nel podcast header. Handler IPC queries archive per podcastTitle, genera M3U con path assoluti locali, apre dialogo di salvataggio nativo. Ritorna true/false/null per feedback toast differenziato (success / nessun episodio / annullato). i18n completo in 8 lingue.
 
 ### F6 🟣 ✅ v1.1.19 Velocità e ETA inline per download attivo
 

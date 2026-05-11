@@ -34,6 +34,7 @@ export interface FeedEntry {
     title: string;
     image?: string | { url: string };
     lastUpdated?: string;
+    newCount?: number | null;  // undownloaded episodes — computed server-side
 }
 
 export interface DownloadProgress {
@@ -202,4 +203,6 @@ export const IPC_CHANNELS = {
     UPDATE_STATUS: 'update-status',
     // Open a directory in the system file manager
     OPEN_FOLDER: 'open-folder',
+    // M3U playlist export (F5)
+    EXPORT_M3U: 'export-m3u',
 } as const;

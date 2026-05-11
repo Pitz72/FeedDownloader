@@ -47,7 +47,8 @@
         "sort_dur_desc": "Durata: più lunga",
         "sort_dur_asc": "Durata: più corta",
         "redownload": "Riscarica",
-        "download_selected": "Scarica Selezionati ({{count}})"
+        "download_selected": "Scarica Selezionati ({{count}})",
+        "export_m3u": "Esporta M3U"
     },
     "progress": {
         "downloading": "Download in corso...",
@@ -81,7 +82,9 @@
         "episode_not_found": "Episodio non disponibile (404) — file rimosso dal server.",
         "download_error": "Download fallito.",
         "sync_queued": "{{count}} nuovi episodi in coda",
-        "sync_none": "Nessun nuovo episodio da scaricare"
+        "sync_none": "Nessun nuovo episodio da scaricare",
+        "m3u_exported": "Playlist M3U esportata",
+        "m3u_empty": "Nessun episodio scaricato da esportare"
     },
     "confirm": {
         "mass_download": "Vuoi davvero scaricare tutti i {{count}} episodi?",

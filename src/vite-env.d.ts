@@ -63,6 +63,8 @@ declare global {
             validatePath: (dirPath: string) => Promise<PathValidationResult>;
             // Open folder in file manager
             openFolder: (dirPath: string) => Promise<void>;
+            // M3U Export
+            exportM3U: (podcastTitle: string) => Promise<boolean | null>;
             // Auto-Update
             checkForUpdate: () => Promise<void>;
             installUpdate: () => Promise<void>;

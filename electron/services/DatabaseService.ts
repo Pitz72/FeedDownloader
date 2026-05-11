@@ -62,6 +62,7 @@ export class DatabaseService {
             'ALTER TABLE archive ADD COLUMN checksum TEXT',
             'ALTER TABLE archive ADD COLUMN bitrate INTEGER',
             'ALTER TABLE archive ADD COLUMN sampleRate INTEGER',
+            'ALTER TABLE feeds ADD COLUMN episodeCount INTEGER',
         ]) {
             try { this.db.exec(sql); } catch { /* column already exists */ }
         }
@@ -70,7 +71,28 @@ export class DatabaseService {
     // ── Feeds ────────────────────────────────────────────────
 
     getFeeds(): FeedEntry[] {
-        return this.db.prepare('SELECT url, title, image, lastUpdated FROM feeds ORDER BY rowid').all() as FeedEntry[];
+        const feeds = this.db.prepare(
+            'SELECT url, title, image, lastUpdated, episodeCount FROM feeds ORDER BY rowid'
+        ).all() as (FeedEntry & { episodeCount: number | null })[];
+
+        const counts = this.db.prepare(
+            'SELECT podcastTitle, COUNT(*) AS cnt FROM archive GROUP BY podcastTitle'
+        ).all() as { podcastTitle: string; cnt: number }[];
+        const countMap = new Map(counts.map(r => [r.podcastTitle, r.cnt]));
+
+        return feeds.map(f => ({
+            url: f.url,
+            title: f.title,
+            image: f.image,
+            lastUpdated: f.lastUpdated,
+            newCount: f.episodeCount != null
+                ? Math.max(0, f.episodeCount - (countMap.get(f.title) ?? 0))
+                : null,
+        }));
+    }
+
+    updateEpisodeCount(url: string, count: number): void {
+        this.db.prepare('UPDATE feeds SET episodeCount = ? WHERE url = ?').run(count, url);
     }
 
     addFeed(feed: FeedEntry): void {
@@ -160,6 +182,12 @@ export class DatabaseService {
 
     getArchive(): ArchiveEntry[] {
         return this.db.prepare('SELECT * FROM archive ORDER BY downloadedAt DESC').all() as ArchiveEntry[];
+    }
+
+    getArchiveByPodcast(podcastTitle: string): ArchiveEntry[] {
+        return this.db.prepare(
+            'SELECT * FROM archive WHERE podcastTitle = ? ORDER BY pubDate DESC'
+        ).all(podcastTitle) as ArchiveEntry[];
     }
 
     exportArchiveCSV(): string {

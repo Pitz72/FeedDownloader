@@ -47,7 +47,8 @@
         "sort_dur_desc": "Duration: longest first",
         "sort_dur_asc": "Duration: shortest first",
         "redownload": "Re-download",
-        "download_selected": "Download Selected ({{count}})"
+        "download_selected": "Download Selected ({{count}})",
+        "export_m3u": "Export M3U"
     },
     "progress": {
         "downloading": "Downloading...",
@@ -81,7 +82,9 @@
         "episode_not_found": "Episode not available (404) — file removed from server.",
         "download_error": "Download failed.",
         "sync_queued": "{{count}} new episodes queued",
-        "sync_none": "No new episodes to download"
+        "sync_none": "No new episodes to download",
+        "m3u_exported": "M3U playlist exported",
+        "m3u_empty": "No downloaded episodes to export"
     },
     "confirm": {
         "mass_download": "Do you really want to download all {{count}} episodes?",

@@ -33,6 +33,10 @@ export class LibraryService {
         this.db.touchFeed(url, lastUpdated);
     }
 
+    updateEpisodeCount(url: string, count: number): void {
+        this.db.updateEpisodeCount(url, count);
+    }
+
     // ── Downloads ────────────────────────────────────────────
 
     getDownloadedEpisodes(): string[] {
@@ -71,6 +75,10 @@ export class LibraryService {
 
     getArchive(): ArchiveEntry[] {
         return this.db.getArchive();
+    }
+
+    getArchiveByPodcast(podcastTitle: string): ArchiveEntry[] {
+        return this.db.getArchiveByPodcast(podcastTitle);
     }
 
     getArchiveStats(): ArchiveStats {

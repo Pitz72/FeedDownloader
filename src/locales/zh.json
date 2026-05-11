@@ -47,7 +47,8 @@
         "sort_dur_desc": "时长：最长",
         "sort_dur_asc": "时长：最短",
         "redownload": "重新下载",
-        "download_selected": "下载已选 ({{count}})"
+        "download_selected": "下载已选 ({{count}})",
+        "export_m3u": "导出 M3U"
     },
     "progress": {
         "downloading": "下载中...",
@@ -81,7 +82,9 @@
         "episode_not_found": "剧集不可用 (404) — 文件已从服务器删除。",
         "download_error": "下载失败。",
         "sync_queued": "{{count}} 个新集已加入队列",
-        "sync_none": "没有新剧集可下载"
+        "sync_none": "没有新剧集可下载",
+        "m3u_exported": "M3U 播放列表已导出",
+        "m3u_empty": "没有已下载的集可导出"
     },
     "confirm": {
         "mass_download": "您确定要下载全部 {{count}} 集吗？",

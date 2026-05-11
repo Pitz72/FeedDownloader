@@ -502,6 +502,13 @@ export const EpisodeList: React.FC = () => {
         }
     };
 
+    const handleExportM3U = async () => {
+        if (!currentFeed) return;
+        const result = await window.api.exportM3U(currentFeed.title);
+        if (result === true) toast.show(t('toast.m3u_exported'), 'success');
+        else if (result === false) toast.show(t('toast.m3u_empty'), 'info');
+    };
+
     const imageUrl = typeof currentFeed.image === 'string' ? currentFeed.image : currentFeed.image?.url;
 
     // ── Render ────────────────────────────────────────────────────────────────
@@ -553,6 +560,15 @@ export const EpisodeList: React.FC = () => {
                         >
                             <Icon name="folder_open" size={16} />
                             {t('episodes.change_folder')}
+                        </button>
+
+                        <button
+                            onClick={handleExportM3U}
+                            className="hover-bg-primary-tinted flex items-center gap-2 px-4 py-2 rounded text-xs transition-colors"
+                            style={{ fontFamily: 'var(--font-label)', background: 'var(--color-surface-container-highest)', color: 'var(--color-on-surface)' }}
+                        >
+                            <Icon name="playlist_add_check" size={16} />
+                            {t('episodes.export_m3u')}
                         </button>
 
                         <button
