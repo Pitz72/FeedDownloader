@@ -11,7 +11,10 @@
         "invalid_date": "未知日期",
         "no_feeds": "没有保存的订阅。添加一个开始使用。",
         "untitled": "无标题",
-        "remove": "删除"
+        "remove": "删除",
+        "search_placeholder": "搜索订阅...",
+        "sort_alpha": "按字母排序",
+        "no_results": "无结果"
     },
     "input": {
         "placeholder": "输入播客 RSS URL...",

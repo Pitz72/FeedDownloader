@@ -11,7 +11,10 @@
         "invalid_date": "Date Inconnue",
         "no_feeds": "Aucun flux enregistré. Ajoutez-en un pour commencer.",
         "untitled": "Sans Titre",
-        "remove": "Supprimer"
+        "remove": "Supprimer",
+        "search_placeholder": "Rechercher des flux...",
+        "sort_alpha": "Trier A–Z",
+        "no_results": "Aucun résultat"
     },
     "input": {
         "placeholder": "Entrez l'URL RSS du podcast...",

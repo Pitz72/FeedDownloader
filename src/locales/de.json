@@ -11,7 +11,10 @@
         "invalid_date": "Unbekanntes Datum",
         "no_feeds": "Keine Feeds gespeichert. Fügen Sie einen hinzu, um zu beginnen.",
         "untitled": "Ohne Titel",
-        "remove": "Entfernen"
+        "remove": "Entfernen",
+        "search_placeholder": "Feeds suchen...",
+        "sort_alpha": "A–Z sortieren",
+        "no_results": "Keine Ergebnisse"
     },
     "input": {
         "placeholder": "Podcast-RSS-URL eingeben...",

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useStore, AppState } from '../store/useStore';
 import { Icon } from './Icon';
 import clsx from 'clsx';
@@ -17,6 +17,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen }) => {
   const toast = useToast();
   const { t } = useTranslation();
   const [loadingUrl, setLoadingUrl] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortAlpha, setSortAlpha] = useState(false);
+
+  const displayedFeeds = useMemo(() => {
+    let result = feeds;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(f => (f.title || '').toLowerCase().includes(q));
+    }
+    if (sortAlpha) {
+      result = [...result].sort((a, b) =>
+        (a.title || '').localeCompare(b.title || '')
+      );
+    }
+    return result;
+  }, [feeds, searchQuery, sortAlpha]);
 
   const [confirmState, setConfirmState] = useState<{ isOpen: boolean; url: string }>({
     isOpen: false, url: ''
@@ -86,7 +102,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen }) => {
   return (
     <aside
       className="flex flex-col h-full shrink-0"
-      style={{ width: '16rem', background: 'var(--color-surface-container-low)' }}
+      style={{ width: '456px', background: 'var(--color-surface-container-low)' }}
     >
       {/* Header */}
       <div className="px-6 py-6 flex items-center justify-between">
@@ -116,6 +132,49 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen }) => {
         </button>
       </div>
 
+      {/* Search + sort bar */}
+      {feeds.length > 0 && (
+        <div className="px-3 pb-2 flex gap-2">
+          <div
+            className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg"
+            style={{ background: 'var(--color-surface-container-high)' }}
+          >
+            <Icon name="search" size={14} style={{ color: 'var(--color-on-surface-variant)', flexShrink: 0 }} />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder={t('sidebar.search_placeholder', 'Cerca feed...')}
+              className="flex-1 bg-transparent text-sm outline-none min-w-0"
+              style={{ fontFamily: 'var(--font-label)', color: 'var(--color-on-surface)' }}
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                style={{ color: 'var(--color-on-surface-variant)', flexShrink: 0 }}
+                onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-on-surface)')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-on-surface-variant)')}
+              >
+                <Icon name="close" size={14} />
+              </button>
+            )}
+          </div>
+          <button
+            onClick={() => setSortAlpha(v => !v)}
+            title={t('sidebar.sort_alpha', 'Ordina A–Z')}
+            className="p-2 rounded-lg transition-colors shrink-0"
+            style={{
+              background: sortAlpha ? 'var(--color-primary-container)' : 'var(--color-surface-container-high)',
+              color: sortAlpha ? 'var(--color-primary)' : 'var(--color-on-surface-variant)',
+            }}
+            onMouseEnter={e => { if (!sortAlpha) e.currentTarget.style.color = 'var(--color-on-surface)'; }}
+            onMouseLeave={e => { if (!sortAlpha) e.currentTarget.style.color = 'var(--color-on-surface-variant)'; }}
+          >
+            <Icon name="sort_by_alpha" size={16} />
+          </button>
+        </div>
+      )}
+
       {/* Feed list */}
       <div className="flex-1 overflow-y-auto custom-scrollbar px-3 space-y-1">
         {feeds.length === 0 && (
@@ -127,7 +186,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen }) => {
           </div>
         )}
 
-        {feeds.map((feed) => {
+        {feeds.length > 0 && displayedFeeds.length === 0 && (
+          <div
+            className="text-center text-sm mt-10 px-4"
+            style={{ color: 'var(--color-on-surface-variant)' }}
+          >
+            {t('sidebar.no_results', 'Nessun risultato')}
+          </div>
+        )}
+
+        {displayedFeeds.map((feed) => {
           const imageUrl = typeof feed.image === 'string' ? feed.image : feed.image?.url;
           const isActive = currentFeed?.url === feed.url;
           const isLoading = loadingUrl === feed.url;

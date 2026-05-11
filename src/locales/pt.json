@@ -11,7 +11,10 @@
         "invalid_date": "Data Desconhecida",
         "no_feeds": "Nenhum feed guardado. Adicione um para começar.",
         "untitled": "Sem Título",
-        "remove": "Remover"
+        "remove": "Remover",
+        "search_placeholder": "Pesquisar feeds...",
+        "sort_alpha": "Ordenar A–Z",
+        "no_results": "Sem resultados"
     },
     "input": {
         "placeholder": "Introduza URL RSS do podcast...",

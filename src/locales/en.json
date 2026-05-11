@@ -11,7 +11,10 @@
         "invalid_date": "Unknown Date",
         "no_feeds": "No feeds saved. Add one to start.",
         "untitled": "Untitled",
-        "remove": "Remove"
+        "remove": "Remove",
+        "search_placeholder": "Search feeds...",
+        "sort_alpha": "Sort A–Z",
+        "no_results": "No results"
     },
     "input": {
         "placeholder": "Enter podcast RSS URL...",
