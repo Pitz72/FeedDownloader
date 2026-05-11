@@ -49,7 +49,7 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 | D4 | Bug | macOS: `titleBarStyle: hidden` senza compensazione traffic light | 🟡 | ✅ v1.1.4 |
 | D5 | Bug | `statfs` richiede Node ≥ 18.15.0, declared `>=18.0.0` | 🟡 | ✅ v1.1.5 |
 | D6 | Bug | `SettingsModal` apre senza skeleton — valori flikkano | 🟡 | ✅ v1.1.6 |
-| D7 | Bug | Stima disco usa 128 kbps fisso | 🟢 | 🔲 |
+| D7 | Bug | Stima disco usa 128 kbps fisso | 🟢 | ✅ v1.1.7 |
 | D8 | Bug | `country-flag-icons` inutilizzato in `dependencies` | 🟢 | 🔲 |
 | D9 | Bug | Hover state gestiti via JS `onMouseEnter/Leave` invece di CSS | 🟢 | 🔲 |
 | D10 | Bug | Commenti `// vX.Y.Z —` inquinano il codice | 🟢 | 🔲 |
@@ -216,12 +216,11 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 - **File:** `src/components/SettingsModal.tsx`
 - **Fix applicato:** Stato `isLoadingSettings` + skeleton animato nel pannello destro durante `loadSettings()`; contenuto reale nascosto con `display:none` fino al completamento delle chiamate IPC.
 
-### D7 🟢 Stima disco usa bitrate costante 128 kbps
+### D7 🟢 ✅ v1.1.7 Stima disco usa bitrate costante 128 kbps
 
-- **Stato:** 🔲
-- **File:** `src/components/EpisodeList.tsx:99`
-- **Problema:** `BYTES_PER_SECOND = 16_000` corrisponde a 128 kbps. La maggior parte dei podcast attuali è a 192–256 kbps. La stima può essere errata del 50–100%, riducendo l'utilità del controllo spazio disco.
-- **Fix:** Leggere il bitrate dall'`itunes:duration` quando disponibile; altrimenti usare 192 kbps come default più realistico.
+- **Stato:** ✅ v1.1.7
+- **File:** `src/components/EpisodeList.tsx`
+- **Fix applicato:** `BYTES_PER_SECOND` aggiornato da `16_000` (128 kbps) a `24_000` (192 kbps) come default più realistico per i podcast moderni.
 
 ### D8 🟢 `country-flag-icons` in production dependencies — non usato
 

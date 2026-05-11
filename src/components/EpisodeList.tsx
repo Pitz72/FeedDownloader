@@ -104,9 +104,8 @@ export const EpisodeList: React.FC = () => {
     }, []);
 
 
-    // v0.6.9 — Estimate download size from episode durations (128 kbps)
     const estimateDownloadBytes = (episodes: Episode[]): number => {
-        const BYTES_PER_SECOND = 16_000;
+        const BYTES_PER_SECOND = 24_000; // 192 kbps — more realistic default for modern podcasts
         const DEFAULT_DURATION_SEC = 45 * 60;
         return episodes.reduce((total, ep) => {
             const mins = parseDurationMinutes(ep.itunes?.duration);
