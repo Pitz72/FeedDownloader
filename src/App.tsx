@@ -111,10 +111,8 @@ function AppContent() {
           <div className="flex items-center gap-3" style={{ color: 'var(--color-on-surface-variant)' }}>
             <button
               onClick={() => setIsSettingsOpen(true)}
-              className="transition-colors p-1"
+              className="hover-text-primary transition-colors p-1"
               style={{ color: 'var(--color-on-surface-variant)' }}
-              onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-primary)')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-on-surface-variant)')}
               title={t('settings.title')}
             >
               <Icon name="settings" size={20} />

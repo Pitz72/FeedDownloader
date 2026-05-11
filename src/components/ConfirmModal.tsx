@@ -100,14 +100,12 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                         <div className="flex gap-2">
                             <button
                                 onClick={onCancel}
-                                className="flex-1 py-2.5 rounded-lg text-sm font-medium transition-all"
+                                className="hover-bg-bright flex-1 py-2.5 rounded-lg text-sm font-medium transition-all"
                                 style={{
                                     background: 'var(--color-surface-container-highest)',
                                     color: 'var(--color-on-surface-variant)',
                                     fontFamily: 'var(--font-label)',
                                 }}
-                                onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-surface-bright)')}
-                                onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-surface-container-highest)')}
                             >
                                 {cancelLabel || t('common.cancel', 'Annulla')}
                             </button>

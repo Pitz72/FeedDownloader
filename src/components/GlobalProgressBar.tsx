@@ -51,10 +51,8 @@ export const GlobalProgressBar: React.FC = () => {
                             {isBatchDownloading && (
                                 <button
                                     onClick={() => useStore.getState().stopBatch()}
-                                    className="p-1 rounded transition-all"
+                                    className="hover-stop p-1 rounded transition-all"
                                     style={{ color: 'var(--color-on-surface-variant)' }}
-                                    onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-error)'; e.currentTarget.style.background = 'rgba(147,0,10,0.15)'; }}
-                                    onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-on-surface-variant)'; e.currentTarget.style.background = ''; }}
                                     title={t('progress.stop')}
                                 >
                                     <Icon name="stop" size={16} filled />
@@ -63,10 +61,8 @@ export const GlobalProgressBar: React.FC = () => {
                             {isComplete && (
                                 <button
                                     onClick={() => useStore.getState().resetBatch()}
-                                    className="p-1 rounded transition-all"
+                                    className="hover-bg-surface-high p-1 rounded transition-all"
                                     style={{ color: 'var(--color-on-surface-variant)' }}
-                                    onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-on-surface)'; e.currentTarget.style.background = 'var(--color-surface-container-high)'; }}
-                                    onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-on-surface-variant)'; e.currentTarget.style.background = ''; }}
                                 >
                                     <Icon name="close" size={14} />
                                 </button>

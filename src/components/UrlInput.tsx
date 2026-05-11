@@ -70,10 +70,8 @@ export const UrlInput: React.FC = () => {
             toast.show(t('toast.folder_selected', { path }), 'success');
           }
         }}
-        className="p-2 rounded-lg transition-colors shrink-0"
+        className="hover-text-surface p-2 rounded-lg transition-colors shrink-0"
         style={{ color: 'var(--color-outline)' }}
-        onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-on-surface)')}
-        onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-outline)')}
         title={t('episodes.change_folder')}
       >
         <Icon name="folder_open" size={20} />

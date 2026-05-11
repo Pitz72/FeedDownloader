@@ -51,7 +51,7 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 | D6 | Bug | `SettingsModal` apre senza skeleton — valori flikkano | 🟡 | ✅ v1.1.6 |
 | D7 | Bug | Stima disco usa 128 kbps fisso | 🟢 | ✅ v1.1.7 |
 | D8 | Bug | `country-flag-icons` inutilizzato in `dependencies` | 🟢 | ✅ v1.1.8 |
-| D9 | Bug | Hover state gestiti via JS `onMouseEnter/Leave` invece di CSS | 🟢 | 🔲 |
+| D9 | Bug | Hover state gestiti via JS `onMouseEnter/Leave` invece di CSS | 🟢 | ✅ v1.1.9 |
 | D10 | Bug | Commenti `// vX.Y.Z —` inquinano il codice | 🟢 | 🔲 |
 | D11 | Bug | Download button invisibile da tastiera (`opacity-0`) | 🟢 | 🔲 |
 | E1 | Feature | Vista coda download con episodi in-flight | 🔵 | 🔲 |
@@ -228,12 +228,11 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 - **File:** `package.json`
 - **Fix applicato:** `npm uninstall country-flag-icons` — pacchetto (~150 KB) rimosso perché non importato da nessun file del progetto.
 
-### D9 🟢 Hover state gestiti via JS `onMouseEnter/Leave` invece di CSS
+### D9 🟢 ✅ v1.1.9 Hover state gestiti via JS `onMouseEnter/Leave` invece di CSS
 
-- **Stato:** 🔲
-- **File:** Diffuso — `Sidebar.tsx`, `EpisodeList.tsx`, `SettingsModal.tsx`, `App.tsx`
-- **Problema:** Centinaia di righe `onMouseEnter={e => e.currentTarget.style.color = 'var(--color-primary)'}`. Più lento del CSS (ogni hover triggera JS), impossibile da tematizzare centralmente, genera hydration noise.
-- **Fix:** Definire classi utility Tailwind/CSS nel design system (`hover:text-primary`, `hover:bg-surface-high`) e sostituire gli handler inline.
+- **Stato:** ✅ v1.1.9
+- **File:** `src/index.css` + tutti i componenti TSX
+- **Fix applicato:** Tutti gli `onMouseEnter`/`onMouseLeave` rimossi da 10 file. Aggiunte classi utility CSS nel design system: `.hover-text-primary`, `.hover-text-surface`, `.hover-bg-surface-high`, `.hover-bg-container`, `.hover-bg-highest`, `.hover-danger`, `.hover-stop`, `.feed-item`, `.settings-nav-item`, `.episode-row`, `.lang-btn-hover` e altre. Per i pattern con background rgba (dove lo stile inline impedisce l'override), usato `!important` circoscritto alle regole `:hover`.
 
 ### D10 🟢 Commenti `// vX.Y.Z —` inquinano il codice sorgente
 

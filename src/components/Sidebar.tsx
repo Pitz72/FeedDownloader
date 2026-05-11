@@ -131,10 +131,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen }) => {
         </div>
         <button
           onClick={onSettingsOpen}
-          className="transition-colors p-1"
+          className="hover-text-primary transition-colors p-1"
           style={{ color: 'var(--color-on-surface-variant)' }}
-          onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-primary)')}
-          onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-on-surface-variant)')}
           title={t('settings.title')}
         >
           <Icon name="settings" size={20} />
@@ -160,9 +158,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen }) => {
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
+                className="hover-text-surface"
                 style={{ color: 'var(--color-on-surface-variant)', flexShrink: 0 }}
-                onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-on-surface)')}
-                onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-on-surface-variant)')}
               >
                 <Icon name="close" size={14} />
               </button>
@@ -171,13 +168,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen }) => {
           <button
             onClick={() => setSortAlpha(v => !v)}
             title={t('sidebar.sort_alpha', 'Ordina A–Z')}
-            className="p-2 rounded-lg transition-colors shrink-0"
+            className={`p-2 rounded-lg transition-colors shrink-0 ${!sortAlpha ? 'hover-text-surface' : ''}`}
             style={{
               background: sortAlpha ? 'var(--color-primary-container)' : 'var(--color-surface-container-high)',
               color: sortAlpha ? 'var(--color-primary)' : 'var(--color-on-surface-variant)',
             }}
-            onMouseEnter={e => { if (!sortAlpha) e.currentTarget.style.color = 'var(--color-on-surface)'; }}
-            onMouseLeave={e => { if (!sortAlpha) e.currentTarget.style.color = 'var(--color-on-surface-variant)'; }}
           >
             <Icon name="sort_by_alpha" size={16} />
           </button>
@@ -214,9 +209,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen }) => {
               key={feed.url}
               onClick={() => handleSelectFeed(feed.url)}
               className={clsx(
-                'flex items-center gap-3 p-3 cursor-pointer group transition-all duration-200 active:scale-[0.98]',
+                'feed-item flex items-center gap-3 p-3 cursor-pointer group transition-all duration-200 active:scale-[0.98]',
                 isActive
-                  ? 'rounded-r-lg border-l-2'
+                  ? 'feed-item-active rounded-r-lg border-l-2'
                   : 'rounded-lg border-l-2 border-transparent'
               )}
               style={isActive ? {
@@ -226,8 +221,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen }) => {
               } : {
                 color: 'var(--color-on-surface-variant)',
               }}
-              onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = 'var(--color-surface-container-high)'; e.currentTarget.style.color = 'var(--color-on-surface)'; } }}
-              onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = ''; e.currentTarget.style.color = 'var(--color-on-surface-variant)'; } }}
             >
               {/* Thumbnail */}
               <div
@@ -264,10 +257,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen }) => {
               {/* Remove button */}
               <button
                 onClick={(e) => handleRemoveFeed(e, feed.url)}
-                className="opacity-0 group-hover:opacity-100 p-1 rounded transition-all"
+                className="hover-danger opacity-0 group-hover:opacity-100 p-1 rounded transition-all"
                 style={{ color: 'var(--color-on-surface-variant)' }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,79,79,0.15)'; e.currentTarget.style.color = '#ff6b6b'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = ''; e.currentTarget.style.color = 'var(--color-on-surface-variant)'; }}
                 title={t('sidebar.remove', 'Rimuovi')}
               >
                 <Icon name="delete" size={14} />

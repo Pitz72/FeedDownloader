@@ -168,6 +168,36 @@
 .btn-primary-gradient:hover  { filter: brightness(1.1); }
 .btn-primary-gradient:active { transform: scale(0.97); }
 
+/* ─── Hover Utilities ─────────────────────────────────────── */
+.hover-text-primary:hover            { color: var(--color-primary); }
+.hover-text-surface:hover            { color: var(--color-on-surface); }
+.hover-text-warning:hover            { color: #fb923c; }
+.hover-bg-primary-tinted:hover       { background: rgba(173, 198, 255, 0.1); }
+.hover-bg-surface-high:hover         { background: var(--color-surface-container-high); color: var(--color-on-surface); }
+.hover-bg-bright:hover               { background: var(--color-surface-bright); }
+.hover-bg-container:hover            { background: var(--color-surface-container) !important; }
+.hover-bg-highest:hover              { background: var(--color-surface-container-highest) !important; }
+.hover-secondary-tinted:hover        { background: rgba(125, 1, 177, 0.2) !important; }
+.hover-primary-tinted-strong:hover   { background: rgba(173, 198, 255, 0.22) !important; }
+.hover-error-tinted-strong:hover     { background: rgba(147, 0, 10, 0.22) !important; }
+.hover-opacity-dim:hover             { opacity: 0.85; }
+.hover-stop:hover                    { color: var(--color-error); background: rgba(147, 0, 10, 0.15); }
+.hover-danger:hover                  { background: rgba(255, 79, 79, 0.15); color: #ff6b6b; }
+.feed-item:hover:not(.feed-item-active) {
+  background: var(--color-surface-container-high);
+  color: var(--color-on-surface);
+}
+.settings-nav-item:hover:not(.settings-nav-active) {
+  background: var(--color-surface-container-high);
+  color: var(--color-on-surface);
+}
+.lang-btn-hover:hover:not(.lang-btn-active) {
+  opacity: 1 !important;
+  background: var(--color-surface-container-high) !important;
+}
+.episode-row { transition: background 150ms ease; }
+.episode-row:hover { background: var(--color-surface-container-high) !important; }
+
 /* ─── Scrollbar ───────────────────────────────────────────── */
 ::-webkit-scrollbar         { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track   { background: transparent; }

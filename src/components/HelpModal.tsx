@@ -76,10 +76,8 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
                             </h2>
                             <button
                                 onClick={onClose}
-                                className="p-1 rounded-lg transition-all"
+                                className="hover-bg-surface-high p-1 rounded-lg transition-all"
                                 style={{ color: 'var(--color-on-surface-variant)' }}
-                                onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-on-surface)'; e.currentTarget.style.background = 'var(--color-surface-container-high)'; }}
-                                onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-on-surface-variant)'; e.currentTarget.style.background = ''; }}
                             >
                                 <Icon name="close" size={22} />
                             </button>

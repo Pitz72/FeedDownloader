@@ -104,14 +104,12 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
             {step < 2 && (
                 <button
                     onClick={(e) => { e.stopPropagation(); skipToEnd(); }}
-                    className="absolute top-4 right-4 z-20 text-xs px-3 py-1.5 rounded-full transition-all"
+                    className="hover-text-surface absolute top-4 right-4 z-20 text-xs px-3 py-1.5 rounded-full transition-all"
                     style={{
                         color: 'var(--color-on-surface-variant)',
                         border: '1px solid rgba(65,71,85,0.3)',
                         fontFamily: 'var(--font-label)',
                     }}
-                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-on-surface)')}
-                    onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-on-surface-variant)')}
                 >
                     {t('app.skip')} →
                 </button>
@@ -178,13 +176,11 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
                                 <button
                                     key={code}
                                     onClick={() => changeLanguage(code)}
-                                    className="p-2 rounded-xl transition-all"
+                                    className={`lang-btn-hover p-2 rounded-xl transition-all ${i18n.language === code ? 'lang-btn-active' : ''}`}
                                     style={i18n.language === code
                                         ? { background: 'var(--color-primary-container)', transform: 'scale(1.1)' }
                                         : { background: 'transparent', opacity: 0.65 }
                                     }
-                                    onMouseEnter={e => { if (i18n.language !== code) { e.currentTarget.style.opacity = '1'; e.currentTarget.style.background = 'var(--color-surface-container-high)'; } }}
-                                    onMouseLeave={e => { if (i18n.language !== code) { e.currentTarget.style.opacity = '0.65'; e.currentTarget.style.background = 'transparent'; } }}
                                     title={code.toUpperCase()}
                                 >
                                     <Flag className="w-6 h-4 md:w-8 md:h-6 rounded-sm" />
@@ -205,15 +201,13 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
 
                             <button
                                 onClick={() => setIsHelpOpen(true)}
-                                className="flex items-center gap-2 px-8 py-3 w-64 justify-center rounded-full text-sm font-medium transition-all"
+                                className="hover-bg-container flex items-center gap-2 px-8 py-3 w-64 justify-center rounded-full text-sm font-medium transition-all"
                                 style={{
                                     background: 'var(--color-surface-container-low)',
                                     color: 'var(--color-on-surface-variant)',
                                     boxShadow: 'inset 0 0 0 1px rgba(65,71,85,0.25)',
                                     fontFamily: 'var(--font-label)',
                                 }}
-                                onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-on-surface)'; e.currentTarget.style.background = 'var(--color-surface-container)'; }}
-                                onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-on-surface-variant)'; e.currentTarget.style.background = 'var(--color-surface-container-low)'; }}
                             >
                                 <Icon name="menu_book" size={18} />
                                 {t('help.read_manual', 'Leggi la guida')}

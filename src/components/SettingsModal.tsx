@@ -236,10 +236,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                             </div>
                             <button
                                 onClick={onClose}
-                                className="p-1 rounded-lg transition-all"
+                                className="hover-bg-surface-high p-1 rounded-lg transition-all"
                                 style={{ color: 'var(--color-on-surface-variant)' }}
-                                onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-on-surface)'; e.currentTarget.style.background = 'var(--color-surface-container-high)'; }}
-                                onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-on-surface-variant)'; e.currentTarget.style.background = ''; }}
                             >
                                 <Icon name="close" size={20} />
                             </button>
@@ -261,7 +259,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                         <button
                                             key={item.id}
                                             onClick={() => setActiveCategory(item.id)}
-                                            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-left border-l-2"
+                                            className={`settings-nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-left border-l-2 ${active ? 'settings-nav-active' : ''}`}
                                             style={active ? {
                                                 background: 'rgba(173,198,255,0.1)',
                                                 color: 'var(--color-primary)',
@@ -272,8 +270,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                 borderLeftColor: 'transparent',
                                                 fontFamily: 'var(--font-label)',
                                             }}
-                                            onMouseEnter={e => { if (!active) { e.currentTarget.style.background = 'var(--color-surface-container-high)'; e.currentTarget.style.color = 'var(--color-on-surface)'; } }}
-                                            onMouseLeave={e => { if (!active) { e.currentTarget.style.background = ''; e.currentTarget.style.color = 'var(--color-on-surface-variant)'; } }}
                                         >
                                             <span style={{ color: active ? 'var(--color-primary)' : 'var(--color-on-surface-variant)', opacity: active ? 1 : 0.7 }}>
                                                 {item.icon}
@@ -335,10 +331,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                 <div className="space-y-3 pt-4" style={{ borderTop: '1px solid rgba(65,71,85,0.15)' }}>
                                                     <button
                                                         onClick={() => setIsHelpOpen(true)}
-                                                        className="w-full flex items-center justify-between p-3 rounded-lg transition-all"
+                                                        className="hover-bg-container w-full flex items-center justify-between p-3 rounded-lg transition-all"
                                                         style={{ ...rowCardStyle, display: 'flex' }}
-                                                        onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-surface-container)')}
-                                                        onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-surface-container-low)')}
                                                     >
                                                         <span className="flex items-center gap-2" style={{ color: 'var(--color-on-surface-variant)' }}>
                                                             <Icon name="menu_book" size={18} style={{ color: 'var(--color-primary)' }} />
@@ -372,10 +366,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                             />
                                                             <button
                                                                 onClick={handleChangeFolder}
-                                                                className="p-2 rounded-lg transition-all"
+                                                                className="hover-bg-highest p-2 rounded-lg transition-all"
                                                                 style={{ background: 'var(--color-surface-container-high)', color: 'var(--color-on-surface)' }}
-                                                                onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-surface-container-highest)')}
-                                                                onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-surface-container-high)')}
                                                                 title={t('episodes.change_folder')}
                                                             >
                                                                 <Icon name="folder_open" size={20} />
@@ -539,10 +531,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                             }
                                                         }}
                                                         disabled={isHealthChecking}
-                                                        className="w-full flex items-center justify-center gap-2 p-2 rounded-lg text-sm transition-all disabled:opacity-50"
+                                                        className="hover-bg-container w-full flex items-center justify-center gap-2 p-2 rounded-lg text-sm transition-all disabled:opacity-50"
                                                         style={{ ...rowCardStyle, display: 'flex', justifyContent: 'center', color: 'var(--color-on-surface-variant)' }}
-                                                        onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-surface-container)')}
-                                                        onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-surface-container-low)')}
                                                     >
                                                         <Icon name="refresh" size={16} className={isHealthChecking ? 'animate-spin' : ''} style={{ color: 'var(--color-warning)' }} />
                                                         {isHealthChecking ? t('settings.health_check_running') : t('settings.health_check_run')}
@@ -628,10 +618,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                         <button
                                                             onClick={handleMigrateArchive}
                                                             disabled={isBatchDownloading}
-                                                            className="w-full flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            className="hover-secondary-tinted w-full flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                                             style={{ background: 'rgba(125,1,177,0.1)', border: '1px solid rgba(233,179,255,0.2)', color: 'var(--color-secondary)', fontFamily: 'var(--font-label)' }}
-                                                            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(125,1,177,0.2)')}
-                                                            onMouseLeave={e => (e.currentTarget.style.background = 'rgba(125,1,177,0.1)')}
                                                         >
                                                             <Icon name="hard_drive" size={16} />
                                                             {t('settings.migrate_archive')}
@@ -651,10 +639,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                             <button
                                                                 key={i}
                                                                 onClick={btn.onClick}
-                                                                className="flex items-center gap-2 p-2 rounded-lg text-sm transition-all"
+                                                                className="hover-bg-container flex items-center gap-2 p-2 rounded-lg text-sm transition-all"
                                                                 style={{ background: 'var(--color-surface-container-low)', color: 'var(--color-on-surface-variant)', boxShadow: 'inset 0 0 0 1px rgba(65,71,85,0.15)' }}
-                                                                onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-surface-container)')}
-                                                                onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-surface-container-low)')}
                                                             >
                                                                 <Icon name={btn.icon} size={16} style={{ color: btn.iconColor }} />
                                                                 {btn.label}
@@ -710,10 +696,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                     {updateStatus.type === 'ready' ? (
                                                         <button
                                                             onClick={() => window.api.installUpdate()}
-                                                            className="w-full flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm transition-all"
+                                                            className="hover-primary-tinted-strong w-full flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm transition-all"
                                                             style={{ background: 'rgba(173,198,255,0.12)', border: '1px solid rgba(173,198,255,0.25)', color: 'var(--color-primary)', fontFamily: 'var(--font-label)' }}
-                                                            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(173,198,255,0.22)')}
-                                                            onMouseLeave={e => (e.currentTarget.style.background = 'rgba(173,198,255,0.12)')}
                                                         >
                                                             <Icon name="restart_alt" size={16} />
                                                             {t('settings.update_install')}
@@ -722,10 +706,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                         <button
                                                             onClick={() => { setUpdateStatus({ type: 'checking' }); window.api.checkForUpdate(); }}
                                                             disabled={updateStatus.type === 'checking' || updateStatus.type === 'downloading'}
-                                                            className="w-full flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            className="hover-bg-container w-full flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                                             style={{ ...rowCardStyle, display: 'flex', justifyContent: 'center', color: 'var(--color-on-surface-variant)' }}
-                                                            onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-surface-container)')}
-                                                            onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-surface-container-low)')}
                                                         >
                                                             <Icon name="refresh" size={16} style={{ color: 'var(--color-primary)' }} />
                                                             {t('settings.update_check')}
@@ -741,10 +723,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                     <button
                                                         onClick={() => setConfirmReset(true)}
                                                         disabled={isBatchDownloading}
-                                                        className="w-full flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        className="hover-error-tinted-strong w-full flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                                         style={{ background: 'rgba(147,0,10,0.12)', border: '1px solid rgba(255,180,171,0.2)', color: 'var(--color-error)', fontFamily: 'var(--font-label)' }}
-                                                        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(147,0,10,0.22)')}
-                                                        onMouseLeave={e => (e.currentTarget.style.background = 'rgba(147,0,10,0.12)')}
                                                         title={isBatchDownloading ? t('settings.reset_tooltip_downloading') : ''}
                                                     >
                                                         <Icon name="warning" size={18} />
@@ -758,19 +738,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                         <div className="flex gap-2">
                                                             <button
                                                                 onClick={() => setConfirmReset(false)}
-                                                                className="flex-1 py-2 rounded-lg text-sm transition-all"
+                                                                className="hover-bg-highest flex-1 py-2 rounded-lg text-sm transition-all"
                                                                 style={{ background: 'var(--color-surface-container-high)', color: 'var(--color-on-surface-variant)' }}
-                                                                onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-surface-container-highest)')}
-                                                                onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-surface-container-high)')}
                                                             >
                                                                 {t('common.cancel', 'Cancel')}
                                                             </button>
                                                             <button
                                                                 onClick={handleResetDatabase}
-                                                                className="flex-1 py-2 rounded-lg text-sm font-medium transition-all"
+                                                                className="hover-opacity-dim flex-1 py-2 rounded-lg text-sm font-medium transition-all"
                                                                 style={{ background: 'var(--color-error-container)', color: 'var(--color-error)', fontFamily: 'var(--font-label)' }}
-                                                                onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
-                                                                onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
                                                             >
                                                                 {t('common.confirm', 'Confirm')}
                                                             </button>

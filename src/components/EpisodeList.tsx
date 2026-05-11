@@ -216,13 +216,11 @@ export const EpisodeList: React.FC = () => {
 
         return (
             <div
-                className="group flex items-center gap-4 px-4 py-3 transition-all duration-200 cursor-default"
+                className="episode-row group flex items-center gap-4 px-4 py-3 cursor-default"
                 style={{
                     background: index % 2 === 0 ? 'var(--color-surface)' : 'var(--color-surface-container-lowest)',
                     borderBottom: '1px solid rgba(65,71,85,0.05)',
                 }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-surface-container-high)')}
-                onMouseLeave={e => (e.currentTarget.style.background = index % 2 === 0 ? 'var(--color-surface)' : 'var(--color-surface-container-lowest)')}
             >
                 {/* Index */}
                 <span
@@ -271,20 +269,16 @@ export const EpisodeList: React.FC = () => {
                         <div className="flex items-center gap-1">
                             <button
                                 onClick={() => handleResetStatus(guid)}
-                                className="opacity-0 group-hover:opacity-100 p-1 rounded transition-all"
+                                className="hover-text-warning opacity-0 group-hover:opacity-100 p-1 rounded transition-all"
                                 style={{ color: 'var(--color-on-surface-variant)' }}
-                                onMouseEnter={e => { e.currentTarget.style.color = '#fb923c'; }}
-                                onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-on-surface-variant)'; }}
                                 title={t('episodes.reset_status')}
                             >
                                 <Icon name="restart_alt" size={16} />
                             </button>
                             <button
                                 onClick={() => window.api.showInFolder(currentFeed?.title || '', episode.title, url, episode.pubDate || episode.isoDate)}
-                                className="opacity-0 group-hover:opacity-100 p-1 rounded transition-all"
+                                className="hover-text-surface opacity-0 group-hover:opacity-100 p-1 rounded transition-all"
                                 style={{ color: 'var(--color-on-surface-variant)' }}
-                                onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-on-surface)'; }}
-                                onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-on-surface-variant)'; }}
                                 title={t('episodes.open_folder')}
                             >
                                 <Icon name="folder_open" size={16} />
@@ -429,10 +423,8 @@ export const EpisodeList: React.FC = () => {
                     <div className="flex flex-wrap gap-2">
                         <button
                             onClick={handleChangeFolder}
-                            className="flex items-center gap-2 px-4 py-2 rounded text-xs transition-colors"
+                            className="hover-bg-primary-tinted flex items-center gap-2 px-4 py-2 rounded text-xs transition-colors"
                             style={{ fontFamily: 'var(--font-label)', background: 'var(--color-surface-container-highest)', color: 'var(--color-on-surface)' }}
-                            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(173,198,255,0.1)')}
-                            onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-surface-container-highest)')}
                         >
                             <Icon name="folder_open" size={16} />
                             {t('episodes.change_folder')}
@@ -441,10 +433,8 @@ export const EpisodeList: React.FC = () => {
                         <button
                             onClick={handleDownloadAll}
                             disabled={!isOnline}
-                            className="flex items-center gap-2 px-4 py-2 rounded text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="hover-bg-primary-tinted flex items-center gap-2 px-4 py-2 rounded text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             style={{ fontFamily: 'var(--font-label)', background: 'var(--color-surface-container-highest)', color: 'var(--color-on-surface)' }}
-                            onMouseEnter={e => { if (isOnline) e.currentTarget.style.background = 'rgba(173,198,255,0.1)'; }}
-                            onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-surface-container-highest)')}
                         >
                             <Icon name="cloud_download" size={16} />
                             {t('episodes.download_all')}
@@ -503,10 +493,8 @@ export const EpisodeList: React.FC = () => {
                             {searchQuery && (
                                 <button
                                     onClick={() => setSearchQuery('')}
-                                    className="absolute right-1 p-0.5 rounded-full transition-colors"
+                                    className="hover-text-surface absolute right-1 p-0.5 rounded-full transition-colors"
                                     style={{ color: 'var(--color-on-surface-variant)' }}
-                                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-on-surface)')}
-                                    onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-on-surface-variant)')}
                                     title={t('common.clear', 'Pulisci')}
                                 >
                                     <Icon name="close" size={14} />
@@ -571,10 +559,8 @@ export const EpisodeList: React.FC = () => {
                         </div>
                         {(dateFrom || dateTo) && (
                             <button onClick={() => { setDateFrom(''); setDateTo(''); }}
-                                className="text-xs px-2 py-1 rounded transition-colors"
+                                className="hover-text-surface text-xs px-2 py-1 rounded transition-colors"
                                 style={{ color: 'var(--color-on-surface-variant)' }}
-                                onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-on-surface)')}
-                                onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-on-surface-variant)')}
                             >
                                 {t('common.clear', 'Cancella')}
                             </button>
@@ -606,10 +592,8 @@ export const EpisodeList: React.FC = () => {
                         </div>
                         {(minDuration > 0 || maxDuration > 0) && (
                             <button onClick={() => { setMinDuration(0); setMaxDuration(0); }}
-                                className="text-xs px-2 py-1 rounded transition-colors"
+                                className="hover-text-surface text-xs px-2 py-1 rounded transition-colors"
                                 style={{ color: 'var(--color-on-surface-variant)' }}
-                                onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-on-surface)')}
-                                onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-on-surface-variant)')}
                             >
                                 {t('common.clear', 'Cancella')}
                             </button>
