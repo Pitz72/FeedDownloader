@@ -44,7 +44,7 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 | C6 | Bug | `addFeed` INSERT OR IGNORE — metadata sidebar stale | 🟠 | ✅ v1.0.9 |
 | C7 | Bug | `FeedService` fa due richieste HTTP per feed | 🟠 | ✅ v1.1.0 |
 | D1 | Bug | Filtri episodi non si resettano al cambio feed | 🟡 | ✅ v1.1.1 |
-| D2 | Bug | `import()` dinamico di librerie dentro loop/callback | 🟡 | 🔲 |
+| D2 | Bug | `import()` dinamico di librerie dentro loop/callback | 🟡 | ✅ v1.1.2 |
 | D3 | Bug | `renderEpisodeRow` non memoized — Virtuoso ri-renderizza tutto | 🟡 | 🔲 |
 | D4 | Bug | macOS: `titleBarStyle: hidden` senza compensazione traffic light | 🟡 | 🔲 |
 | D5 | Bug | `statfs` richiede Node ≥ 18.15.0, declared `>=18.0.0` | 🟡 | 🔲 |
@@ -186,12 +186,11 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 - **File:** `src/components/EpisodeList.tsx`
 - **Fix applicato:** `useEffect` con dipendenza `[currentFeed?.url]` azzera tutti gli stati filtro (searchQuery, dateFrom, dateTo, statusFilter, minDuration, maxDuration e i relativi flag `show*`) al cambio feed.
 
-### D2 🟡 `import()` dinamico di librerie dentro loop e callback
+### D2 🟡 ✅ v1.1.2 `import()` dinamico di librerie dentro loop e callback
 
-- **Stato:** 🔲
-- **File:** `electron/ipc.ts:169` (music-metadata), `electron/ipc.ts:494` (sanitize-filename)
-- **Problema:** `await import('music-metadata')` è chiamato dentro il callback di ogni download completato; `await import('sanitize-filename')` dentro il `for...of` dell'health check. Node cachea le dynamic import ma il pattern è scorretto e introduce overhead al primo ciclo.
-- **Fix:** Convertire entrambi in import statici in cima a `ipc.ts`.
+- **Stato:** ✅ v1.1.2
+- **File:** `electron/ipc.ts`
+- **Fix applicato:** Convertiti in import statici in cima: `shell` aggiunto all'import electron, `parseAudioMetadata` da music-metadata, `sanitize` da sanitize-filename. Rimossi tutti e tre gli `await import()` inline.
 
 ### D3 🟡 `renderEpisodeRow` non memoized — Virtuoso ri-renderizza tutto
 

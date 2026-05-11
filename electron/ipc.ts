@@ -1,4 +1,4 @@
-import { ipcMain, dialog, Notification, BrowserWindow, app } from 'electron';
+import { ipcMain, dialog, Notification, BrowserWindow, app, shell } from 'electron';
 import crypto from 'crypto';
 import { FeedService } from './services/FeedService';
 import { LibraryService } from './services/LibraryService';
@@ -17,6 +17,8 @@ import type { FeedEntry, DownloadRequest, HealthCheckResult, DiskSpaceInfo, Migr
 import path from 'path';
 import fs from 'fs-extra';
 import { statfs } from 'fs/promises';
+import { parseFile as parseAudioMetadata } from 'music-metadata';
+import sanitize from 'sanitize-filename';
 
 const feedService = new FeedService();
 const libraryService = new LibraryService();
@@ -181,8 +183,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                     });
                     checksum = hash.digest('hex');
 
-                    const { parseFile } = await import('music-metadata');
-                    const meta = await parseFile(targetFile, { duration: false });
+                    const meta = await parseAudioMetadata(targetFile, { duration: false });
                     bitrate = meta.format.bitrate ? Math.round(meta.format.bitrate / 1000) : undefined;
                     sampleRate = meta.format.sampleRate ?? undefined;
                 } catch (e) {
@@ -367,7 +368,6 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         const resolvedName = applyTemplate(namingTemplate, { title, podcast: podcastTitle, pubDate });
         const safePath = getSafePath(baseDir, podcastTitle, resolvedName, ext);
 
-        const { shell } = await import('electron');
         shell.showItemInFolder(safePath);
     });
 
@@ -514,7 +514,6 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                 missingFiles.push({ guid: entry.guid, title: entry.title, podcast: entry.podcastTitle, filename: '(no filename)' });
                 continue;
             }
-            const sanitize = (await import('sanitize-filename')).default;
             const fullPath = path.join(baseDir, sanitize(entry.podcastTitle), entry.filename);
             try {
                 const stat = await fs.stat(fullPath);
