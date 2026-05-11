@@ -347,7 +347,7 @@ export const EpisodeList: React.FC = () => {
                                 <Icon name="restart_alt" size={16} />
                             </button>
                             <button
-                                onClick={() => window.api.showInFolder(currentFeed.title, episode.title)}
+                                onClick={() => window.api.showInFolder(currentFeed.title, episode.title, url, episode.pubDate || episode.isoDate)}
                                 className="opacity-0 group-hover:opacity-100 p-1 rounded transition-all"
                                 style={{ color: 'var(--color-on-surface-variant)' }}
                                 onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-on-surface)'; }}

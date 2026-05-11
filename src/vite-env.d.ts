@@ -18,7 +18,7 @@ declare global {
             getDownloadPath: () => Promise<string>;
             setDownloadPath: (path: string) => Promise<boolean>;
             stopBatch: () => Promise<boolean>;
-            showInFolder: (podcastTitle: string, title: string, enclosureUrl?: string) => Promise<void>;
+            showInFolder: (podcastTitle: string, title: string, enclosureUrl?: string, pubDate?: string) => Promise<void>;
             removeDownloadedEpisode: (guid: string) => Promise<boolean>;
             resetDownloadHistory: () => Promise<boolean>;
             getHelpContent: (lang: string) => Promise<string>;

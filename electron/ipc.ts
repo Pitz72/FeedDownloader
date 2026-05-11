@@ -133,10 +133,19 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
             podcast: podcastTitle,
             pubDate: pubDate,
         });
-        const targetFile = getSafePath(baseDir, podcastTitle, resolvedName, ext);
-        const targetDir = path.dirname(targetFile);
-
+        const baseSafePath = getSafePath(baseDir, podcastTitle, resolvedName, ext);
+        const targetDir = path.dirname(baseSafePath);
         await fs.ensureDir(targetDir);
+
+        // Collision check: if a completed file already exists, add _2, _3 suffix
+        let targetFile = baseSafePath;
+        if (await fs.pathExists(targetFile)) {
+            const { dir, name, ext: fileExt } = path.parse(baseSafePath);
+            let i = 2;
+            do {
+                targetFile = path.join(dir, `${name}_${i++}${fileExt}`);
+            } while (await fs.pathExists(targetFile));
+        }
 
         // Track batch (v0.4.2 — atomic via BatchTracker)
         batchTracker.track();
@@ -335,14 +344,15 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     });
 
     // ── Show in folder ───────────────────────────────────
-    ipcMain.handle(CH.SHOW_IN_FOLDER, async (_, { podcastTitle, title, enclosureUrl }: { podcastTitle: string; title: string; enclosureUrl?: string }) => {
+    ipcMain.handle(CH.SHOW_IN_FOLDER, async (_, { podcastTitle, title, enclosureUrl, pubDate }: { podcastTitle: string; title: string; enclosureUrl?: string; pubDate?: string }) => {
         let baseDir = libraryService.getDownloadPath();
         if (!baseDir) {
             baseDir = path.join(app.getPath('documents'), 'FeedDownloader', 'downloads');
         }
-        // v0.4.3 — use real extension to find the correct file on disk
         const ext = enclosureUrl ? extractExtension(enclosureUrl) : '.mp3';
-        const safePath = getSafePath(baseDir, podcastTitle, title, ext);
+        const namingTemplate = libraryService.getNamingTemplate();
+        const resolvedName = applyTemplate(namingTemplate, { title, podcast: podcastTitle, pubDate });
+        const safePath = getSafePath(baseDir, podcastTitle, resolvedName, ext);
 
         const { shell } = await import('electron');
         shell.showItemInFolder(safePath);

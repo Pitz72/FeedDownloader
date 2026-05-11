@@ -19,8 +19,8 @@ contextBridge.exposeInMainWorld('api', {
     return () => ipcRenderer.removeListener(CH.DOWNLOAD_PROGRESS, subscription);
   },
   stopBatch: (): Promise<boolean> => ipcRenderer.invoke(CH.STOP_BATCH),
-  showInFolder: (podcastTitle: string, title: string, enclosureUrl?: string): Promise<void> =>
-    ipcRenderer.invoke(CH.SHOW_IN_FOLDER, { podcastTitle, title, enclosureUrl }),
+  showInFolder: (podcastTitle: string, title: string, enclosureUrl?: string, pubDate?: string): Promise<void> =>
+    ipcRenderer.invoke(CH.SHOW_IN_FOLDER, { podcastTitle, title, enclosureUrl, pubDate }),
   removeDownloadedEpisode: (guid: string): Promise<boolean> => ipcRenderer.invoke(CH.REMOVE_HISTORY_ITEM, guid),
   resetDownloadHistory: (): Promise<boolean> => ipcRenderer.invoke(CH.RESET_HISTORY),
   getHelpContent: (lang: string): Promise<string> => ipcRenderer.invoke(CH.GET_HELP_CONTENT, lang),
