@@ -4,14 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { Icon } from './Icon';
 import noiseSvg from '../assets/noise.svg';
 import { HelpModal } from './HelpModal';
-import GB from 'country-flag-icons/react/3x2/GB';
-import IT from 'country-flag-icons/react/3x2/IT';
-import FR from 'country-flag-icons/react/3x2/FR';
-import DE from 'country-flag-icons/react/3x2/DE';
-import ES from 'country-flag-icons/react/3x2/ES';
-import PT from 'country-flag-icons/react/3x2/PT';
-import RU from 'country-flag-icons/react/3x2/RU';
-import CN from 'country-flag-icons/react/3x2/CN';
 
 interface IntroScreenProps {
     onComplete: () => void;
@@ -64,14 +56,14 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
     const changeLanguage = (lng: string) => { i18n.changeLanguage(lng); };
 
     const languages = [
-        { code: 'en', Flag: GB },
-        { code: 'it', Flag: IT },
-        { code: 'fr', Flag: FR },
-        { code: 'de', Flag: DE },
-        { code: 'es', Flag: ES },
-        { code: 'pt', Flag: PT },
-        { code: 'ru', Flag: RU },
-        { code: 'zh', Flag: CN },
+        { code: 'en', flag: '🇬🇧' },
+        { code: 'it', flag: '🇮🇹' },
+        { code: 'fr', flag: '🇫🇷' },
+        { code: 'de', flag: '🇩🇪' },
+        { code: 'es', flag: '🇪🇸' },
+        { code: 'pt', flag: '🇵🇹' },
+        { code: 'ru', flag: '🇷🇺' },
+        { code: 'zh', flag: '🇨🇳' },
     ];
 
     const [isHelpOpen, setIsHelpOpen] = useState(false);
@@ -172,7 +164,7 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
                                 boxShadow: 'inset 0 0 0 1px rgba(65,71,85,0.2)',
                             }}
                         >
-                            {languages.map(({ code, Flag }) => (
+                            {languages.map(({ code, flag }) => (
                                 <button
                                     key={code}
                                     onClick={() => changeLanguage(code)}
@@ -183,7 +175,7 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
                                     }
                                     title={code.toUpperCase()}
                                 >
-                                    <Flag className="w-6 h-4 md:w-8 md:h-6 rounded-sm" />
+                                    <span className="text-2xl md:text-3xl leading-none">{flag}</span>
                                 </button>
                             ))}
                         </div>
