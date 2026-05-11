@@ -11,6 +11,8 @@ import { ToastProvider, useToast } from './context/ToastContext';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 
+const isMac = document.documentElement.dataset.platform === 'darwin';
+
 function AppContent() {
   const updateDownload = useStore((state: AppState) => state.updateDownload);
   const incrementBatch = useStore((state: AppState) => state.incrementBatch);
@@ -92,7 +94,7 @@ function AppContent() {
 
         {/* TopBar */}
         <header
-          className="flex items-center justify-between px-8 h-14 shrink-0 z-20"
+          className={`flex items-center justify-between h-14 shrink-0 z-20 ${isMac ? 'pl-20 pr-8' : 'px-8'}`}
           style={{ background: 'var(--color-background)' }}
         >
           <h1

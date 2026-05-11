@@ -46,7 +46,7 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 | D1 | Bug | Filtri episodi non si resettano al cambio feed | 🟡 | ✅ v1.1.1 |
 | D2 | Bug | `import()` dinamico di librerie dentro loop/callback | 🟡 | ✅ v1.1.2 |
 | D3 | Bug | `renderEpisodeRow` non memoized — Virtuoso ri-renderizza tutto | 🟡 | ✅ v1.1.3 |
-| D4 | Bug | macOS: `titleBarStyle: hidden` senza compensazione traffic light | 🟡 | 🔲 |
+| D4 | Bug | macOS: `titleBarStyle: hidden` senza compensazione traffic light | 🟡 | ✅ v1.1.4 |
 | D5 | Bug | `statfs` richiede Node ≥ 18.15.0, declared `>=18.0.0` | 🟡 | 🔲 |
 | D6 | Bug | `SettingsModal` apre senza skeleton — valori flikkano | 🟡 | 🔲 |
 | D7 | Bug | Stima disco usa 128 kbps fisso | 🟢 | 🔲 |
@@ -198,12 +198,11 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 - **File:** `src/components/EpisodeList.tsx`
 - **Fix applicato:** `parseDurationMinutes`/`formatDuration`/`formatBytes` spostate fuori dal componente; `handleDownload` e `handleResetStatus` avvolte in `useCallback`; `renderEpisodeRow` avvolta in `useCallback` con dipendenze `[downloads, downloadedGuids, currentFeed, t, isOnline, handleDownload, handleResetStatus]`.
 
-### D4 🟡 macOS: `titleBarStyle: hidden` senza padding per traffic light
+### D4 🟡 ✅ v1.1.4 macOS: `titleBarStyle: hidden` senza padding per traffic light
 
-- **Stato:** 🔲
-- **File:** `electron/main.ts:103`
-- **Problema:** `titleBarStyle: 'hidden'` nasconde la barra nativa ma i tre pulsanti (semaforo) rimangono e overlappano il contenuto React. Il header dell'app (`h-14`) non ha padding-left sufficiente su macOS. Il pulsante Settings e il titolo vengono parzialmente oscurati.
-- **Fix:** Aggiungere `trafficLightPosition` nella config BrowserWindow e un CSS `env(titlebar-area-x)` o padding condizionale per piattaforma.
+- **Stato:** ✅ v1.1.4
+- **File:** `electron/main.ts`, `electron/preload.ts`, `src/App.tsx`
+- **Fix applicato:** `trafficLightPosition: { x: 16, y: 14 }` in BrowserWindow; `dataset.platform = process.platform` nel preload per rilevamento sincrono; `pl-20` condizionale nell'header React su macOS.
 
 ### D5 🟡 `statfs` richiede Node ≥ 18.15.0
 

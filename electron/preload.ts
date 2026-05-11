@@ -2,6 +2,9 @@ import { ipcRenderer, contextBridge } from 'electron'
 import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveStats, HealthCheckResult, DiskSpaceInfo, MigrationResult, MigrationProgress, PathValidationResult, UpdateStatus } from '../shared/types'
 import { IPC_CHANNELS as CH } from '../shared/types'
 
+// Set platform data-attribute on <html> before React renders (used for macOS traffic-light CSS)
+document.documentElement.dataset.platform = process.platform;
+
 // --------- Expose API to the Renderer process ---------
 contextBridge.exposeInMainWorld('api', {
   parseFeed: (url: string): Promise<Feed> => ipcRenderer.invoke(CH.PARSE_FEED, url),
