@@ -47,7 +47,7 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 | D2 | Bug | `import()` dinamico di librerie dentro loop/callback | 🟡 | ✅ v1.1.2 |
 | D3 | Bug | `renderEpisodeRow` non memoized — Virtuoso ri-renderizza tutto | 🟡 | ✅ v1.1.3 |
 | D4 | Bug | macOS: `titleBarStyle: hidden` senza compensazione traffic light | 🟡 | ✅ v1.1.4 |
-| D5 | Bug | `statfs` richiede Node ≥ 18.15.0, declared `>=18.0.0` | 🟡 | 🔲 |
+| D5 | Bug | `statfs` richiede Node ≥ 18.15.0, declared `>=18.0.0` | 🟡 | ✅ v1.1.5 |
 | D6 | Bug | `SettingsModal` apre senza skeleton — valori flikkano | 🟡 | 🔲 |
 | D7 | Bug | Stima disco usa 128 kbps fisso | 🟢 | 🔲 |
 | D8 | Bug | `country-flag-icons` inutilizzato in `dependencies` | 🟢 | 🔲 |
@@ -204,12 +204,11 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 - **File:** `electron/main.ts`, `electron/preload.ts`, `src/App.tsx`
 - **Fix applicato:** `trafficLightPosition: { x: 16, y: 14 }` in BrowserWindow; `dataset.platform = process.platform` nel preload per rilevamento sincrono; `pl-20` condizionale nell'header React su macOS.
 
-### D5 🟡 `statfs` richiede Node ≥ 18.15.0
+### D5 🟡 ✅ v1.1.5 `statfs` richiede Node ≥ 18.15.0
 
-- **Stato:** 🔲
-- **File:** `electron/ipc.ts:19`, `package.json:36`
-- **Problema:** `import { statfs } from 'fs/promises'` è disponibile da Node 18.15.0. `package.json` dichiara `"node": ">=18.0.0"`. Su ambienti con Node 18.0–18.14 il check disco fallisce con `TypeError`.
-- **Fix:** Alzare il requisito a `>=18.15.0` in `package.json`, oppure wrappare la chiamata in try/catch con fallback `null`.
+- **Stato:** ✅ v1.1.5
+- **File:** `package.json`
+- **Fix applicato:** `engines.node` aggiornato a `">=18.15.0"` — allineato alla versione minima effettiva richiesta da `fs.statfs`.
 
 ### D6 🟡 `SettingsModal` apre senza skeleton — valori iniziali flikkano
 
