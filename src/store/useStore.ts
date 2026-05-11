@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Feed, DownloadProgress } from '../types';
+import type { Feed, DownloadProgress, QueueItem, FailedDownload } from '../types';
 
 export interface AppState {
     currentFeed: Feed | null;
@@ -17,6 +17,14 @@ export interface AppState {
     incrementBatch: () => void;
     resetBatch: () => void;
     stopBatch: () => Promise<void>;
+
+    // E1 — Queue visibility
+    queueItems: QueueItem[];
+    setQueueItems: (items: QueueItem[]) => void;
+
+    // E3 — Failure tracking
+    batchFailed: FailedDownload[];
+    setBatchFailed: (failed: FailedDownload[]) => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -62,9 +70,17 @@ export const useStore = create<AppState>((set) => ({
             isBatchDownloading: !isFinished
         };
     }),
-    resetBatch: () => set({ batchTotal: 0, batchCompleted: 0, isBatchDownloading: false }),
+    resetBatch: () => set({ batchTotal: 0, batchCompleted: 0, isBatchDownloading: false, batchFailed: [] }),
     stopBatch: async () => {
-        set({ isBatchDownloading: false, batchTotal: 0, batchCompleted: 0 });
+        set({ isBatchDownloading: false, batchTotal: 0, batchCompleted: 0, queueItems: [], batchFailed: [] });
         await window.api.stopBatch();
-    }
+    },
+
+    // E1 — Queue visibility
+    queueItems: [],
+    setQueueItems: (items) => set({ queueItems: items }),
+
+    // E3 — Failure tracking
+    batchFailed: [],
+    setBatchFailed: (failed) => set({ batchFailed: failed }),
 }));

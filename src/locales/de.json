@@ -45,7 +45,16 @@
         "downloading": "Wird heruntergeladen...",
         "dont_close": "Schließen Sie die Anwendung nicht",
         "completed": "Abgeschlossen!",
-        "stop": "Download stoppen"
+        "stop": "Download stoppen",
+        "cancel_item": "Download abbrechen",
+        "n_failed": "{{count}} Fehler",
+        "error_not_found": "Datei auf Server nicht gefunden",
+        "error_stalled": "Download blockiert",
+        "error_timeout": "Verbindungs-Timeout",
+        "error_disk_full": "Festplatte voll",
+        "error_integrity": "Integritätsprüfung fehlgeschlagen",
+        "error_permission": "Zugriff verweigert",
+        "error_unknown": "Unbekannter Fehler"
     },
     "toast": {
         "download_started": "Download gestartet...",

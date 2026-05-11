@@ -29,6 +29,7 @@ contextBridge.exposeInMainWorld('api', {
     return () => ipcRenderer.removeListener(CH.DOWNLOAD_PROGRESS, subscription);
   },
   stopBatch: (): Promise<boolean> => ipcRenderer.invoke(CH.STOP_BATCH),
+  cancelDownload: (taskId: string): Promise<boolean> => ipcRenderer.invoke(CH.CANCEL_DOWNLOAD, taskId),
   showInFolder: (podcastTitle: string, title: string, enclosureUrl?: string, pubDate?: string): Promise<void> =>
     ipcRenderer.invoke(CH.SHOW_IN_FOLDER, { podcastTitle, title, enclosureUrl, pubDate }),
   removeDownloadedEpisode: (guid: string): Promise<boolean> => ipcRenderer.invoke(CH.REMOVE_HISTORY_ITEM, guid),
@@ -49,10 +50,15 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.on(CH.DOWNLOADS_UPDATED, subscription);
     return () => ipcRenderer.removeListener(CH.DOWNLOADS_UPDATED, subscription);
   },
-  onBatchCompleted: (callback: (event: Electron.IpcRendererEvent, data: { total: number }) => void) => {
-    const subscription = (_event: Electron.IpcRendererEvent, data: { total: number }) => callback(_event, data);
+  onBatchCompleted: (callback: (event: Electron.IpcRendererEvent, data: { total: number; failed: import('../shared/types').FailedDownload[] }) => void) => {
+    const subscription = (_event: Electron.IpcRendererEvent, data: { total: number; failed: import('../shared/types').FailedDownload[] }) => callback(_event, data);
     ipcRenderer.on(CH.BATCH_COMPLETED, subscription);
     return () => ipcRenderer.removeListener(CH.BATCH_COMPLETED, subscription);
+  },
+  onQueueUpdated: (callback: (event: Electron.IpcRendererEvent, items: import('../shared/types').QueueItem[]) => void) => {
+    const subscription = (_event: Electron.IpcRendererEvent, items: import('../shared/types').QueueItem[]) => callback(_event, items);
+    ipcRenderer.on(CH.QUEUE_UPDATED, subscription);
+    return () => ipcRenderer.removeListener(CH.QUEUE_UPDATED, subscription);
   },
 
   // Concurrency

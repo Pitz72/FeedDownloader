@@ -45,7 +45,16 @@
         "downloading": "Téléchargement en cours...",
         "dont_close": "Ne fermez pas l'application",
         "completed": "Terminé !",
-        "stop": "Arrêter le téléchargement"
+        "stop": "Arrêter le téléchargement",
+        "cancel_item": "Annuler le téléchargement",
+        "n_failed": "{{count}} erreur(s)",
+        "error_not_found": "Fichier introuvable sur le serveur",
+        "error_stalled": "Téléchargement bloqué",
+        "error_timeout": "Délai de connexion dépassé",
+        "error_disk_full": "Disque plein",
+        "error_integrity": "Échec de la vérification d'intégrité",
+        "error_permission": "Accès refusé",
+        "error_unknown": "Erreur inconnue"
     },
     "toast": {
         "download_started": "Téléchargement démarré...",

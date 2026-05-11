@@ -45,7 +45,16 @@
         "downloading": "Загрузка...",
         "dont_close": "Не закрывайте приложение",
         "completed": "Завершено!",
-        "stop": "Остановить загрузку"
+        "stop": "Остановить загрузку",
+        "cancel_item": "Отменить загрузку",
+        "n_failed": "{{count}} ошибок",
+        "error_not_found": "Файл не найден на сервере",
+        "error_stalled": "Загрузка зависла",
+        "error_timeout": "Таймаут соединения",
+        "error_disk_full": "Диск заполнен",
+        "error_integrity": "Ошибка проверки целостности",
+        "error_permission": "Доступ запрещён",
+        "error_unknown": "Неизвестная ошибка"
     },
     "toast": {
         "download_started": "Загрузка начата...",

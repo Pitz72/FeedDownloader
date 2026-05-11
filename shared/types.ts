@@ -42,7 +42,21 @@ export interface DownloadProgress {
     total: number;
     completed?: boolean;
     error?: boolean;
-    notFound?: boolean; // v0.5.0 — ghost episode: server returned 404
+    notFound?: boolean;
+}
+
+export interface QueueItem {
+    taskId: string;
+    title: string;
+    podcastTitle: string;
+    url: string;
+    status: 'pending' | 'downloading';
+}
+
+export interface FailedDownload {
+    title: string;
+    podcastTitle: string;
+    errorCode: string;
 }
 
 export interface ArchiveEntry {
@@ -148,6 +162,9 @@ export const IPC_CHANNELS = {
     FEEDS_UPDATED: 'feeds-updated',
     DOWNLOADS_UPDATED: 'downloads-updated',
     BATCH_COMPLETED: 'batch-completed',
+    QUEUE_UPDATED: 'queue-updated',
+    // Queue management
+    CANCEL_DOWNLOAD: 'cancel-download',
     // Concurrency & Stats
     GET_CONCURRENCY: 'get-concurrency',
     SET_CONCURRENCY: 'set-concurrency',

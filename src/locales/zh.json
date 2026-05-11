@@ -45,7 +45,16 @@
         "downloading": "下载中...",
         "dont_close": "请勿关闭应用",
         "completed": "已完成！",
-        "stop": "停止下载"
+        "stop": "停止下载",
+        "cancel_item": "取消下载",
+        "n_failed": "{{count}} 个错误",
+        "error_not_found": "服务器上未找到文件",
+        "error_stalled": "下载已停滞",
+        "error_timeout": "连接超时",
+        "error_disk_full": "磁盘已满",
+        "error_integrity": "完整性验证失败",
+        "error_permission": "访问被拒绝",
+        "error_unknown": "未知错误"
     },
     "toast": {
         "download_started": "下载已开始...",

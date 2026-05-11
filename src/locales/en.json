@@ -45,7 +45,16 @@
         "downloading": "Downloading...",
         "dont_close": "Do not close the application",
         "completed": "Completed!",
-        "stop": "Stop download"
+        "stop": "Stop download",
+        "cancel_item": "Cancel download",
+        "n_failed": "{{count}} errors",
+        "error_not_found": "File not found on server",
+        "error_stalled": "Download stalled",
+        "error_timeout": "Connection timeout",
+        "error_disk_full": "Disk full",
+        "error_integrity": "Integrity check failed",
+        "error_permission": "Access denied",
+        "error_unknown": "Unknown error"
     },
     "toast": {
         "download_started": "Download started...",

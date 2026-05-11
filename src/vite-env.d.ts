@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 // Re-export shared types for use in global declarations
-import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveStats, HealthCheckResult, DiskSpaceInfo, MigrationResult, MigrationProgress, PathValidationResult, UpdateStatus } from '../shared/types'
+import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveStats, HealthCheckResult, DiskSpaceInfo, MigrationResult, MigrationProgress, PathValidationResult, UpdateStatus, QueueItem, FailedDownload } from '../shared/types'
 
 declare global {
     const __APP_VERSION__: string;
@@ -18,6 +18,7 @@ declare global {
             getDownloadPath: () => Promise<string>;
             setDownloadPath: (path: string) => Promise<boolean>;
             stopBatch: () => Promise<boolean>;
+            cancelDownload: (taskId: string) => Promise<boolean>;
             showInFolder: (podcastTitle: string, title: string, enclosureUrl?: string, pubDate?: string) => Promise<void>;
             removeDownloadedEpisode: (guid: string) => Promise<boolean>;
             resetDownloadHistory: () => Promise<boolean>;
@@ -28,7 +29,8 @@ declare global {
             // Push events
             onFeedsUpdated: (callback: (event: Electron.IpcRendererEvent, feeds: FeedEntry[]) => void) => () => void;
             onDownloadsUpdated: (callback: (event: Electron.IpcRendererEvent, guids: string[]) => void) => () => void;
-            onBatchCompleted: (callback: (event: Electron.IpcRendererEvent, data: { total: number }) => void) => () => void;
+            onBatchCompleted: (callback: (event: Electron.IpcRendererEvent, data: { total: number; failed: FailedDownload[] }) => void) => () => void;
+            onQueueUpdated: (callback: (event: Electron.IpcRendererEvent, items: QueueItem[]) => void) => () => void;
             // Concurrency
             getConcurrency: () => Promise<number>;
             setConcurrency: (n: number) => Promise<boolean>;

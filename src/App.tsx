@@ -16,6 +16,8 @@ const isMac = document.documentElement.dataset.platform === 'darwin';
 function AppContent() {
   const updateDownload = useStore((state: AppState) => state.updateDownload);
   const incrementBatch = useStore((state: AppState) => state.incrementBatch);
+  const setQueueItems = useStore((state: AppState) => state.setQueueItems);
+  const setBatchFailed = useStore((state: AppState) => state.setBatchFailed);
   const toast = useToast();
   const { t } = useTranslation();
 
@@ -35,6 +37,22 @@ function AppContent() {
     });
     return () => removeListener();
   }, [updateDownload, incrementBatch, toast, t]);
+
+  useEffect(() => {
+    const removeListener = window.api.onQueueUpdated((_event, items) => {
+      setQueueItems(items);
+    });
+    return () => removeListener();
+  }, [setQueueItems]);
+
+  useEffect(() => {
+    const removeListener = window.api.onBatchCompleted((_event, data) => {
+      if (data.failed && data.failed.length > 0) {
+        setBatchFailed(data.failed);
+      }
+    });
+    return () => removeListener();
+  }, [setBatchFailed]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

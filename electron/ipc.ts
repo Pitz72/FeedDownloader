@@ -13,7 +13,7 @@ import { validateUrl } from './utils/validateUrl';
 import { validateNetworkPath } from './utils/validateNetworkPath';
 import { autoUpdater } from 'electron-updater';
 import { IPC_CHANNELS as CH } from '../shared/types';
-import type { FeedEntry, DownloadRequest, HealthCheckResult, DiskSpaceInfo, MigrationResult, MigrationProgress, PathValidationResult, UpdateStatus } from '../shared/types';
+import type { FeedEntry, DownloadRequest, HealthCheckResult, DiskSpaceInfo, MigrationResult, MigrationProgress, PathValidationResult, UpdateStatus, QueueItem, FailedDownload } from '../shared/types';
 import path from 'path';
 import fs from 'fs-extra';
 import { statfs } from 'fs/promises';
@@ -33,11 +33,22 @@ function pushEvent(win: BrowserWindow, channel: string, data?: unknown) {
     }
 }
 
-// Track batch for OS notification (v0.4.2 — race-condition-safe)
+// Track batch for OS notification (race-condition-safe via debounce seal)
 const batchTracker = new BatchTracker();
 
-// Track AbortControllers for in-flight downloads — keyed by target file path
+// Track AbortControllers for in-flight downloads — keyed by taskId
 const activeDownloads = new Map<string, AbortController>();
+
+// Queue state: visible to renderer via QUEUE_UPDATED push events
+const queueItems = new Map<string, QueueItem>();
+// taskIds cancelled while still pending (task not yet executing)
+const cancelledTaskIds = new Set<string>();
+// Failures accumulated during current batch, sent with BATCH_COMPLETED
+let failedDownloads: FailedDownload[] = [];
+
+function pushQueueUpdated(win: BrowserWindow) {
+    pushEvent(win, CH.QUEUE_UPDATED, Array.from(queueItems.values()));
+}
 
 // max 1 parse request per URL every 3 seconds
 const parseFeedLastCall = new Map<string, number>();
@@ -148,13 +159,34 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
             } while (await fs.pathExists(targetFile));
         }
 
-        // Track batch (v0.4.2 — atomic via BatchTracker)
         batchTracker.track();
 
+        const taskId = crypto.randomUUID();
         const controller = new AbortController();
-        activeDownloads.set(targetFile, controller);
+        activeDownloads.set(taskId, controller);
+
+        // Register task as pending in the queue
+        queueItems.set(taskId, { taskId, title, podcastTitle, url, status: 'pending' });
+        pushQueueUpdated(mainWindow);
 
         queueService.add(async () => {
+            // Task was cancelled before its queue slot opened
+            if (cancelledTaskIds.has(taskId)) {
+                cancelledTaskIds.delete(taskId);
+                queueItems.delete(taskId);
+                pushQueueUpdated(mainWindow);
+                // Signal renderer so incrementBatch() fires and the counter stays accurate
+                pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded: 0, total: 0, completed: true });
+                return; // finally still runs → batchTracker.complete()
+            }
+
+            // Mark as downloading
+            const item = queueItems.get(taskId);
+            if (item) {
+                queueItems.set(taskId, { ...item, status: 'downloading' });
+                pushQueueUpdated(mainWindow);
+            }
+
             try {
                 const speedLimitKBps = libraryService.getSpeedLimit();
                 await downloadService.downloadFile(url, targetFile, (loaded, total) => {
@@ -227,32 +259,47 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                     await fs.writeJSON(sidecarPath, sidecar, { spaces: 2 }).catch(() => { });
                 }
 
+                // Success: remove from queue
+                queueItems.delete(taskId);
+                pushQueueUpdated(mainWindow);
                 pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded: 100, total: 100, completed: true });
                 pushEvent(mainWindow, CH.DOWNLOADS_UPDATED, libraryService.getDownloadedEpisodes());
             } catch (error) {
-                const isAborted = (error as Error).message === 'DOWNLOAD_ABORTED';
-                if (!isAborted) {
-                    console.error("Download error:", error);
-                    const isNotFound = (error as Error).message === 'EPISODE_NOT_FOUND';
+                const errMsg = (error as Error).message || 'UNKNOWN';
+                const isAborted = errMsg === 'DOWNLOAD_ABORTED';
+
+                if (isAborted) {
+                    // For individual cancels (not STOP_BATCH) trigger incrementBatch in renderer
+                    if (batchTracker.active) {
+                        pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded: 0, total: 0, completed: true });
+                    }
+                } else {
+                    console.error('Download error:', error);
+                    queueItems.delete(taskId);
+                    failedDownloads.push({ title, podcastTitle, errorCode: errMsg });
+                    pushQueueUpdated(mainWindow);
+                    const isNotFound = errMsg === 'EPISODE_NOT_FOUND';
                     pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, {
                         url, loaded: 0, total: 0, error: true,
                         ...(isNotFound ? { notFound: true } : {})
                     });
                 }
             } finally {
-                activeDownloads.delete(targetFile);
+                activeDownloads.delete(taskId);
                 const finishedTotal = batchTracker.complete();
                 if (finishedTotal !== null) {
+                    const failedCount = failedDownloads.length;
+                    const okCount = finishedTotal - failedCount;
                     if (Notification.isSupported()) {
                         const notificationBodies: Record<string, string> = {
-                            en: `Download complete: ${finishedTotal} files downloaded.`,
-                            it: `Download completato: ${finishedTotal} file scaricati.`,
-                            fr: `Téléchargement terminé : ${finishedTotal} fichiers téléchargés.`,
-                            de: `Download abgeschlossen: ${finishedTotal} Dateien heruntergeladen.`,
-                            es: `Descarga completada: ${finishedTotal} archivos descargados.`,
-                            pt: `Download concluído: ${finishedTotal} ficheiros descarregados.`,
-                            ru: `Загрузка завершена: ${finishedTotal} файлов скачано.`,
-                            zh: `下载完成：已下载 ${finishedTotal} 个文件。`,
+                            en: failedCount > 0 ? `Download complete: ${okCount} downloaded, ${failedCount} failed.` : `Download complete: ${finishedTotal} files downloaded.`,
+                            it: failedCount > 0 ? `Download completato: ${okCount} scaricati, ${failedCount} errori.` : `Download completato: ${finishedTotal} file scaricati.`,
+                            fr: failedCount > 0 ? `Téléchargement terminé : ${okCount} téléchargés, ${failedCount} erreurs.` : `Téléchargement terminé : ${finishedTotal} fichiers téléchargés.`,
+                            de: failedCount > 0 ? `Download abgeschlossen: ${okCount} geladen, ${failedCount} Fehler.` : `Download abgeschlossen: ${finishedTotal} Dateien heruntergeladen.`,
+                            es: failedCount > 0 ? `Descarga completa: ${okCount} descargados, ${failedCount} errores.` : `Descarga completada: ${finishedTotal} archivos descargados.`,
+                            pt: failedCount > 0 ? `Download concluído: ${okCount} descarregados, ${failedCount} erros.` : `Download concluído: ${finishedTotal} ficheiros descarregados.`,
+                            ru: failedCount > 0 ? `Загрузка завершена: ${okCount} скачано, ${failedCount} ошибок.` : `Загрузка завершена: ${finishedTotal} файлов скачано.`,
+                            zh: failedCount > 0 ? `下载完成：${okCount} 个成功，${failedCount} 个失败。` : `下载完成：已下载 ${finishedTotal} 个文件。`,
                         };
                         new Notification({
                             title: 'Runtime FeedDownloader Pro',
@@ -260,12 +307,32 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                             icon: path.join(process.env.VITE_PUBLIC || '', 'logo.png'),
                         }).show();
                     }
-                    pushEvent(mainWindow, CH.BATCH_COMPLETED, { total: finishedTotal });
+                    pushEvent(mainWindow, CH.BATCH_COMPLETED, { total: finishedTotal, failed: [...failedDownloads] });
+                    failedDownloads = [];
                 }
             }
         });
 
         return { status: 'queued' };
+    });
+
+    // ── Cancel Single Download ────────────────────────────
+    ipcMain.handle(CH.CANCEL_DOWNLOAD, async (_, taskId: string) => {
+        const item = queueItems.get(taskId);
+        if (!item) return false;
+
+        // Remove from queue immediately for instant UI update
+        queueItems.delete(taskId);
+        pushQueueUpdated(mainWindow);
+
+        if (item.status === 'pending') {
+            // Mark for skipping when the task's queue slot opens
+            cancelledTaskIds.add(taskId);
+        } else if (item.status === 'downloading') {
+            const controller = activeDownloads.get(taskId);
+            if (controller) controller.abort();
+        }
+        return true;
     });
 
     ipcMain.handle(CH.STOP_BATCH, async () => {
@@ -275,6 +342,10 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         }
         activeDownloads.clear();
         batchTracker.reset();
+        queueItems.clear();
+        cancelledTaskIds.clear();
+        failedDownloads = [];
+        pushQueueUpdated(mainWindow);
         return true;
     });
 

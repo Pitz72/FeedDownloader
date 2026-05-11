@@ -45,7 +45,16 @@
         "downloading": "Download in corso...",
         "dont_close": "Non chiudere l'applicazione",
         "completed": "Completato!",
-        "stop": "Ferma download"
+        "stop": "Ferma download",
+        "cancel_item": "Annulla download",
+        "n_failed": "{{count}} errori",
+        "error_not_found": "File non trovato sul server",
+        "error_stalled": "Download bloccato",
+        "error_timeout": "Timeout connessione",
+        "error_disk_full": "Disco pieno",
+        "error_integrity": "Verifica integrità fallita",
+        "error_permission": "Accesso negato",
+        "error_unknown": "Errore sconosciuto"
     },
     "toast": {
         "download_started": "Download avviato...",

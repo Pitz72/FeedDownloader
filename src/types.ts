@@ -13,6 +13,8 @@ export type {
     ArchiveStats,
     DownloadRequest,
     DownloadResult,
+    QueueItem,
+    FailedDownload,
 } from '../shared/types';
 
 export { IPC_CHANNELS } from '../shared/types';

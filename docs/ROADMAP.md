@@ -54,9 +54,9 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 | D9 | Bug | Hover state gestiti via JS `onMouseEnter/Leave` invece di CSS | 🟢 | ✅ v1.1.9 |
 | D10 | Bug | Commenti `// vX.Y.Z —` inquinano il codice | 🟢 | ✅ v1.1.10 |
 | D11 | Bug | Download button invisibile da tastiera (`opacity-0`) | 🟢 | ✅ v1.1.11 |
-| E1 | Feature | Vista coda download con episodi in-flight | 🔵 | 🔲 |
-| E2 | Feature | Rimozione/pausa singolo elemento dalla coda | 🔵 | 🔲 |
-| E3 | Feature | Tracking fallimenti nel batch (log errori) | 🔵 | 🔲 |
+| E1 | Feature | Vista coda download con episodi in-flight | 🔵 | ✅ v1.1.13 |
+| E2 | Feature | Rimozione/pausa singolo elemento dalla coda | 🔵 | ✅ v1.1.13 |
+| E3 | Feature | Tracking fallimenti nel batch (log errori) | 🔵 | ✅ v1.1.13 |
 | E4 | Feature | Ordinamento episodi (data asc/desc, durata) | 🔵 | 🔲 |
 | E5 | Feature | Re-download episodio già scaricato | 🔵 | 🔲 |
 | E6 | Feature | Path download visibile nella UI principale | 🔵 | 🔲 |
@@ -251,23 +251,23 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 
 ## E — Funzionalità Essenziali Mancanti 🔵
 
-### E1 🔵 Vista coda download
+### E1 🔵 ✅ v1.1.13 Vista coda download
 
-- **Stato:** 🔲
-- **Descrizione:** L'utente avvia 200 download e vede solo "47/200" nella GlobalProgressBar. Non sa cosa si sta scaricando in questo momento, cosa è in coda, quale episodio ha fallito. Zero visibilità sull'engine.
-- **Approccio:** Esporre da `QueueService` la lista dei task pending; passare al renderer via push event l'episodio attualmente in download; mostrare una lista scrollabile nel pannello download (vedi G1).
+- **Stato:** ✅ v1.1.13
+- **File:** `electron/ipc.ts`, `src/store/useStore.ts`, `src/App.tsx`, `src/components/GlobalProgressBar.tsx`
+- **Fix applicato:** Mappa `queueItems: Map<string, QueueItem>` nel main process; evento IPC `QUEUE_UPDATED` inviato al renderer ad ogni modifica. `GlobalProgressBar` mostra lista scrollabile (max 168px) con icona spinning per i task in download e icona schedule per i pending.
 
-### E2 🔵 Rimozione/pausa singolo elemento dalla coda
+### E2 🔵 ✅ v1.1.13 Cancellazione singolo download dalla coda
 
-- **Stato:** 🔲
-- **Descrizione:** `stopBatch` è un interruttore nucleare. Non è possibile togliere dalla coda un singolo episodio o mettere in pausa un download specifico. Fondamentale per uso reale con batch grandi.
-- **Approccio:** `QueueService` deve associare un ID univoco a ogni task; nuovo canale IPC `CANCEL_DOWNLOAD(id)` che chiama `abort()` sull'`AbortController` del task specifico.
+- **Stato:** ✅ v1.1.13
+- **File:** `electron/ipc.ts`, `electron/preload.ts`, `src/components/GlobalProgressBar.tsx`
+- **Fix applicato:** UUID `taskId` per ogni task; handler IPC `CANCEL_DOWNLOAD`; per task pending → marcato in `cancelledTaskIds` (saltato al suo turno); per task in-flight → `AbortController.abort()`. Pulsante × appare on-hover su ogni riga della coda.
 
-### E3 🔵 Tracking fallimenti nel batch
+### E3 🔵 ✅ v1.1.13 Tracking fallimenti nel batch
 
-- **Stato:** 🔲
-- **Descrizione:** Episodi che falliscono (404, timeout, server error) non vengono registrati. Un batch di 200 con 10 errori mostra "Completato!" come se tutti fossero andati a buon fine. L'utente non sa cosa è mancato.
-- **Approccio:** Tabella `download_errors` nel DB (guid, url, error_code, timestamp); dopo batch mostrare "195 OK, 5 falliti" con lista dei titoli falliti nel GlobalProgressBar.
+- **Stato:** ✅ v1.1.13
+- **File:** `electron/ipc.ts`, `src/store/useStore.ts`, `src/App.tsx`, `src/components/GlobalProgressBar.tsx`
+- **Fix applicato:** Array `failedDownloads: FailedDownload[]` accumulato durante il batch; inviato con `BATCH_COMPLETED`. `GlobalProgressBar` mostra bottone espandibile con conteggio errori e lista titoli con codice errore tradotto (via `ERROR_CODE_MAP`). Progress bar diventa gradiente rosso se ci sono fallimenti.
 
 ### E4 🔵 Ordinamento episodi
 
