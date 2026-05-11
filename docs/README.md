@@ -45,6 +45,7 @@ Cronologia completa delle versioni in [`changelog/`](changelog/).
 
 ## Roadmap
 
+- [roadmap_technical_fixes.md](roadmap_technical_fixes.md) — Fix tecnici e miglioramenti UX (Post-v1.0.0) — 🆕 **Identificati aprile 2026**
 - [indicazioni.md](archivio/indicazioni.md) — Feature future con stato di implementazione (✅/🔲) — ⚠️ Archivio storico (tutto completato in v0.7.4)
 - [lungotermine.md](archivio/lungotermine.md) — Roadmap lungo termine — ⚠️ Archivio storico (tutto completato/abortito in v0.7.5)
 
