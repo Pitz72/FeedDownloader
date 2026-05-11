@@ -46,7 +46,8 @@
         "sort_date_asc": "Дата: сначала старые",
         "sort_dur_desc": "Длительность: длиннее",
         "sort_dur_asc": "Длительность: короче",
-        "redownload": "Повторно скачать"
+        "redownload": "Повторно скачать",
+        "download_selected": "Скачать выбранное ({{count}})"
     },
     "progress": {
         "downloading": "Загрузка...",

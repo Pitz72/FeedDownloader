@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useStore, AppState } from '../store/useStore';
 import { Icon } from './Icon';
 import { useToast } from '../context/ToastContext';
@@ -35,6 +35,26 @@ function formatBytes(bytes: number): string {
     return `${Math.round(bytes / 1024)} KB`;
 }
 
+function formatSpeed(bytesPerSec: number): string {
+    if (bytesPerSec >= 1024 ** 2) return `${(bytesPerSec / 1024 ** 2).toFixed(1)} MB/s`;
+    if (bytesPerSec >= 1024) return `${Math.round(bytesPerSec / 1024)} KB/s`;
+    return `${Math.round(bytesPerSec)} B/s`;
+}
+
+function formatEta(seconds: number): string {
+    if (seconds >= 3600) {
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        return `${h}h ${m}m`;
+    }
+    if (seconds >= 60) {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m}m ${s}s`;
+    }
+    return `${seconds}s`;
+}
+
 export const EpisodeList: React.FC = () => {
     const currentFeed = useStore((state: AppState) => state.currentFeed);
     const downloads = useStore((state: AppState) => state.downloads);
@@ -60,6 +80,11 @@ export const EpisodeList: React.FC = () => {
     const [sortOrder, setSortOrder] = useState<SortOrder>('default');
     const [showSortPanel, setShowSortPanel] = useState(false);
 
+    // F4 — Multi-selection
+    const [selectedGuids, setSelectedGuids] = useState<Set<string>>(new Set());
+    const lastSelectedGuidRef = useRef<string | null>(null);
+    const filteredEpisodesRef = useRef<Episode[]>([]);
+
     // Reset all filters when switching feed (D1)
     useEffect(() => {
         setSearchQuery('');
@@ -72,6 +97,8 @@ export const EpisodeList: React.FC = () => {
         setShowDurationFilter(false);
         setSortOrder('default');
         setShowSortPanel(false);
+        setSelectedGuids(new Set());
+        lastSelectedGuidRef.current = null;
     }, [currentFeed?.url]);
 
     const [isSyncing, setIsSyncing] = useState(false);
@@ -182,6 +209,9 @@ export const EpisodeList: React.FC = () => {
         return episodes;
     }, [currentFeed, searchQuery, dateFrom, dateTo, downloadedGuids, downloads, statusFilter, minDuration, maxDuration, sortOrder]);
 
+    // Keep ref in sync so handleRowClick can read current list without being recreated
+    filteredEpisodesRef.current = filteredEpisodes;
+
     const isOnline = useOnlineStatus();
 
     const handleDownload = useCallback((episode: Episode, silent = false) => {
@@ -213,6 +243,54 @@ export const EpisodeList: React.FC = () => {
         });
     }, [t, toast]);
 
+    // F4 — Row click toggles selection; Shift extends range, Ctrl/Cmd toggles individual
+    const handleRowClick = useCallback((episode: Episode, index: number, e: React.MouseEvent) => {
+        const url = getEnclosureUrl(episode);
+        const guid = episode.guid || url || '';
+        if (!guid) return;
+        setSelectedGuids(prev => {
+            const next = new Set(prev);
+            if (e.shiftKey) {
+                const lastGuid = lastSelectedGuidRef.current;
+                const episodes = filteredEpisodesRef.current;
+                const lastIdx = lastGuid
+                    ? episodes.findIndex(ep => (ep.guid || getEnclosureUrl(ep) || '') === lastGuid)
+                    : -1;
+                if (lastIdx !== -1) {
+                    const start = Math.min(lastIdx, index);
+                    const end = Math.max(lastIdx, index);
+                    for (let i = start; i <= end; i++) {
+                        const g = episodes[i]?.guid || getEnclosureUrl(episodes[i]) || '';
+                        if (g) next.add(g);
+                    }
+                    return next;
+                }
+            }
+            if (e.ctrlKey || e.metaKey) {
+                if (next.has(guid)) next.delete(guid); else next.add(guid);
+            } else {
+                if (next.has(guid) && next.size === 1) next.clear();
+                else { next.clear(); next.add(guid); }
+            }
+            return next;
+        });
+        lastSelectedGuidRef.current = guid;
+    }, []); // stable — reads only refs
+
+    const handleDownloadSelected = useCallback(() => {
+        const toDownload = filteredEpisodesRef.current.filter(ep => {
+            const url = getEnclosureUrl(ep);
+            const guid = ep.guid || url || '';
+            return guid && selectedGuids.has(guid) && !downloadedGuids.includes(guid);
+        });
+        if (toDownload.length === 0) { toast.show(t('toast.all_downloaded'), 'info'); return; }
+        startBatch(toDownload.length);
+        toast.show(t('toast.mass_download_started'), 'success');
+        toDownload.forEach(ep => handleDownload(ep, true));
+        setSelectedGuids(new Set());
+        lastSelectedGuidRef.current = null;
+    }, [selectedGuids, downloadedGuids, startBatch, handleDownload, toast, t]);
+
     // ── Episode row renderer ──────────────────────────────────────────────────
     const renderEpisodeRow = useCallback((index: number, episode: Episode) => {
         const url = getEnclosureUrl(episode);
@@ -223,6 +301,7 @@ export const EpisodeList: React.FC = () => {
         const progressPercent = (status && status.total && status.total > 0)
             ? Math.round((status.loaded / status.total) * 100)
             : null;
+        const isSelected = selectedGuids.has(guid);
 
         const pubDate = episode.pubDate
             ? new Date(episode.pubDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
@@ -231,15 +310,28 @@ export const EpisodeList: React.FC = () => {
 
         return (
             <div
-                className="episode-row group flex items-center gap-4 px-4 py-3 cursor-default"
+                className="episode-row group flex items-center gap-4 px-4 py-3 cursor-pointer select-none"
+                onClick={(e) => handleRowClick(episode, index, e)}
                 style={{
-                    background: index % 2 === 0 ? 'var(--color-surface)' : 'var(--color-surface-container-lowest)',
+                    background: isSelected
+                        ? 'rgba(173,198,255,0.1)'
+                        : (index % 2 === 0 ? 'var(--color-surface)' : 'var(--color-surface-container-lowest)'),
                     borderBottom: '1px solid rgba(65,71,85,0.05)',
+                    borderLeft: isSelected ? '2px solid var(--color-primary)' : '2px solid transparent',
                 }}
             >
+                {/* Checkbox (visible on hover or when selected) */}
+                <div className={`w-5 h-5 shrink-0 flex items-center justify-center transition-opacity ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                    <Icon
+                        name={isSelected ? 'check_box' : 'check_box_outline_blank'}
+                        size={16}
+                        style={{ color: isSelected ? 'var(--color-primary)' : 'var(--color-on-surface-variant)' }}
+                    />
+                </div>
+
                 {/* Index */}
                 <span
-                    className="w-10 text-xs shrink-0 text-right"
+                    className="w-8 text-xs shrink-0 text-right"
                     style={{ fontFamily: 'var(--font-label)', color: 'var(--color-on-surface-variant)' }}
                 >
                     {String(index + 1).padStart(2, '0')}.
@@ -273,12 +365,20 @@ export const EpisodeList: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Actions / status */}
-                <div className="flex items-center gap-3 shrink-0">
+                {/* Actions / status — stop propagation so clicks don't toggle row selection */}
+                <div className="flex items-center gap-3 shrink-0" onClick={(e) => e.stopPropagation()}>
                     {isDownloading ? (
-                        <div className="flex items-center gap-2 text-xs" style={{ fontFamily: 'var(--font-label)', color: 'var(--color-primary)' }}>
-                            <Icon name="progress_activity" size={16} className="animate-spin" />
-                            {progressPercent !== null ? `${progressPercent}%` : t('progress.downloading')}
+                        <div className="flex flex-col items-end gap-0.5 text-xs" style={{ fontFamily: 'var(--font-label)', color: 'var(--color-primary)' }}>
+                            <div className="flex items-center gap-2">
+                                <Icon name="progress_activity" size={16} className="animate-spin" />
+                                {progressPercent !== null ? `${progressPercent}%` : t('progress.downloading')}
+                            </div>
+                            {status?.speed !== undefined && status.speed > 0 && (
+                                <span style={{ color: 'var(--color-on-surface-variant)', fontSize: '10px' }}>
+                                    {formatSpeed(status.speed)}
+                                    {status.eta !== undefined && status.eta > 0 && ` · ${formatEta(status.eta)}`}
+                                </span>
+                            )}
                         </div>
                     ) : isCompleted ? (
                         <div className="flex items-center gap-1">
@@ -323,7 +423,7 @@ export const EpisodeList: React.FC = () => {
                 </div>
             </div>
         );
-    }, [downloads, downloadedGuids, currentFeed, t, isOnline, handleDownload, handleResetStatus]);
+    }, [downloads, downloadedGuids, currentFeed, t, isOnline, handleDownload, handleResetStatus, selectedGuids, handleRowClick]);
 
     if (!currentFeed) return null;
 
@@ -464,6 +564,17 @@ export const EpisodeList: React.FC = () => {
                             <Icon name="cloud_download" size={16} />
                             {t('episodes.download_all')}
                         </button>
+
+                        {selectedGuids.size > 0 && (
+                            <button
+                                onClick={handleDownloadSelected}
+                                disabled={!isOnline}
+                                className="btn-primary-gradient flex items-center gap-2 px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <Icon name="download" size={16} />
+                                {t('episodes.download_selected', { count: selectedGuids.size })}
+                            </button>
+                        )}
 
                         <button
                             onClick={handleSyncNew}

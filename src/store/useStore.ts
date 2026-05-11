@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import type { Feed, DownloadProgress, QueueItem, FailedDownload } from '../types';
 
+const speedCache = new Map<string, { loaded: number; time: number }>();
+
 export interface AppState {
     currentFeed: Feed | null;
     feeds: Feed[];
@@ -39,10 +41,29 @@ export const useStore = create<AppState>((set) => ({
     setCurrentFeed: (feed) => set({ currentFeed: feed }),
     setFeeds: (feeds) => set({ feeds }),
     updateDownload: (progress) => {
+        const enriched: DownloadProgress = { ...progress };
+        if (!progress.completed && !progress.error && progress.loaded > 0 && progress.total > 0) {
+            const prev = speedCache.get(progress.url);
+            const now = Date.now();
+            if (prev && now > prev.time) {
+                const dt = (now - prev.time) / 1000;
+                const db = progress.loaded - prev.loaded;
+                if (db >= 0 && dt > 0) {
+                    enriched.speed = db / dt;
+                    enriched.eta = enriched.speed > 0
+                        ? Math.round((progress.total - progress.loaded) / enriched.speed)
+                        : undefined;
+                }
+            }
+            speedCache.set(progress.url, { loaded: progress.loaded, time: Date.now() });
+        }
+        if (progress.completed || progress.error) {
+            speedCache.delete(progress.url);
+        }
         set((state) => ({
             downloads: {
                 ...state.downloads,
-                [progress.url]: { ...state.downloads[progress.url], ...progress }
+                [progress.url]: { ...state.downloads[progress.url], ...enriched }
             }
         }));
         // Schedule cleanup after 2s to let the UI render the final state

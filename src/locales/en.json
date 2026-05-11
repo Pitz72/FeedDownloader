@@ -46,7 +46,8 @@
         "sort_date_asc": "Date: oldest first",
         "sort_dur_desc": "Duration: longest first",
         "sort_dur_asc": "Duration: shortest first",
-        "redownload": "Re-download"
+        "redownload": "Re-download",
+        "download_selected": "Download Selected ({{count}})"
     },
     "progress": {
         "downloading": "Downloading...",

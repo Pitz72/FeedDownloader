@@ -43,6 +43,8 @@ export interface DownloadProgress {
     completed?: boolean;
     error?: boolean;
     notFound?: boolean;
+    speed?: number;  // bytes/sec — computed in store
+    eta?: number;    // seconds remaining — computed in store
 }
 
 export interface QueueItem {

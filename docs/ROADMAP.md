@@ -1,7 +1,7 @@
 # Roadmap FeedDownloader Pro — Fonte di Verità
 
-**Versione di riferimento:** 1.1.17
-**Ultimo aggiornamento:** 12 maggio 2026
+**Versione di riferimento:** 1.1.19
+**Ultimo aggiornamento:** 11 maggio 2026
 
 Questo è l'unico documento autorevole per tutto il lavoro pendente post-v1.0.0.
 I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_2026.md`) sono archiviati in `archivio/`.
@@ -64,9 +64,9 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 | F1 | Feature | Vista archivio integrata in-app | 🟣 | 🔲 |
 | F2 | Feature | Badge "N nuovi" per feed in sidebar | 🟣 | 🔲 |
 | F3 | Feature | Auto-refresh feed periodico in background | 🟣 | 🔲 |
-| F4 | Feature | Selezione multipla episodi (Shift/Ctrl+click) | 🟣 | 🔲 |
+| F4 | Feature | Selezione multipla episodi (Shift/Ctrl+click) | 🟣 | ✅ v1.1.18 |
 | F5 | Feature | Export playlist M3U | 🟣 | 🔲 |
-| F6 | Feature | Velocità/ETA inline per download attivo | 🟣 | 🔲 |
+| F6 | Feature | Velocità/ETA inline per download attivo | 🟣 | ✅ v1.1.19 |
 | G1 | UI/UX | Pannello download laterale (replace GlobalProgressBar) | ⚪ | 🔲 |
 | G2 | UI/UX | Sidebar ridimensionabile via drag | ⚪ | 🔲 |
 | G3 | UI/UX | Command palette Ctrl+K | ⚪ | 🔲 |
@@ -312,20 +312,22 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 - **Stato:** 🔲
 - **Descrizione:** Background refresh configurabile (ogni 6/12/24 ore) con notifica OS quando un feed ha nuovi episodi. Oggi l'utente deve aprire l'app e cliccare manualmente per scoprire novità.
 
-### F4 🟣 Selezione multipla episodi (Shift/Ctrl+click)
+### F4 🟣 ✅ v1.1.18 Selezione multipla episodi (Shift/Ctrl+click)
 
-- **Stato:** 🔲
-- **Descrizione:** Permettere di selezionare episodi specifici per un batch selettivo, non necessariamente tutti i filtrati. Fondamentale per download parziali di feed molto lunghi.
+- **Stato:** ✅ v1.1.18
+- **File:** `src/components/EpisodeList.tsx`, `src/locales/*.json`
+- **Implementazione:** `selectedGuids: Set<string>` + `lastSelectedGuidRef` + `filteredEpisodesRef`. Click semplice → selezione singola, Ctrl/Cmd+click → toggle individuale, Shift+click → range. Checkbox visibile on-hover e quando selezionato. Pulsante "Scarica Selezionati (N)" appare nel podcast header. Selezione azzerata al cambio feed e dopo avvio download.
 
 ### F5 🟣 Export playlist M3U
 
 - **Stato:** 🔲
 - **Descrizione:** Esportare la lista degli episodi scaricati (o di un feed) come file `.m3u` con i path locali, per aprirli direttamente in VLC, mpv, Plex o qualsiasi media player esterno.
 
-### F6 🟣 Velocità e ETA inline per download attivo
+### F6 🟣 ✅ v1.1.19 Velocità e ETA inline per download attivo
 
-- **Stato:** 🔲
-- **Descrizione:** Nella riga episodio durante il download, mostrare velocità attuale (MB/s), byte scaricati/totali, ETA stimato. Oggi si vede solo la percentuale. Il backend ha già `loaded` e `total` — manca solo il calcolo di velocità (delta bytes / delta time).
+- **Stato:** ✅ v1.1.19
+- **File:** `shared/types.ts`, `src/store/useStore.ts`, `src/components/EpisodeList.tsx`
+- **Implementazione:** `speed` e `eta` aggiunti a `DownloadProgress`. `speedCache` module-level in `useStore` per calcolo delta-based. UI nella riga episodio: percentuale + velocità (KB/s o MB/s) + ETA (`Xs`/`Xm Ys`/`Xh Ym`) visualizzati in stacking verticale durante il download.
 
 ---
 

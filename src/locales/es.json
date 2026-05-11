@@ -46,7 +46,8 @@
         "sort_date_asc": "Fecha: más antiguo",
         "sort_dur_desc": "Duración: más larga",
         "sort_dur_asc": "Duración: más corta",
-        "redownload": "Re-descargar"
+        "redownload": "Re-descargar",
+        "download_selected": "Descargar selección ({{count}})"
     },
     "progress": {
         "downloading": "Descargando...",

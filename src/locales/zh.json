@@ -46,7 +46,8 @@
         "sort_date_asc": "日期：最旧",
         "sort_dur_desc": "时长：最长",
         "sort_dur_asc": "时长：最短",
-        "redownload": "重新下载"
+        "redownload": "重新下载",
+        "download_selected": "下载已选 ({{count}})"
     },
     "progress": {
         "downloading": "下载中...",
