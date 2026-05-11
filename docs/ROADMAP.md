@@ -50,7 +50,7 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 | D5 | Bug | `statfs` richiede Node ≥ 18.15.0, declared `>=18.0.0` | 🟡 | ✅ v1.1.5 |
 | D6 | Bug | `SettingsModal` apre senza skeleton — valori flikkano | 🟡 | ✅ v1.1.6 |
 | D7 | Bug | Stima disco usa 128 kbps fisso | 🟢 | ✅ v1.1.7 |
-| D8 | Bug | `country-flag-icons` inutilizzato in `dependencies` | 🟢 | 🔲 |
+| D8 | Bug | `country-flag-icons` inutilizzato in `dependencies` | 🟢 | ✅ v1.1.8 |
 | D9 | Bug | Hover state gestiti via JS `onMouseEnter/Leave` invece di CSS | 🟢 | 🔲 |
 | D10 | Bug | Commenti `// vX.Y.Z —` inquinano il codice | 🟢 | 🔲 |
 | D11 | Bug | Download button invisibile da tastiera (`opacity-0`) | 🟢 | 🔲 |
@@ -222,12 +222,11 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 - **File:** `src/components/EpisodeList.tsx`
 - **Fix applicato:** `BYTES_PER_SECOND` aggiornato da `16_000` (128 kbps) a `24_000` (192 kbps) come default più realistico per i podcast moderni.
 
-### D8 🟢 `country-flag-icons` in production dependencies — non usato
+### D8 🟢 ✅ v1.1.8 `country-flag-icons` in production dependencies — non usato
 
-- **Stato:** 🔲
-- **File:** `package.json:47`
-- **Problema:** Il pacchetto è in `dependencies` ma non viene importato da nessun file nel progetto. Aggiunge ~150KB al bundle e rumore nel lockfile.
-- **Fix:** `npm uninstall country-flag-icons`.
+- **Stato:** ✅ v1.1.8
+- **File:** `package.json`
+- **Fix applicato:** `npm uninstall country-flag-icons` — pacchetto (~150 KB) rimosso perché non importato da nessun file del progetto.
 
 ### D9 🟢 Hover state gestiti via JS `onMouseEnter/Leave` invece di CSS
 
