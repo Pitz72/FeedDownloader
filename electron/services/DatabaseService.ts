@@ -74,14 +74,14 @@ export class DatabaseService {
     }
 
     addFeed(feed: FeedEntry): void {
-        this.db.prepare(
-            'INSERT OR IGNORE INTO feeds (url, title, image, lastUpdated) VALUES (?, ?, ?, ?)'
-        ).run(
-            feed.url,
-            feed.title,
-            typeof feed.image === 'string' ? feed.image : (feed.image?.url || null),
-            feed.lastUpdated || null
-        );
+        const image = typeof feed.image === 'string' ? feed.image : (feed.image?.url || null);
+        this.db.prepare(`
+            INSERT INTO feeds (url, title, image, lastUpdated) VALUES (?, ?, ?, ?)
+            ON CONFLICT(url) DO UPDATE SET
+                title       = excluded.title,
+                image       = excluded.image,
+                lastUpdated = excluded.lastUpdated
+        `).run(feed.url, feed.title, image, feed.lastUpdated || null);
     }
 
     removeFeed(url: string): void {
