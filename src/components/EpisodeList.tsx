@@ -170,97 +170,21 @@ export const EpisodeList: React.FC = () => {
 
     const isOnline = useOnlineStatus();
 
-    if (!currentFeed) return null;
-
     const handleDownload = useCallback((episode: Episode, silent = false) => {
         const url = getEnclosureUrl(episode);
         if (!url) { if (!silent) toast.show(t('toast.no_audio'), 'error'); return; }
         const guid = episode.guid || url;
-        const imageUrl = typeof currentFeed?.image === 'string' ? currentFeed.image : currentFeed?.image?.url;
+        const imageUrl = typeof currentFeed?.image === 'string' ? currentFeed?.image : currentFeed?.image?.url;
         window.api.startDownload({
             url,
             title: episode.title,
-            podcastTitle: currentFeed.title,
+            podcastTitle: currentFeed?.title || '',
             guid,
             pubDate: episode.pubDate || episode.isoDate,
             feedImageUrl: imageUrl
         });
         if (!silent) toast.show(t('toast.download_started'), 'info');
     }, [currentFeed, t, toast]);
-
-    // v0.5.3 — Sync New
-    const handleSyncNew = async () => {
-        if (!currentFeed || !isOnline || isSyncing) return;
-        setIsSyncing(true);
-        try {
-            const freshFeed = await window.api.parseFeed(currentFeed.url);
-            const newEpisodes = freshFeed.episodes.filter((ep: Episode) => {
-                const url = getEnclosureUrl(ep);
-                const guid = ep.guid || url || '';
-                return guid ? !downloadedGuids.includes(guid) : false;
-            });
-            if (newEpisodes.length === 0) { toast.show(t('toast.sync_none'), 'info'); return; }
-
-            // v0.6.9 — Disk space check
-            const CRITICAL_BYTES = 200 * 1024 * 1024;
-            const downloadPath = await window.api.getDownloadPath().catch(() => '');
-            const diskInfo = await window.api.checkDiskSpace(downloadPath).catch(() => null);
-            if (diskInfo && diskInfo.freeBytes < CRITICAL_BYTES) { toast.show(t('diskspace.critical'), 'error'); return; }
-            if (diskInfo) {
-                const estimatedBytes = estimateDownloadBytes(newEpisodes);
-                if (diskInfo.freeBytes < estimatedBytes * 1.2) {
-                    toast.show(t('diskspace.low_warning', { free: formatBytes(diskInfo.freeBytes), needed: formatBytes(estimatedBytes) }), 'error');
-                }
-            }
-
-            startBatch(newEpisodes.length);
-            toast.show(t('toast.sync_queued', { count: newEpisodes.length }), 'success');
-            newEpisodes.forEach((ep: Episode) => handleDownload(ep, true));
-        } catch {
-            toast.show(t('toast.feed_error'), 'error');
-        } finally {
-            setIsSyncing(false);
-        }
-    };
-
-    const handleDownloadAll = async () => {
-        const episodesToDownload = filteredEpisodes.filter((episode: Episode) => {
-            const url = getEnclosureUrl(episode);
-            const guid = episode.guid || url;
-            return guid && !downloadedGuids.includes(guid);
-        });
-        if (episodesToDownload.length === 0) { toast.show(t('toast.all_downloaded'), 'info'); return; }
-
-        // v0.6.9 — Disk space check
-        const downloadPath = await window.api.getDownloadPath().catch(() => '');
-        const diskInfo = await window.api.checkDiskSpace(downloadPath).catch(() => null);
-        const CRITICAL_BYTES = 200 * 1024 * 1024;
-        if (diskInfo && diskInfo.freeBytes < CRITICAL_BYTES) { toast.show(t('diskspace.critical'), 'error'); return; }
-        let diskWarning = '';
-        if (diskInfo) {
-            const estimatedBytes = estimateDownloadBytes(episodesToDownload);
-            if (diskInfo.freeBytes < estimatedBytes * 1.2) {
-                diskWarning = ' ' + t('diskspace.low_warning', { free: formatBytes(diskInfo.freeBytes), needed: formatBytes(estimatedBytes) });
-            }
-        }
-
-        setConfirmState({
-            isOpen: true,
-            title: t('confirm.mass_download_title', 'Batch Download'),
-            message: t('confirm.mass_download', { count: episodesToDownload.length }) + diskWarning,
-            onConfirm: () => {
-                setConfirmState(prev => ({ ...prev, isOpen: false }));
-                startBatch(episodesToDownload.length);
-                toast.show(t('toast.mass_download_started'), 'success');
-                episodesToDownload.forEach((episode: Episode) => handleDownload(episode, true));
-            }
-        });
-    };
-
-    const handleChangeFolder = async () => {
-        const path = await window.api.chooseFolder();
-        if (path) { await window.api.setDownloadPath(path); toast.show(t('toast.folder_selected', { path }), 'success'); }
-    };
 
     const handleResetStatus = useCallback(async (guid: string) => {
         setConfirmState({
@@ -274,8 +198,6 @@ export const EpisodeList: React.FC = () => {
             }
         });
     }, [t, toast]);
-
-    const imageUrl = typeof currentFeed.image === 'string' ? currentFeed.image : currentFeed.image?.url;
 
     // ── Episode row renderer ──────────────────────────────────────────────────
     const renderEpisodeRow = useCallback((index: number, episode: Episode) => {
@@ -359,7 +281,7 @@ export const EpisodeList: React.FC = () => {
                                 <Icon name="restart_alt" size={16} />
                             </button>
                             <button
-                                onClick={() => window.api.showInFolder(currentFeed.title, episode.title, url, episode.pubDate || episode.isoDate)}
+                                onClick={() => window.api.showInFolder(currentFeed?.title || '', episode.title, url, episode.pubDate || episode.isoDate)}
                                 className="opacity-0 group-hover:opacity-100 p-1 rounded transition-all"
                                 style={{ color: 'var(--color-on-surface-variant)' }}
                                 onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-on-surface)'; }}
@@ -385,6 +307,84 @@ export const EpisodeList: React.FC = () => {
             </div>
         );
     }, [downloads, downloadedGuids, currentFeed, t, isOnline, handleDownload, handleResetStatus]);
+
+    if (!currentFeed) return null;
+
+    // v0.5.3 — Sync New
+    const handleSyncNew = async () => {
+        if (!currentFeed || !isOnline || isSyncing) return;
+        setIsSyncing(true);
+        try {
+            const freshFeed = await window.api.parseFeed(currentFeed.url);
+            const newEpisodes = freshFeed.episodes.filter((ep: Episode) => {
+                const url = getEnclosureUrl(ep);
+                const guid = ep.guid || url || '';
+                return guid ? !downloadedGuids.includes(guid) : false;
+            });
+            if (newEpisodes.length === 0) { toast.show(t('toast.sync_none'), 'info'); return; }
+
+            // v0.6.9 — Disk space check
+            const CRITICAL_BYTES = 200 * 1024 * 1024;
+            const downloadPath = await window.api.getDownloadPath().catch(() => '');
+            const diskInfo = await window.api.checkDiskSpace(downloadPath).catch(() => null);
+            if (diskInfo && diskInfo.freeBytes < CRITICAL_BYTES) { toast.show(t('diskspace.critical'), 'error'); return; }
+            if (diskInfo) {
+                const estimatedBytes = estimateDownloadBytes(newEpisodes);
+                if (diskInfo.freeBytes < estimatedBytes * 1.2) {
+                    toast.show(t('diskspace.low_warning', { free: formatBytes(diskInfo.freeBytes), needed: formatBytes(estimatedBytes) }), 'error');
+                }
+            }
+
+            startBatch(newEpisodes.length);
+            toast.show(t('toast.sync_queued', { count: newEpisodes.length }), 'success');
+            newEpisodes.forEach((ep: Episode) => handleDownload(ep, true));
+        } catch {
+            toast.show(t('toast.feed_error'), 'error');
+        } finally {
+            setIsSyncing(false);
+        }
+    };
+
+    const handleDownloadAll = async () => {
+        const episodesToDownload = filteredEpisodes.filter((episode: Episode) => {
+            const url = getEnclosureUrl(episode);
+            const guid = episode.guid || url;
+            return guid && !downloadedGuids.includes(guid);
+        });
+        if (episodesToDownload.length === 0) { toast.show(t('toast.all_downloaded'), 'info'); return; }
+
+        // v0.6.9 — Disk space check
+        const downloadPath = await window.api.getDownloadPath().catch(() => '');
+        const diskInfo = await window.api.checkDiskSpace(downloadPath).catch(() => null);
+        const CRITICAL_BYTES = 200 * 1024 * 1024;
+        if (diskInfo && diskInfo.freeBytes < CRITICAL_BYTES) { toast.show(t('diskspace.critical'), 'error'); return; }
+        let diskWarning = '';
+        if (diskInfo) {
+            const estimatedBytes = estimateDownloadBytes(episodesToDownload);
+            if (diskInfo.freeBytes < estimatedBytes * 1.2) {
+                diskWarning = ' ' + t('diskspace.low_warning', { free: formatBytes(diskInfo.freeBytes), needed: formatBytes(estimatedBytes) });
+            }
+        }
+
+        setConfirmState({
+            isOpen: true,
+            title: t('confirm.mass_download_title', 'Batch Download'),
+            message: t('confirm.mass_download', { count: episodesToDownload.length }) + diskWarning,
+            onConfirm: () => {
+                setConfirmState(prev => ({ ...prev, isOpen: false }));
+                startBatch(episodesToDownload.length);
+                toast.show(t('toast.mass_download_started'), 'success');
+                episodesToDownload.forEach((episode: Episode) => handleDownload(episode, true));
+            }
+        });
+    };
+
+    const handleChangeFolder = async () => {
+        const path = await window.api.chooseFolder();
+        if (path) { await window.api.setDownloadPath(path); toast.show(t('toast.folder_selected', { path }), 'success'); }
+    };
+
+    const imageUrl = typeof currentFeed.image === 'string' ? currentFeed.image : currentFeed.image?.url;
 
     // ── Render ────────────────────────────────────────────────────────────────
     return (
