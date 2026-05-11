@@ -19,6 +19,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen }) => {
   const [loadingUrl, setLoadingUrl] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortAlpha, setSortAlpha] = useState(false);
+  const [isSyncingAll, setIsSyncingAll] = useState(false);
 
   const displayedFeeds = useMemo(() => {
     let result = feeds;
@@ -86,17 +87,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen }) => {
   };
 
   const handleSyncAll = async () => {
-    for (const feed of feeds) {
-      try {
-        const parsed = await window.api.parseFeed(feed.url);
-        if (currentFeed?.url === feed.url) {
-          setCurrentFeed({ ...parsed, url: feed.url });
-        }
-      } catch {
-        // silently skip
+    if (isSyncingAll) return;
+    setIsSyncingAll(true);
+    try {
+      const results = await Promise.allSettled(
+        feeds.map(async (feed) => {
+          const parsed = await window.api.parseFeed(feed.url);
+          if (currentFeed?.url === feed.url) {
+            setCurrentFeed({ ...parsed, url: feed.url });
+          }
+        })
+      );
+      const failed = results.filter(r => r.status === 'rejected').length;
+      toast.show(t('toast.sync_complete', 'Sync completato'), 'success');
+      if (failed > 0) {
+        toast.show(t('toast.feed_error'), 'error');
       }
+    } finally {
+      setIsSyncingAll(false);
     }
-    toast.show(t('toast.sync_complete', 'Sync completato'), 'success');
   };
 
   return (
@@ -273,9 +282,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen }) => {
         {feeds.length > 0 && (
           <button
             onClick={handleSyncAll}
-            className="btn-primary-gradient w-full py-2 text-xs transition-all active:scale-[0.97]"
+            disabled={isSyncingAll}
+            className="btn-primary-gradient w-full py-2 text-xs transition-all active:scale-[0.97] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            {t('sidebar.sync_all', 'Sincronizza Tutti')}
+            <Icon name="sync" size={14} className={isSyncingAll ? 'animate-spin' : ''} />
+            {isSyncingAll ? t('sidebar.syncing', 'Sincronizzando...') : t('sidebar.sync_all', 'Sincronizza Tutti')}
           </button>
         )}
         <div

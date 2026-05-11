@@ -38,7 +38,7 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 | B4 | Documentazione | CONTRIBUTING.md | — | 🔲 |
 | C1 | Bug | `showInFolder` ignora naming template + estensione | 🔴 | ✅ v1.0.5 |
 | C2 | Bug | Collisione silenziosa su titoli identici | 🔴 | ✅ v1.0.5 |
-| C3 | Bug | `Sync All` sequenziale — blocco su molti feed | 🟠 | 🔲 |
+| C3 | Bug | `Sync All` sequenziale — blocco su molti feed | 🟠 | ✅ v1.0.6 |
 | C4 | Bug | `stopBatch` non annulla i download in-flight | 🟠 | 🔲 |
 | C5 | Bug | Filtro "New" include episodi in download | 🟠 | 🔲 |
 | C6 | Bug | `addFeed` INSERT OR IGNORE — metadata sidebar stale | 🟠 | 🔲 |
