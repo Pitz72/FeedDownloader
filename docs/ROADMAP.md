@@ -48,7 +48,7 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 | D3 | Bug | `renderEpisodeRow` non memoized — Virtuoso ri-renderizza tutto | 🟡 | ✅ v1.1.3 |
 | D4 | Bug | macOS: `titleBarStyle: hidden` senza compensazione traffic light | 🟡 | ✅ v1.1.4 |
 | D5 | Bug | `statfs` richiede Node ≥ 18.15.0, declared `>=18.0.0` | 🟡 | ✅ v1.1.5 |
-| D6 | Bug | `SettingsModal` apre senza skeleton — valori flikkano | 🟡 | 🔲 |
+| D6 | Bug | `SettingsModal` apre senza skeleton — valori flikkano | 🟡 | ✅ v1.1.6 |
 | D7 | Bug | Stima disco usa 128 kbps fisso | 🟢 | 🔲 |
 | D8 | Bug | `country-flag-icons` inutilizzato in `dependencies` | 🟢 | 🔲 |
 | D9 | Bug | Hover state gestiti via JS `onMouseEnter/Leave` invece di CSS | 🟢 | 🔲 |
@@ -210,12 +210,11 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 - **File:** `package.json`
 - **Fix applicato:** `engines.node` aggiornato a `">=18.15.0"` — allineato alla versione minima effettiva richiesta da `fs.statfs`.
 
-### D6 🟡 `SettingsModal` apre senza skeleton — valori iniziali flikkano
+### D6 🟡 ✅ v1.1.6 `SettingsModal` apre senza skeleton — valori iniziali flikkano
 
-- **Stato:** 🔲
-- **File:** `src/components/SettingsModal.tsx:56-77`
-- **Problema:** Il modal si apre immediatamente mostrando i valori di default (`downloadPath = ''`, `concurrency = 3`, ecc.) mentre `loadSettings()` esegue le chiamate IPC asincrone. I campi si aggiornano visibilmente dopo ~50-100ms.
-- **Fix:** Aggiungere uno stato `isLoadingSettings` con un overlay/skeleton sul pannello destra durante il caricamento iniziale.
+- **Stato:** ✅ v1.1.6
+- **File:** `src/components/SettingsModal.tsx`
+- **Fix applicato:** Stato `isLoadingSettings` + skeleton animato nel pannello destro durante `loadSettings()`; contenuto reale nascosto con `display:none` fino al completamento delle chiamate IPC.
 
 ### D7 🟢 Stima disco usa bitrate costante 128 kbps
 

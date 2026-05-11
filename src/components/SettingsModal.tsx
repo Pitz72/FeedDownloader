@@ -29,6 +29,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     const [healthResult, setHealthResult] = useState<import('../../shared/types').HealthCheckResult | null>(null);
     const [isHealthChecking, setIsHealthChecking] = useState(false);
     const [isMarkingMissing, setIsMarkingMissing] = useState(false);
+    const [isLoadingSettings, setIsLoadingSettings] = useState(false);
     const [activeCategory, setActiveCategory] = useState<NavCategory>('general');
     // v0.6.10 — Migration state
     const [migrationProgress, setMigrationProgress] = useState<{ moved: number; total: number } | null>(null);
@@ -60,20 +61,25 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     }, [isOpen]);
 
     const loadSettings = async () => {
-        const path = await window.api.getDownloadPath();
-        setDownloadPath(path || 'Default');
-        const conc = await window.api.getConcurrency();
-        setConcurrency(conc);
-        const stats = await window.api.getArchiveStats();
-        setArchiveStats(stats);
-        const tmpl = await window.api.getNamingTemplate();
-        setNamingTemplate(tmpl || '{title}');
-        const sidecar = await window.api.getSidecarEnabled();
-        setSidecarEnabled(sidecar);
-        const id3 = await window.api.getId3Enabled();
-        setId3Enabled(id3);
-        const sl = await window.api.getSpeedLimit();
-        setSpeedLimit(sl);
+        setIsLoadingSettings(true);
+        try {
+            const path = await window.api.getDownloadPath();
+            setDownloadPath(path || 'Default');
+            const conc = await window.api.getConcurrency();
+            setConcurrency(conc);
+            const stats = await window.api.getArchiveStats();
+            setArchiveStats(stats);
+            const tmpl = await window.api.getNamingTemplate();
+            setNamingTemplate(tmpl || '{title}');
+            const sidecar = await window.api.getSidecarEnabled();
+            setSidecarEnabled(sidecar);
+            const id3 = await window.api.getId3Enabled();
+            setId3Enabled(id3);
+            const sl = await window.api.getSpeedLimit();
+            setSpeedLimit(sl);
+        } finally {
+            setIsLoadingSettings(false);
+        }
     };
 
     const handleChangeFolder = async () => {
@@ -280,12 +286,24 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
                             {/* Right content (scrollable) */}
                             <div className="flex-1 overflow-y-auto custom-scrollbar">
+                                {/* Skeleton overlay while settings are loading (D6) */}
+                                {isLoadingSettings && (
+                                    <div className="p-8 space-y-6 animate-pulse">
+                                        {[140, 100, 160, 80, 120].map((w, i) => (
+                                            <div key={i} className="space-y-3">
+                                                <div className="h-3 rounded-full" style={{ width: `${w}px`, background: 'var(--color-surface-container-high)' }} />
+                                                <div className="h-10 rounded-lg" style={{ background: 'var(--color-surface-container)' }} />
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                                 <AnimatePresence mode="wait">
                                     <motion.div
                                         key={activeCategory}
                                         variants={contentVariants}
                                         initial="hidden" animate="visible" exit="hidden"
                                         className="p-8 space-y-8"
+                                        style={{ display: isLoadingSettings ? 'none' : undefined }}
                                     >
 
                                         {/* ── GENERAL ── */}
