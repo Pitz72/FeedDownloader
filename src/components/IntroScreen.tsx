@@ -3,12 +3,29 @@ import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { HelpModal } from './HelpModal';
+import GB from 'country-flag-icons/react/3x2/GB';
+import IT from 'country-flag-icons/react/3x2/IT';
+import FR from 'country-flag-icons/react/3x2/FR';
+import DE from 'country-flag-icons/react/3x2/DE';
+import ES from 'country-flag-icons/react/3x2/ES';
+import PT from 'country-flag-icons/react/3x2/PT';
+import RU from 'country-flag-icons/react/3x2/RU';
+import CN from 'country-flag-icons/react/3x2/CN';
 
 interface IntroScreenProps {
     onComplete: () => void;
 }
 
-const LANG_CODES = ['en', 'it', 'fr', 'de', 'es', 'pt', 'ru', 'zh'] as const;
+const LANGUAGES: { code: 'en' | 'it' | 'fr' | 'de' | 'es' | 'pt' | 'ru' | 'zh'; Flag: React.ComponentType<{ style?: React.CSSProperties; title?: string }> }[] = [
+    { code: 'en', Flag: GB },
+    { code: 'it', Flag: IT },
+    { code: 'fr', Flag: FR },
+    { code: 'de', Flag: DE },
+    { code: 'es', Flag: ES },
+    { code: 'pt', Flag: PT },
+    { code: 'ru', Flag: RU },
+    { code: 'zh', Flag: CN },
+];
 
 export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
     const { t, i18n } = useTranslation();
@@ -70,7 +87,7 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
 
                 <div className="intro-center intro-controls">
                     <div className="intro-langs" role="radiogroup" aria-label={t('settings.language', 'Lingua')}>
-                        {LANG_CODES.map(code => (
+                        {LANGUAGES.map(({ code, Flag }) => (
                             <button
                                 key={code}
                                 type="button"
@@ -78,8 +95,10 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
                                 className={clsx(i18n.language?.startsWith(code) && 'active')}
                                 role="radio"
                                 aria-checked={i18n.language?.startsWith(code)}
+                                title={code.toUpperCase()}
                             >
-                                {code.toUpperCase()}
+                                <Flag style={{ width: 18, height: 12, borderRadius: 2, display: 'block', flexShrink: 0 }} />
+                                <span style={{ marginLeft: 6 }}>{code.toUpperCase()}</span>
                             </button>
                         ))}
                     </div>

@@ -2023,6 +2023,7 @@
   backdrop-filter: blur(8px);
 }
 .intro-langs button {
+  display: inline-flex; align-items: center; gap: 4px;
   background: transparent; border: 0; padding: 6px 10px;
   border-radius: var(--r-pill);
   color: var(--fg-3); font-family: var(--font-mono); font-size: 10px;
