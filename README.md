@@ -2,7 +2,7 @@
 
 > **Il modo più potente per archiviare i tuoi podcast.**
 
-![Version](https://img.shields.io/badge/version-0.7.6-blue)
+![Version](https://img.shields.io/badge/version-1.2.4-blue)
 ![Build](https://github.com/Pitz72/FeedDownloader/actions/workflows/build.yml/badge.svg)
 ![Electron](https://img.shields.io/badge/Electron-30-47848F?logo=electron)
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)
@@ -17,21 +17,26 @@
 
 ### ✨ Caratteristiche Principali
 
-- 🔄 **Batch Download** — Scarica tutti gli episodi con un solo click
-- 🚀 **Auto-Update** — Aggiornamenti automatici integrati tramite GitHub (v0.7.6)
-- 🔌 **Supporto NAS/SMB** — Validazione automatica e timeout per percorsi di rete (v0.7.6)
+- 📚 **Libreria Feed Permanente** — Barra laterale ridimensionabile con tutti i feed salvati, badge "N nuovi episodi", ricerca e ordinamento A–Z (v1.1.x–v1.2.3)
+- 🗂️ **Vista Archivio** — Tab dedicata per consultare e cercare l'intero archivio di episodi scaricati (v1.1.22)
+- 📥 **Pannello Download** — Drawer laterale con coda, velocità, tempo stimato e log errori per ogni batch; FAB minimizzato (v1.2.3)
+- 📝 **Dettaglio Episodio** — Click su un episodio apre un pannello con metadati completi, dati archivio (checksum, bitrate) e show notes (v1.2.2)
+- ⌨️ **Palette Comandi (Ctrl+K)** — Accesso rapido a tutte le azioni principali e ai feed salvati (v1.2.4)
+- 🔁 **Aggiornamento Automatico Feed** — Timer in background (6/12/24h) con notifica OS per i nuovi episodi (v1.2.0)
+- ☑️ **Selezione Multipla** — Ctrl+click / Shift+click per scaricare interi intervalli di episodi (v1.1.18)
+- 🎶 **Export Playlist M3U** — Genera playlist compatibili con qualsiasi player audio locale (v1.1.21)
+- ⚡ **Velocità e Tempo Stimato** — Visualizzati inline per ogni download attivo (v1.1.19)
+- 🔄 **Sync All con progresso per-feed** — Ogni feed mostra spinner/✓/✗ durante la sincronizzazione globale (v1.2.2)
+- 🚀 **Auto-Update** — Aggiornamenti automatici integrati tramite GitHub (v0.7.5)
+- 🔌 **Supporto NAS/SMB** — Validazione automatica e timeout per percorsi di rete (v0.7.5)
 - 🛡️ **Integrità Dati** — Checksum SHA-256 e metadati audio (bitrate/Hz) post-download (v0.7.4)
 - 📂 **Migrazione Archivio** — Sposta l'intera libreria in un nuovo percorso con un click (v0.6.10)
 - 🧠 **Smart Truncate** — Prevenzione automatica dei limiti `MAX_PATH` di Windows
 - 💾 **Download Resilienti** — Timeout 30s/60s, retry con backoff esponenziale, file `.part`, protezione disco pieno
-- 🔒 **URL Validation** — Protezione anti-SSRF a 5 livelli (v0.4.4)
-- 🎵 **Estensione Reale** — Rileva e salva il formato corretto (`.m4a`, `.ogg`, `.opus`…) (v0.4.3)
-- 📊 **Statistiche Archivio** — Dashboard con contatori e periodi (v0.4.0)
-- ⚡ **Concorrenza Configurabile** — 1, 3 o 5 download paralleli (v0.4.0)
+- 🔒 **URL Validation** — Protezione anti-SSRF a 5 livelli
 - 🩺 **Health Check** — Ripristino automatico degli episodi mancanti su disco (v0.7.6)
-- 📅 **Filtri per Data** — Filtra episodi per intervallo date (v0.4.0)
-- 🔔 **Notifiche OS** — Notifica nativa al completamento batch (v0.4.0)
-- 🧪 **Test Suite** — 189 test automatici con Vitest (v0.4.1+)
+- ⚙️ **Concorrenza Configurabile** — 1, 3 o 5 download paralleli
+- 🧪 **Test Suite** — ~189 test automatici con Vitest
 - 🌍 **8 Lingue** — IT, EN, FR, DE, ES, PT, RU, ZH
 - 📂 **OPML / CSV** — Importa, esporta e cataloga
 
@@ -56,9 +61,9 @@ La cronologia completa delle versioni si trova in [`docs/changelog/`](docs/chang
 
 | Piattaforma | Formato | Link |
 |---|---|---|
-| Windows 10/11 | NSIS Installer (`.exe`) | [GitHub Releases](https://github.com/Pitz72/FeedDownloader/releases) |
-| macOS 11+ | Disk Image (`.dmg`) | [GitHub Releases](https://github.com/Pitz72/FeedDownloader/releases) |
-| Linux | AppImage / `.deb` | [GitHub Releases](https://github.com/Pitz72/FeedDownloader/releases) |
+| Windows 10/11 | NSIS Installer (`.exe`) | [GitHub Releases](https://github.com/Pitz72/FeedDownloader-Releases/releases) |
+| macOS 11+ | Disk Image (`.dmg`) | [GitHub Releases](https://github.com/Pitz72/FeedDownloader-Releases/releases) |
+| Linux | AppImage / `.deb` | [GitHub Releases](https://github.com/Pitz72/FeedDownloader-Releases/releases) |
 
 I build per tutte le piattaforme sono prodotti automaticamente da GitHub Actions ad ogni release.
 
