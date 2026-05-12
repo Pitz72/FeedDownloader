@@ -36,9 +36,9 @@
         <p>Criar a pasta específica para o podcast a arquivar (ex.: <code>D:\Arquivo Podcasts\O Meu Podcast\</code>). O FeedDownloader Pro guardará todos os ficheiros desse podcast nessa pasta, com os nomes definidos pelo modelo de renomeação (ver o Capítulo 8).</p>
         <p><strong>Para definir a pasta de destino no FeedDownloader Pro:</strong></p>
         <ol>
-          <li>Clicar no ícone de <strong>pasta</strong> junto ao campo do caminho de destino.</li>
+          <li>Abrir <strong>Definições → Arquivo</strong> e clicar no ícone de <strong>pasta</strong> junto ao campo do caminho de destino.</li>
           <li>Navegar até à pasta criada e selecioná-la.</li>
-          <li>O caminho é apresentado no campo e memorizado para as sessões seguintes.</li>
+          <li>O caminho configurado é sempre visível no rodapé da barra lateral esquerda; clicar nele abre a pasta diretamente no gestor de ficheiros.</li>
         </ol>
         <p><em>Nota:</em> Para caminhos em NAS ou discos de rede, consultar o Capítulo 7 antes de continuar. A configuração para caminhos de rede tem algumas especificidades descritas nesse capítulo.</p>
         <hr>
@@ -84,7 +84,7 @@
         <ol>
           <li>Selecionar os episódios mantendo premida a tecla <code>Ctrl</code> e clicando em cada um.</li>
           <li>Para selecionar um intervalo, clicar no primeiro episódio, manter premida a tecla <code>Shift</code> e clicar no último.</li>
-          <li>Usar o menu de contexto (clique direito na seleção) ou o botão de transferência individual (↓) em cada episódio selecionado.</li>
+          <li>Clicar no botão <strong>«Transferir seleção (N)»</strong> que surge no cabeçalho do feed quando há pelo menos um episódio selecionado.</li>
         </ol>
         <hr>
       </section>
@@ -92,7 +92,7 @@
         <h2 id="47-fase-6-monitorizar-o-progresso">4.7 Fase 6: Monitorizar o Progresso</h2>
         <p>Durante a transferência:</p>
         <ul>
-          <li><strong>Barra global em baixo:</strong> Mostra o progresso geral do lote. Para um arquivo de 200 episódios a uma média de 64 kbps, o volume total de dados é de cerca de 2–3 GB.</li>
+          <li><strong>Painel de transferências:</strong> Abre-se automaticamente no lado direito da janela ao iniciar o lote. Mostra cada episódio em fila com percentagem, velocidade atual e tempo estimado até à conclusão. Para um arquivo de 200 episódios a uma média de 64 kbps, o volume total de dados é de cerca de 2–3 GB.</li>
           <li><strong>Estado na lista:</strong> Cada linha é atualizada em tempo real. Os episódios em curso mostram uma barra de progresso individual com a percentagem concluída.</li>
           <li><strong>Execução em segundo plano:</strong> Não é necessário manter a janela aberta. É possível fechá-la (o programa continua a operar na área de notificação) e reabri-la no final do processo.</li>
         </ul>
@@ -101,11 +101,11 @@
       </section>
       <section class="level2">
         <h2 id="48-fase-7-verificar-o-arquivo-concluído">4.8 Fase 7: Verificar o Arquivo Concluído</h2>
-        <p>Quando a barra global atinge 100% e todos os episódios estão concluídos, o arquivo está pronto.</p>
+        <p>Quando o Painel de transferências indica o lote como concluído e todos os episódios surgem em estado verde, o arquivo está pronto.</p>
         <p><strong>Operações recomendadas no final:</strong></p>
         <ol>
           <li>
-            <p><strong>Verificar os erros:</strong> Se alguns episódios mostram o estado <strong>"Erro"</strong> (vermelho), clicar no ícone (ℹ) para visualizar o código de erro. A causa mais comum é <code>404 Not Found</code>, que indica a remoção do ficheiro do servidor do podcast antes da transferência.</p>
+            <p><strong>Verificar os erros:</strong> Se alguns episódios mostram o estado <strong>"Erro"</strong> (vermelho), clicar neles para abrir o Painel de detalhe do episódio e ler o código de erro. Em alternativa, consultar a secção de resumo de erros na parte inferior do Painel de transferências. A causa mais comum é <code>404 Not Found</code>, que indica a remoção do ficheiro do servidor do podcast antes da transferência.</p>
           </li>
           <li>
             <p><strong>Exportar um resumo CSV:</strong> Aceder a <strong>Definições → Arquivo → Exportar CSV</strong>. O ficheiro gerado lista todos os episódios transferidos com hash SHA-256, tamanhos e metadados (ver o Capítulo 9).</p>
@@ -118,14 +118,17 @@
       </section>
       <section class="level2">
         <h2 id="49-atualizar-o-arquivo-no-futuro">4.9 Atualizar o Arquivo no Futuro</h2>
-        <p>O sistema Database-First simplifica as atualizações do arquivo. Quando o podcast publica novos episódios:</p>
+        <p>O sistema Database-First simplifica as atualizações do arquivo. O procedimento varia consoante o feed já esteja na biblioteca ou não.</p>
+        <p><strong>Feed já na barra lateral:</strong></p>
         <ol>
-          <li>Colar o mesmo URL RSS no campo URL.</li>
-          <li>Clicar em <strong>"Analisar"</strong>.</li>
-          <li>O software mostra a lista atualizada: os episódios já presentes aparecem como <strong>"Transferido"</strong>, os novos como <strong>"Por transferir"</strong>.</li>
+          <li>Clicar no feed na barra lateral para o selecionar.</li>
+          <li>Passar o rato sobre o elemento e clicar no ícone de sincronização, ou usar o botão <strong>«Sincronizar tudo»</strong> para atualizar toda a biblioteca em paralelo.</li>
+          <li>Os episódios novos aparecem no estado <strong>"Por transferir"</strong>; os já presentes permanecem como <strong>"Transferido"</strong>.</li>
           <li>Clicar em <strong>"Transferir tudo"</strong> para transferir apenas os episódios novos.</li>
         </ol>
-        <p>O sistema nunca transfere o mesmo episódio duas vezes. Esta operação pode ser executada com qualquer frequência, mesmo diariamente para podcasts com elevado ritmo de publicação.</p>
+        <p><strong>Feed ainda não na biblioteca:</strong></p>
+        <p>Colar o URL RSS no campo URL no topo da interface e clicar em <strong>"Analisar"</strong>: o feed é adicionado à biblioteca e a lista é preenchida com o estado atual.</p>
+        <p>O sistema nunca transfere o mesmo episódio duas vezes. Também é possível configurar uma atualização automática periódica (ver o Capítulo 10 e a secção 5.9).</p>
         <hr>
         <p><em>Ver o Capítulo 5 para aprofundar a gestão de feeds e as funcionalidades OPML.</em></p>
       </section>

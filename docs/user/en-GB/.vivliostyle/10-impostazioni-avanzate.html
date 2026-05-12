@@ -28,37 +28,48 @@
         </section>
       </section>
       <section class="level2">
-        <h2 id="103-keyword-filter">10.3 Keyword Filter</h2>
-        <p>The text filter allows you to <strong>narrow the list of displayed episodes</strong> based on text contained in the title. It is a consultation and quick selection tool, particularly useful with large catalogues.</p>
-        <p>
-          <strong>How to use the filter:</strong>
-          The filter bar is positioned at the top of the episode list, immediately below the batch controls. By typing one or more terms, the list updates in real time showing only the episodes whose title contains <strong>all the entered terms</strong> (AND logic).
-        </p>
-        <ul>
-          <li>To search for episodes containing the word "interview", type <code>interview</code>.</li>
-          <li>To search for episodes containing both "interview" and "2024", type <code>interview 2024</code>.</li>
-          <li>The filter is not case-sensitive: <code>Bonus</code> and <code>bonus</code> produce the same result.</li>
-        </ul>
-        <p><strong>Typical use cases:</strong></p>
-        <ul>
-          <li>Quickly identifying episodes from a specific season in an extensive catalogue.</li>
-          <li>Selecting a subset of episodes to download without scrolling through the entire list.</li>
-          <li>Verifying whether an episode with a particular title is already present in the database.</li>
-        </ul>
-        <p><em>Note:</em> The filter acts on the display of the current list and does not modify the download queue or the status of episodes in the database. To remove the filter, clear the text bar.</p>
-        <hr>
-      </section>
-      <section class="level2">
-        <h2 id="104-general">10.4 General</h2>
+        <h2 id="103-general">10.3 General</h2>
         <section class="level3">
           <h3 id="language">Language</h3>
           <p>FeedDownloader Pro is available in 8 languages: Italian, English, Deutsch, Español, Français, Português, Русский, 中文.</p>
           <p>The language change is immediate: the interface updates without needing to restart the software. The application uses exclusively the dark "Obsidian Command" theme: no light theme or list density selector is available.</p>
+        </section>
+        <section class="level3">
+          <h3 id="automatic-feed-refresh">Automatic Feed Refresh</h3>
+          <p>Allows all feeds to be automatically synchronised at regular intervals, without manual intervention. Four presets are available:</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Option</th>
+                <th>Behaviour</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Disabled</strong> (default)</td>
+                <td>No automatic synchronisation.</td>
+              </tr>
+              <tr>
+                <td><strong>Every 6 hours</strong></td>
+                <td>Full synchronisation every 6 hours from startup.</td>
+              </tr>
+              <tr>
+                <td><strong>Every 12 hours</strong></td>
+                <td>Full synchronisation every 12 hours from startup.</td>
+              </tr>
+              <tr>
+                <td><strong>Every 24 hours</strong></td>
+                <td>Full synchronisation every 24 hours from startup.</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>The change is immediate and does not require restarting the software. If new episodes are found during the automatic synchronisation, an operating system notification is sent. Automatic synchronisation does not start downloads: it only signals the availability of new content. For a detailed description of the behaviour, see section 5.9.</p>
+          <p><em>Note:</em> The episode list filter bar (text search, status, date, duration) is documented in section 3.4, as it is part of the episode list rather than a setting.</p>
           <hr>
         </section>
       </section>
       <section class="level2">
-        <h2 id="105-security-the-5-level-anti-ssrf-system">10.5 Security: The 5-Level Anti-SSRF System</h2>
+        <h2 id="104-security-the-5-level-anti-ssrf-system">10.4 Security: The 5-Level Anti-SSRF System</h2>
         <p>This section is documented for informational purposes: the security system operates in a completely automatic manner and does not require any configuration from the user.</p>
         <p>
           <strong>What is an SSRF attack?</strong>
@@ -94,7 +105,7 @@
         <hr>
       </section>
       <section class="level2">
-        <h2 id="106-advanced">10.6 Advanced</h2>
+        <h2 id="105-advanced">10.5 Advanced</h2>
         <section class="level3">
           <h3 id="updates">Updates</h3>
           <p>FeedDownloader Pro includes an integrated automatic update system.</p>

@@ -28,37 +28,48 @@
         </section>
       </section>
       <section class="level2">
-        <h2 id="103-关键词过滤">10.3 关键词过滤</h2>
-        <p>文本过滤器允许根据标题中包含的文本<strong>缩小显示的节目列表范围</strong>。这是一个快速查阅和选择工具，尤其适用于大型目录。</p>
-        <p>
-          <strong>如何使用过滤器：</strong>
-          过滤栏位于节目列表顶部，紧接在批量控件下方。输入一个或多个词语后，列表会实时更新，只显示标题包含<strong>所有输入词语</strong>的节目（AND 逻辑）。
-        </p>
-        <ul>
-          <li>要搜索包含词语"采访"的节目，输入 <code>采访</code>。</li>
-          <li>要搜索同时包含"采访"和"2024"的节目，输入 <code>采访 2024</code>。</li>
-          <li>过滤器不区分大小写：<code>Bonus</code> 和 <code>bonus</code> 产生相同结果。</li>
-        </ul>
-        <p><strong>典型使用场景：</strong></p>
-        <ul>
-          <li>在大型目录中快速找到特定季的节目。</li>
-          <li>选择要下载的节目子集，而无需滚动整个列表。</li>
-          <li>检查具有特定标题的节目是否已在数据库中。</li>
-        </ul>
-        <p><em>注意：</em> 过滤器仅作用于当前列表的显示，不会修改下载队列或数据库中节目的状态。要清除过滤器，清空文本栏即可。</p>
-        <hr>
-      </section>
-      <section class="level2">
-        <h2 id="104-常规">10.4 常规</h2>
+        <h2 id="103-常规">10.3 常规</h2>
         <section class="level3">
           <h3 id="语言">语言</h3>
           <p>FeedDownloader Pro 提供 8 种语言：意大利语、English、Deutsch、Español、Français、Português、Русский、中文。</p>
           <p>语言切换即时生效：界面无需重启即可更新。应用程序仅使用深色主题"Obsidian Command"：不提供浅色主题，也没有列表密度选择器。</p>
+        </section>
+        <section class="level3">
+          <h3 id="订阅源自动更新">订阅源自动更新</h3>
+          <p>允许按固定间隔自动同步所有订阅源，无需手动干预。可用四种预设：</p>
+          <table>
+            <thead>
+              <tr>
+                <th>选项</th>
+                <th>行为</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>禁用</strong>（默认）</td>
+                <td>不进行自动同步。</td>
+              </tr>
+              <tr>
+                <td><strong>每 6 小时</strong></td>
+                <td>自启动起每 6 小时进行一次完整同步。</td>
+              </tr>
+              <tr>
+                <td><strong>每 12 小时</strong></td>
+                <td>自启动起每 12 小时进行一次完整同步。</td>
+              </tr>
+              <tr>
+                <td><strong>每 24 小时</strong></td>
+                <td>自启动起每 24 小时进行一次完整同步。</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>设置更改立即生效，无需重启软件。如果在自动同步期间发现新节目，将发送操作系统通知。自动同步不会启动下载：仅提示有新内容可用。有关详细行为说明，请参见第 5.9 节。</p>
+          <p><em>注意：</em> 节目列表的过滤栏（文本搜索、状态、日期、时长）在第 3.4 节中描述，因为它属于节目列表，而非设置项。</p>
           <hr>
         </section>
       </section>
       <section class="level2">
-        <h2 id="105-安全性5-层反-ssrf-系统">10.5 安全性：5 层反 SSRF 系统</h2>
+        <h2 id="104-安全性5-层反-ssrf-系统">10.4 安全性：5 层反 SSRF 系统</h2>
         <p>本节为参考性文档说明：安全系统完全自动运行，无需用户进行任何配置。</p>
         <p>
           <strong>什么是 SSRF 攻击？</strong>
@@ -94,7 +105,7 @@
         <hr>
       </section>
       <section class="level2">
-        <h2 id="106-高级">10.6 高级</h2>
+        <h2 id="105-高级">10.5 高级</h2>
         <section class="level3">
           <h3 id="更新">更新</h3>
           <p>FeedDownloader Pro 内置了自动更新系统。</p>

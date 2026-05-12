@@ -36,9 +36,9 @@
         <p>Den spezifischen Ordner für den zu archivierenden Podcast erstellen (z. B. <code>D:\Podcast-Archiv\Mein Podcast\</code>). FeedDownloader Pro speichert alle Dateien dieses Podcasts in diesem Ordner, mit den durch die Umbenennungsvorlage definierten Namen (siehe Kapitel 8).</p>
         <p><strong>So wird der Zielordner in FeedDownloader Pro eingestellt:</strong></p>
         <ol>
-          <li>Auf das <strong>Ordner</strong>-Symbol neben dem Zielpfad-Feld klicken.</li>
+          <li><strong>Einstellungen → Archiv</strong> öffnen und auf das <strong>Ordner</strong>-Symbol neben dem Zielpfad-Feld klicken.</li>
           <li>Zum erstellten Ordner navigieren und ihn auswählen.</li>
-          <li>Der Pfad wird im Feld angezeigt und für die nächsten Sitzungen gespeichert.</li>
+          <li>Der konfigurierte Pfad ist stets in der Fußzeile der linken Seitenleiste sichtbar; ein Klick darauf öffnet den Ordner direkt im Dateimanager.</li>
         </ol>
         <p><em>Hinweis:</em> Bei Pfaden auf NAS oder Netzlaufwerken vor dem Fortfahren Kapitel 7 lesen. Die Konfiguration für Netzwerkpfade weist einige Besonderheiten auf, die in jenem Kapitel beschrieben werden.</p>
         <hr>
@@ -84,7 +84,7 @@
         <ol>
           <li>Die Episoden durch Halten von <code>Strg</code> und Klicken auf jede einzelne auswählen.</li>
           <li>Um einen Bereich auszuwählen, auf die erste Episode klicken, <code>Umschalt</code> halten und auf die letzte klicken.</li>
-          <li>Das Kontextmenü (Rechtsklick auf die Auswahl) oder die individuelle Download-Schaltfläche (↓) bei jeder ausgewählten Episode verwenden.</li>
+          <li>Auf die Schaltfläche <strong>„Auswahl herunterladen (N)"</strong> klicken, die in der Feed-Kopfzeile erscheint, sobald mindestens eine Episode ausgewählt ist.</li>
         </ol>
         <hr>
       </section>
@@ -92,7 +92,7 @@
         <h2 id="47-phase-6-den-fortschritt-überwachen">4.7 Phase 6: Den Fortschritt überwachen</h2>
         <p>Während des Downloads:</p>
         <ul>
-          <li><strong>Globale Leiste unten:</strong> Zeigt den Gesamtfortschritt des Batches. Bei einem Archiv mit 200 Episoden mit durchschnittlich 64 kbps beträgt das Gesamtdatenvolumen etwa 2–3 GB.</li>
+          <li><strong>Download-Panel:</strong> Öffnet sich beim Start des Batches automatisch auf der rechten Seite des Fensters. Zeigt jede Episode in der Warteschlange mit Prozentsatz, aktueller Geschwindigkeit und geschätzter Restzeit bis zum Abschluss an. Bei einem Archiv mit 200 Episoden mit durchschnittlich 64 kbps beträgt das Gesamtdatenvolumen etwa 2–3 GB.</li>
           <li><strong>Status in der Liste:</strong> Jede Zeile aktualisiert sich in Echtzeit. Episoden in Bearbeitung zeigen eine individuelle Fortschrittsleiste mit dem abgeschlossenen Prozentsatz.</li>
           <li><strong>Hintergrundausführung:</strong> Das Fenster muss nicht geöffnet bleiben. Es kann geschlossen werden (das Programm läuft im System Tray weiter) und nach Abschluss des Vorgangs wieder geöffnet werden.</li>
         </ul>
@@ -101,11 +101,11 @@
       </section>
       <section class="level2">
         <h2 id="48-phase-7-das-abgeschlossene-archiv-überprüfen">4.8 Phase 7: Das abgeschlossene Archiv überprüfen</h2>
-        <p>Wenn die globale Leiste 100 % erreicht und alle Episoden als abgeschlossen erscheinen, ist das Archiv fertig.</p>
+        <p>Wenn das Download-Panel den Batch als abgeschlossen anzeigt und alle Episoden in grünem Status erscheinen, ist das Archiv fertig.</p>
         <p><strong>Empfohlene Vorgänge nach Abschluss:</strong></p>
         <ol>
           <li>
-            <p><strong>Fehler prüfen:</strong> Zeigen einige Episoden den Status <strong>„Fehler"</strong> (rot) an, auf das Symbol (ℹ) klicken, um den Fehlercode anzuzeigen. Die häufigste Ursache ist <code>404 Not Found</code>, was bedeutet, dass die Datei vor dem Download vom Podcast-Server entfernt wurde.</p>
+            <p><strong>Fehler prüfen:</strong> Zeigen einige Episoden den Status <strong>„Fehler"</strong> (rot) an, sie anklicken, um das Episoden-Detailpanel zu öffnen und den Fehlercode zu lesen. Alternativ den Bereich mit der Fehlerübersicht unten im Download-Panel konsultieren. Die häufigste Ursache ist <code>404 Not Found</code>, was bedeutet, dass die Datei vor dem Download vom Podcast-Server entfernt wurde.</p>
           </li>
           <li>
             <p><strong>CSV-Zusammenfassung exportieren:</strong> Zu <strong>Einstellungen → Archiv → Als CSV exportieren</strong> navigieren. Die erzeugte Datei listet alle heruntergeladenen Episoden mit SHA-256-Hash, Größen und Metadaten auf (siehe Kapitel 9).</p>
@@ -118,14 +118,17 @@
       </section>
       <section class="level2">
         <h2 id="49-das-archiv-in-zukunft-aktualisieren">4.9 Das Archiv in Zukunft aktualisieren</h2>
-        <p>Das Database-First-System vereinfacht Archiv-Updates. Wenn der Podcast neue Episoden veröffentlicht:</p>
+        <p>Das Database-First-System vereinfacht Archiv-Updates. Das Verfahren hängt davon ab, ob sich der Feed bereits in der Bibliothek befindet oder nicht.</p>
+        <p><strong>Feed bereits in der Seitenleiste:</strong></p>
         <ol>
-          <li>Dieselbe RSS-URL in das URL-Feld einfügen.</li>
-          <li>Auf <strong>„Analysieren"</strong> klicken.</li>
-          <li>Die Software zeigt die aktualisierte Liste: bereits vorhandene Episoden erscheinen als <strong>„Heruntergeladen"</strong>, neue als <strong>„Herunterzuladen"</strong>.</li>
+          <li>Den Feed in der Seitenleiste anklicken, um ihn auszuwählen.</li>
+          <li>Mit der Maus über den Eintrag fahren und das Synchronisierungssymbol anklicken, oder die Schaltfläche <strong>„Alle synchronisieren"</strong> verwenden, um die gesamte Bibliothek parallel zu aktualisieren.</li>
+          <li>Neue Episoden erscheinen im Status <strong>„Herunterzuladen"</strong>; bereits vorhandene bleiben <strong>„Heruntergeladen"</strong>.</li>
           <li>Auf <strong>„Alles herunterladen"</strong> klicken, um nur die neuen Episoden herunterzuladen.</li>
         </ol>
-        <p>Das System lädt dieselbe Episode nie zweimal herunter. Dieser Vorgang kann beliebig häufig durchgeführt werden, auch täglich bei Podcasts mit hoher Veröffentlichungsfrequenz.</p>
+        <p><strong>Feed noch nicht in der Bibliothek:</strong></p>
+        <p>Die RSS-URL in das URL-Feld oben in der Oberfläche einfügen und auf <strong>„Analysieren"</strong> klicken: Der Feed wird zur Bibliothek hinzugefügt, und die Liste wird mit dem aktuellen Status gefüllt.</p>
+        <p>Das System lädt dieselbe Episode nie zweimal herunter. Es ist auch möglich, eine periodische automatische Aktualisierung zu konfigurieren (siehe Kapitel 10 und Abschnitt 5.9).</p>
         <hr>
         <p><em>Siehe Kapitel 5 für eine vertiefte Auseinandersetzung mit der Feed-Verwaltung und den OPML-Funktionen.</em></p>
       </section>

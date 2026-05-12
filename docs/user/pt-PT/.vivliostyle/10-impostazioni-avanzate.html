@@ -28,37 +28,48 @@
         </section>
       </section>
       <section class="level2">
-        <h2 id="103-filtro-por-palavras-chave">10.3 Filtro por Palavras-Chave</h2>
-        <p>O filtro de texto permite <strong>restringir a lista de episódios apresentados</strong> com base no texto contido no título. É uma ferramenta de consulta e seleção rápida, útil em particular com catálogos de grandes dimensões.</p>
-        <p>
-          <strong>Como utilizar o filtro:</strong>
-          A barra de filtro está posicionada na parte superior da lista de episódios, imediatamente abaixo dos controlos do lote. Ao escrever um ou mais termos, a lista é atualizada em tempo real mostrando apenas os episódios cujo título contém <strong>todos os termos introduzidos</strong> (lógica AND).
-        </p>
-        <ul>
-          <li>Para procurar episódios que contêm a palavra "entrevista", escrever <code>entrevista</code>.</li>
-          <li>Para procurar episódios que contêm tanto "entrevista" como "2024", escrever <code>entrevista 2024</code>.</li>
-          <li>O filtro não distingue maiúsculas de minúsculas: <code>Bónus</code> e <code>bónus</code> produzem o mesmo resultado.</li>
-        </ul>
-        <p><strong>Cenários de utilização típicos:</strong></p>
-        <ul>
-          <li>Identificar rapidamente os episódios de uma temporada específica num catálogo extenso.</li>
-          <li>Selecionar um subconjunto de episódios para transferir sem percorrer toda a lista.</li>
-          <li>Verificar se um episódio com um determinado título já está presente na base de dados.</li>
-        </ul>
-        <p><em>Nota:</em> O filtro atua sobre a apresentação da lista atual e não modifica a fila de transferência nem o estado dos episódios na base de dados. Para remover o filtro, esvaziar a barra de texto.</p>
-        <hr>
-      </section>
-      <section class="level2">
-        <h2 id="104-geral">10.4 Geral</h2>
+        <h2 id="103-geral">10.3 Geral</h2>
         <section class="level3">
           <h3 id="idioma">Idioma</h3>
           <p>O FeedDownloader Pro está disponível em 8 idiomas: Italiano, English, Deutsch, Español, Français, Português, Русский, 中文.</p>
           <p>A mudança de idioma é imediata: a interface é atualizada sem necessidade de reiniciar o software. A aplicação utiliza exclusivamente o tema escuro "Obsidian Command": não está disponível um tema claro nem um seletor de densidade da lista.</p>
+        </section>
+        <section class="level3">
+          <h3 id="atualização-automática-de-feeds">Atualização automática de feeds</h3>
+          <p>Permite sincronizar automaticamente todos os feeds a intervalos regulares, sem intervenção manual. Estão disponíveis quatro predefinições:</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Opção</th>
+                <th>Comportamento</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Desativado</strong> (predefinição)</td>
+                <td>Sem sincronização automática.</td>
+              </tr>
+              <tr>
+                <td><strong>A cada 6 horas</strong></td>
+                <td>Sincronização completa a cada 6 horas desde o arranque.</td>
+              </tr>
+              <tr>
+                <td><strong>A cada 12 horas</strong></td>
+                <td>Sincronização completa a cada 12 horas desde o arranque.</td>
+              </tr>
+              <tr>
+                <td><strong>A cada 24 horas</strong></td>
+                <td>Sincronização completa a cada 24 horas desde o arranque.</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>A alteração é imediata e não requer reiniciar o software. Se durante a sincronização automática forem encontrados novos episódios, é enviada uma notificação do sistema operativo. A sincronização automática não inicia transferências: limita-se a sinalizar a disponibilidade de novos conteúdos. Para uma descrição detalhada do comportamento, ver a secção 5.9.</p>
+          <p><em>Nota:</em> A barra de filtros da lista de episódios (pesquisa de texto, estado, data, duração) está descrita na secção 3.4, uma vez que faz parte da lista de episódios e não das definições.</p>
           <hr>
         </section>
       </section>
       <section class="level2">
-        <h2 id="105-segurança-o-sistema-anti-ssrf-a-5-níveis">10.5 Segurança: O Sistema Anti-SSRF a 5 Níveis</h2>
+        <h2 id="104-segurança-o-sistema-anti-ssrf-a-5-níveis">10.4 Segurança: O Sistema Anti-SSRF a 5 Níveis</h2>
         <p>Esta secção está documentada a título informativo: o sistema de segurança opera de forma completamente automática e não requer configuração por parte do utilizador.</p>
         <p>
           <strong>O que é um ataque SSRF?</strong>
@@ -94,7 +105,7 @@
         <hr>
       </section>
       <section class="level2">
-        <h2 id="106-avançadas">10.6 Avançadas</h2>
+        <h2 id="105-avançadas">10.5 Avançadas</h2>
         <section class="level3">
           <h3 id="atualizações">Atualizações</h3>
           <p>O FeedDownloader Pro inclui um sistema de atualização automática integrado.</p>

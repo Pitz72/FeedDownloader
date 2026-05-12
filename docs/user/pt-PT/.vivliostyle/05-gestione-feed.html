@@ -32,22 +32,31 @@
           <li><strong>Parsing XML:</strong> Lê e analisa o documento RSS ou Atom. O software gere feeds com ligeiros desvios das normas (codificação não declarada, etiquetas em falta, espaços de nomes não convencionais).</li>
           <li><strong>Deduplicação:</strong> Para cada episódio no feed, a base de dados é consultada para verificar se o episódio já foi transferido. O URL de áudio é utilizado como chave de identificação única.</li>
           <li><strong>Preenchimento da lista:</strong> Todos os episódios são apresentados com o seu estado atual.</li>
+          <li><strong>Adição à biblioteca:</strong> O feed é inserido permanentemente na barra lateral se ainda não estiver presente. Os feeds já na biblioteca são atualizados com a contagem de episódios mais recente.</li>
         </ol>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="54-histórico-de-feeds">5.4 Histórico de Feeds</h2>
-        <p>O FeedDownloader Pro mantém um <strong>histórico dos feeds analisados</strong>. Cada URL introduzido no campo de pesquisa é memorizado juntamente com o nome do podcast e o número de episódios, para simplificar os acessos futuros.</p>
-        <p>
-          <strong>Aceder ao histórico:</strong>
-          Clicar na seta à direita do campo URL ou começar a escrever: o software propõe sugestões automáticas com base no histórico.
-        </p>
-        <p>
-          <strong>Gerir o histórico:</strong>
-          Nas definições é possível visualizar a lista completa dos feeds no histórico, remover entradas individuais ou esvaziar completamente a lista.
-        </p>
-        <p><em>Nota sobre privacidade:</em> O histórico é guardado exclusivamente na base de dados local <code>feeddownloader.db</code>. Nenhum dado é transmitido a servidores externos.</p>
-        <hr>
+        <h2 id="54-a-biblioteca-de-feeds">5.4 A Biblioteca de Feeds</h2>
+        <p>O FeedDownloader Pro mantém uma <strong>biblioteca permanente de feeds</strong>. Cada feed analisado é guardado na barra lateral e permanece disponível entre as sessões, sem necessidade de reintroduzir o URL a cada arranque.</p>
+        <section class="level3">
+          <h3 id="apresentação">Apresentação</h3>
+          <p>Cada elemento da biblioteca mostra: a capa do podcast (miniatura), o título, a data da última sincronização com o servidor e um emblema numérico que indica quantos episódios foram publicados desde a última transferência. O emblema desaparece assim que todos os novos episódios forem transferidos.</p>
+          <p>Ao clicar num feed na barra lateral, a lista de episódios é imediatamente atualizada na área principal.</p>
+        </section>
+        <section class="level3">
+          <h3 id="remover-um-feed-da-biblioteca">Remover um feed da biblioteca</h3>
+          <p>Para remover um feed, passar o rato sobre o elemento na barra lateral: surge o botão da reciclagem no canto direito da linha. Clicar nele abre uma janela de confirmação. A remoção elimina o feed da biblioteca, mas <strong>não apaga os ficheiros de áudio já transferidos</strong> nem os dados associados na base de dados; os episódios permanecem visíveis na Vista de Arquivo.</p>
+        </section>
+        <section class="level3">
+          <h3 id="pesquisa-e-ordenação">Pesquisa e ordenação</h3>
+          <ul>
+            <li><strong>Pesquisa de feeds:</strong> O campo de pesquisa no topo da barra lateral filtra os feeds por nome em tempo real. Útil com bibliotecas de grandes dimensões.</li>
+            <li><strong>Ordenação A–Z:</strong> O botão de ordenação organiza os feeds alfabeticamente por título. Clicar novamente repõe a ordem original.</li>
+          </ul>
+          <p><em>Nota sobre privacidade:</em> A biblioteca de feeds é guardada exclusivamente na base de dados local. Nenhum dado é transmitido a servidores externos.</p>
+          <hr>
+        </section>
       </section>
       <section class="level2">
         <h2 id="55-importar-feeds-de-opml">5.5 Importar Feeds de OPML</h2>
@@ -55,16 +64,15 @@
         <p><strong>Como importar um ficheiro OPML:</strong></p>
         <ol>
           <li>Aceder a <strong>Definições → Arquivo</strong>, secção "Dados e portabilidade".</li>
-          <li>Selecionar o ficheiro <code>.opml</code> exportado pela aplicação de podcasts.</li>
-          <li>O FeedDownloader Pro analisa o ficheiro e apresenta a lista dos podcasts identificados, com a possibilidade de selecionar os de interesse.</li>
-          <li>Os feeds selecionados são adicionados ao histórico e, facultativamente, analisados em sequência automática.</li>
+          <li>Clicar em <strong>Importar feeds (OPML)</strong> e selecionar o ficheiro <code>.opml</code> exportado pela aplicação de podcasts.</li>
+          <li>O FeedDownloader Pro analisa o ficheiro e adiciona os feeds identificados à biblioteca.</li>
         </ol>
         <p><em>Nota:</em> Algumas aplicações de podcast utilizam variantes proprietárias do formato OPML. O FeedDownloader Pro suporta as versões mais comuns. Se um ficheiro não for importado corretamente, abri-lo com um editor de texto e verificar a presença de etiquetas <code>&lt;outline type="rss" xmlUrl="..."&gt;</code> para cada podcast.</p>
         <hr>
       </section>
       <section class="level2">
         <h2 id="56-exportar-a-biblioteca-em-opml">5.6 Exportar a Biblioteca em OPML</h2>
-        <p>É possível exportar o histórico de feeds no formato OPML para:</p>
+        <p>É possível exportar a biblioteca de feeds no formato OPML para:</p>
         <ul>
           <li>Criar uma cópia de segurança da lista de podcasts.</li>
           <li>Partilhá-la com outros utilizadores ou com outra instalação do software.</li>
@@ -73,7 +81,7 @@
         <p><strong>Como exportar:</strong></p>
         <ol>
           <li>Aceder a <strong>Definições → Arquivo</strong>, secção "Dados e portabilidade".</li>
-          <li>Escolher um nome e uma localização para o ficheiro <code>.opml</code>.</li>
+          <li>Clicar em <strong>Exportar feeds (OPML)</strong> e escolher um nome e uma localização para o ficheiro.</li>
           <li>O ficheiro gerado é compatível com qualquer aplicação que suporte a norma OPML.</li>
         </ol>
         <hr>
@@ -84,21 +92,68 @@
         <ul>
           <li><strong>A análise inicial demora mais tempo:</strong> Um feed com 2.000 episódios pode requerer 15–30 segundos para a transferência e o parsing. Este comportamento é esperado.</li>
           <li><strong>Virtualização da lista:</strong> Com milhares de entradas, a lista carrega apenas as linhas visíveis no ecrã para manter a interface responsiva.</li>
-          <li><strong>Estimativa do espaço necessário:</strong> Com 2.000 episódios a cerca de 50 MB cada, o volume total é de aproximadamente 100 GB. O software apresenta uma estimativa do tamanho total antes do início do lote. Verificar a disponibilidade de espaço suficiente antes de continuar.</li>
+          <li><strong>Estimativa do espaço necessário:</strong> Com 2.000 episódios a cerca de 50 MB cada, o volume total é de aproximadamente 100 GB. Verificar a disponibilidade de espaço suficiente antes de continuar.</li>
         </ul>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="58-limitações-do-feed-múltiplo">5.8 Limitações do Feed Múltiplo</h2>
-        <p>O FeedDownloader Pro analisa um feed de cada vez. Não dispõe de um gestor de feeds permanentes com atualização automática: o software está otimizado para a transferência em lote, não para a monitorização contínua de múltiplos feeds.</p>
-        <p>Para gerir vários feeds em sequência, a estratégia recomendada é:</p>
-        <ol>
-          <li>Usar a função OPML para manter a lista de feeds num ficheiro centralizado.</li>
-          <li>Analisar e transferir um podcast de cada vez, procedendo de forma sistemática.</li>
-          <li>Usar o histórico de feeds para recuperar rapidamente um podcast já analisado.</li>
-        </ol>
-        <hr>
-        <p><em>Ver o Capítulo 6 para uma descrição detalhada do motor de transferência.</em></p>
+        <h2 id="58-gestão-de-múltiplos-feeds">5.8 Gestão de Múltiplos Feeds</h2>
+        <p>O FeedDownloader Pro gere nativamente uma biblioteca de múltiplos feeds. Não há limite ao número de podcasts que podem ser adicionados: todos são mantidos na barra lateral e permanecem acessíveis entre uma sessão e outra.</p>
+        <section class="level3">
+          <h3 id="navegar-entre-os-feeds">Navegar entre os feeds</h3>
+          <p>Ao clicar num feed na barra lateral, a lista de episódios da área principal é imediatamente atualizada. O software memoriza qual feed estava selecionado no último encerramento.</p>
+        </section>
+        <section class="level3">
+          <h3 id="sincronizar-os-feeds">Sincronizar os feeds</h3>
+          <ul>
+            <li><strong>Sincronização individual:</strong> Passar o rato sobre um elemento de feed na barra lateral para mostrar o ícone de sincronização. Ao clicar, o software relê esse feed a partir do servidor e atualiza a lista com eventuais novos episódios.</li>
+            <li><strong>Sincronizar tudo:</strong> O botão "Sincronizar tudo" atualiza todos os feeds em paralelo numa única operação. Durante o processo, cada miniatura da barra lateral mostra o seu próprio estado em tempo real. No final, eventuais novos episódios são destacados com o emblema de novos episódios.</li>
+          </ul>
+          <p>Para a atualização automática programada sem intervenção manual, ver a secção 5.9.</p>
+          <hr>
+        </section>
+      </section>
+      <section class="level2">
+        <h2 id="59-atualização-automática-dos-feeds">5.9 Atualização Automática dos Feeds</h2>
+        <p>O FeedDownloader Pro pode sincronizar automaticamente todos os feeds a intervalos regulares, em segundo plano, sem necessidade de qualquer ação por parte do utilizador.</p>
+        <section class="level3">
+          <h3 id="configuração">Configuração</h3>
+          <p>A definição encontra-se em <strong>Definições → Geral → Atualização automática de feeds</strong>. Estão disponíveis quatro opções:</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Opção</th>
+                <th>Comportamento</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Desativado</strong> (predefinição)</td>
+                <td>Sem sincronização automática.</td>
+              </tr>
+              <tr>
+                <td><strong>A cada 6 horas</strong></td>
+                <td>O software sincroniza todos os feeds a cada 6 horas desde o arranque.</td>
+              </tr>
+              <tr>
+                <td><strong>A cada 12 horas</strong></td>
+                <td>O software sincroniza todos os feeds a cada 12 horas desde o arranque.</td>
+              </tr>
+              <tr>
+                <td><strong>A cada 24 horas</strong></td>
+                <td>O software sincroniza todos os feeds uma vez a cada 24 horas desde o arranque.</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>A alteração da definição é imediata e não requer reiniciar o software. O temporizador parte do arranque da aplicação.</p>
+        </section>
+        <section class="level3">
+          <h3 id="comportamento">Comportamento</h3>
+          <p>A atualização automática <strong>não inicia transferências</strong>: limita-se a verificar se foram publicados novos episódios. Se durante a sincronização automática forem encontrados novos episódios em um ou mais feeds, o sistema envia uma <strong>notificação do sistema operativo</strong> com o resumo dos conteúdos encontrados (disponível em todas as 8 línguas suportadas).</p>
+          <p>Para transferir os novos episódios assinalados, abrir o software e usar os controlos habituais do lote.</p>
+          <hr>
+          <p><em>Ver o Capítulo 6 para uma descrição detalhada do motor de transferência.</em></p>
+        </section>
       </section>
     </section>
   

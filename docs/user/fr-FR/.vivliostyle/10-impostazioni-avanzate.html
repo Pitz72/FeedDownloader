@@ -28,37 +28,48 @@
         </section>
       </section>
       <section class="level2">
-        <h2 id="103-filtre-par-mots-clés">10.3 Filtre par mots-clés</h2>
-        <p>Le filtre textuel permet de <strong>restreindre la liste des épisodes affichés</strong> en fonction du texte contenu dans le titre. C'est un outil de consultation et de sélection rapide, particulièrement utile avec les catalogues de grande taille.</p>
-        <p>
-          <strong>Comment utiliser le filtre :</strong>
-          La barre de filtre est positionnée dans la partie supérieure de la liste des épisodes, immédiatement sous les contrôles du batch. En saisissant un ou plusieurs termes, la liste se met à jour en temps réel en affichant uniquement les épisodes dont le titre contient <strong>tous les termes saisis</strong> (logique AND).
-        </p>
-        <ul>
-          <li>Pour rechercher les épisodes contenant le mot « interview », saisir <code>interview</code>.</li>
-          <li>Pour rechercher les épisodes contenant à la fois « interview » et « 2024 », saisir <code>interview 2024</code>.</li>
-          <li>Le filtre ne distingue pas les majuscules des minuscules : <code>Bonus</code> et <code>bonus</code> produisent le même résultat.</li>
-        </ul>
-        <p><strong>Cas d'utilisation typiques :</strong></p>
-        <ul>
-          <li>Identifier rapidement les épisodes d'une saison spécifique dans un catalogue étendu.</li>
-          <li>Sélectionner un sous-ensemble d'épisodes à télécharger sans parcourir toute la liste.</li>
-          <li>Vérifier si un épisode avec un titre particulier est déjà présent dans la base de données.</li>
-        </ul>
-        <p><em>Remarque :</em> Le filtre agit sur l'affichage de la liste en cours et ne modifie ni la file de téléchargement ni l'état des épisodes dans la base de données. Pour supprimer le filtre, vider la barre de texte.</p>
-        <hr>
-      </section>
-      <section class="level2">
-        <h2 id="104-général">10.4 Général</h2>
+        <h2 id="103-général">10.3 Général</h2>
         <section class="level3">
           <h3 id="langue">Langue</h3>
           <p>FeedDownloader Pro est disponible en 8 langues : Italiano, English, Deutsch, Español, Français, Português, Русский, 中文.</p>
           <p>Le changement de langue est immédiat : l'interface se met à jour sans nécessiter de redémarrage du logiciel. L'application utilise exclusivement le thème sombre « Obsidian Command » : aucun thème clair ni sélecteur de densité de liste n'est disponible.</p>
+        </section>
+        <section class="level3">
+          <h3 id="mise-à-jour-automatique-des-feeds">Mise à jour automatique des feeds</h3>
+          <p>Permet de synchroniser automatiquement tous les feeds à intervalles réguliers, sans intervention manuelle. Quatre préréglages sont disponibles :</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Option</th>
+                <th>Comportement</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Désactivé</strong> (par défaut)</td>
+                <td>Aucune synchronisation automatique.</td>
+              </tr>
+              <tr>
+                <td><strong>Toutes les 6 heures</strong></td>
+                <td>Synchronisation complète toutes les 6 heures à partir du lancement.</td>
+              </tr>
+              <tr>
+                <td><strong>Toutes les 12 heures</strong></td>
+                <td>Synchronisation complète toutes les 12 heures à partir du lancement.</td>
+              </tr>
+              <tr>
+                <td><strong>Toutes les 24 heures</strong></td>
+                <td>Synchronisation complète toutes les 24 heures à partir du lancement.</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>Le changement est immédiat et ne nécessite pas le redémarrage du logiciel. Si de nouveaux épisodes sont trouvés pendant la synchronisation automatique, une notification du système d'exploitation est envoyée. La synchronisation automatique ne lance pas de téléchargements : elle se contente de signaler la disponibilité de nouveaux contenus. Pour une description détaillée du comportement, voir la section 5.9.</p>
+          <p><em>Remarque :</em> La barre de filtre de la liste des épisodes (recherche texte, état, date, durée) est décrite à la section 3.4, car elle fait partie de la liste des épisodes et non d'un paramètre.</p>
           <hr>
         </section>
       </section>
       <section class="level2">
-        <h2 id="105-sécurité--le-système-anti-ssrf-à-5-niveaux">10.5 Sécurité : le système anti-SSRF à 5 niveaux</h2>
+        <h2 id="104-sécurité--le-système-anti-ssrf-à-5-niveaux">10.4 Sécurité : le système anti-SSRF à 5 niveaux</h2>
         <p>Cette section est documentée à titre informatif : le système de sécurité fonctionne de manière entièrement automatique et ne nécessite aucune configuration de la part de l'utilisateur.</p>
         <p>
           <strong>Qu'est-ce qu'une attaque SSRF ?</strong>
@@ -94,7 +105,7 @@
         <hr>
       </section>
       <section class="level2">
-        <h2 id="106-avancé">10.6 Avancé</h2>
+        <h2 id="105-avancé">10.5 Avancé</h2>
         <section class="level3">
           <h3 id="mises-à-jour">Mises à jour</h3>
           <p>FeedDownloader Pro inclut un système de mise à jour automatique intégré.</p>

@@ -36,9 +36,9 @@
         <p>Crear la carpeta específica para el podcast que se va a archivar (p. ej., <code>D:\Archivo Podcast\Mi Podcast\</code>). FeedDownloader Pro guardará todos los archivos de ese podcast en esa carpeta, con los nombres definidos por la plantilla de renombrado (véase el Capítulo 8).</p>
         <p><strong>Para configurar la carpeta de destino en FeedDownloader Pro:</strong></p>
         <ol>
-          <li>Hacer clic en el icono de <strong>carpeta</strong> junto al campo de ruta de destino.</li>
+          <li>Abrir <strong>Ajustes → Archivo</strong> y hacer clic en el icono de <strong>carpeta</strong> junto al campo de ruta de destino.</li>
           <li>Navegar hasta la carpeta creada y seleccionarla.</li>
-          <li>La ruta se muestra en el campo y se memoriza para las sesiones posteriores.</li>
+          <li>La ruta configurada siempre es visible en el pie de página de la barra lateral izquierda; hacer clic en ella abre la carpeta directamente en el gestor de archivos.</li>
         </ol>
         <p><em>Nota:</em> Para las rutas en NAS o discos de red, consultar el Capítulo 7 antes de continuar. La configuración para rutas de red tiene algunas particularidades descritas en ese capítulo.</p>
         <hr>
@@ -84,7 +84,7 @@
         <ol>
           <li>Seleccionar los episodios manteniendo pulsado <code>Ctrl</code> y haciendo clic en cada uno.</li>
           <li>Para seleccionar un intervalo, hacer clic en el primer episodio, mantener pulsado <code>Shift</code> y hacer clic en el último.</li>
-          <li>Usar el menú contextual (clic derecho en la selección) o el botón de descarga individual (↓) en cada episodio seleccionado.</li>
+          <li>Hacer clic en el botón <strong>«Descargar selección (N)»</strong> que aparece en el encabezado del feed cuando hay al menos un episodio seleccionado.</li>
         </ol>
         <hr>
       </section>
@@ -92,7 +92,7 @@
         <h2 id="47-fase-6-monitorizar-el-progreso">4.7 Fase 6: Monitorizar el Progreso</h2>
         <p>Durante la descarga:</p>
         <ul>
-          <li><strong>Barra global abajo:</strong> Muestra el progreso general del batch. Para un archivo de 200 episodios a una media de 64 kbps, el volumen de datos total es de aproximadamente 2–3 GB.</li>
+          <li><strong>Panel de descarga:</strong> Se abre automáticamente en el lado derecho de la ventana al iniciar el batch. Muestra cada episodio en cola con porcentaje, velocidad actual y tiempo estimado hasta la finalización. Para un archivo de 200 episodios a una media de 64 kbps, el volumen de datos total es de aproximadamente 2–3 GB.</li>
           <li><strong>Estado en la lista:</strong> Cada fila se actualiza en tiempo real. Los episodios en curso muestran una barra de avance individual con el porcentaje completado.</li>
           <li><strong>Ejecución en segundo plano:</strong> No es necesario mantener la ventana abierta. Se puede cerrar (el programa continúa funcionando en el system tray) y volver a abrirla al completarse el proceso.</li>
         </ul>
@@ -101,11 +101,11 @@
       </section>
       <section class="level2">
         <h2 id="48-fase-7-verificar-el-archivo-completado">4.8 Fase 7: Verificar el Archivo Completado</h2>
-        <p>Cuando la barra global alcanza el 100 % y todos los episodios aparecen como completados, el archivo está listo.</p>
+        <p>Cuando el Panel de descarga muestra el batch como completado y todos los episodios aparecen en estado verde, el archivo está listo.</p>
         <p><strong>Operaciones recomendadas al completar:</strong></p>
         <ol>
           <li>
-            <p><strong>Comprobar los errores:</strong> Si algunos episodios muestran el estado <strong>"Error"</strong> (rojo), hacer clic en el icono (ℹ) para ver el código de error. La causa más común es <code>404 Not Found</code>, que indica la eliminación del archivo del servidor del podcast antes de la descarga.</p>
+            <p><strong>Comprobar los errores:</strong> Si algunos episodios muestran el estado <strong>"Error"</strong> (rojo), hacer clic en ellos para abrir el Panel de detalle del episodio y leer el código de error. Alternativamente, consultar la sección de resumen de errores en la parte inferior del Panel de descarga. La causa más común es <code>404 Not Found</code>, que indica la eliminación del archivo del servidor del podcast antes de la descarga.</p>
           </li>
           <li>
             <p><strong>Exportar un resumen CSV:</strong> Ir a <strong>Configuración → Archivo → Exportar CSV</strong>. El archivo generado enumera todos los episodios descargados con hash SHA-256, tamaños y metadatos (véase el Capítulo 9).</p>
@@ -118,14 +118,17 @@
       </section>
       <section class="level2">
         <h2 id="49-actualizar-el-archivo-en-el-futuro">4.9 Actualizar el Archivo en el Futuro</h2>
-        <p>El sistema Database-First simplifica las actualizaciones del archivo. Cuando el podcast publica nuevos episodios:</p>
+        <p>El sistema Database-First simplifica las actualizaciones del archivo. El procedimiento varía según si el feed ya está en la biblioteca o no.</p>
+        <p><strong>Feed ya en la barra lateral:</strong></p>
         <ol>
-          <li>Pegar la misma URL RSS en el campo URL.</li>
-          <li>Hacer clic en <strong>"Analizar"</strong>.</li>
-          <li>El software muestra la lista actualizada: los episodios ya presentes aparecen como <strong>"Descargado"</strong>, los nuevos como <strong>"Por descargar"</strong>.</li>
+          <li>Hacer clic en el feed en la barra lateral para seleccionarlo.</li>
+          <li>Pasar el ratón sobre el elemento y hacer clic en el icono de sincronización, o usar el botón <strong>«Sincronizar todo»</strong> para actualizar toda la biblioteca en paralelo.</li>
+          <li>Los nuevos episodios aparecen en estado <strong>"Por descargar"</strong>; los ya presentes permanecen como <strong>"Descargado"</strong>.</li>
           <li>Hacer clic en <strong>"Descargar todo"</strong> para descargar únicamente los episodios nuevos.</li>
         </ol>
-        <p>El sistema nunca descarga el mismo episodio dos veces. Esta operación puede realizarse con cualquier frecuencia, incluso diariamente para los podcasts con alto ritmo de publicación.</p>
+        <p><strong>Feed aún no en la biblioteca:</strong></p>
+        <p>Pegar la URL RSS en el campo URL en la parte superior de la interfaz y hacer clic en <strong>"Analizar"</strong>: el feed se añade a la biblioteca y la lista se rellena con el estado actual.</p>
+        <p>El sistema nunca descarga el mismo episodio dos veces. También se puede configurar una actualización automática periódica (véase el Capítulo 10 y la sección 5.9).</p>
         <hr>
         <p><em>Véase el Capítulo 5 para profundizar en la gestión de feeds y las funcionalidades OPML.</em></p>
       </section>

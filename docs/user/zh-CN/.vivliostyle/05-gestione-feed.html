@@ -32,22 +32,31 @@
           <li><strong>XML 解析：</strong> 读取并分析 RSS 或 Atom 文档。软件能处理与标准略有偏差的 feed（未声明的编码、缺失标签、非常规命名空间）。</li>
           <li><strong>去重：</strong> 对 feed 中的每个节目，查询数据库以检查是否已经下载。音频 URL 用作唯一标识键。</li>
           <li><strong>填充列表：</strong> 所有节目连同当前状态一起显示。</li>
+          <li><strong>添加到订阅源库：</strong> 如果订阅源尚未存在，将被永久添加到侧边栏。已存在于订阅源库中的订阅源会以最新的节目数量进行更新。</li>
         </ol>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="54-feed-历史记录">5.4 Feed 历史记录</h2>
-        <p>FeedDownloader Pro 维护一份<strong>已分析 feed 的历史记录</strong>。输入搜索字段的每个 URL 都会与播客名称和节目数量一起保存，方便以后快速访问。</p>
-        <p>
-          <strong>访问历史记录：</strong>
-          点击 URL 字段右侧的箭头，或开始输入：软件会根据历史记录自动提供建议。
-        </p>
-        <p>
-          <strong>管理历史记录：</strong>
-          在设置中可以查看历史记录中的完整 feed 列表，删除单个条目，或清空整个列表。
-        </p>
-        <p><em>隐私说明：</em> 历史记录仅保存在本地数据库 <code>feeddownloader.db</code> 中。不会向外部服务器传输任何数据。</p>
-        <hr>
+        <h2 id="54-订阅源库">5.4 订阅源库</h2>
+        <p>FeedDownloader Pro 维护一份<strong>永久订阅源库</strong>。每个已分析的订阅源都会保存在侧边栏中，并在会话之间保持可用，无需在每次启动时重新输入 URL。</p>
+        <section class="level3">
+          <h3 id="显示内容">显示内容</h3>
+          <p>订阅源库中的每个条目显示：播客封面（缩略图）、标题、与服务器最近一次同步的日期，以及一个数字徽章，指示自上次下载以来已发布的节目数量。下载完所有新节目后，徽章会消失。</p>
+          <p>点击侧边栏中的订阅源会立即在主区域更新节目列表。</p>
+        </section>
+        <section class="level3">
+          <h3 id="从订阅源库中移除订阅源">从订阅源库中移除订阅源</h3>
+          <p>要移除订阅源，将鼠标悬停在侧边栏中的条目上：右侧会出现垃圾桶按钮。点击它会打开确认对话框。移除操作会从订阅源库中删除该订阅源，但<strong>不会删除已下载的音频文件</strong>，也不会删除数据库中的相关数据；节目仍可在归档视图中看到。</p>
+        </section>
+        <section class="level3">
+          <h3 id="搜索和排序">搜索和排序</h3>
+          <ul>
+            <li><strong>订阅源搜索：</strong> 侧边栏顶部的搜索字段按名称实时筛选订阅源。对大型订阅源库很有用。</li>
+            <li><strong>A–Z 排序：</strong> 排序按钮按标题字母顺序排列订阅源。再次点击恢复原始顺序。</li>
+          </ul>
+          <p><em>隐私说明：</em> 订阅源库仅保存在本地数据库中。不会向外部服务器传输任何数据。</p>
+          <hr>
+        </section>
       </section>
       <section class="level2">
         <h2 id="55-从-opml-导入-feed">5.5 从 OPML 导入 Feed</h2>
@@ -55,25 +64,24 @@
         <p><strong>如何导入 OPML 文件：</strong></p>
         <ol>
           <li>前往<strong>设置 → 存档</strong>，找到"数据与可移植性"部分。</li>
-          <li>选择从播客应用导出的 <code>.opml</code> 文件。</li>
-          <li>FeedDownloader Pro 解析该文件并显示识别到的播客列表，可以选择感兴趣的播客。</li>
-          <li>选中的 feed 将被添加到历史记录，并可选择按顺序自动分析。</li>
+          <li>点击<strong>导入订阅源 (OPML)</strong>，并选择从播客应用导出的 <code>.opml</code> 文件。</li>
+          <li>FeedDownloader Pro 解析该文件并将识别到的订阅源添加到订阅源库。</li>
         </ol>
         <p><em>注意：</em> 某些播客应用使用专有的 OPML 格式变体。FeedDownloader Pro 支持最常见的版本。如果文件无法正确导入，请用文本编辑器打开，检查每个播客是否存在 <code>&lt;outline type="rss" xmlUrl="..."&gt;</code> 标签。</p>
         <hr>
       </section>
       <section class="level2">
         <h2 id="56-将库导出为-opml">5.6 将库导出为 OPML</h2>
-        <p>可以将 feed 历史记录以 OPML 格式导出，用于：</p>
+        <p>可以将订阅源库以 OPML 格式导出，用于：</p>
         <ul>
           <li>创建播客列表的备份。</li>
           <li>与其他用户或软件的另一个安装实例共享。</li>
-          <li>导入到播客应用中以订阅相同的 feed。</li>
+          <li>导入到播客应用中以订阅相同的订阅源。</li>
         </ul>
         <p><strong>如何导出：</strong></p>
         <ol>
           <li>前往<strong>设置 → 存档</strong>，找到"数据与可移植性"部分。</li>
-          <li>为 <code>.opml</code> 文件选择名称和保存位置。</li>
+          <li>点击<strong>导出订阅源 (OPML)</strong>，为文件选择名称和保存位置。</li>
           <li>生成的文件与任何支持 OPML 标准的应用程序兼容。</li>
         </ol>
         <hr>
@@ -84,21 +92,68 @@
         <ul>
           <li><strong>初始分析需要更长时间：</strong> 拥有 2,000 个节目的 feed 可能需要 15–30 秒才能完成下载和解析。这是预期行为。</li>
           <li><strong>列表虚拟化：</strong> 拥有数千个条目时，列表只加载屏幕上可见的行，以保持界面响应流畅。</li>
-          <li><strong>估算所需空间：</strong> 2,000 个节目，每个约 50 MB，总量约为 100 GB。软件在启动批量任务前会显示总大小估计。请在继续操作前确认有足够的可用空间。</li>
+          <li><strong>估算所需空间：</strong> 2,000 个节目，每个约 50 MB，总量约为 100 GB。请在继续操作前确认有足够的可用空间。</li>
         </ul>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="58-多-feed-的局限性">5.8 多 Feed 的局限性</h2>
-        <p>FeedDownloader Pro 每次分析一个 feed。它没有带自动更新功能的持久 feed 管理器：软件针对批量下载进行了优化，而非多 feed 的持续监控。</p>
-        <p>要按顺序管理多个 feed，推荐策略如下：</p>
-        <ol>
-          <li>使用 OPML 功能将 feed 列表保存在一个集中文件中。</li>
-          <li>每次分析并下载一个播客，有序推进。</li>
-          <li>使用 feed 历史记录快速调出之前分析过的播客。</li>
-        </ol>
-        <hr>
-        <p><em>参见第 6 章，了解下载引擎的详细说明。</em></p>
+        <h2 id="58-管理多个订阅源">5.8 管理多个订阅源</h2>
+        <p>FeedDownloader Pro 原生支持管理多个订阅源的订阅源库。可添加的播客数量没有限制：全部保存在侧边栏中，并在会话之间保持可访问。</p>
+        <section class="level3">
+          <h3 id="在订阅源之间导航">在订阅源之间导航</h3>
+          <p>点击侧边栏中的订阅源会立即在主区域更新节目列表。软件会记住上次关闭时所选的订阅源。</p>
+        </section>
+        <section class="level3">
+          <h3 id="同步订阅源">同步订阅源</h3>
+          <ul>
+            <li><strong>单独同步：</strong> 将鼠标悬停在侧边栏中的订阅源条目上以显示同步图标。点击它会让软件从服务器重新读取该订阅源，并用任何新节目更新列表。</li>
+            <li><strong>全部同步：</strong> "全部同步"按钮可在单次操作中并行刷新所有订阅源。在此过程中，侧边栏中的每个缩略图实时显示自身状态。完成后，任何新节目都会通过新节目徽章突出显示。</li>
+          </ul>
+          <p>有关无需手动干预的计划自动更新，请参见第 5.9 节。</p>
+          <hr>
+        </section>
+      </section>
+      <section class="level2">
+        <h2 id="59-订阅源自动更新">5.9 订阅源自动更新</h2>
+        <p>FeedDownloader Pro 可以在后台按固定间隔自动同步所有订阅源，无需用户进行任何操作。</p>
+        <section class="level3">
+          <h3 id="配置">配置</h3>
+          <p>设置位于<strong>设置 → 通用 → 订阅源自动更新</strong>。有四种可用选项：</p>
+          <table>
+            <thead>
+              <tr>
+                <th>选项</th>
+                <th>行为</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>禁用</strong>（默认）</td>
+                <td>不进行自动同步。</td>
+              </tr>
+              <tr>
+                <td><strong>每 6 小时</strong></td>
+                <td>软件自启动起每 6 小时同步所有订阅源。</td>
+              </tr>
+              <tr>
+                <td><strong>每 12 小时</strong></td>
+                <td>软件自启动起每 12 小时同步所有订阅源。</td>
+              </tr>
+              <tr>
+                <td><strong>每 24 小时</strong></td>
+                <td>软件自启动起每 24 小时同步一次所有订阅源。</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>设置更改立即生效，无需重启软件。计时器从应用程序启动开始计时。</p>
+        </section>
+        <section class="level3">
+          <h3 id="行为">行为</h3>
+          <p>自动更新<strong>不会启动下载</strong>：它仅检查是否发布了新节目。如果在自动同步期间在一个或多个订阅源上发现新节目，系统会发送<strong>操作系统通知</strong>，包含所发现内容的摘要（在所有 8 种支持的语言中均可用）。</p>
+          <p>要下载提示的新节目，请打开软件并使用常规的批量控件。</p>
+          <hr>
+          <p><em>参见第 6 章，了解下载引擎的详细说明。</em></p>
+        </section>
       </section>
     </section>
   

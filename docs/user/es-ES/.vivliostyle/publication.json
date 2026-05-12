@@ -8,7 +8,7 @@
   "name": "Runtime FeedDownloader Pro - Manual de Uso Avanzado",
   "author": "Ecosystem Runtime",
   "inLanguage": "es",
-  "dateModified": "2026-03-30T16:05:52.414Z",
+  "dateModified": "2026-05-12T10:08:38.473Z",
   "readingOrder": [
     {
       "url": "book/cover.html",
@@ -24,7 +24,7 @@
     },
     {
       "url": "03-interfaccia.html",
-      "name": "Capítulo 3: Tour de la Interfaz"
+      "name": "Capítulo 3: Recorrido por la interfaz"
     },
     {
       "url": "04-primo-archivio.html",

@@ -32,22 +32,31 @@
           <li><strong>XML parsing:</strong> Reads and analyses the RSS or Atom document. The software handles feeds with minor deviations from the standards (undeclared encoding, missing tags, unconventional namespaces).</li>
           <li><strong>Deduplication:</strong> For each episode in the feed, the database is queried to verify whether the episode has already been downloaded. The audio URL is used as the unique identification key.</li>
           <li><strong>List population:</strong> All episodes are displayed with their current status.</li>
+          <li><strong>Adding to the library:</strong> The feed is permanently inserted into the sidebar if it is not already present. Feeds already in the library are updated with the latest episode count.</li>
         </ol>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="54-feed-history">5.4 Feed History</h2>
-        <p>FeedDownloader Pro maintains a <strong>history of analysed feeds</strong>. Each URL entered in the search field is stored together with the podcast name and the number of episodes, to simplify future access.</p>
-        <p>
-          <strong>Accessing the history:</strong>
-          Click the arrow to the right of the URL field or start typing: the software proposes automatic suggestions based on the history.
-        </p>
-        <p>
-          <strong>Managing the history:</strong>
-          In Settings it is possible to view the complete list of feeds in the history, remove individual entries, or clear the list entirely.
-        </p>
-        <p><em>Privacy note:</em> The history is saved exclusively in the local database <code>feeddownloader.db</code>. No data is transmitted to external servers.</p>
-        <hr>
+        <h2 id="54-the-feed-library">5.4 The Feed Library</h2>
+        <p>FeedDownloader Pro maintains a <strong>permanent feed library</strong>. Each analysed feed is saved in the sidebar and remains available between sessions, with no need to re-enter the URL at every launch.</p>
+        <section class="level3">
+          <h3 id="display">Display</h3>
+          <p>Each item in the library shows: the podcast cover art (thumbnail), the title, the date of the last synchronisation with the server, and a numerical badge indicating how many episodes have been published since the last download. The badge disappears as soon as all the new episodes have been downloaded.</p>
+          <p>Clicking on a feed in the sidebar immediately updates the episode list in the main area.</p>
+        </section>
+        <section class="level3">
+          <h3 id="removing-a-feed-from-the-library">Removing a feed from the library</h3>
+          <p>To remove a feed, hover over the entry in the sidebar: the bin button appears on the right side of the row. Clicking it opens a confirmation dialog. Removal deletes the feed from the library but <strong>does not delete the audio files already downloaded</strong> nor the related data in the database; the episodes remain visible in the Archive View.</p>
+        </section>
+        <section class="level3">
+          <h3 id="search-and-sorting">Search and sorting</h3>
+          <ul>
+            <li><strong>Feed search:</strong> The search field at the top of the sidebar filters feeds by name in real time. Useful with large libraries.</li>
+            <li><strong>A–Z sorting:</strong> The sort button arranges feeds alphabetically by title. Clicking it again restores the original order.</li>
+          </ul>
+          <p><em>Privacy note:</em> The feed library is saved exclusively in the local database. No data is transmitted to external servers.</p>
+          <hr>
+        </section>
       </section>
       <section class="level2">
         <h2 id="55-importing-feeds-from-opml">5.5 Importing Feeds from OPML</h2>
@@ -55,16 +64,15 @@
         <p><strong>How to import an OPML file:</strong></p>
         <ol>
           <li>Go to <strong>Settings → Archive</strong>, "Data and Portability" section.</li>
-          <li>Select the <code>.opml</code> file exported from the podcast application.</li>
-          <li>FeedDownloader Pro analyses the file and shows the list of podcasts identified, with the option to select those of interest.</li>
-          <li>The selected feeds are added to the history and, optionally, analysed in automatic sequence.</li>
+          <li>Click <strong>Import Feeds (OPML)</strong> and select the <code>.opml</code> file exported from the podcast application.</li>
+          <li>FeedDownloader Pro analyses the file and adds the identified feeds to the library.</li>
         </ol>
         <p><em>Note:</em> Some podcast applications use proprietary variants of the OPML format. FeedDownloader Pro supports the most widely used versions. If a file is not imported correctly, open it with a text editor and verify the presence of <code>&lt;outline type="rss" xmlUrl="..."&gt;</code> tags for each podcast.</p>
         <hr>
       </section>
       <section class="level2">
         <h2 id="56-exporting-the-library-to-opml">5.6 Exporting the Library to OPML</h2>
-        <p>The feed history can be exported in OPML format to:</p>
+        <p>The feed library can be exported in OPML format to:</p>
         <ul>
           <li>Create a backup of the podcast list.</li>
           <li>Share it with other users or with another installation of the software.</li>
@@ -73,7 +81,7 @@
         <p><strong>How to export:</strong></p>
         <ol>
           <li>Go to <strong>Settings → Archive</strong>, "Data and Portability" section.</li>
-          <li>Choose a name and location for the <code>.opml</code> file.</li>
+          <li>Click <strong>Export Feeds (OPML)</strong> and choose a name and location for the file.</li>
           <li>The generated file is compatible with any application that supports the OPML standard.</li>
         </ol>
         <hr>
@@ -84,21 +92,68 @@
         <ul>
           <li><strong>The initial analysis takes longer:</strong> A feed with 2,000 episodes may require 15–30 seconds for download and parsing. This behaviour is expected.</li>
           <li><strong>List virtualisation:</strong> With thousands of entries, the list loads only the rows visible on screen to keep the interface responsive.</li>
-          <li><strong>Estimating required space:</strong> With 2,000 episodes at approximately 50 MB each, the total volume is approximately 100 GB. The software shows an estimate of the total size before the batch starts. Verify that sufficient space is available before proceeding.</li>
+          <li><strong>Estimating required space:</strong> With 2,000 episodes at approximately 50 MB each, the total volume is approximately 100 GB. Verify that sufficient space is available before proceeding.</li>
         </ul>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="58-limitations-of-multi-feed-support">5.8 Limitations of Multi-Feed Support</h2>
-        <p>FeedDownloader Pro analyses one feed at a time. It does not have a permanent feed manager with automatic updates: the software is optimised for batch downloading, not for the continuous monitoring of multiple feeds.</p>
-        <p>To manage multiple feeds in sequence, the recommended strategy is:</p>
-        <ol>
-          <li>Use the OPML function to maintain the feed list in a centralised file.</li>
-          <li>Analyse and download one podcast at a time, proceeding systematically.</li>
-          <li>Use the feed history to quickly recall a previously analysed podcast.</li>
-        </ol>
-        <hr>
-        <p><em>Go to Chapter 6 for a detailed description of the download engine.</em></p>
+        <h2 id="58-managing-multiple-feeds">5.8 Managing Multiple Feeds</h2>
+        <p>FeedDownloader Pro natively manages a library of multiple feeds. There is no limit to the number of podcasts that can be added: all are kept in the sidebar and remain accessible between sessions.</p>
+        <section class="level3">
+          <h3 id="navigating-between-feeds">Navigating between feeds</h3>
+          <p>Clicking on a feed in the sidebar immediately updates the episode list in the main area. The software remembers which feed was selected at the last closure.</p>
+        </section>
+        <section class="level3">
+          <h3 id="synchronising-feeds">Synchronising feeds</h3>
+          <ul>
+            <li><strong>Individual synchronisation:</strong> Hover the mouse over a feed entry in the sidebar to display the sync icon. Clicking it makes the software re-read that feed from the server and update the list with any new episodes.</li>
+            <li><strong>Sync All:</strong> The "Sync All" button refreshes all feeds in parallel in a single operation. During the process, each thumbnail in the sidebar shows its own status in real time. On completion, any new episodes are highlighted with the new-episodes badge.</li>
+          </ul>
+          <p>For scheduled automatic refresh without manual intervention, see section 5.9.</p>
+          <hr>
+        </section>
+      </section>
+      <section class="level2">
+        <h2 id="59-automatic-feed-refresh">5.9 Automatic Feed Refresh</h2>
+        <p>FeedDownloader Pro can automatically synchronise all feeds at regular intervals, in the background, without requiring any action from the user.</p>
+        <section class="level3">
+          <h3 id="configuration">Configuration</h3>
+          <p>The setting is found in <strong>Settings → General → Automatic feed refresh</strong>. Four options are available:</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Option</th>
+                <th>Behaviour</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Disabled</strong> (default)</td>
+                <td>No automatic synchronisation.</td>
+              </tr>
+              <tr>
+                <td><strong>Every 6 hours</strong></td>
+                <td>The software synchronises all feeds every 6 hours from startup.</td>
+              </tr>
+              <tr>
+                <td><strong>Every 12 hours</strong></td>
+                <td>The software synchronises all feeds every 12 hours from startup.</td>
+              </tr>
+              <tr>
+                <td><strong>Every 24 hours</strong></td>
+                <td>The software synchronises all feeds once every 24 hours from startup.</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>The setting change is immediate and does not require restarting the software. The timer starts from application startup.</p>
+        </section>
+        <section class="level3">
+          <h3 id="behaviour">Behaviour</h3>
+          <p>Automatic refresh <strong>does not start downloads</strong>: it only checks whether new episodes have been published. If during the automatic synchronisation new episodes are found on one or more feeds, the system sends an <strong>operating system notification</strong> with a summary of the content found (available in all 8 supported languages).</p>
+          <p>To download the reported new episodes, open the software and use the normal batch controls.</p>
+          <hr>
+          <p><em>Go to Chapter 6 for a detailed description of the download engine.</em></p>
+        </section>
       </section>
     </section>
   

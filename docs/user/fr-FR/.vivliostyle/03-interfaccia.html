@@ -1,59 +1,130 @@
 <!DOCTYPE html><html lang="fr"><head>
     <meta charset="utf-8">
-    <title>Chapitre 3 : Tour de l'interface</title>
+    <title>Chapitre 3 : Visite de l'interface</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" href="book/theme.css">
   </head>
   <body>
     <section class="level1">
-      <h1 id="chapitre-3--tour-de-linterface">Chapitre 3 : Tour de l'interface</h1>
+      <h1 id="chapitre-3--visite-de-linterface">Chapitre 3 : Visite de l'interface</h1>
       <section class="level2">
         <h2 id="31-anatomie-de-la-fenêtre-principale">3.1 Anatomie de la fenêtre principale</h2>
-        <p>À l'ouverture de FeedDownloader Pro, l'interface est organisée verticalement en trois zones fonctionnelles :</p>
+        <p>À l'ouverture de FeedDownloader Pro, la fenêtre est organisée en quatre zones fonctionnelles :</p>
         <ul>
-          <li><strong>Zone de commande (en haut) :</strong> La barre de saisie URL et les contrôles principaux. Toutes les opérations sont lancées depuis ici.</li>
-          <li><strong>Zone de travail (au centre) :</strong> La zone principale, où les épisodes analysés sont affichés avec leurs informations et les contrôles de téléchargement individuels.</li>
-          <li><strong>Zone d'état (en bas) :</strong> La barre de progression globale avec les informations sur le batch en cours.</li>
+          <li><strong>Barre de commande (en haut) :</strong> La barre fixe contenant le champ URL, le bouton Analyser et l'icône Paramètres. Toutes les opérations d'ajout de nouveaux flux sont lancées depuis ici.</li>
+          <li><strong>Barre latérale des flux (gauche) :</strong> La colonne contenant la bibliothèque permanente des flux enregistrés, l'onglet Archive, les contrôles de synchronisation et le pied de page avec le chemin de destination. Sa largeur est réglable en faisant glisser le bord droit.</li>
+          <li><strong>Zone principale (centre) :</strong> La zone où sont affichés les épisodes du flux sélectionné, avec la barre de filtres, les contrôles de lot et la liste des épisodes.</li>
+          <li><strong>Panneau de téléchargement (droite, superposé) :</strong> Le panneau qui s'ouvre automatiquement lorsqu'un lot de téléchargements est en cours. Lorsqu'il est fermé, un bouton flottant reste visible en bas à droite pour le rouvrir.</li>
         </ul>
+        <p>Au premier lancement, avec une bibliothèque vide, la zone principale affiche un message d'aide expliquant comment ajouter le premier flux et où configurer le chemin de destination. Le message disparaît automatiquement à l'ajout du premier flux, ou manuellement via le bouton ×.</p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="32-la-barre-de-commande-en-haut">3.2 La barre de commande (en haut)</h2>
-        <p><strong>Champ URL :</strong> La barre de texte où saisir l'adresse RSS du podcast à analyser. Accepte les URL directes vers des fichiers XML/RSS. Prend en charge le <strong>drag and drop</strong> : il est possible de faire glisser un lien directement depuis un navigateur vers cette zone.</p>
-        <p><strong>Bouton « Analyser » :</strong> Lance l'analyse du feed. Le logiciel contacte l'URL, lit le fichier RSS et remplit la liste des épisodes. L'opération prend généralement 1 à 5 secondes, selon la taille du feed et la vitesse de la connexion.</p>
-        <p><strong>Champ Chemin de destination :</strong> Indique le dossier dans lequel les fichiers téléchargés seront enregistrés. Cliquer sur l'icône de dossier adjacente ouvre la fenêtre de sélection. Le chemin défini est conservé entre les sessions.</p>
-        <p><strong>Icône Paramètres (⚙) :</strong> Ouvre le panneau des paramètres. Accessible à tout moment, même pendant un téléchargement en cours. Pour les détails, voir le Chapitre 10.</p>
+        <h2 id="32-la-barre-de-commande-en-haut">3.2 La barre de commande (En haut)</h2>
+        <p><strong>Champ URL :</strong> La barre de texte où saisir l'adresse RSS du podcast à analyser. Accepte des URL directes vers des fichiers XML/RSS. Prend en charge le <strong>glisser-déposer</strong> : vous pouvez faire glisser un lien directement depuis un navigateur vers cette zone.</p>
+        <p><strong>Bouton « Analyser » :</strong> Lance l'analyse du flux. Le logiciel contacte l'URL, lit le fichier RSS et remplit la liste des épisodes. À la fin de l'analyse, le flux est ajouté définitivement à la barre latérale. L'opération prend généralement entre 1 et 5 secondes selon la taille du flux et la vitesse de la connexion.</p>
+        <p><strong>Icône Paramètres (⚙) :</strong> Ouvre le panneau des paramètres. Accessible à tout moment, même pendant un téléchargement actif. Voir le chapitre 10 pour les détails.</p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="33-la-liste-des-épisodes-au-centre">3.3 La liste des épisodes (au centre)</h2>
-        <p>Après l'analyse d'un feed, cette zone est remplie avec la liste des épisodes disponibles. Chaque ligne représente un épisode et contient les informations suivantes.</p>
-        <p><strong>Colonnes principales :</strong></p>
-        <ul>
-          <li><strong>Titre :</strong> Le nom de l'épisode tel que défini dans le feed RSS.</li>
-          <li><strong>Date :</strong> La date de publication originale de l'épisode.</li>
-          <li><strong>Durée :</strong> La durée de l'épisode (lorsque disponible dans le feed).</li>
-          <li><strong>Taille :</strong> La taille estimée du fichier (lorsque disponible dans le feed). Avant le téléchargement, la donnée est déclarative ; après le téléchargement, elle reflète la taille réelle du fichier.</li>
-          <li><strong>État :</strong> L'indicateur visuel de l'état de chaque épisode. Voir la section 3.4.</li>
-          <li><strong>Actions :</strong> Les boutons de contrôle individuels pour chaque épisode.</li>
-        </ul>
-        <p>
-          <strong>Tri :</strong>
-          Les en-têtes de colonnes sont cliquables pour trier la liste (par date, par titre, par taille). Le comportement par défaut est l'affichage des épisodes les plus récents en tête de liste.
-        </p>
-        <p>
-          <strong>Sélection multiple :</strong>
-          En maintenant <code>Ctrl</code> enfoncé et en cliquant sur plusieurs épisodes, il est possible de les sélectionner individuellement. <code>Shift</code> + clic sélectionne une plage. Des actions collectives peuvent être appliquées aux épisodes sélectionnés (lancer le téléchargement, supprimer de la liste).
-        </p>
-        <hr>
+        <h2 id="33-la-barre-latérale-des-flux">3.3 La barre latérale des flux</h2>
+        <p>La barre latérale est le centre de contrôle de la bibliothèque de podcasts. Elle contient tous les flux ajoutés de façon permanente : les flux ne sont pas perdus à la fermeture du logiciel.</p>
+        <section class="level3">
+          <h3 id="les-onglets-flux-et-archive">Les onglets Flux et Archive</h3>
+          <p>En haut de la barre latérale se trouvent deux onglets :</p>
+          <ul>
+            <li><strong>Onglet Flux :</strong> Affiche la bibliothèque des flux enregistrés. Il s'agit de la vue par défaut.</li>
+            <li><strong>Onglet Archive :</strong> Affiche la Vue Archive — un tableau de tous les épisodes téléchargés dans l'ensemble de la bibliothèque. Voir la section 3.10.</li>
+          </ul>
+        </section>
+        <section class="level3">
+          <h3 id="éléments-de-la-bibliothèque-de-flux">Éléments de la bibliothèque de flux</h3>
+          <p>Chaque flux dans la liste est représenté par une ligne affichant :</p>
+          <ul>
+            <li><strong>Miniature :</strong> L'image de couverture du podcast.</li>
+            <li><strong>Titre :</strong> Le nom du podcast tel que déclaré dans le flux RSS.</li>
+            <li><strong>Date :</strong> La date de la dernière synchronisation avec le serveur.</li>
+            <li><strong>Badge nouveaux épisodes :</strong> Un indicateur numérique indiquant combien d'épisodes ont été publiés depuis le dernier téléchargement. Le badge disparaît après le téléchargement de tous les nouveaux épisodes.</li>
+          </ul>
+          <p>Cliquer sur un élément de la liste charge la liste des épisodes de ce flux dans la zone principale.</p>
+        </section>
+        <section class="level3">
+          <h3 id="ajouter-un-flux">Ajouter un flux</h3>
+          <p>Coller l'URL RSS dans le champ URL en haut de l'interface et cliquer sur « Analyser ». Une fois l'analyse terminée, le flux est automatiquement ajouté à la barre latérale et reste disponible pour les sessions suivantes.</p>
+        </section>
+        <section class="level3">
+          <h3 id="recherche-et-tri">Recherche et tri</h3>
+          <ul>
+            <li><strong>Recherche de flux :</strong> Le champ de recherche dans la barre latérale filtre les flux par nom en temps réel. Utile avec les grandes bibliothèques.</li>
+            <li><strong>Tri A–Z :</strong> Le bouton de tri ordonne les flux alphabétiquement par titre. Cliquer à nouveau rétablit l'ordre d'origine.</li>
+          </ul>
+        </section>
+        <section class="level3">
+          <h3 id="synchronisation">Synchronisation</h3>
+          <ul>
+            <li><strong>Synchronisation individuelle :</strong> En survolant un élément de flux, l'icône de synchronisation apparaît. En cliquant dessus, le logiciel relit le flux depuis le serveur et met à jour la liste des épisodes avec tout nouveau contenu.</li>
+            <li><strong>Tout synchroniser :</strong> Le bouton « Tout synchroniser » en haut de la barre latérale met à jour tous les flux en parallèle. Pendant l'opération, chaque miniature affiche son propre état : icône tournante (en cours), coche verte (terminé), icône d'erreur rouge (échec). Le bouton indique la progression en temps réel (p. ex. <code>Synchronisation… 3/7</code>). Les états restent visibles 2,5 secondes après l'opération, puis disparaissent.</li>
+          </ul>
+        </section>
+        <section class="level3">
+          <h3 id="pied-de-page--chemin-de-destination">Pied de page : chemin de destination</h3>
+          <p>En bas de la barre latérale est affiché le chemin du dossier de destination des téléchargements, abrégé aux deux derniers composants (p. ex. <code>Documents / Podcasts</code>). Cliquer sur cette ligne ouvre le dossier dans le gestionnaire de fichiers système. Pour modifier le chemin, utiliser <strong>Paramètres → Archive</strong>.</p>
+        </section>
+        <section class="level3">
+          <h3 id="redimensionnement">Redimensionnement</h3>
+          <p>La largeur de la barre latérale est réglable en faisant glisser le bord droit (le curseur se transforme en double flèche horizontale). La largeur minimale est de 240 px, la maximale de 640 px et la valeur par défaut de 456 px. Le réglage est mémorisé entre les sessions.</p>
+          <hr>
+        </section>
       </section>
       <section class="level2">
-        <h2 id="34-les-états-des-épisodes">3.4 Les états des épisodes</h2>
-        <p>Chaque épisode dans la liste est marqué par un indicateur d'état coloré. Comprendre ces états est essentiel pour interpréter correctement la situation de l'archive.</p>
+        <h2 id="34-la-liste-des-épisodes">3.4 La liste des épisodes</h2>
+        <p>Après avoir sélectionné un flux dans la barre latérale, la zone principale est remplie avec la liste des épisodes disponibles pour ce podcast.</p>
+        <section class="level3">
+          <h3 id="en-tête-du-flux">En-tête du flux</h3>
+          <p>En haut de la zone principale est visible l'en-tête du flux sélectionné, avec miniature, titre du podcast et nombre d'épisodes. Les principaux contrôles de lot sont accessibles depuis cet en-tête (voir section 3.7).</p>
+        </section>
+        <section class="level3">
+          <h3 id="colonnes-de-la-liste">Colonnes de la liste</h3>
+          <p>Chaque ligne de la liste représente un épisode et contient les informations suivantes :</p>
+          <ul>
+            <li><strong>Titre :</strong> Le nom de l'épisode tel que défini dans le flux RSS.</li>
+            <li><strong>Date :</strong> La date de publication originale de l'épisode.</li>
+            <li><strong>Durée :</strong> La durée de l'épisode (quand elle est disponible dans le flux).</li>
+            <li><strong>Taille :</strong> La taille du fichier. Avant le téléchargement, la valeur est déclarative (tirée du flux) ; après le téléchargement, elle reflète la taille réelle du fichier.</li>
+            <li><strong>Statut :</strong> L'indicateur visuel de statut de l'épisode individuel. Voir section 3.5.</li>
+          </ul>
+        </section>
+        <section class="level3">
+          <h3 id="barre-de-filtres">Barre de filtres</h3>
+          <p>Sous l'en-tête du flux se trouve une barre de filtres permettant de restreindre les épisodes affichés :</p>
+          <ul>
+            <li><strong>Recherche textuelle :</strong> Filtre par mots-clés dans le titre (logique ET : tous les termes saisis doivent être présents). Le filtre est automatiquement effacé lors du changement de flux.</li>
+            <li><strong>Filtre par statut :</strong> Boutons rapides pour afficher uniquement les épisodes dans un statut donné : Tous, Nouveaux (non téléchargés), Téléchargés, Erreurs.</li>
+            <li><strong>Filtre par date :</strong> Champs de date « Du » et « Au » pour limiter la liste à une plage de dates de publication.</li>
+            <li><strong>Filtre par durée :</strong> Limite la liste aux épisodes d'une durée comprise entre un minimum et un maximum (en minutes).</li>
+            <li><strong>Trier :</strong> Ouvre un panneau avec cinq options de tri — ordre du flux (par défaut), date la plus récente, date la plus ancienne, durée la plus longue, durée la plus courte.</li>
+          </ul>
+          <p>Tous les filtres sont automatiquement effacés lors de la sélection d'un flux différent.</p>
+        </section>
+        <section class="level3">
+          <h3 id="sélection-multiple">Sélection multiple</h3>
+          <p>Vous pouvez sélectionner plusieurs épisodes simultanément pour lancer leur téléchargement en bloc :</p>
+          <ul>
+            <li><strong>Ctrl+clic</strong> (ou Cmd+clic sur macOS) : ajoute ou retire l'épisode de la sélection individuellement.</li>
+            <li><strong>Maj+clic :</strong> sélectionne la plage entre le dernier épisode sélectionné et celui cliqué.</li>
+            <li>Une case à cocher apparaît au survol pour les épisodes non sélectionnés et en permanence pour les épisodes sélectionnés.</li>
+          </ul>
+          <p>Lorsqu'au moins un épisode est sélectionné, le bouton <strong>« Télécharger la sélection (N) »</strong> apparaît dans l'en-tête du flux. La sélection est effacée lors du changement de flux et après le lancement du téléchargement.</p>
+          <hr>
+        </section>
+      </section>
+      <section class="level2">
+        <h2 id="35-les-statuts-des-épisodes">3.5 Les statuts des épisodes</h2>
+        <p>Chaque épisode dans la liste est marqué d'un indicateur de statut. Comprendre ces statuts est essentiel pour interpréter correctement l'état de l'archive.</p>
         <table>
           <thead>
             <tr>
-              <th>État</th>
+              <th>Statut</th>
               <th>Couleur</th>
               <th>Signification</th>
             </tr>
@@ -62,17 +133,17 @@
             <tr>
               <td><strong>À télécharger</strong></td>
               <td>Gris</td>
-              <td>L'épisode est présent dans le feed mais n'a jamais été téléchargé.</td>
+              <td>L'épisode est présent dans le flux mais n'a jamais été téléchargé.</td>
             </tr>
             <tr>
-              <td><strong>En attente</strong></td>
+              <td><strong>En file d'attente</strong></td>
               <td>Bleu</td>
-              <td>L'épisode a été ajouté à la file d'attente et attend son tour.</td>
+              <td>L'épisode a été ajouté à la file d'attente et attend son tour dans le Panneau de téléchargement.</td>
             </tr>
             <tr>
               <td><strong>En cours</strong></td>
-              <td>Bleu animé</td>
-              <td>Le téléchargement est en cours. La cellule affiche également le pourcentage de progression.</td>
+              <td>Bleu clair animé</td>
+              <td>Le téléchargement est en cours. La ligne affiche le pourcentage, la vitesse et le temps estimé en temps réel.</td>
             </tr>
             <tr>
               <td><strong>Terminé</strong></td>
@@ -82,56 +153,142 @@
             <tr>
               <td><strong>Erreur</strong></td>
               <td>Rouge</td>
-              <td>Le téléchargement a échoué après toutes les tentatives automatiques. L'infobulle affiche le code d'erreur.</td>
+              <td>Le téléchargement a échoué après toutes les tentatives automatiques.</td>
             </tr>
             <tr>
               <td><strong>Téléchargé</strong></td>
               <td>Vert atténué</td>
-              <td>La base de données enregistre déjà cet épisode comme téléchargé. Il ne sera pas retéléchargé.</td>
+              <td>La base de données enregistre déjà cet épisode comme téléchargé lors d'une session précédente.</td>
             </tr>
           </tbody>
         </table>
-        <p><em>Remarque sur l'état <strong>« Téléchargé »</strong> :</em> Cet état est le résultat de la philosophie Database-First. Lors de l'analyse d'un feed déjà traité précédemment, la plupart des épisodes apparaissent dans cet état : le logiciel sait déjà qu'ils sont présents dans l'archive. Seuls les épisodes publiés après le dernier téléchargement apparaîtront comme <strong>« À télécharger »</strong>.</p>
+        <p><em>Note sur le statut <strong>« Téléchargé »</strong> :</em> Ce statut est le résultat de la philosophie Database-First. Lors de l'analyse d'un flux déjà traité, la plupart des épisodes apparaissent dans ce statut : le logiciel sait déjà qu'ils sont présents dans l'archive. Seuls les épisodes publiés après le dernier téléchargement apparaîtront comme <strong>« À télécharger »</strong>.</p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="35-les-contrôles-de-téléchargement-individuels">3.5 Les contrôles de téléchargement individuels</h2>
-        <p>À droite de chaque ligne dans la liste se trouvent deux boutons.</p>
-        <p><strong>Icône Télécharger (↓) :</strong> Ajoute l'épisode individuel à la file de téléchargement. Si l'épisode est déjà à l'état <strong>« Terminé »</strong> ou <strong>« Téléchargé »</strong>, le système demande une confirmation avant de procéder à un re-téléchargement forcé.</p>
-        <p><strong>Icône Informations (ℹ) :</strong> Ouvre un panneau avec les détails complets de l'épisode : URL d'origine du fichier audio, URL de l'image de couverture, description étendue, chemin du fichier sur le disque (s'il a déjà été téléchargé), hash SHA-256 et métadonnées techniques. Ce panneau est utile pour la vérification et le diagnostic de l'archive.</p>
-        <hr>
-      </section>
-      <section class="level2">
-        <h2 id="36-les-contrôles-du-batch-en-haut-zone-droite">3.6 Les contrôles du batch (en haut, zone droite)</h2>
-        <p>Ces boutons opèrent sur l'ensemble de la file de téléchargement, et non sur les épisodes individuels.</p>
-        <p><strong>« Tout télécharger » :</strong> Ajoute à la file tous les épisodes à l'état <strong>« À télécharger »</strong>. Les épisodes déjà présents dans la base de données sont exclus automatiquement.</p>
-        <p><strong>« Arrêter » :</strong> Interrompt le batch et vide la file d'attente. Les fichiers déjà complétés restent dans la base de données. Les fichiers <code>.part</code> sont supprimés. Lors de la prochaine analyse du même feed, les épisodes interrompus apparaîtront à nouveau comme <strong>« À télécharger »</strong>.</p>
-        <hr>
-      </section>
-      <section class="level2">
-        <h2 id="37-la-barre-de-progression-globale-en-bas">3.7 La barre de progression globale (en bas)</h2>
-        <p>La barre inférieure est toujours visible et affiche l'état d'ensemble du batch en cours :</p>
+        <h2 id="36-contrôles-de-téléchargement-individuels">3.6 Contrôles de téléchargement individuels</h2>
+        <p>À droite de chaque ligne de la liste, au survol, des boutons de contrôle spécifiques à l'épisode apparaissent. Les boutons visibles varient selon le statut :</p>
+        <p><strong>Pour tous les épisodes :</strong></p>
         <ul>
-          <li><strong>Barre de progression :</strong> Remplissage proportionnel au nombre de fichiers complétés sur le total de la file.</li>
-          <li><strong>Compteur de fichiers :</strong> Par exemple <code>47 / 312 épisodes</code> — nombre de fichiers complétés sur le total de la file.</li>
-          <li><strong>Vitesse moyenne :</strong> Vitesse de téléchargement agrégée de tous les threads actifs, exprimée en MB/s ou KB/s.</li>
-          <li><strong>Temps estimé :</strong> Estimation du temps restant pour compléter le batch, calculée sur la vitesse moyenne des 30 dernières secondes.</li>
+          <li><strong>Copier le titre</strong> (icône document) : Copie le titre de l'épisode dans le presse-papiers système.</li>
+          <li><strong>Case à cocher :</strong> Pour la sélection multiple (voir section 3.4).</li>
         </ul>
-        <p><em>Remarque :</em> L'estimation du temps restant peut varier significativement dans les premières phases d'un téléchargement, lorsque les données disponibles pour le calcul sont encore limitées. Elle devient plus fiable après les 10 à 15 premiers fichiers complétés.</p>
+        <p><strong>Pour les épisodes À télécharger ou En erreur :</strong></p>
+        <ul>
+          <li><strong>Télécharger</strong> (flèche vers le bas) : Ajoute l'épisode individuel à la file de téléchargement.</li>
+        </ul>
+        <p><strong>Pour les épisodes Terminés ou Téléchargés :</strong></p>
+        <ul>
+          <li><strong>Télécharger à nouveau</strong> (flèche vers le bas) : Ajoute à nouveau l'épisode à la file, en écrasant le fichier existant.</li>
+          <li><strong>Réinitialiser le statut</strong> (icône actualiser) : Efface le statut de l'épisode, le ramenant à « À télécharger » sans supprimer le fichier du disque. Utile pour forcer une nouvelle analyse.</li>
+          <li><strong>Ouvrir le dossier</strong> (icône dossier) : Ouvre le gestionnaire de fichiers système à l'emplacement du fichier téléchargé.</li>
+        </ul>
+        <p>
+          <strong>Interaction avec le Panneau de détail :</strong>
+          Un <strong>simple clic</strong> sur la ligne de l'épisode ouvre le Panneau de détail (voir section 3.9) avec les métadonnées complètes et les actions contextuelles. Ctrl+clic et Maj+clic sont réservés exclusivement à la sélection multiple et n'ouvrent pas le panneau.
+        </p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="38-licône-dans-la-zone-de-notification-système">3.8 L'icône dans la zone de notification système</h2>
-        <p>Lorsque l'on ferme la fenêtre principale en cliquant sur le X, FeedDownloader Pro ne termine pas le processus : il se réduit dans la zone de notification système (system tray, près de l'horloge de Windows ou macOS). Ce comportement est intentionnel : les téléchargements se poursuivent en arrière-plan pendant que la fenêtre n'est pas visible.</p>
+        <h2 id="37-contrôles-de-lot">3.7 Contrôles de lot</h2>
+        <p>Les contrôles de lot agissent sur l'ensemble de la file de téléchargement, pas sur les épisodes individuels. Ils se trouvent dans l'en-tête du flux, au-dessus de la barre de filtres.</p>
+        <p><strong>« Tout télécharger » :</strong> Ajoute à la file tous les épisodes au statut <strong>« À télécharger »</strong>. Les épisodes déjà présents dans la base de données sont exclus automatiquement. Le Panneau de téléchargement s'ouvre automatiquement au lancement.</p>
+        <p><strong>« Télécharger la sélection (N) » :</strong> Apparaît lorsqu'au moins un épisode est sélectionné. Lance le téléchargement exclusivement pour les épisodes sélectionnés.</p>
+        <p><strong>« Arrêter » :</strong> Envoie un signal d'annulation à tous les téléchargements actifs et vide la file. Les fichiers déjà terminés restent dans la base de données. Les fichiers <code>.part</code> sont supprimés. Lors de la prochaine analyse, les épisodes interrompus réapparaîtront comme <strong>« À télécharger »</strong>.</p>
+        <p><strong>« Exporter M3U » :</strong> Génère une playlist au format <code>.m3u</code> avec les chemins locaux absolus de tous les épisodes téléchargés pour ce podcast. Ouvre une boîte de dialogue de sauvegarde native. Le bouton n'est disponible que lorsqu'il y a des épisodes téléchargés pour le flux actuel.</p>
+        <p><strong>« Ouvrir le dossier »</strong> (icône dossier dans l'en-tête) : Ouvre le gestionnaire de fichiers dans le dossier de destination du flux actuel.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="38-le-panneau-de-téléchargement">3.8 Le Panneau de téléchargement</h2>
+        <p>Le Panneau de téléchargement est le centre de surveillance et de contrôle de tous les téléchargements en cours. Il remplace l'ancienne barre de progression fixe en bas de l'interface.</p>
+        <section class="level3">
+          <h3 id="ouverture-et-fermeture">Ouverture et fermeture</h3>
+          <p>Le panneau s'ouvre <strong>automatiquement</strong> au lancement de chaque lot. Lorsqu'il est fermé, le <strong>bouton flottant</strong> (icône circulaire) est visible dans le coin inférieur droit de la fenêtre : cliquer dessus rouvre le panneau. La fermeture du panneau n'interrompt pas les téléchargements en cours.</p>
+        </section>
+        <section class="level3">
+          <h3 id="structure-du-panneau">Structure du panneau</h3>
+          <ul>
+            <li><strong>En-tête :</strong> Affiche le compteur de fichiers terminés/total (p. ex. <code>47 / 312</code>), le bouton Arrêter pour interrompre tous les téléchargements, et le bouton × pour fermer le panneau.</li>
+            <li><strong>Liste de la file :</strong> Chaque téléchargement en cours ou en attente est représenté par une ligne avec : titre de l'épisode, nom du podcast, pourcentage d'avancement, vitesse actuelle (Ko/s ou Mo/s), temps estimé jusqu'à la fin (p. ex. <code>2m 30s</code>), barre de progression individuelle. Au survol de la ligne apparaît le bouton × pour annuler ce téléchargement individuel.</li>
+            <li><strong>Section Erreurs :</strong> À la fin du lot, si un ou plusieurs téléchargements ont échoué, un résumé dépliable apparaît en bas du panneau avec la liste des épisodes non téléchargés et leur code d'erreur.</li>
+          </ul>
+          <hr>
+        </section>
+      </section>
+      <section class="level2">
+        <h2 id="39-le-panneau-de-détail-de-lépisode">3.9 Le Panneau de détail de l'épisode</h2>
+        <p>Le Panneau de détail offre une vue approfondie d'un épisode unique : métadonnées, actions et — si l'épisode est déjà dans l'archive — données techniques du fichier téléchargé.</p>
+        <section class="level3">
+          <h3 id="ouvrir-le-panneau-de-détail">Ouvrir le panneau de détail</h3>
+          <p>Un <strong>simple clic</strong> sur n'importe quelle ligne de la liste des épisodes ouvre le panneau, qui glisse depuis le côté droit de la fenêtre (sous la barre de commande). Le panneau se ferme automatiquement lorsqu'un flux différent est sélectionné dans la barre latérale.</p>
+          <p><em>Note :</em> Ctrl+clic et Maj+clic sont réservés à la sélection multiple et n'ouvrent pas le panneau.</p>
+        </section>
+        <section class="level3">
+          <h3 id="contenu-du-panneau">Contenu du panneau</h3>
+          <ul>
+            <li><strong>Métadonnées de base :</strong> Date de publication, durée déclarée, taille du fichier indiquée dans le flux.</li>
+            <li><strong>Actions contextuelles :</strong> Les boutons disponibles varient selon le statut de l'épisode : Télécharger, Télécharger à nouveau, Réinitialiser le statut, Ouvrir le dossier.</li>
+            <li><strong>Données d'archive</strong> (visibles uniquement si l'épisode a déjà été téléchargé) : Date et heure du téléchargement, taille réelle du fichier, débit binaire, fréquence d'échantillonnage, nom du fichier sur le disque, somme de contrôle SHA-256.</li>
+            <li><strong>Lien source :</strong> L'URL originale du fichier audio dans le flux RSS, avec un bouton pour la copier dans le presse-papiers.</li>
+            <li><strong>Notes de l'épisode :</strong> Le texte descriptif de l'épisode extrait du flux (show notes), présenté en texte brut.</li>
+          </ul>
+          <hr>
+        </section>
+      </section>
+      <section class="level2">
+        <h2 id="310-la-vue-archive">3.10 La Vue Archive</h2>
+        <p>La Vue Archive est accessible via l'onglet <strong>Archive</strong> dans la barre latérale. Contrairement à la liste des épisodes, qui n'affiche que les épisodes d'un seul flux à la fois, la Vue Archive rassemble dans un seul tableau <strong>tous les épisodes téléchargés dans l'ensemble de la bibliothèque</strong>, quel que soit le podcast d'appartenance.</p>
+        <section class="level3">
+          <h3 id="fonctionnalités">Fonctionnalités</h3>
+          <ul>
+            <li><strong>Recherche :</strong> Le champ de recherche filtre par titre d'épisode ou nom de podcast.</li>
+            <li><strong>Filtre par podcast :</strong> Le menu déroulant permet de limiter l'affichage aux épisodes d'un seul podcast.</li>
+            <li><strong>Tri :</strong> Le tableau peut être trié par date de téléchargement, date de publication, taille de fichier et débit binaire.</li>
+            <li><strong>Statistiques :</strong> L'en-tête de la Vue Archive affiche le nombre total de fichiers téléchargés, le nombre de podcasts distincts et la taille totale de l'archive en gigaoctets.</li>
+            <li><strong>Afficher dans le dossier :</strong> Au survol d'une ligne, le bouton qui ouvre le gestionnaire de fichiers à l'emplacement du fichier sur le disque apparaît.</li>
+          </ul>
+          <p>La Vue Archive se met à jour automatiquement à la fin de chaque téléchargement.</p>
+          <hr>
+        </section>
+      </section>
+      <section class="level2">
+        <h2 id="311-la-palette-de-commandes-ctrlk">3.11 La Palette de commandes (Ctrl+K)</h2>
+        <p>La Palette de commandes est un outil d'accès rapide permettant d'atteindre n'importe quelle fonction principale du logiciel sans utiliser la souris.</p>
+        <section class="level3">
+          <h3 id="ouvrir-la-palette-de-commandes">Ouvrir la palette de commandes</h3>
+          <p>Le raccourci <strong>Ctrl+K</strong> (depuis n'importe où dans l'application, même pendant un téléchargement) ouvre un calque avec un champ de recherche central.</p>
+        </section>
+        <section class="level3">
+          <h3 id="navigation">Navigation</h3>
+          <ul>
+            <li><strong>Saisir</strong> dans le champ de recherche filtre les actions et les flux en temps réel.</li>
+            <li><strong>Les flèches ↑↓</strong> déplacent la sélection entre les résultats.</li>
+            <li><strong>Entrée</strong> exécute l'action sélectionnée.</li>
+            <li><strong>Échap</strong> ferme la palette sans exécuter d'action.</li>
+          </ul>
+        </section>
+        <section class="level3">
+          <h3 id="contenu">Contenu</h3>
+          <ul>
+            <li><strong>Groupe Actions :</strong> Cinq commandes fixes toujours disponibles : <em>Ouvrir les paramètres</em>, <em>Synchroniser tous les flux</em>, <em>Ajouter un flux</em> (focalise le champ URL), <em>Aller à l'onglet Archive</em>, <em>Aller à l'onglet Flux</em>.</li>
+            <li><strong>Groupe Flux :</strong> Quand le champ de recherche est vide, affiche les cinq premiers flux de la bibliothèque. La saisie filtre les flux par titre. Sélectionner un flux depuis la palette le charge directement dans la zone principale.</li>
+          </ul>
+          <hr>
+        </section>
+      </section>
+      <section class="level2">
+        <h2 id="312-licône-dans-la-zone-de-notification">3.12 L'icône dans la zone de notification</h2>
+        <p>Lorsque la fenêtre principale est fermée en cliquant sur le X, FeedDownloader Pro ne termine pas le processus : il se réduit dans la zone de notification système (system tray, près de l'horloge Windows ou macOS). Ce comportement est intentionnel : les téléchargements se poursuivent en arrière-plan pendant que la fenêtre n'est pas visible.</p>
         <p><strong>Menu contextuel du tray (clic droit sur l'icône) :</strong></p>
         <ul>
           <li><strong>Ouvrir FeedDownloader Pro :</strong> Ramène la fenêtre principale au premier plan.</li>
-          <li><strong>État Téléchargement :</strong> Affiche une ligne récapitulative (ex. <code>Downloading: 3 active, 47/312 completed</code>).</li>
-          <li><strong>Quitter :</strong> Ferme le programme et interrompt tous les téléchargements actifs.</li>
+          <li><strong>État des téléchargements :</strong> Affiche une ligne récapitulative de l'activité en cours.</li>
+          <li><strong>Quitter :</strong> Ferme le programme et arrête tous les téléchargements actifs.</li>
         </ul>
-        <p><em>Remarque pratique :</em> Pour effectuer un téléchargement volumineux sans maintenir la fenêtre ouverte, lancer le batch, fermer la fenêtre et laisser l'ordinateur en fonctionnement. L'archive sera disponible à la fin du processus.</p>
+        <p><em>Note pratique :</em> Pour effectuer un téléchargement volumineux sans garder la fenêtre ouverte, lancer le lot, fermer la fenêtre et laisser l'ordinateur fonctionner. L'archive sera disponible à la fin du processus.</p>
         <hr>
-        <p><em>Voir le Chapitre 4 pour un workflow complet de la première analyse au téléchargement.</em></p>
+        <p><em>Aller au chapitre 4 pour un workflow complet de la première analyse au téléchargement.</em></p>
       </section>
     </section>
   

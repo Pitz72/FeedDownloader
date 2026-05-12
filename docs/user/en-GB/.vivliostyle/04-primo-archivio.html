@@ -36,9 +36,9 @@
         <p>Create the specific folder for the podcast to be archived (e.g. <code>D:\Podcast Archive\My Podcast\</code>). FeedDownloader Pro will save all files from that podcast into that folder, with names defined by the rename template (see Chapter 8).</p>
         <p><strong>To set the destination folder in FeedDownloader Pro:</strong></p>
         <ol>
-          <li>Click the <strong>folder</strong> icon next to the destination path field.</li>
+          <li>Open <strong>Settings → Archive</strong> and click the <strong>folder</strong> icon next to the destination path field.</li>
           <li>Navigate to the created folder and select it.</li>
-          <li>The path is displayed in the field and remembered for subsequent sessions.</li>
+          <li>The configured path is always visible in the footer of the left-hand sidebar; clicking it opens the folder directly in the file manager.</li>
         </ol>
         <p><em>Note:</em> For paths on NAS or network drives, consult Chapter 7 before proceeding. The configuration for network paths has some specificities described in that chapter.</p>
         <hr>
@@ -84,7 +84,7 @@
         <ol>
           <li>Select the episodes by holding <code>Ctrl</code> and clicking on each one.</li>
           <li>To select a range, click on the first episode, hold <code>Shift</code>, and click on the last.</li>
-          <li>Use the context menu (right-click on the selection) or the individual download button (↓) on each selected episode.</li>
+          <li>Click the <strong>"Download Selected (N)"</strong> button that appears in the feed header when at least one episode is selected.</li>
         </ol>
         <hr>
       </section>
@@ -92,7 +92,7 @@
         <h2 id="47-phase-6-monitoring-progress">4.7 Phase 6: Monitoring Progress</h2>
         <p>During the download:</p>
         <ul>
-          <li><strong>Global bar at the bottom:</strong> Shows the overall batch progress. For an archive of 200 episodes at an average of 64 kbps, the total data volume is approximately 2–3 GB.</li>
+          <li><strong>Download Panel:</strong> Opens automatically on the right side of the window when the batch starts. It shows each queued episode with percentage, current speed, and estimated time to completion. For an archive of 200 episodes at an average of 64 kbps, the total data volume is approximately 2–3 GB.</li>
           <li><strong>Status in the list:</strong> Each row updates in real time. Episodes in progress show an individual progress bar with the completed percentage.</li>
           <li><strong>Background execution:</strong> It is not necessary to keep the window open. It can be closed (the programme continues to operate in the system tray) and reopened when the process has completed.</li>
         </ul>
@@ -101,11 +101,11 @@
       </section>
       <section class="level2">
         <h2 id="48-phase-7-verifying-the-completed-archive">4.8 Phase 7: Verifying the Completed Archive</h2>
-        <p>When the global bar reaches 100% and all episodes show as completed, the archive is ready.</p>
+        <p>When the Download Panel shows the batch as completed and all episodes appear in green status, the archive is ready.</p>
         <p><strong>Recommended operations upon completion:</strong></p>
         <ol>
           <li>
-            <p><strong>Check for errors:</strong> If some episodes show <strong>"Error"</strong> status (red), click the (ℹ) icon to display the error code. The most common cause is <code>404 Not Found</code>, which indicates the file was removed from the podcast server before the download.</p>
+            <p><strong>Check for errors:</strong> If some episodes show <strong>"Error"</strong> status (red), click them to open the Episode Detail Panel and read the error code. Alternatively, consult the error summary section at the bottom of the Download Panel. The most common cause is <code>404 Not Found</code>, which indicates the file was removed from the podcast server before the download.</p>
           </li>
           <li>
             <p><strong>Export a CSV summary:</strong> Go to <strong>Settings → Archive → Export CSV</strong>. The generated file lists all downloaded episodes with SHA-256 hashes, sizes, and metadata (see Chapter 9).</p>
@@ -118,16 +118,19 @@
       </section>
       <section class="level2">
         <h2 id="49-updating-the-archive-in-future">4.9 Updating the Archive in Future</h2>
-        <p>The Database-First system simplifies archive updates. When the podcast publishes new episodes:</p>
+        <p>The Database-First system simplifies archive updates. The procedure depends on whether the feed is already in the library or not.</p>
+        <p><strong>Feed already in the sidebar:</strong></p>
         <ol>
-          <li>Paste the same RSS URL into the URL field.</li>
-          <li>Click <strong>"Analyse"</strong>.</li>
-          <li>The software shows the updated list: episodes already present appear as <strong>"Downloaded"</strong>, new ones as <strong>"To Download"</strong>.</li>
+          <li>Click the feed in the sidebar to select it.</li>
+          <li>Hover over the entry and click the sync icon, or use the <strong>"Sync All"</strong> button to refresh the whole library in parallel.</li>
+          <li>New episodes appear as <strong>"To Download"</strong>; those already present remain as <strong>"Downloaded"</strong>.</li>
           <li>Click <strong>"Download All"</strong> to download only the new episodes.</li>
         </ol>
-        <p>The system never downloads the same episode twice. This operation can be performed at any frequency, even daily for high-frequency podcasts.</p>
+        <p><strong>Feed not yet in the library:</strong></p>
+        <p>Paste the RSS URL into the URL field at the top of the interface and click <strong>"Analyse"</strong>: the feed is added to the library and the list is populated with the current status.</p>
+        <p>The system never downloads the same episode twice. Periodic automatic refresh can also be configured (see Chapter 10 and section 5.9).</p>
         <hr>
-        <p><em>Go to Chapter 5to learn more about feed management and OPML features.</em></p>
+        <p><em>Go to Chapter 5 to learn more about feed management and OPML features.</em></p>
       </section>
     </section>
   
