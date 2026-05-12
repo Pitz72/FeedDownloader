@@ -38,9 +38,10 @@ D:\Archive Podcasts\
 Créer le dossier spécifique au podcast à archiver (ex. `D:\Archive Podcasts\Mon Podcast\`). FeedDownloader Pro enregistrera tous les fichiers de ce podcast dans ce dossier, avec les noms définis par le template de renommage (voir le Chapitre 8).
 
 **Pour définir le dossier de destination dans FeedDownloader Pro :**
-1.  Cliquer sur l'icône de **dossier** à côté du champ de chemin de destination.
+
+1.  Ouvrir **Paramètres → Archive** et cliquer sur l'icône de **dossier** à côté du champ de chemin de destination.
 2.  Naviguer jusqu'au dossier créé et le sélectionner.
-3.  Le chemin s'affiche dans le champ et est mémorisé pour les sessions suivantes.
+3.  Le chemin configuré est toujours visible dans le pied de page de la barre latérale gauche ; un clic dessus ouvre le dossier directement dans le gestionnaire de fichiers.
 
 *Remarque :* Pour les chemins sur NAS ou disques réseau, consulter le Chapitre 7 avant de continuer. La configuration pour les chemins réseau présente quelques spécificités décrites dans ce chapitre.
 
@@ -83,7 +84,7 @@ Cliquer sur **« Tout télécharger »**. Le logiciel ajoute à la file tous les
 Pour ne télécharger que certains épisodes :
 1.  Sélectionner les épisodes en maintenant `Ctrl` enfoncé et en cliquant sur chacun d'eux.
 2.  Pour sélectionner une plage, cliquer sur le premier épisode, maintenir `Shift` enfoncé et cliquer sur le dernier.
-3.  Utiliser le menu contextuel (clic droit sur la sélection) ou le bouton de téléchargement individuel (↓) sur chaque épisode sélectionné.
+3.  Cliquer sur le bouton **« Télécharger la sélection (N) »** qui apparaît dans l'en-tête du feed dès qu'au moins un épisode est sélectionné.
 
 ---
 
@@ -91,7 +92,7 @@ Pour ne télécharger que certains épisodes :
 
 Pendant le téléchargement :
 
-*   **Barre globale en bas :** Affiche la progression d'ensemble du batch. Pour une archive de 200 épisodes à 64 kbps en moyenne, le volume total de données est d'environ 2 à 3 Go.
+*   **Panneau de téléchargement :** S'ouvre automatiquement sur le côté droit de la fenêtre au démarrage du batch. Affiche chaque épisode en file d'attente avec le pourcentage, la vitesse actuelle et le temps estimé jusqu'à la fin. Pour une archive de 200 épisodes à 64 kbps en moyenne, le volume total de données est d'environ 2 à 3 Go.
 *   **État dans la liste :** Chaque ligne se met à jour en temps réel. Les épisodes en cours affichent une barre de progression individuelle avec le pourcentage complété.
 *   **Exécution en arrière-plan :** Il n'est pas nécessaire de maintenir la fenêtre ouverte. Il est possible de la fermer (le programme continue à opérer dans la zone de notification) et de la rouvrir à la fin du processus.
 
@@ -101,11 +102,11 @@ Le logiciel gère automatiquement les retries en cas d'erreur réseau, la stall 
 
 ## 4.8 Étape 7 : Vérifier l'archive complétée
 
-Lorsque la barre globale atteint 100 % et que tous les épisodes sont à l'état terminé, l'archive est prête.
+Lorsque le Panneau de téléchargement indique le batch comme terminé et que tous les épisodes apparaissent à l'état vert, l'archive est prête.
 
 **Opérations conseillées à la fin :**
 
-1.  **Vérifier les erreurs :** Si certains épisodes affichent l'état **« Erreur »** (rouge), cliquer sur l'icône (ℹ) pour afficher le code d'erreur. La cause la plus fréquente est `404 Not Found`, indiquant que le fichier a été supprimé du serveur du podcast avant le téléchargement.
+1.  **Vérifier les erreurs :** Si certains épisodes affichent l'état **« Erreur »** (rouge), cliquer dessus pour ouvrir le Panneau de détail de l'épisode et lire le code d'erreur. Sinon, consulter la section de récapitulatif des erreurs au bas du Panneau de téléchargement. La cause la plus fréquente est `404 Not Found`, indiquant que le fichier a été supprimé du serveur du podcast avant le téléchargement.
 
 2.  **Exporter un récapitulatif CSV :** Aller dans **Paramètres → Archive → Exporter en CSV**. Le fichier généré liste tous les épisodes téléchargés avec le hash SHA-256, les dimensions et les métadonnées (voir le Chapitre 9).
 
@@ -115,14 +116,20 @@ Lorsque la barre globale atteint 100 % et que tous les épisodes sont à l'état
 
 ## 4.9 Mettre à jour l'archive à l'avenir
 
-Le système Database-First simplifie les mises à jour de l'archive. Lorsque le podcast publie de nouveaux épisodes :
+Le système Database-First simplifie les mises à jour de l'archive. La procédure varie selon que le feed est déjà présent dans la bibliothèque ou non.
 
-1.  Coller la même URL RSS dans le champ URL.
-2.  Cliquer sur **« Analyser »**.
-3.  Le logiciel affiche la liste mise à jour : les épisodes déjà présents apparaissent comme **« Téléchargé »**, les nouveaux comme **« À télécharger »**.
-4.  Cliquer sur **« Tout télécharger »** pour télécharger uniquement les nouveaux épisodes.
+**Feed déjà dans la barre latérale :**
 
-Le système ne télécharge jamais deux fois le même épisode. Cette opération peut être effectuée avec n'importe quelle fréquence, même quotidiennement pour les podcasts à rythme de publication élevé.
+1.  Cliquer sur le feed dans la barre latérale pour le sélectionner.
+2.  Passer la souris sur l'élément et cliquer sur l'icône de synchronisation, ou utiliser le bouton **« Tout synchroniser »** pour rafraîchir l'ensemble de la bibliothèque en parallèle.
+3.  Les nouveaux épisodes apparaissent à l'état **« À télécharger »** ; ceux déjà présents restent en **« Téléchargé »**.
+4.  Cliquer sur **« Tout télécharger »** pour ne télécharger que les nouveaux épisodes.
+
+**Feed pas encore dans la bibliothèque :**
+
+Coller l'URL RSS dans le champ URL en haut de l'interface et cliquer sur **« Analyser »** : le feed est ajouté à la bibliothèque et la liste est remplie avec l'état actuel.
+
+Le système ne télécharge jamais deux fois le même épisode. Il est également possible de configurer une mise à jour automatique périodique (voir le Chapitre 10 et la section 5.9).
 
 ---
 

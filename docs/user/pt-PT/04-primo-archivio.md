@@ -38,9 +38,10 @@ D:\Arquivo Podcasts\
 Criar a pasta específica para o podcast a arquivar (ex.: `D:\Arquivo Podcasts\O Meu Podcast\`). O FeedDownloader Pro guardará todos os ficheiros desse podcast nessa pasta, com os nomes definidos pelo modelo de renomeação (ver o Capítulo 8).
 
 **Para definir a pasta de destino no FeedDownloader Pro:**
-1.  Clicar no ícone de **pasta** junto ao campo do caminho de destino.
+
+1.  Abrir **Definições → Arquivo** e clicar no ícone de **pasta** junto ao campo do caminho de destino.
 2.  Navegar até à pasta criada e selecioná-la.
-3.  O caminho é apresentado no campo e memorizado para as sessões seguintes.
+3.  O caminho configurado é sempre visível no rodapé da barra lateral esquerda; clicar nele abre a pasta diretamente no gestor de ficheiros.
 
 *Nota:* Para caminhos em NAS ou discos de rede, consultar o Capítulo 7 antes de continuar. A configuração para caminhos de rede tem algumas especificidades descritas nesse capítulo.
 
@@ -83,7 +84,7 @@ Clicar em **"Transferir tudo"**. O software adiciona à fila todos os episódios
 Para transferir apenas determinados episódios:
 1.  Selecionar os episódios mantendo premida a tecla `Ctrl` e clicando em cada um.
 2.  Para selecionar um intervalo, clicar no primeiro episódio, manter premida a tecla `Shift` e clicar no último.
-3.  Usar o menu de contexto (clique direito na seleção) ou o botão de transferência individual (↓) em cada episódio selecionado.
+3.  Clicar no botão **«Transferir seleção (N)»** que surge no cabeçalho do feed quando há pelo menos um episódio selecionado.
 
 ---
 
@@ -91,7 +92,7 @@ Para transferir apenas determinados episódios:
 
 Durante a transferência:
 
-*   **Barra global em baixo:** Mostra o progresso geral do lote. Para um arquivo de 200 episódios a uma média de 64 kbps, o volume total de dados é de cerca de 2–3 GB.
+*   **Painel de transferências:** Abre-se automaticamente no lado direito da janela ao iniciar o lote. Mostra cada episódio em fila com percentagem, velocidade atual e tempo estimado até à conclusão. Para um arquivo de 200 episódios a uma média de 64 kbps, o volume total de dados é de cerca de 2–3 GB.
 *   **Estado na lista:** Cada linha é atualizada em tempo real. Os episódios em curso mostram uma barra de progresso individual com a percentagem concluída.
 *   **Execução em segundo plano:** Não é necessário manter a janela aberta. É possível fechá-la (o programa continua a operar na área de notificação) e reabri-la no final do processo.
 
@@ -101,11 +102,11 @@ O software gere automaticamente as novas tentativas em caso de erro de rede, a d
 
 ## 4.8 Fase 7: Verificar o Arquivo Concluído
 
-Quando a barra global atinge 100% e todos os episódios estão concluídos, o arquivo está pronto.
+Quando o Painel de transferências indica o lote como concluído e todos os episódios surgem em estado verde, o arquivo está pronto.
 
 **Operações recomendadas no final:**
 
-1.  **Verificar os erros:** Se alguns episódios mostram o estado **"Erro"** (vermelho), clicar no ícone (ℹ) para visualizar o código de erro. A causa mais comum é `404 Not Found`, que indica a remoção do ficheiro do servidor do podcast antes da transferência.
+1.  **Verificar os erros:** Se alguns episódios mostram o estado **"Erro"** (vermelho), clicar neles para abrir o Painel de detalhe do episódio e ler o código de erro. Em alternativa, consultar a secção de resumo de erros na parte inferior do Painel de transferências. A causa mais comum é `404 Not Found`, que indica a remoção do ficheiro do servidor do podcast antes da transferência.
 
 2.  **Exportar um resumo CSV:** Aceder a **Definições → Arquivo → Exportar CSV**. O ficheiro gerado lista todos os episódios transferidos com hash SHA-256, tamanhos e metadados (ver o Capítulo 9).
 
@@ -115,14 +116,20 @@ Quando a barra global atinge 100% e todos os episódios estão concluídos, o ar
 
 ## 4.9 Atualizar o Arquivo no Futuro
 
-O sistema Database-First simplifica as atualizações do arquivo. Quando o podcast publica novos episódios:
+O sistema Database-First simplifica as atualizações do arquivo. O procedimento varia consoante o feed já esteja na biblioteca ou não.
 
-1.  Colar o mesmo URL RSS no campo URL.
-2.  Clicar em **"Analisar"**.
-3.  O software mostra a lista atualizada: os episódios já presentes aparecem como **"Transferido"**, os novos como **"Por transferir"**.
+**Feed já na barra lateral:**
+
+1.  Clicar no feed na barra lateral para o selecionar.
+2.  Passar o rato sobre o elemento e clicar no ícone de sincronização, ou usar o botão **«Sincronizar tudo»** para atualizar toda a biblioteca em paralelo.
+3.  Os episódios novos aparecem no estado **"Por transferir"**; os já presentes permanecem como **"Transferido"**.
 4.  Clicar em **"Transferir tudo"** para transferir apenas os episódios novos.
 
-O sistema nunca transfere o mesmo episódio duas vezes. Esta operação pode ser executada com qualquer frequência, mesmo diariamente para podcasts com elevado ritmo de publicação.
+**Feed ainda não na biblioteca:**
+
+Colar o URL RSS no campo URL no topo da interface e clicar em **"Analisar"**: o feed é adicionado à biblioteca e a lista é preenchida com o estado atual.
+
+O sistema nunca transfere o mesmo episódio duas vezes. Também é possível configurar uma atualização automática periódica (ver o Capítulo 10 e a secção 5.9).
 
 ---
 

@@ -38,9 +38,10 @@ D:\Podcast Archive\
 Create the specific folder for the podcast to be archived (e.g. `D:\Podcast Archive\My Podcast\`). FeedDownloader Pro will save all files from that podcast into that folder, with names defined by the rename template (see Chapter 8).
 
 **To set the destination folder in FeedDownloader Pro:**
-1.  Click the **folder** icon next to the destination path field.
+
+1.  Open **Settings → Archive** and click the **folder** icon next to the destination path field.
 2.  Navigate to the created folder and select it.
-3.  The path is displayed in the field and remembered for subsequent sessions.
+3.  The configured path is always visible in the footer of the left-hand sidebar; clicking it opens the folder directly in the file manager.
 
 *Note:* For paths on NAS or network drives, consult Chapter 7 before proceeding. The configuration for network paths has some specificities described in that chapter.
 
@@ -83,7 +84,7 @@ Click **"Download All"**. The software adds all episodes in **"To Download"** st
 To download only certain episodes:
 1.  Select the episodes by holding `Ctrl` and clicking on each one.
 2.  To select a range, click on the first episode, hold `Shift`, and click on the last.
-3.  Use the context menu (right-click on the selection) or the individual download button (↓) on each selected episode.
+3.  Click the **"Download Selected (N)"** button that appears in the feed header when at least one episode is selected.
 
 ---
 
@@ -91,7 +92,7 @@ To download only certain episodes:
 
 During the download:
 
-*   **Global bar at the bottom:** Shows the overall batch progress. For an archive of 200 episodes at an average of 64 kbps, the total data volume is approximately 2–3 GB.
+*   **Download Panel:** Opens automatically on the right side of the window when the batch starts. It shows each queued episode with percentage, current speed, and estimated time to completion. For an archive of 200 episodes at an average of 64 kbps, the total data volume is approximately 2–3 GB.
 *   **Status in the list:** Each row updates in real time. Episodes in progress show an individual progress bar with the completed percentage.
 *   **Background execution:** It is not necessary to keep the window open. It can be closed (the programme continues to operate in the system tray) and reopened when the process has completed.
 
@@ -101,11 +102,11 @@ The software automatically handles retries in the event of a network error, stal
 
 ## 4.8 Phase 7: Verifying the Completed Archive
 
-When the global bar reaches 100% and all episodes show as completed, the archive is ready.
+When the Download Panel shows the batch as completed and all episodes appear in green status, the archive is ready.
 
 **Recommended operations upon completion:**
 
-1.  **Check for errors:** If some episodes show **"Error"** status (red), click the (ℹ) icon to display the error code. The most common cause is `404 Not Found`, which indicates the file was removed from the podcast server before the download.
+1.  **Check for errors:** If some episodes show **"Error"** status (red), click them to open the Episode Detail Panel and read the error code. Alternatively, consult the error summary section at the bottom of the Download Panel. The most common cause is `404 Not Found`, which indicates the file was removed from the podcast server before the download.
 
 2.  **Export a CSV summary:** Go to **Settings → Archive → Export CSV**. The generated file lists all downloaded episodes with SHA-256 hashes, sizes, and metadata (see Chapter 9).
 
@@ -115,15 +116,21 @@ When the global bar reaches 100% and all episodes show as completed, the archive
 
 ## 4.9 Updating the Archive in Future
 
-The Database-First system simplifies archive updates. When the podcast publishes new episodes:
+The Database-First system simplifies archive updates. The procedure depends on whether the feed is already in the library or not.
 
-1.  Paste the same RSS URL into the URL field.
-2.  Click **"Analyse"**.
-3.  The software shows the updated list: episodes already present appear as **"Downloaded"**, new ones as **"To Download"**.
+**Feed already in the sidebar:**
+
+1.  Click the feed in the sidebar to select it.
+2.  Hover over the entry and click the sync icon, or use the **"Sync All"** button to refresh the whole library in parallel.
+3.  New episodes appear as **"To Download"**; those already present remain as **"Downloaded"**.
 4.  Click **"Download All"** to download only the new episodes.
 
-The system never downloads the same episode twice. This operation can be performed at any frequency, even daily for high-frequency podcasts.
+**Feed not yet in the library:**
+
+Paste the RSS URL into the URL field at the top of the interface and click **"Analyse"**: the feed is added to the library and the list is populated with the current status.
+
+The system never downloads the same episode twice. Periodic automatic refresh can also be configured (see Chapter 10 and section 5.9).
 
 ---
 
-*Go to Chapter 5to learn more about feed management and OPML features.*
+*Go to Chapter 5 to learn more about feed management and OPML features.*
