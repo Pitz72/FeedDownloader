@@ -24,27 +24,7 @@ Ermöglicht die Begrenzung der von allen aktiven Downloads zusammen genutzten Ba
 
 ---
 
-## 10.3 Schlüsselwort-Filter
-
-Der Textfilter ermöglicht es, **die Liste der angezeigten Episoden** anhand des im Titel enthaltenen Texts einzugrenzen. Er ist ein Werkzeug zur schnellen Konsultation und Auswahl, besonders nützlich bei großen Katalogen.
-
-**So wird der Filter verwendet:**
-Die Filterleiste befindet sich oben in der Episodenliste, unmittelbar unter den Batch-Steuerelementen. Durch Eingabe eines oder mehrerer Begriffe wird die Liste in Echtzeit aktualisiert und zeigt nur Episoden an, deren Titel **alle eingegebenen Begriffe** enthält (AND-Logik).
-
-*   Um Episoden zu suchen, die das Wort „Interview" enthalten, `interview` eingeben.
-*   Um Episoden zu suchen, die sowohl „Interview" als auch „2024" enthalten, `interview 2024` eingeben.
-*   Der Filter unterscheidet nicht zwischen Groß- und Kleinschreibung: `Bonus` und `bonus` liefern dasselbe Ergebnis.
-
-**Typische Anwendungsszenarien:**
-*   In einem umfangreichen Katalog schnell die Episoden einer bestimmten Staffel finden.
-*   Eine Teilmenge von Episoden zum Herunterladen auswählen, ohne die gesamte Liste durchscrollen zu müssen.
-*   Prüfen, ob eine Episode mit einem bestimmten Titel bereits in der Datenbank vorhanden ist.
-
-*Hinweis:* Der Filter wirkt auf die Anzeige der aktuellen Liste und verändert weder die Download-Warteschlange noch den Status der Episoden in der Datenbank. Um den Filter zu entfernen, die Textleiste leeren.
-
----
-
-## 10.4 Allgemein
+## 10.3 Allgemein
 
 ### Sprache
 
@@ -52,9 +32,24 @@ FeedDownloader Pro ist in 8 Sprachen verfügbar: Italiano, English, Deutsch, Esp
 
 Der Sprachwechsel erfolgt sofort: Die Oberfläche wird aktualisiert, ohne dass ein Neustart der Software erforderlich ist. Die Anwendung verwendet ausschließlich das dunkle Thema „Obsidian Command": Ein helles Thema oder ein Dichteselektor für die Liste sind nicht verfügbar.
 
+### Automatische Feed-Aktualisierung
+
+Ermöglicht es, alle Feeds in regelmäßigen Abständen automatisch zu synchronisieren, ohne manuelles Eingreifen. Es stehen vier Voreinstellungen zur Verfügung:
+
+| Option | Verhalten |
+|--------|-----------|
+| **Deaktiviert** (Standard) | Keine automatische Synchronisierung. |
+| **Alle 6 Stunden** | Vollständige Synchronisierung alle 6 Stunden ab dem Start. |
+| **Alle 12 Stunden** | Vollständige Synchronisierung alle 12 Stunden ab dem Start. |
+| **Alle 24 Stunden** | Vollständige Synchronisierung alle 24 Stunden ab dem Start. |
+
+Die Änderung erfolgt sofort und erfordert keinen Neustart der Software. Wenn während der automatischen Synchronisierung neue Episoden gefunden werden, wird eine Betriebssystem-Benachrichtigung gesendet. Die automatische Synchronisierung startet keine Downloads: Sie signalisiert lediglich die Verfügbarkeit neuer Inhalte. Eine ausführliche Beschreibung des Verhaltens findet sich in Abschnitt 5.9.
+
+*Hinweis:* Die Filterleiste der Episodenliste (Textsuche, Status, Datum, Dauer) ist in Abschnitt 3.4 beschrieben, da sie zur Episodenliste und nicht zu den Einstellungen gehört.
+
 ---
 
-## 10.5 Sicherheit: Das Anti-SSRF-System mit 5 Ebenen
+## 10.4 Sicherheit: Das Anti-SSRF-System mit 5 Ebenen
 
 Dieser Abschnitt ist zu Informationszwecken dokumentiert: Das Sicherheitssystem arbeitet vollständig automatisch und erfordert keine Konfiguration durch den Benutzer.
 
@@ -83,7 +78,7 @@ SSRF (Server-Side Request Forgery) ist eine Angriffsart, bei der eine bösartige
 
 ---
 
-## 10.6 Erweitert
+## 10.5 Erweitert
 
 ### Updates
 

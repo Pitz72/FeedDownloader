@@ -24,27 +24,7 @@ Permet de limiter la bande passante agrégée utilisée par tous les télécharg
 
 ---
 
-## 10.3 Filtre par mots-clés
-
-Le filtre textuel permet de **restreindre la liste des épisodes affichés** en fonction du texte contenu dans le titre. C'est un outil de consultation et de sélection rapide, particulièrement utile avec les catalogues de grande taille.
-
-**Comment utiliser le filtre :**
-La barre de filtre est positionnée dans la partie supérieure de la liste des épisodes, immédiatement sous les contrôles du batch. En saisissant un ou plusieurs termes, la liste se met à jour en temps réel en affichant uniquement les épisodes dont le titre contient **tous les termes saisis** (logique AND).
-
-*   Pour rechercher les épisodes contenant le mot « interview », saisir `interview`.
-*   Pour rechercher les épisodes contenant à la fois « interview » et « 2024 », saisir `interview 2024`.
-*   Le filtre ne distingue pas les majuscules des minuscules : `Bonus` et `bonus` produisent le même résultat.
-
-**Cas d'utilisation typiques :**
-*   Identifier rapidement les épisodes d'une saison spécifique dans un catalogue étendu.
-*   Sélectionner un sous-ensemble d'épisodes à télécharger sans parcourir toute la liste.
-*   Vérifier si un épisode avec un titre particulier est déjà présent dans la base de données.
-
-*Remarque :* Le filtre agit sur l'affichage de la liste en cours et ne modifie ni la file de téléchargement ni l'état des épisodes dans la base de données. Pour supprimer le filtre, vider la barre de texte.
-
----
-
-## 10.4 Général
+## 10.3 Général
 
 ### Langue
 
@@ -52,9 +32,24 @@ FeedDownloader Pro est disponible en 8 langues : Italiano, English, Deutsch, Esp
 
 Le changement de langue est immédiat : l'interface se met à jour sans nécessiter de redémarrage du logiciel. L'application utilise exclusivement le thème sombre « Obsidian Command » : aucun thème clair ni sélecteur de densité de liste n'est disponible.
 
+### Mise à jour automatique des feeds
+
+Permet de synchroniser automatiquement tous les feeds à intervalles réguliers, sans intervention manuelle. Quatre préréglages sont disponibles :
+
+| Option | Comportement |
+|--------|--------------|
+| **Désactivé** (par défaut) | Aucune synchronisation automatique. |
+| **Toutes les 6 heures** | Synchronisation complète toutes les 6 heures à partir du lancement. |
+| **Toutes les 12 heures** | Synchronisation complète toutes les 12 heures à partir du lancement. |
+| **Toutes les 24 heures** | Synchronisation complète toutes les 24 heures à partir du lancement. |
+
+Le changement est immédiat et ne nécessite pas le redémarrage du logiciel. Si de nouveaux épisodes sont trouvés pendant la synchronisation automatique, une notification du système d'exploitation est envoyée. La synchronisation automatique ne lance pas de téléchargements : elle se contente de signaler la disponibilité de nouveaux contenus. Pour une description détaillée du comportement, voir la section 5.9.
+
+*Remarque :* La barre de filtre de la liste des épisodes (recherche texte, état, date, durée) est décrite à la section 3.4, car elle fait partie de la liste des épisodes et non d'un paramètre.
+
 ---
 
-## 10.5 Sécurité : le système anti-SSRF à 5 niveaux
+## 10.4 Sécurité : le système anti-SSRF à 5 niveaux
 
 Cette section est documentée à titre informatif : le système de sécurité fonctionne de manière entièrement automatique et ne nécessite aucune configuration de la part de l'utilisateur.
 
@@ -83,7 +78,7 @@ SSRF (Server-Side Request Forgery) est un type d'attaque dans lequel une URL mal
 
 ---
 
-## 10.6 Avancé
+## 10.5 Avancé
 
 ### Mises à jour
 

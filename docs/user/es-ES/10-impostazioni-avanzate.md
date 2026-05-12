@@ -24,27 +24,7 @@ Permite limitar el ancho de banda agregado utilizado por todas las descargas act
 
 ---
 
-## 10.3 Filtro por Palabras Clave
-
-El filtro de texto permite **restringir la lista de episodios mostrados** según el texto contenido en el título. Es una herramienta de consulta y selección rápida, especialmente útil con catálogos de gran tamaño.
-
-**Cómo usar el filtro:**
-La barra de filtro está situada en la parte superior de la lista de episodios, inmediatamente debajo de los controles del batch. Al escribir uno o varios términos, la lista se actualiza en tiempo real mostrando únicamente los episodios cuyo título contiene **todos los términos introducidos** (lógica AND).
-
-*   Para buscar episodios que contienen la palabra "entrevista", escribir `entrevista`.
-*   Para buscar episodios que contienen tanto "entrevista" como "2024", escribir `entrevista 2024`.
-*   El filtro no distingue entre mayúsculas y minúsculas: `Bonus` y `bonus` producen el mismo resultado.
-
-**Casos de uso típicos:**
-*   Localizar rápidamente los episodios de una temporada concreta en un catálogo extenso.
-*   Seleccionar un subconjunto de episodios para descargar sin recorrer la lista completa.
-*   Verificar si un episodio con un título determinado ya está presente en la base de datos.
-
-*Nota:* El filtro actúa sobre la visualización de la lista actual y no modifica la cola de descarga ni el estado de los episodios en la base de datos. Para eliminar el filtro, vaciar la barra de texto.
-
----
-
-## 10.4 General
+## 10.3 General
 
 ### Idioma
 
@@ -52,9 +32,24 @@ FeedDownloader Pro está disponible en 8 idiomas: Italiano, English, Deutsch, Es
 
 El cambio de idioma es inmediato: la interfaz se actualiza sin necesidad de reiniciar el software. La aplicación utiliza exclusivamente el tema oscuro «Obsidian Command»: no hay un tema claro disponible ni un selector de densidad de lista.
 
+### Actualización automática de feeds
+
+Permite sincronizar automáticamente todos los feeds a intervalos regulares, sin intervención manual. Hay cuatro preajustes disponibles:
+
+| Opción | Comportamiento |
+|--------|----------------|
+| **Desactivado** (predeterminado) | Sin sincronización automática. |
+| **Cada 6 horas** | Sincronización completa cada 6 horas desde el arranque. |
+| **Cada 12 horas** | Sincronización completa cada 12 horas desde el arranque. |
+| **Cada 24 horas** | Sincronización completa cada 24 horas desde el arranque. |
+
+El cambio es inmediato y no requiere reiniciar el software. Si durante la sincronización automática se encuentran nuevos episodios, se envía una notificación del sistema operativo. La sincronización automática no inicia descargas: solo señala la disponibilidad de nuevos contenidos. Para una descripción detallada del comportamiento, véase la sección 5.9.
+
+*Nota:* La barra de filtros de la lista de episodios (búsqueda de texto, estado, fecha, duración) se describe en la sección 3.4, ya que forma parte de la lista de episodios y no de los ajustes.
+
 ---
 
-## 10.5 Seguridad: El Sistema Anti-SSRF de 5 Niveles
+## 10.4 Seguridad: El Sistema Anti-SSRF de 5 Niveles
 
 Esta sección está documentada a título informativo: el sistema de seguridad opera de forma completamente automática y no requiere configuración por parte del usuario.
 
@@ -83,7 +78,7 @@ SSRF (Server-Side Request Forgery) es un tipo de ataque en el que una URL malici
 
 ---
 
-## 10.6 Avanzado
+## 10.5 Avanzado
 
 ### Actualizaciones
 

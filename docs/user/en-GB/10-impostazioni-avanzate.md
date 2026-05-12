@@ -24,27 +24,7 @@ Allows you to limit the aggregate bandwidth used by all active downloads, to avo
 
 ---
 
-## 10.3 Keyword Filter
-
-The text filter allows you to **narrow the list of displayed episodes** based on text contained in the title. It is a consultation and quick selection tool, particularly useful with large catalogues.
-
-**How to use the filter:**
-The filter bar is positioned at the top of the episode list, immediately below the batch controls. By typing one or more terms, the list updates in real time showing only the episodes whose title contains **all the entered terms** (AND logic).
-
-*   To search for episodes containing the word "interview", type `interview`.
-*   To search for episodes containing both "interview" and "2024", type `interview 2024`.
-*   The filter is not case-sensitive: `Bonus` and `bonus` produce the same result.
-
-**Typical use cases:**
-*   Quickly identifying episodes from a specific season in an extensive catalogue.
-*   Selecting a subset of episodes to download without scrolling through the entire list.
-*   Verifying whether an episode with a particular title is already present in the database.
-
-*Note:* The filter acts on the display of the current list and does not modify the download queue or the status of episodes in the database. To remove the filter, clear the text bar.
-
----
-
-## 10.4 General
+## 10.3 General
 
 ### Language
 
@@ -52,9 +32,24 @@ FeedDownloader Pro is available in 8 languages: Italian, English, Deutsch, Espa√
 
 The language change is immediate: the interface updates without needing to restart the software. The application uses exclusively the dark "Obsidian Command" theme: no light theme or list density selector is available.
 
+### Automatic Feed Refresh
+
+Allows all feeds to be automatically synchronised at regular intervals, without manual intervention. Four presets are available:
+
+| Option | Behaviour |
+|--------|-----------|
+| **Disabled** (default) | No automatic synchronisation. |
+| **Every 6 hours** | Full synchronisation every 6 hours from startup. |
+| **Every 12 hours** | Full synchronisation every 12 hours from startup. |
+| **Every 24 hours** | Full synchronisation every 24 hours from startup. |
+
+The change is immediate and does not require restarting the software. If new episodes are found during the automatic synchronisation, an operating system notification is sent. Automatic synchronisation does not start downloads: it only signals the availability of new content. For a detailed description of the behaviour, see section 5.9.
+
+*Note:* The episode list filter bar (text search, status, date, duration) is documented in section 3.4, as it is part of the episode list rather than a setting.
+
 ---
 
-## 10.5 Security: The 5-Level Anti-SSRF System
+## 10.4 Security: The 5-Level Anti-SSRF System
 
 This section is documented for informational purposes: the security system operates in a completely automatic manner and does not require any configuration from the user.
 
@@ -83,7 +78,7 @@ SSRF (Server-Side Request Forgery) is a type of attack in which a malicious URL,
 
 ---
 
-## 10.6 Advanced
+## 10.5 Advanced
 
 ### Updates
 
