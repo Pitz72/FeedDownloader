@@ -28,6 +28,15 @@ La aplicación implementa una validación anti-SSRF de 5 niveles en cada URL int
 ### 3. Soporte Profesional NAS/SMB
 Diseñado para archivistas, el software valida las rutas de red con un tiempo de espera de 8 segundos, evitando los bloqueos de la interfaz comunes al trabajar con unidades de red o NAS que no están listos.
 
+### 4. Biblioteca de Feeds Permanente y Vista de Archivo
+La barra lateral redimensionable conserva todos los feeds añadidos entre las sesiones, con un distintivo numérico que señala los nuevos episodios publicados desde la última descarga. La pestaña Archivo ofrece una tabla única con todos los episodios descargados, con búsqueda, filtro por podcast y estadísticas agregadas.
+
+### 5. Panel de Descarga y Paleta de Comandos
+El Panel de Descarga lateral muestra la cola en tiempo real con velocidad, tiempo estimado y registro de errores para cada batch. Se abre automáticamente al iniciar las descargas y permanece accesible mediante un botón flotante. La Paleta de Comandos (Ctrl+K) permite invocar cualquier acción o feed desde el teclado, sin usar el ratón.
+
+### 6. Actualización Automática de los Feeds
+Un temporizador en segundo plano (6/12/24 horas) sincroniza todos los feeds sin intervención manual y envía una notificación del sistema operativo cuando se encuentran nuevos episodios, sin iniciar automáticamente las descargas.
+
 ---
 
 ## Requisitos del Sistema

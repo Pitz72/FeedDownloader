@@ -28,6 +28,15 @@ The application implements 5-level anti-SSRF validation on every entered URL. We
 ### 3. Professional NAS/SMB Support
 Designed for archivists, the software validates network paths with an 8-second timeout, preventing UI freezes common when working with network drives or NAS systems that aren't ready.
 
+### 4. Permanent Feed Library and Archive View
+The resizable sidebar keeps every added feed across sessions, with a numerical badge signalling the new episodes published since the last download. The Archive tab offers a single table with every downloaded episode, with search, podcast filtering and aggregate statistics.
+
+### 5. Download Panel and Command Palette
+The lateral Download Panel shows the queue in real time with speed, estimated time and error log for every batch. It opens automatically when downloads start and stays accessible through a floating button. The Command Palette (Ctrl+K) lets you trigger any action or feed from the keyboard, without the mouse.
+
+### 6. Automatic Feed Refresh
+A background timer (6/12/24 hours) synchronises every feed without manual intervention and sends an operating system notification whenever new episodes are found, without automatically starting downloads.
+
 ---
 
 ## System Requirements

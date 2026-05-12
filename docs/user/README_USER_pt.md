@@ -28,6 +28,15 @@ A aplicação implementa uma validação anti-SSRF de 5 níveis em cada URL intr
 ### 3. Suporte Profissional NAS/SMB
 Concebido para arquivistas, o software valida os caminhos de rede com um tempo de espera de 8 segundos, prevenindo os congelamentos da interface comuns ao trabalhar com unidades de rede ou NAS que não estão prontos.
 
+### 4. Biblioteca de Feeds Permanente e Vista de Arquivo
+A barra lateral redimensionável mantém todos os feeds adicionados entre sessões, com um emblema numérico que assinala os novos episódios publicados desde a última transferência. O separador Arquivo oferece uma tabela única com todos os episódios transferidos, com pesquisa, filtro por podcast e estatísticas agregadas.
+
+### 5. Painel de Transferências e Paleta de Comandos
+O Painel de Transferências lateral mostra a fila em tempo real com velocidade, tempo estimado e registo de erros para cada lote. Abre-se automaticamente no arranque das transferências e permanece acessível através de um botão flutuante. A Paleta de Comandos (Ctrl+K) permite invocar qualquer ação ou feed pelo teclado, sem usar o rato.
+
+### 6. Atualização Automática dos Feeds
+Um temporizador em segundo plano (6/12/24 horas) sincroniza todos os feeds sem intervenção manual e envia uma notificação do sistema operativo quando são encontrados novos episódios, sem iniciar automaticamente as transferências.
+
 ---
 
 ## Requisitos do Sistema

@@ -293,7 +293,7 @@ Per ciascuna lingua, i file da aggiornare sono esattamente gli stessi del Tier 1
 | ✅ T2.5 | `{lang}/05-gestione-feed.md` | COMPLETATO 12 mag 2026 — sez. 5.3 step 6 (add to library), 5.4 (Library invece di History), 5.5/5.6 OPML aggiornati, 5.7 (rimosso ref stima pre-batch), 5.8 (gestione multi-feed), 5.9 (auto-refresh nuova) in tutte 7 lingue |
 | ✅ T2.6 | `{lang}/10-impostazioni-avanzate.md` | COMPLETATO 12 mag 2026 — sez. 10.3 "Filtro per Parole Chiave" rimossa (è filter bar, non setting → ref a 3.4), sez. 10.4 Generale rinumerata a 10.3 con sottosezione "Aggiornamento automatico feed", 10.5/10.6 rinumerate a 10.4/10.5 in tutte 7 lingue |
 | ✅ T2.7 | `QUICKSTART_{en/fr/de/es/pt/ru/zh}.md` | COMPLETATO 12 mag 2026 — tutte e 6 le lingue aggiornate (sezioni 1–5 + DownloadPanel + Ctrl+K + M3U) |
-| T2.8 | `README_USER_{en/fr/de/es/pt/ru/zh}.md` | DA FARE |
+| ✅ T2.8 | `README_USER_{en/fr/de/es/pt/ru/zh}.md` | COMPLETATO 12 mag 2026 — aggiunte sezioni 4/5/6 con feature v1.2.4 (Libreria Feed + Vista Archivio, Pannello Download + Palette Comandi, Auto-refresh) in tutte le 7 lingue + IT |
 
 **Metodo di lavoro per le traduzioni:**
 1. Prendere il file sorgente italiano aggiornato.

@@ -28,6 +28,15 @@ L'application implémente une validation anti-SSRF à 5 niveaux sur chaque URL s
 ### 3. Support Professionnel NAS/SMB
 Conçu pour les archivistes, le logiciel valide les chemins réseau avec un timeout de 8 secondes, évitant les gels de l'interface fréquents lors du travail avec des disques réseau ou des NAS non prêts.
 
+### 4. Bibliothèque de feeds permanente et Vue Archive
+La barre latérale redimensionnable conserve tous les feeds ajoutés entre les sessions, avec un badge numérique signalant les nouveaux épisodes publiés depuis le dernier téléchargement. L'onglet Archive offre un tableau unique avec tous les épisodes téléchargés, avec recherche, filtre par podcast et statistiques agrégées.
+
+### 5. Panneau de téléchargement et Palette de commandes
+Le Panneau de téléchargement latéral affiche la file en temps réel avec la vitesse, le temps estimé et le journal d'erreurs pour chaque batch. Il s'ouvre automatiquement au démarrage des téléchargements et reste accessible via un bouton flottant. La Palette de commandes (Ctrl+K) permet de lancer toute action ou tout feed au clavier, sans utiliser la souris.
+
+### 6. Mise à jour automatique des feeds
+Un minuteur en arrière-plan (6/12/24 heures) synchronise tous les feeds sans intervention manuelle et envoie une notification du système d'exploitation lorsque de nouveaux épisodes sont trouvés, sans lancer automatiquement les téléchargements.
+
 ---
 
 ## Configuration Requise

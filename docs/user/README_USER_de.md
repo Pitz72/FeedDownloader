@@ -28,6 +28,15 @@ Die Anwendung implementiert eine 5-stufige Anti-SSRF-Validierung für jede einge
 ### 3. Professionelle NAS/SMB-Unterstützung
 Die für Archivare entwickelte Software validiert Netzwerkpfade mit einem Timeout von 8 Sekunden und verhindert so das Einfrieren der Benutzeroberfläche, das bei der Arbeit mit Netzlaufwerken oder NAS-Systemen, die nicht bereit sind, häufig vorkommt.
 
+### 4. Permanente Feed-Bibliothek und Archivansicht
+Die in der Breite einstellbare Seitenleiste behält alle hinzugefügten Feeds über mehrere Sitzungen hinweg und zeigt mit einem numerischen Abzeichen die seit dem letzten Download veröffentlichten neuen Episoden an. Die Registerkarte „Archiv" bietet eine einzige Tabelle mit allen heruntergeladenen Episoden, mit Suche, Podcast-Filter und aggregierten Statistiken.
+
+### 5. Download-Panel und Befehlspalette
+Das seitliche Download-Panel zeigt die Warteschlange in Echtzeit mit Geschwindigkeit, geschätzter Restzeit und Fehlerprotokoll für jeden Batch. Es öffnet sich automatisch beim Start der Downloads und bleibt über eine schwebende Schaltfläche zugänglich. Die Befehlspalette (Strg+K) ermöglicht es, jede Aktion oder jeden Feed über die Tastatur aufzurufen, ohne die Maus zu benutzen.
+
+### 6. Automatische Feed-Aktualisierung
+Ein Hintergrund-Timer (6/12/24 Stunden) synchronisiert alle Feeds ohne manuelles Eingreifen und sendet eine Betriebssystem-Benachrichtigung, wenn neue Episoden gefunden werden — ohne dass Downloads automatisch gestartet werden.
+
 ---
 
 ## Systemanforderungen
