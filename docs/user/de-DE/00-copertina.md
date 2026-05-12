@@ -1,6 +1,6 @@
 # Runtime FeedDownloader Pro
 ## Erweitertes Benutzerhandbuch
-### Version 0.7.6
+### Version 1.2.4
 
 ---
 
@@ -21,7 +21,7 @@
 
 ---
 
-**Ausgabe:** März 2026
+**Ausgabe:** Mai 2026
 **Kompatibilität:** Windows 10/11 · macOS 11+ · Linux (Ubuntu 22.04+)
 **Sprache:** Deutsch
 

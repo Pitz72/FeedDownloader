@@ -38,9 +38,10 @@ D:\Archivio Podcast\
 Creare la cartella specifica per il podcast da archiviare (es. `D:\Archivio Podcast\Il Mio Podcast\`). FeedDownloader Pro salverà tutti i file di quel podcast in quella cartella, con i nomi definiti dal template di rinomina (vedi il Capitolo 8).
 
 **Per impostare la cartella di destinazione in FeedDownloader Pro:**
-1.  Cliccare sull'icona della **cartella** accanto al campo del percorso di destinazione.
+
+1.  Aprire **Impostazioni → Archivio** e cliccare sull'icona della **cartella** accanto al campo del percorso di destinazione.
 2.  Navigare fino alla cartella creata e selezionarla.
-3.  Il percorso viene visualizzato nel campo e memorizzato per le sessioni successive.
+3.  Il percorso impostato è sempre visibile nel footer della barra laterale sinistra; cliccarlo apre la cartella direttamente nel file manager.
 
 *Nota:* Per i percorsi su NAS o dischi di rete, consultare il Capitolo 7 prima di procedere. La configurazione per i percorsi di rete presenta alcune specificità descritte in quel capitolo.
 
@@ -83,7 +84,7 @@ Cliccare su **"Scarica Tutto"**. Il software aggiunge alla coda tutti gli episod
 Per scaricare solo determinati episodi:
 1.  Selezionare gli episodi tenendo premuto `Ctrl` e cliccando su ciascuno.
 2.  Per selezionare un intervallo, cliccare sul primo episodio, tenere premuto `Shift` e cliccare sull'ultimo.
-3.  Usare il menu contestuale (clic destro sulla selezione) oppure il pulsante di download individuale (↓) su ciascun episodio selezionato.
+3.  Cliccare il pulsante **"Scarica Selezionati (N)"** che appare nell'intestazione del feed quando almeno un episodio è selezionato.
 
 ---
 
@@ -91,7 +92,7 @@ Per scaricare solo determinati episodi:
 
 Durante il download:
 
-*   **Barra globale in basso:** Mostra il progresso complessivo del batch. Per un archivio da 200 episodi a 64 kbps di media, il volume di dati totale è di circa 2–3 GB.
+*   **Pannello Download:** Si apre automaticamente a destra della finestra all'avvio del batch. Mostra ogni episodio in coda con percentuale, velocità e tempo stimato al completamento. Per un archivio da 200 episodi a 64 kbps di media, il volume di dati totale è di circa 2–3 GB.
 *   **Stato nella lista:** Ogni riga si aggiorna in tempo reale. Gli episodi in corso mostrano una barra di avanzamento individuale con la percentuale completata.
 *   **Esecuzione in background:** Non è necessario mantenere la finestra aperta. È possibile chiuderla (il programma continua a operare nel system tray) e riaprirla al completamento del processo.
 
@@ -101,11 +102,11 @@ Il software gestisce automaticamente i retry in caso di errore di rete, la stall
 
 ## 4.8 Fase 7: Verificare l'Archivio Completato
 
-Quando la barra globale raggiunge il 100% e tutti gli episodi risultano completati, l'archivio è pronto.
+Quando il Pannello Download mostra il batch completato e tutti gli episodi risultano in stato verde, l'archivio è pronto.
 
 **Operazioni consigliate al completamento:**
 
-1.  **Controllare gli errori:** Se alcuni episodi mostrano lo stato **"Errore"** (rosso), cliccare sull'icona (ℹ) per visualizzare il codice di errore. La causa più comune è `404 Not Found`, che indica la rimozione del file dal server del podcast prima del download.
+1.  **Controllare gli errori:** Se alcuni episodi mostrano lo stato **"Errore"** (rosso), cliccarci sopra per aprire il Pannello Dettaglio e leggere il codice di errore. In alternativa, consultare la sezione riepilogo errori in fondo al Pannello Download. La causa più comune è `404 Not Found`, che indica la rimozione del file dal server del podcast prima del download.
 
 2.  **Esportare un riepilogo CSV:** Andare in **Impostazioni → Archivio → Esporta CSV**. Il file generato elenca tutti gli episodi scaricati con hash SHA-256, dimensioni e metadati (vedi il Capitolo 9).
 
@@ -115,14 +116,20 @@ Quando la barra globale raggiunge il 100% e tutti gli episodi risultano completa
 
 ## 4.9 Aggiornare l'Archivio in Futuro
 
-Il sistema Database-First semplifica gli aggiornamenti dell'archivio. Quando il podcast pubblica nuovi episodi:
+Il sistema Database-First semplifica gli aggiornamenti dell'archivio. Il procedimento varia in base al fatto che il feed sia già presente nella libreria o meno.
 
-1.  Incollare lo stesso URL RSS nel campo URL.
-2.  Cliccare su **"Analizza"**.
-3.  Il software mostra la lista aggiornata: gli episodi già presenti appaiono come **"Scaricato"**, i nuovi come **"Da Scaricare"**.
+**Feed già nella barra laterale:**
+
+1.  Cliccare sul feed nella barra laterale per selezionarlo.
+2.  Passare il mouse sull'elemento e cliccare l'icona di sincronizzazione, oppure usare il pulsante **"Sincronizza tutti"** per aggiornare l'intera libreria in parallelo.
+3.  Gli episodi nuovi compaiono in stato **"Da Scaricare"**; quelli già presenti restano in **"Scaricato"**.
 4.  Cliccare su **"Scarica Tutto"** per scaricare i soli episodi nuovi.
 
-Il sistema non scarica mai due volte lo stesso episodio. Questa operazione può essere eseguita con qualsiasi frequenza, anche giornalmente per i podcast ad alto ritmo di pubblicazione.
+**Feed non ancora in libreria:**
+
+Incollare l'URL RSS nel campo URL in cima all'interfaccia e cliccare **"Analizza"**: il feed viene aggiunto alla libreria e la lista viene popolata con lo stato corrente.
+
+Il sistema non scarica mai due volte lo stesso episodio. È possibile anche configurare un aggiornamento automatico periodico (vedi il Capitolo 10 e la sezione 5.9).
 
 ---
 

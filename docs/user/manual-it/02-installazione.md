@@ -23,7 +23,7 @@ Runtime FeedDownloader Pro è un'applicazione desktop basata su tecnologia Elect
 
 ## 2.2 Installazione su Windows
 
-1.  Scaricare il file di installazione `Runtime-FeedDownloader-Pro-Setup-0.7.6.exe` dalla pagina delle release ufficiale.
+1.  Scaricare il file di installazione `Runtime-FeedDownloader-Pro-Setup-1.2.4.exe` dalla pagina delle release ufficiale.
 2.  Fare doppio clic sul file scaricato per avviare il programma di installazione.
 3.  Se Windows mostra un avviso **"Windows ha protetto il PC"** (SmartScreen), cliccare su **"Ulteriori informazioni"** e poi su **"Esegui comunque"**. Questo avviso è standard per i software distribuiti al di fuori del Microsoft Store che non hanno ancora raggiunto una soglia sufficiente di adozione per il sistema di reputazione di Windows.
 4.  Seguire le istruzioni a schermo: accettare il contratto di licenza, scegliere la cartella di installazione e cliccare su **"Installa"**.
@@ -36,7 +36,7 @@ Il programma viene installato in `C:\Program Files\Runtime FeedDownloader Pro\`.
 
 ## 2.3 Installazione su macOS
 
-1.  Scaricare il file `Runtime-FeedDownloader-Pro-0.7.6.dmg`.
+1.  Scaricare il file `Runtime-FeedDownloader-Pro-1.2.4.dmg`.
 2.  Aprire il file `.dmg` con un doppio clic. Verrà visualizzata una finestra con l'icona dell'applicazione.
 3.  Trascinare l'icona di **FeedDownloader Pro** nella cartella **Applicazioni**, come indicato dalla freccia nella finestra del `.dmg`.
 4.  **Primo avvio su macOS:** Poiché il software non è distribuito tramite il Mac App Store, macOS mostrerà un avviso di sicurezza alla prima apertura. Per procedere:
@@ -51,11 +51,11 @@ Il programma viene installato in `C:\Program Files\Runtime FeedDownloader Pro\`.
 
 ## 2.4 Installazione su Linux
 
-1.  Scaricare il file `Runtime-FeedDownloader-Pro-0.7.6.AppImage`.
+1.  Scaricare il file `Runtime-FeedDownloader-Pro-1.2.4.AppImage`.
 2.  Rendere il file eseguibile. Le modalità disponibili sono:
     *   **Tramite interfaccia grafica:** clic destro sul file → Proprietà → scheda Permessi → spunta "Consenti l'esecuzione del file come programma".
-    *   **Tramite terminale:** `chmod +x Runtime-FeedDownloader-Pro-0.7.6.AppImage`
-3.  Avviare il file con un doppio clic oppure da terminale: `./Runtime-FeedDownloader-Pro-0.7.6.AppImage`
+    *   **Tramite terminale:** `chmod +x Runtime-FeedDownloader-Pro-1.2.4.AppImage`
+3.  Avviare il file con un doppio clic oppure da terminale: `./Runtime-FeedDownloader-Pro-1.2.4.AppImage`
 
 **Integrazione con il desktop (opzionale):**
 Per aggiungere FeedDownloader Pro al launcher e al menu delle applicazioni, è possibile usare **AppImageLauncher** (disponibile nei repository della maggior parte delle distribuzioni), che integra automaticamente i file AppImage nel sistema.
@@ -82,7 +82,7 @@ Quando è disponibile una nuova versione, il software mostra una notifica nella 
 
 Prima di aggiornare, il software esegue automaticamente un backup del database. In ogni caso, i dati dell'archivio non vengono modificati durante un aggiornamento: vengono sostituiti esclusivamente i file del programma.
 
-*Nota:* Prima di aggiornare a una versione major (ad esempio da 0.7.x a 0.8.x), si consiglia di eseguire una copia manuale del file `feeddownloader.db` in una posizione sicura.
+*Nota:* Prima di aggiornare a una versione major (ad esempio da 1.2.x a 1.3.x), si consiglia di eseguire una copia manuale del file `feeddownloader.db` in una posizione sicura.
 
 ---
 

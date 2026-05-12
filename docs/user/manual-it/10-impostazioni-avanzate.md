@@ -24,27 +24,7 @@ Consente di limitare la banda aggregata utilizzata da tutti i download attivi, p
 
 ---
 
-## 10.3 Filtro per Parole Chiave
-
-Il filtro testuale consente di **restringere la lista degli episodi visualizzati** in base al testo contenuto nel titolo. È uno strumento di consultazione e selezione rapida, utile in particolare con cataloghi di grandi dimensioni.
-
-**Come utilizzare il filtro:**
-La barra di filtro è posizionata nella parte superiore della lista degli episodi, immediatamente sotto i controlli del batch. Digitando uno o più termini, la lista si aggiorna in tempo reale mostrando solo gli episodi il cui titolo contiene **tutti i termini inseriti** (logica AND).
-
-*   Per cercare episodi che contengono la parola "intervista", digitare `intervista`.
-*   Per cercare episodi che contengono sia "intervista" sia "2024", digitare `intervista 2024`.
-*   Il filtro non distingue tra maiuscole e minuscole: `Bonus` e `bonus` producono lo stesso risultato.
-
-**Scenari d'uso tipici:**
-*   Individuare rapidamente gli episodi di una stagione specifica in un catalogo esteso.
-*   Selezionare un sottoinsieme di episodi da scaricare senza scorrere l'intera lista.
-*   Verificare se un episodio con un determinato titolo è già presente nel database.
-
-*Nota:* Il filtro agisce sulla visualizzazione della lista corrente e non modifica la coda di download né lo stato degli episodi nel database. Per rimuovere il filtro, svuotare la barra di testo.
-
----
-
-## 10.4 Generale
+## 10.3 Generale
 
 ### Lingua
 
@@ -52,9 +32,22 @@ FeedDownloader Pro è disponibile in 8 lingue: Italiano, English, Deutsch, Espa�
 
 Il cambio di lingua è immediato: l'interfaccia si aggiorna senza necessità di riavviare il software. L'applicazione utilizza esclusivamente il tema scuro "Obsidian Command": non è disponibile un tema chiaro né un selettore di densità della lista.
 
+### Aggiornamento Automatico dei Feed
+
+Consente di sincronizzare automaticamente tutti i feed a intervalli regolari, senza intervento manuale. Sono disponibili quattro preset:
+
+| Opzione | Comportamento |
+|---------|--------------|
+| **Disattivato** (predefinito) | Nessuna sincronizzazione automatica. |
+| **Ogni 6 ore** | Sincronizzazione completa ogni 6 ore dall'avvio. |
+| **Ogni 12 ore** | Sincronizzazione completa ogni 12 ore dall'avvio. |
+| **Ogni 24 ore** | Sincronizzazione completa ogni 24 ore dall'avvio. |
+
+Il cambio è immediato e non richiede il riavvio del software. Se durante la sincronizzazione automatica vengono trovati nuovi episodi, viene inviata una notifica del sistema operativo. La sincronizzazione automatica non avvia download: segnala soltanto la disponibilità di nuovi contenuti. Per una descrizione dettagliata del comportamento, vedi la sezione 5.9.
+
 ---
 
-## 10.5 Sicurezza: Il Sistema Anti-SSRF a 5 Livelli
+## 10.4 Sicurezza: Il Sistema Anti-SSRF a 5 Livelli
 
 Questa sezione è documentata a titolo informativo: il sistema di sicurezza opera in modo completamente automatico e non richiede configurazione da parte dell'utente.
 
@@ -83,7 +76,7 @@ SSRF (Server-Side Request Forgery) è un tipo di attacco in cui un URL malevolo,
 
 ---
 
-## 10.6 Avanzate
+## 10.5 Avanzate
 
 ### Aggiornamenti
 
@@ -96,6 +89,7 @@ FeedDownloader Pro include un sistema di aggiornamento automatico integrato.
 Se una nuova versione è disponibile, il software la scarica in background e mostra il pulsante **"Installa e Riavvia"**. L'installazione non viene mai avviata automaticamente: la decisione spetta sempre all'utente.
 
 **Stati visualizzati durante il processo:**
+
 *   **Verifica in corso…** — il software sta interrogando il repository GitHub.
 *   **Sei aggiornato** — la versione installata è la più recente.
 *   **Nuova versione disponibile (vX.Y.Z)** — download in corso in background.
