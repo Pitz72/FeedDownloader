@@ -5,7 +5,8 @@ import { useToast } from '../context/ToastContext';
 import { useTranslation } from 'react-i18next';
 import { Virtuoso } from 'react-virtuoso';
 import { ConfirmModal } from './ConfirmModal';
-import type { Episode } from '../../shared/types';
+import { EpisodeDetailPanel } from './EpisodeDetailPanel';
+import type { Episode, ArchiveEntry } from '../../shared/types';
 import { getEnclosureUrl } from '../../shared/getEnclosureUrl';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 
@@ -85,7 +86,7 @@ export const EpisodeList: React.FC = () => {
     const lastSelectedGuidRef = useRef<string | null>(null);
     const filteredEpisodesRef = useRef<Episode[]>([]);
 
-    // Reset all filters when switching feed (D1)
+    // Reset all filters and detail panel when switching feed (D1)
     useEffect(() => {
         setSearchQuery('');
         setDateFrom('');
@@ -99,9 +100,24 @@ export const EpisodeList: React.FC = () => {
         setShowSortPanel(false);
         setSelectedGuids(new Set());
         lastSelectedGuidRef.current = null;
+        setDetailEpisode(null);
     }, [currentFeed?.url]);
 
     const [isSyncing, setIsSyncing] = useState(false);
+
+    // G4 — Episode detail panel
+    const [detailEpisode, setDetailEpisode] = useState<Episode | null>(null);
+    const [detailArchiveEntry, setDetailArchiveEntry] = useState<ArchiveEntry | null>(null);
+
+    useEffect(() => {
+        if (!detailEpisode) { setDetailArchiveEntry(null); return; }
+        const url = getEnclosureUrl(detailEpisode);
+        const guid = detailEpisode.guid || url || '';
+        if (!guid || !downloadedGuids.includes(guid)) { setDetailArchiveEntry(null); return; }
+        window.api.getArchive().then(entries => {
+            setDetailArchiveEntry(entries.find(e => e.guid === guid) ?? null);
+        }).catch(() => setDetailArchiveEntry(null));
+    }, [detailEpisode, downloadedGuids]);
 
     // Virtuoso scroll container — punta al <main id="main-scroll"> in App.tsx
     const [scrollParent, setScrollParent] = useState<HTMLElement | null>(null);
@@ -243,14 +259,15 @@ export const EpisodeList: React.FC = () => {
         });
     }, [t, toast]);
 
-    // F4 — Row click toggles selection; Shift extends range, Ctrl/Cmd toggles individual
+    // Row click: simple click → detail panel (G4); Ctrl/Shift → multi-selection (F4)
     const handleRowClick = useCallback((episode: Episode, index: number, e: React.MouseEvent) => {
         const url = getEnclosureUrl(episode);
         const guid = episode.guid || url || '';
         if (!guid) return;
-        setSelectedGuids(prev => {
-            const next = new Set(prev);
-            if (e.shiftKey) {
+
+        if (e.shiftKey) {
+            setSelectedGuids(prev => {
+                const next = new Set(prev);
                 const lastGuid = lastSelectedGuidRef.current;
                 const episodes = filteredEpisodesRef.current;
                 const lastIdx = lastGuid
@@ -263,18 +280,27 @@ export const EpisodeList: React.FC = () => {
                         const g = episodes[i]?.guid || getEnclosureUrl(episodes[i]) || '';
                         if (g) next.add(g);
                     }
-                    return next;
                 }
-            }
-            if (e.ctrlKey || e.metaKey) {
+                return next;
+            });
+            lastSelectedGuidRef.current = guid;
+            return;
+        }
+
+        if (e.ctrlKey || e.metaKey) {
+            setSelectedGuids(prev => {
+                const next = new Set(prev);
                 if (next.has(guid)) next.delete(guid); else next.add(guid);
-            } else {
-                if (next.has(guid) && next.size === 1) next.clear();
-                else { next.clear(); next.add(guid); }
-            }
-            return next;
-        });
-        lastSelectedGuidRef.current = guid;
+                return next;
+            });
+            lastSelectedGuidRef.current = guid;
+            return;
+        }
+
+        // Simple click → open detail panel, clear multi-selection
+        setSelectedGuids(new Set());
+        lastSelectedGuidRef.current = null;
+        setDetailEpisode(episode);
     }, []); // stable — reads only refs
 
     const handleDownloadSelected = useCallback(() => {
@@ -818,6 +844,28 @@ export const EpisodeList: React.FC = () => {
                 onConfirm={confirmState.onConfirm}
                 onCancel={() => setConfirmState(prev => ({ ...prev, isOpen: false }))}
             />
+
+            {/* G4 — Episode detail panel */}
+            {detailEpisode && (() => {
+                const url = getEnclosureUrl(detailEpisode);
+                const guid = detailEpisode.guid || url || '';
+                const status = url ? downloads[url] : null;
+                const isDownloading = !!(status && !status.completed && !status.error);
+                const isDownloaded = !!(status?.completed || (guid && downloadedGuids.includes(guid)));
+                return (
+                    <EpisodeDetailPanel
+                        episode={detailEpisode}
+                        archiveEntry={detailArchiveEntry}
+                        isDownloaded={isDownloaded}
+                        isDownloading={isDownloading}
+                        isOnline={isOnline}
+                        onClose={() => setDetailEpisode(null)}
+                        onDownload={() => handleDownload(detailEpisode)}
+                        onResetStatus={() => handleResetStatus(guid)}
+                        onShowInFolder={() => window.api.showInFolder(currentFeed?.title || '', detailEpisode.title, url, detailEpisode.pubDate || detailEpisode.isoDate)}
+                    />
+                );
+            })()}
         </div>
     );
 };

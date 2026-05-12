@@ -17,7 +17,9 @@
         "no_results": "Sin resultados",
         "tab_feeds": "Feeds",
         "tab_archive": "Archivo",
-        "archive_mode_hint": "Explora el archivo en el panel principal"
+        "archive_mode_hint": "Explora el archivo en el panel principal",
+        "sync_all": "Sincronizar Todo",
+        "syncing_count": "Sincronizando... {{done}}/{{total}}"
     },
     "archive": {
         "title": "Archivo",
@@ -76,7 +78,13 @@
         "redownload": "Re-descargar",
         "download_selected": "Descargar selección ({{count}})",
         "export_m3u": "Exportar M3U",
-        "copy_title": "Copiar título"
+        "copy_title": "Copiar título",
+        "copy_link": "Copiar enlace",
+        "detail_description": "Descripción",
+        "detail_source_link": "Enlace de origen",
+        "detail_estimated_size": "Tamaño estimado",
+        "detail_downloaded_on": "Descargado el",
+        "detail_no_description": "Sin descripción disponible."
     },
     "progress": {
         "downloading": "Descargando...",

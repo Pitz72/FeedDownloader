@@ -22,7 +22,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen }) => {
   const [loadingUrl, setLoadingUrl] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortAlpha, setSortAlpha] = useState(false);
-  const [isSyncingAll, setIsSyncingAll] = useState(false);
+  const [syncStatuses, setSyncStatuses] = useState<Map<string, 'syncing' | 'done' | 'error'>>(new Map());
 
   const displayedFeeds = useMemo(() => {
     let result = feeds;
@@ -89,26 +89,32 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen }) => {
     toast.show(t('toast.feed_removed'), 'success');
   };
 
+  const isSyncingAll = syncStatuses.size > 0 && [...syncStatuses.values()].some(s => s === 'syncing');
+  const syncDoneCount = [...syncStatuses.values()].filter(s => s !== 'syncing').length;
+
   const handleSyncAll = async () => {
     if (isSyncingAll) return;
-    setIsSyncingAll(true);
-    try {
-      const results = await Promise.allSettled(
-        feeds.map(async (feed) => {
+    const initial = new Map<string, 'syncing' | 'done' | 'error'>();
+    feeds.forEach(f => initial.set(f.url, 'syncing'));
+    setSyncStatuses(new Map(initial));
+    let errorCount = 0;
+    await Promise.allSettled(
+      feeds.map(async (feed) => {
+        try {
           const parsed = await window.api.parseFeed(feed.url);
           if (currentFeed?.url === feed.url) {
             setCurrentFeed({ ...parsed, url: feed.url });
           }
-        })
-      );
-      const failed = results.filter(r => r.status === 'rejected').length;
-      toast.show(t('toast.sync_complete', 'Sync completato'), 'success');
-      if (failed > 0) {
-        toast.show(t('toast.feed_error'), 'error');
-      }
-    } finally {
-      setIsSyncingAll(false);
-    }
+          setSyncStatuses(prev => new Map(prev).set(feed.url, 'done'));
+        } catch {
+          errorCount++;
+          setSyncStatuses(prev => new Map(prev).set(feed.url, 'error'));
+        }
+      })
+    );
+    toast.show(t('toast.sync_complete', 'Sync completato'), 'success');
+    if (errorCount > 0) toast.show(t('toast.feed_error'), 'error');
+    setTimeout(() => setSyncStatuses(new Map()), 2500);
   };
 
   return (
@@ -265,18 +271,29 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen }) => {
               }}
             >
               {/* Thumbnail */}
-              <div
-                className="w-10 h-10 rounded shrink-0 overflow-hidden flex items-center justify-center"
-                style={{ background: 'var(--color-surface-container-high)' }}
-              >
-                {isLoading ? (
-                  <Icon name="progress_activity" size={18} className="animate-spin" style={{ color: 'var(--color-primary)' }} />
-                ) : imageUrl ? (
-                  <img src={imageUrl} className={clsx('w-full h-full object-cover transition-all', !isActive && 'grayscale group-hover:grayscale-0')} alt={feed.title || ''} />
-                ) : (
-                  <Icon name="podcasts" size={18} />
-                )}
-              </div>
+              {(() => {
+                const syncStatus = syncStatuses.get(feed.url);
+                return (
+                  <div
+                    className="w-10 h-10 rounded shrink-0 overflow-hidden flex items-center justify-center"
+                    style={{ background: 'var(--color-surface-container-high)' }}
+                  >
+                    {isLoading ? (
+                      <Icon name="progress_activity" size={18} className="animate-spin" style={{ color: 'var(--color-primary)' }} />
+                    ) : syncStatus === 'syncing' ? (
+                      <Icon name="sync" size={18} className="animate-spin" style={{ color: 'var(--color-primary)' }} />
+                    ) : syncStatus === 'done' ? (
+                      <Icon name="check_circle" size={18} filled style={{ color: 'var(--color-secondary)' }} />
+                    ) : syncStatus === 'error' ? (
+                      <Icon name="error" size={18} filled style={{ color: 'var(--color-error)' }} />
+                    ) : imageUrl ? (
+                      <img src={imageUrl} className={clsx('w-full h-full object-cover transition-all', !isActive && 'grayscale group-hover:grayscale-0')} alt={feed.title || ''} />
+                    ) : (
+                      <Icon name="podcasts" size={18} />
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Info */}
               <div className="min-w-0 flex-1">
@@ -334,7 +351,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen }) => {
             className="btn-primary-gradient w-full py-2 text-xs transition-all active:scale-[0.97] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             <Icon name="sync" size={14} className={isSyncingAll ? 'animate-spin' : ''} />
-            {isSyncingAll ? t('sidebar.syncing', 'Sincronizzando...') : t('sidebar.sync_all', 'Sincronizza Tutti')}
+            {isSyncingAll
+              ? t('sidebar.syncing_count', { done: syncDoneCount, total: feeds.length })
+              : t('sidebar.sync_all', 'Sincronizza Tutti')}
           </button>
         )}
 

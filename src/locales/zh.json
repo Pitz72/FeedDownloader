@@ -17,7 +17,9 @@
         "no_results": "无结果",
         "tab_feeds": "订阅",
         "tab_archive": "归档",
-        "archive_mode_hint": "在主面板中浏览归档"
+        "archive_mode_hint": "在主面板中浏览归档",
+        "sync_all": "同步全部",
+        "syncing_count": "同步中... {{done}}/{{total}}"
     },
     "archive": {
         "title": "归档",
@@ -76,7 +78,13 @@
         "redownload": "重新下载",
         "download_selected": "下载已选 ({{count}})",
         "export_m3u": "导出 M3U",
-        "copy_title": "复制标题"
+        "copy_title": "复制标题",
+        "copy_link": "复制链接",
+        "detail_description": "描述",
+        "detail_source_link": "来源链接",
+        "detail_estimated_size": "估计大小",
+        "detail_downloaded_on": "下载于",
+        "detail_no_description": "暂无描述。"
     },
     "progress": {
         "downloading": "下载中...",

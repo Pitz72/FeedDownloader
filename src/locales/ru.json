@@ -17,7 +17,9 @@
         "no_results": "Нет результатов",
         "tab_feeds": "Подписки",
         "tab_archive": "Архив",
-        "archive_mode_hint": "Просмотрите архив на главной панели"
+        "archive_mode_hint": "Просмотрите архив на главной панели",
+        "sync_all": "Синхронизировать всё",
+        "syncing_count": "Синхронизация... {{done}}/{{total}}"
     },
     "archive": {
         "title": "Архив",
@@ -76,7 +78,13 @@
         "redownload": "Повторно скачать",
         "download_selected": "Скачать выбранное ({{count}})",
         "export_m3u": "Экспорт M3U",
-        "copy_title": "Копировать название"
+        "copy_title": "Копировать название",
+        "copy_link": "Копировать ссылку",
+        "detail_description": "Описание",
+        "detail_source_link": "Исходная ссылка",
+        "detail_estimated_size": "Предполагаемый размер",
+        "detail_downloaded_on": "Загружено",
+        "detail_no_description": "Описание недоступно."
     },
     "progress": {
         "downloading": "Загрузка...",
