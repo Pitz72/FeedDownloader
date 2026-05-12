@@ -1,5 +1,4 @@
 import React from 'react';
-import { Icon } from './Icon';
 import { useTranslation } from 'react-i18next';
 import type { Episode, ArchiveEntry } from '../../shared/types';
 import { getEnclosureUrl } from '../../shared/getEnclosureUrl';
@@ -27,24 +26,26 @@ function formatBytes(bytes: number): string {
     return `${Math.round(bytes / 1024)} KB`;
 }
 
-function formatDuration(duration?: string): string | null {
+function formatDuration(duration?: string): { short: string; long: string } | null {
     if (!duration) return null;
     const trimmed = duration.trim();
-    let mins: number | null = null;
+    let totalSec: number | null = null;
     if (/^\d+$/.test(trimmed)) {
-        mins = Math.floor(parseInt(trimmed, 10) / 60);
+        totalSec = parseInt(trimmed, 10);
     } else {
         const parts = trimmed.split(':').map(p => parseInt(p, 10));
         if (!parts.some(isNaN)) {
-            if (parts.length === 3) mins = parts[0] * 60 + parts[1];
-            else if (parts.length === 2) mins = parts[0];
+            if (parts.length === 3) totalSec = parts[0] * 3600 + parts[1] * 60 + parts[2];
+            else if (parts.length === 2) totalSec = parts[0] * 60 + parts[1];
         }
     }
-    if (mins === null) return null;
-    const h = Math.floor(mins / 60);
-    const m = mins % 60;
-    if (h > 0) return `${h}h ${m}m`;
-    return `${m} min`;
+    if (totalSec === null) return null;
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    const short = h > 0 ? `${h}h ${m}m` : `${m} min`;
+    const long = h > 0 ? `${h}h ${m}m ${s}s` : `${m}m ${s}s`;
+    return { short, long };
 }
 
 interface EpisodeDetailPanelProps {
@@ -68,6 +69,7 @@ export const EpisodeDetailPanel: React.FC<EpisodeDetailPanelProps> = ({
     const isBatchDownloading = useStore((s: AppState) => s.isBatchDownloading);
     const batchCompleted = useStore((s: AppState) => s.batchCompleted);
     const batchTotal = useStore((s: AppState) => s.batchTotal);
+    const currentFeed = useStore((s: AppState) => s.currentFeed);
     const downloadPanelVisible = isBatchDownloading ||
         (!isBatchDownloading && batchCompleted > 0 && batchCompleted >= batchTotal);
     const rightOffset = downloadPanelOpen && downloadPanelVisible ? '380px' : '0px';
@@ -84,226 +86,158 @@ export const EpisodeDetailPanel: React.FC<EpisodeDetailPanelProps> = ({
     const enclosureLength = episode.enclosure?.length ? parseInt(episode.enclosure.length, 10) : null;
 
     return (
-        <div
-            className="fixed z-40 flex flex-col overflow-hidden"
-            style={{
-                top: '56px',
-                bottom: 0,
-                right: rightOffset,
-                width: '380px',
-                background: 'var(--color-surface-container-low)',
-                borderLeft: '1px solid rgba(65,71,85,0.18)',
-                boxShadow: '-12px 0 40px rgba(0,0,0,0.35)',
-                transition: 'right 0.3s ease',
-            }}
+        <aside
+            className="detail-panel"
+            style={{ right: rightOffset, transition: 'right 0.3s ease' }}
+            role="complementary"
         >
-            {/* Header */}
-            <div
-                className="flex items-center gap-3 px-5 py-4 shrink-0"
-                style={{ borderBottom: '1px solid rgba(65,71,85,0.12)' }}
-            >
-                <button
-                    onClick={onClose}
-                    className="hover-text-primary p-1 rounded transition-colors shrink-0"
-                    style={{ color: 'var(--color-on-surface-variant)' }}
-                    title={t('common.cancel')}
-                >
-                    <Icon name="close" size={18} />
+            <header className="detail-header">
+                <span className="detail-kicker">{currentFeed?.title || t('episodes.detail_kicker', 'Episodio')}</span>
+                <button type="button" className="detail-close" onClick={onClose} title={t('common.close', 'Chiudi')} aria-label={t('common.close', 'Chiudi')}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
                 </button>
-                <h3
-                    className="text-sm font-bold line-clamp-2 flex-1"
-                    style={{ fontFamily: 'var(--font-headline)', color: 'var(--color-on-surface)' }}
-                >
-                    {episode.title}
-                </h3>
-            </div>
+            </header>
 
-            {/* Scrollable body */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar px-5 py-4 space-y-5">
+            <div className="detail-body custom-scrollbar">
+                {currentFeed?.title && (
+                    <p className="detail-show">{currentFeed.title}</p>
+                )}
+                <h1 className="detail-title">{episode.title}</h1>
 
-                {/* Meta row */}
-                <div className="space-y-2">
-                    {pubDate && (
-                        <div className="flex items-center gap-2">
-                            <Icon name="calendar_month" size={13} style={{ color: 'var(--color-on-surface-variant)', flexShrink: 0 }} />
-                            <span className="text-xs" style={{ fontFamily: 'var(--font-label)', color: 'var(--color-on-surface-variant)' }}>
-                                {pubDate}
-                            </span>
-                        </div>
-                    )}
-                    {dur && (
-                        <div className="flex items-center gap-2">
-                            <Icon name="schedule" size={13} style={{ color: 'var(--color-on-surface-variant)', flexShrink: 0 }} />
-                            <span className="text-xs" style={{ fontFamily: 'var(--font-label)', color: 'var(--color-on-surface-variant)' }}>
-                                {dur}
-                            </span>
-                        </div>
-                    )}
-                    {enclosureLength != null && enclosureLength > 0 && (
-                        <div className="flex items-center gap-2">
-                            <Icon name="data_usage" size={13} style={{ color: 'var(--color-on-surface-variant)', flexShrink: 0 }} />
-                            <span className="text-xs" style={{ fontFamily: 'var(--font-label)', color: 'var(--color-on-surface-variant)' }}>
-                                {t('episodes.detail_estimated_size')}: {formatBytes(enclosureLength)}
-                            </span>
-                        </div>
-                    )}
+                <div className="detail-meta-row">
+                    {pubDate && <span>{pubDate}</span>}
+                    {dur && (<><span className="sep">·</span><span>{dur.long}</span></>)}
+                    {archiveEntry?.bitrate && (<><span className="sep">·</span><span>{archiveEntry.bitrate} kbps</span></>)}
+                    {archiveEntry?.sampleRate && (<><span className="sep">·</span><span>{(archiveEntry.sampleRate / 1000).toFixed(1)} kHz</span></>)}
+                    {enclosureLength != null && enclosureLength > 0 && (<><span className="sep">·</span><span>{formatBytes(enclosureLength)}</span></>)}
                 </div>
 
-                {/* Action buttons */}
-                <div className="flex flex-wrap gap-2">
+                <div className="detail-cta-row">
                     {isDownloading ? (
-                        <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--color-primary)' }}>
-                            <Icon name="progress_activity" size={14} className="animate-spin" />
-                            {t('progress.downloading')}
-                        </div>
+                        <button type="button" className="primary" disabled>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ animation: 'feedSyncSpin 1s linear infinite' }}>
+                                <path d="M21 12a9 9 0 1 1-6.2-8.5"/>
+                            </svg>
+                            {t('progress.downloading', 'Scaricamento…')}
+                        </button>
                     ) : isDownloaded ? (
                         <>
-                            <button
-                                onClick={onDownload}
-                                disabled={!isOnline}
-                                className="hover-text-primary flex items-center gap-1.5 text-xs px-3 py-1.5 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                style={{ background: 'var(--color-surface-container-high)', color: 'var(--color-on-surface)', fontFamily: 'var(--font-label)' }}
-                            >
-                                <Icon name="download" size={14} />
-                                {t('episodes.redownload')}
+                            <button type="button" className="primary" onClick={onDownload} disabled={!isOnline}>
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="7 10 12 15 17 10"/>
+                                    <line x1="12" y1="15" x2="12" y2="3"/>
+                                </svg>
+                                {t('episodes.redownload', 'Riscarica')}
                             </button>
-                            <button
-                                onClick={onResetStatus}
-                                className="hover-text-warning flex items-center gap-1.5 text-xs px-3 py-1.5 rounded transition-colors"
-                                style={{ background: 'var(--color-surface-container-high)', color: 'var(--color-on-surface)', fontFamily: 'var(--font-label)' }}
-                            >
-                                <Icon name="restart_alt" size={14} />
-                                {t('episodes.reset_status')}
+                            <button type="button" className="ghost" onClick={onShowInFolder}>
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                                </svg>
+                                {t('episodes.open_folder', 'Apri cartella')}
                             </button>
-                            <button
-                                onClick={onShowInFolder}
-                                className="hover-text-surface flex items-center gap-1.5 text-xs px-3 py-1.5 rounded transition-colors"
-                                style={{ background: 'var(--color-surface-container-high)', color: 'var(--color-on-surface)', fontFamily: 'var(--font-label)' }}
-                            >
-                                <Icon name="folder_open" size={14} />
-                                {t('episodes.open_folder')}
+                            <button type="button" className="ghost" onClick={onResetStatus}>
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                    <path d="M3 12a9 9 0 1 0 9-9"/><polyline points="3 4 3 12 11 12"/>
+                                </svg>
+                                {t('episodes.reset_status', 'Reset stato')}
                             </button>
                         </>
                     ) : (
-                        <button
-                            onClick={onDownload}
-                            disabled={!isOnline}
-                            className="btn-primary-gradient flex items-center gap-1.5 text-xs px-3 py-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            <Icon name="download" size={14} />
-                            {t('episodes.download')}
+                        <button type="button" className="primary" onClick={onDownload} disabled={!isOnline}>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            {t('episodes.download', 'Scarica')}
                         </button>
                     )}
                 </div>
 
-                {/* Download info (if downloaded + archive entry loaded) */}
                 {isDownloaded && archiveEntry && (
-                    <div
-                        className="space-y-2 rounded-lg p-3"
-                        style={{ background: 'var(--color-surface-container)', border: '1px solid rgba(65,71,85,0.1)' }}
-                    >
-                        <div className="flex items-center gap-2">
-                            <Icon name="check_circle" size={14} filled style={{ color: 'var(--color-secondary)', flexShrink: 0 }} />
-                            <span className="text-xs font-semibold" style={{ fontFamily: 'var(--font-label)', color: 'var(--color-secondary)' }}>
-                                {t('episodes.detail_downloaded_on')}: {new Date(archiveEntry.downloadedAt).toLocaleDateString()}
-                            </span>
-                        </div>
-                        {archiveEntry.fileSize != null && archiveEntry.fileSize > 0 && (
-                            <div className="flex items-center gap-2">
-                                <Icon name="data_usage" size={13} style={{ color: 'var(--color-on-surface-variant)', flexShrink: 0 }} />
-                                <span className="text-xs" style={{ fontFamily: 'var(--font-label)', color: 'var(--color-on-surface-variant)' }}>
-                                    {formatBytes(archiveEntry.fileSize)}
-                                    {archiveEntry.bitrate ? ` · ${archiveEntry.bitrate} kbps` : ''}
-                                    {archiveEntry.sampleRate ? ` · ${archiveEntry.sampleRate / 1000} kHz` : ''}
-                                </span>
+                    <div className="detail-section">
+                        <p className="detail-section-label">{t('episodes.detail_archive_data', 'Archivio · Dati tecnici')}</p>
+                        <div className="archive-data">
+                            <div className="archive-cell">
+                                <p className="label">{t('episodes.detail_state', 'Stato')}</p>
+                                <p className="value" style={{ color: 'var(--ok)' }}>✓ {t('episodes.detail_archived', 'Archiviato')} · {new Date(archiveEntry.downloadedAt).toLocaleDateString()}</p>
                             </div>
-                        )}
-                        {archiveEntry.filename && (
-                            <div className="flex items-start gap-2">
-                                <Icon name="audio_file" size={13} style={{ color: 'var(--color-on-surface-variant)', flexShrink: 0, marginTop: '1px' }} />
-                                <span className="text-xs break-all" style={{ fontFamily: 'var(--font-label)', color: 'var(--color-on-surface-variant)' }}>
-                                    {archiveEntry.filename}
-                                </span>
-                            </div>
-                        )}
-                        {archiveEntry.checksum && (
-                            <div className="flex items-start gap-2">
-                                <Icon name="fingerprint" size={13} style={{ color: 'var(--color-on-surface-variant)', flexShrink: 0, marginTop: '2px' }} />
-                                <span className="text-[10px] break-all font-mono" style={{ color: 'var(--color-on-surface-variant)', opacity: 0.55 }}>
-                                    {archiveEntry.checksum}
-                                </span>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* Source link */}
-                {episode.link && (
-                    <div className="space-y-1.5">
-                        <p className="text-[10px] uppercase tracking-widest" style={{ fontFamily: 'var(--font-label)', color: 'var(--color-on-surface-variant)' }}>
-                            {t('episodes.detail_source_link')}
-                        </p>
-                        <div
-                            className="flex items-center gap-2 p-2 rounded"
-                            style={{ background: 'var(--color-surface-container)', border: '1px solid rgba(65,71,85,0.1)' }}
-                        >
-                            <span className="text-xs truncate flex-1 font-mono" style={{ color: 'var(--color-on-surface-variant)' }}>
-                                {episode.link}
-                            </span>
-                            <button
-                                onClick={() => navigator.clipboard.writeText(episode.link!)}
-                                className="hover-text-primary p-1 rounded transition-colors shrink-0"
-                                style={{ color: 'var(--color-on-surface-variant)' }}
-                                title={t('episodes.copy_link')}
-                            >
-                                <Icon name="content_copy" size={12} />
-                            </button>
+                            {archiveEntry.fileSize != null && archiveEntry.fileSize > 0 && (
+                                <div className="archive-cell">
+                                    <p className="label">{t('episodes.detail_size', 'Dimensione')}</p>
+                                    <p className="value">{archiveEntry.fileSize.toLocaleString()} byte · {formatBytes(archiveEntry.fileSize)}</p>
+                                </div>
+                            )}
+                            {(archiveEntry.bitrate || archiveEntry.sampleRate) && (
+                                <div className="archive-cell">
+                                    <p className="label">{t('episodes.detail_bitrate_sr', 'Bitrate · Sample rate')}</p>
+                                    <p className="value">
+                                        {archiveEntry.bitrate ? `${archiveEntry.bitrate} kbps` : '—'}
+                                        {archiveEntry.sampleRate ? ` · ${(archiveEntry.sampleRate / 1000).toFixed(1)} kHz` : ''}
+                                    </p>
+                                </div>
+                            )}
+                            {dur && (
+                                <div className="archive-cell">
+                                    <p className="label">{t('episodes.detail_duration', 'Durata')}</p>
+                                    <p className="value">{dur.long}</p>
+                                </div>
+                            )}
+                            {archiveEntry.checksum && (
+                                <div className="archive-cell" style={{ gridColumn: 'span 2' }}>
+                                    <p className="label">{t('episodes.detail_checksum', 'SHA-256 checksum · verificato')}</p>
+                                    <p className="value checksum">{archiveEntry.checksum.match(/.{1,4}/g)?.join(' ')}</p>
+                                </div>
+                            )}
+                            {archiveEntry.filename && (
+                                <div className="archive-cell" style={{ gridColumn: 'span 2' }}>
+                                    <p className="label">{t('episodes.detail_path', 'Percorso file')}</p>
+                                    <p className="value">{archiveEntry.filename}</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
 
-                {/* Description */}
-                <div className="space-y-1.5">
-                    <p className="text-[10px] uppercase tracking-widest" style={{ fontFamily: 'var(--font-label)', color: 'var(--color-on-surface-variant)' }}>
-                        {t('episodes.detail_description')}
-                    </p>
+                <div className="detail-section">
+                    <p className="detail-section-label">{t('episodes.detail_description', 'Show notes')}</p>
                     {description ? (
-                        <p className="text-xs leading-relaxed whitespace-pre-line" style={{ color: 'var(--color-on-surface-variant)' }}>
-                            {description}
-                        </p>
+                        <div className="show-notes">
+                            {description.split(/\n\n+/).map((para, i) => <p key={i}>{para}</p>)}
+                        </div>
                     ) : (
-                        <p className="text-xs italic" style={{ color: 'var(--color-on-surface-variant)', opacity: 0.45 }}>
-                            {t('episodes.detail_no_description')}
+                        <p className="show-notes" style={{ opacity: 0.55, fontStyle: 'italic' }}>
+                            {t('episodes.detail_no_description', 'Nessuna descrizione disponibile.')}
                         </p>
                     )}
                 </div>
 
-                {/* Audio URL (enclosure) — for reference */}
-                {enclosureUrl && (
-                    <div className="space-y-1.5">
-                        <p className="text-[10px] uppercase tracking-widest" style={{ fontFamily: 'var(--font-label)', color: 'var(--color-on-surface-variant)' }}>
-                            Audio URL
-                        </p>
-                        <div
-                            className="flex items-center gap-2 p-2 rounded"
-                            style={{ background: 'var(--color-surface-container)', border: '1px solid rgba(65,71,85,0.1)' }}
-                        >
-                            <span className="text-[10px] truncate flex-1 font-mono" style={{ color: 'var(--color-on-surface-variant)', opacity: 0.6 }}>
-                                {enclosureUrl}
-                            </span>
-                            <button
-                                onClick={() => navigator.clipboard.writeText(enclosureUrl)}
-                                className="hover-text-primary p-1 rounded transition-colors shrink-0"
-                                style={{ color: 'var(--color-on-surface-variant)' }}
-                                title={t('episodes.copy_link')}
-                            >
-                                <Icon name="content_copy" size={12} />
-                            </button>
+                {(episode.link || enclosureUrl) && (
+                    <div className="detail-section">
+                        <p className="detail-section-label">{t('episodes.detail_links', 'Link')}</p>
+                        <div className="show-notes">
+                            {episode.link && (
+                                <p>
+                                    <a href="#" onClick={(e) => { e.preventDefault(); navigator.clipboard.writeText(episode.link!); }} title={t('episodes.copy_link', 'Copia link')}>
+                                        {episode.link}
+                                    </a>
+                                </p>
+                            )}
+                            {enclosureUrl && (
+                                <p>
+                                    <a href="#" onClick={(e) => { e.preventDefault(); navigator.clipboard.writeText(enclosureUrl); }} title={t('episodes.copy_link', 'Copia link')}>
+                                        Audio: {enclosureUrl}
+                                    </a>
+                                </p>
+                            )}
                         </div>
                     </div>
                 )}
-
             </div>
-        </div>
+        </aside>
     );
 };

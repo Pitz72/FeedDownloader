@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
+import clsx from 'clsx';
 import { useStore, AppState } from '../store/useStore';
-import { Icon } from './Icon';
 import { useToast } from '../context/ToastContext';
 import { useTranslation } from 'react-i18next';
 
@@ -12,7 +12,6 @@ export const UrlInput: React.FC = () => {
   const toast = useToast();
   const { t } = useTranslation();
 
-  // Shared analyze logic — used by button, Enter key, and drag & drop
   const analyzeFeed = async (feedUrl: string) => {
     const trimmed = feedUrl.trim();
     if (!trimmed) return;
@@ -31,8 +30,8 @@ export const UrlInput: React.FC = () => {
       const msg_src = error instanceof Error ? error.message : '';
       let msg = t('toast.parse_error');
       if (msg_src.includes('INVALID_FEED_TYPE')) msg = t('toast.invalid_feed');
-      else if (msg_src.includes('Network Error'))  msg = t('toast.network_error');
-      else if (msg_src.includes('404'))            msg = t('toast.feed_not_found');
+      else if (msg_src.includes('Network Error')) msg = t('toast.network_error');
+      else if (msg_src.includes('404')) msg = t('toast.feed_not_found');
       toast.show(msg, 'error');
     } finally {
       setLoading(false);
@@ -42,7 +41,9 @@ export const UrlInput: React.FC = () => {
   const handleAnalyze = () => analyzeFeed(url);
 
   const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); };
-  const handleDragLeave = (e: React.DragEvent) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragging(false); };
+  const handleDragLeave = (e: React.DragEvent) => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragging(false);
+  };
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
@@ -52,56 +53,74 @@ export const UrlInput: React.FC = () => {
     analyzeFeed(dropped);
   };
 
+  const handleChooseFolder = async () => {
+    const path = await window.api.chooseFolder();
+    if (path) {
+      await window.api.setDownloadPath(path);
+      toast.show(t('toast.folder_selected', { path }), 'success');
+    }
+  };
+
   return (
     <div
-      className="glass-panel p-2 rounded-xl flex items-center gap-2 transition-all"
-      style={isDragging ? { outlineColor: 'var(--color-primary)', outline: '2px solid' } : {}}
+      className={clsx('url-input', isDragging && 'dragging')}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      {/* Folder shortcut */}
       <button
-        onClick={async () => {
-          const path = await window.api.chooseFolder();
-          if (path) {
-            await window.api.setDownloadPath(path);
-            toast.show(t('toast.folder_selected', { path }), 'success');
-          }
-        }}
-        className="hover-text-surface p-2 rounded-lg transition-colors shrink-0"
-        style={{ color: 'var(--color-outline)' }}
-        title={t('episodes.change_folder')}
+        type="button"
+        className="ghost"
+        onClick={handleChooseFolder}
+        title={t('episodes.change_folder', 'Cambia cartella di download')}
+        aria-label={t('episodes.change_folder', 'Cambia cartella di download')}
       >
-        <Icon name="folder_open" size={20} />
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+        </svg>
       </button>
 
-      {/* URL input */}
-      <div className="flex-1 flex items-center gap-3 px-3 py-2">
-        <Icon name="rss_feed" size={18} style={{ color: 'var(--color-outline)', flexShrink: 0 } as React.CSSProperties} />
+      <div className="field">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M4 11a9 9 0 0 1 9 9"/>
+          <path d="M4 4a16 16 0 0 1 16 16"/>
+          <circle cx="5" cy="19" r="1.6" fill="currentColor"/>
+        </svg>
         <input
+          id="url-feed-input"
           type="text"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
-          placeholder={isDragging ? t('input.drop_url') : t('input.placeholder')}
-          id="url-feed-input"
-          className="w-full bg-transparent border-none outline-none text-sm"
-          style={{ color: 'var(--color-on-surface)', fontFamily: 'var(--font-body)' }}
+          placeholder={t('input.placeholder', "Incolla l'URL del feed RSS — o trascinalo qui…")}
           onKeyDown={(e) => e.key === 'Enter' && handleAnalyze()}
         />
       </div>
 
-      {/* Analyze */}
+      <div className="drag-hint">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <polyline points="7 13 12 18 17 13"/>
+          <polyline points="7 6 12 11 17 6"/>
+        </svg>
+        {t('input.drop_url', 'Rilascia per analizzare')}
+      </div>
+
       <button
+        type="button"
+        className="btn-analyze"
         onClick={handleAnalyze}
         disabled={loading}
-        className="btn-primary-gradient flex items-center gap-2 px-5 py-2.5 disabled:opacity-50 shrink-0"
       >
-        {loading
-          ? <Icon name="progress_activity" size={16} className="animate-spin" />
-          : <Icon name="analytics" size={16} />
-        }
-        {t('input.analyze')}
+        {loading ? (
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ animation: 'feedSyncSpin 1s linear infinite' }}>
+            <path d="M21 12a9 9 0 1 1-6.2-8.5"/>
+          </svg>
+        ) : (
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M3 3v18h18"/>
+            <path d="m7 14 4-4 4 4 6-6"/>
+          </svg>
+        )}
+        {t('input.analyze', 'Analizza')}
       </button>
     </div>
   );

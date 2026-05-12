@@ -322,8 +322,8 @@ export const EpisodeList: React.FC = () => {
         const url = getEnclosureUrl(episode);
         const guid = episode.guid || url || '';
         const status = url ? downloads[url] : null;
-        const isDownloading = status && !status.completed && !status.error;
-        const isCompleted = status?.completed || downloadedGuids.includes(guid);
+        const isDownloading = !!(status && !status.completed && !status.error);
+        const isCompleted = !!(status?.completed || downloadedGuids.includes(guid));
         const progressPercent = (status && status.total && status.total > 0)
             ? Math.round((status.loaded / status.total) * 100)
             : null;
@@ -334,131 +334,130 @@ export const EpisodeList: React.FC = () => {
             : '';
         const dur = formatDuration(episode.itunes?.duration);
 
+        const stateClass = isDownloading ? 'downloading' : isCompleted ? 'downloaded' : isSelected ? 'selected' : '';
+
         return (
             <div
-                className="episode-row group flex items-center gap-4 px-4 py-3 cursor-pointer select-none"
+                className={`ep-row ${stateClass}`}
                 onClick={(e) => handleRowClick(episode, index, e)}
-                style={{
-                    background: isSelected
-                        ? 'rgba(173,198,255,0.1)'
-                        : (index % 2 === 0 ? 'var(--color-surface)' : 'var(--color-surface-container-lowest)'),
-                    borderBottom: '1px solid rgba(65,71,85,0.05)',
-                    borderLeft: isSelected ? '2px solid var(--color-primary)' : '2px solid transparent',
-                }}
             >
-                {/* Checkbox (visible on hover or when selected) */}
-                <div className={`w-5 h-5 shrink-0 flex items-center justify-center transition-opacity ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
-                    <Icon
-                        name={isSelected ? 'check_box' : 'check_box_outline_blank'}
-                        size={16}
-                        style={{ color: isSelected ? 'var(--color-primary)' : 'var(--color-on-surface-variant)' }}
-                    />
+                <div
+                    className="ep-check"
+                    onClick={(e) => { e.stopPropagation(); handleRowClick(episode, index, { ...e, ctrlKey: true } as unknown as React.MouseEvent); }}
+                    role="checkbox"
+                    aria-checked={isSelected}
+                >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
                 </div>
 
-                {/* Index */}
-                <span
-                    className="w-8 text-xs shrink-0 text-right"
-                    style={{ fontFamily: 'var(--font-label)', color: 'var(--color-on-surface-variant)' }}
-                >
-                    {String(index + 1).padStart(2, '0')}.
-                </span>
+                <span className="ep-num">#{String(index + 1).padStart(2, '0')}</span>
 
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                    <h4
-                        className="text-sm font-bold truncate transition-colors"
-                        style={{ color: 'var(--color-on-surface)' }}
-                    >
-                        {episode.title}
-                    </h4>
-                    <div className="flex items-center gap-4 mt-0.5">
-                        {pubDate && (
-                            <span
-                                className="text-[10px] uppercase tracking-wide"
-                                style={{ fontFamily: 'var(--font-label)', color: 'var(--color-on-surface-variant)' }}
-                            >
-                                {pubDate}
-                            </span>
-                        )}
-                        {dur && (
-                            <span
-                                className="text-[10px] uppercase tracking-wide"
-                                style={{ fontFamily: 'var(--font-label)', color: 'var(--color-on-surface-variant)' }}
-                            >
-                                {dur}
-                            </span>
-                        )}
+                <div className="ep-icon" aria-hidden="true">
+                    {isDownloading ? (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                    ) : isCompleted ? (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    ) : (
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polygon points="5 3 19 12 5 21 5 3"/>
+                        </svg>
+                    )}
+                </div>
+
+                <div className="ep-main">
+                    <p className="ep-title">{episode.title}</p>
+                    <div className="ep-meta">
+                        {pubDate && <span>{pubDate}</span>}
+                        {pubDate && dur && <span className="sep">·</span>}
+                        {dur && <span>{dur}</span>}
+                        {isCompleted && <span className="tag archived">{t('episodes.tag_archived', 'ARCHIVIATO')}</span>}
+                        {!isDownloading && !isCompleted && isSelected && <span className="tag new">{t('episodes.tag_new', 'NUOVO')}</span>}
                     </div>
                 </div>
 
-                {/* Actions / status — stop propagation so clicks don't toggle row selection */}
-                <div className="flex items-center gap-3 shrink-0" onClick={(e) => e.stopPropagation()}>
-                    {/* Copy title */}
-                    <button
-                        onClick={() => {
-                            navigator.clipboard.writeText(episode.title);
-                            toast.show(t('toast.title_copied'), 'success');
-                        }}
-                        className="opacity-0 group-hover:opacity-100 p-1 rounded transition-all"
-                        style={{ color: 'var(--color-on-surface-variant)' }}
-                        title={t('episodes.copy_title')}
-                    >
-                        <Icon name="content_copy" size={14} />
-                    </button>
-                    {isDownloading ? (
-                        <div className="flex flex-col items-end gap-0.5 text-xs" style={{ fontFamily: 'var(--font-label)', color: 'var(--color-primary)' }}>
-                            <div className="flex items-center gap-2">
-                                <Icon name="progress_activity" size={16} className="animate-spin" />
-                                {progressPercent !== null ? `${progressPercent}%` : t('progress.downloading')}
-                            </div>
+                {isDownloading ? (
+                    <div className="ep-progress" onClick={(e) => e.stopPropagation()}>
+                        <div className="ep-progress-bar">
+                            <i style={{ width: `${progressPercent ?? 0}%` }} />
+                        </div>
+                        <div className="ep-progress-meta">
+                            <span className="pct">{progressPercent !== null ? `${progressPercent}%` : '…'}</span>
                             {status?.speed !== undefined && status.speed > 0 && (
-                                <span style={{ color: 'var(--color-on-surface-variant)', fontSize: '10px' }}>
+                                <span>
                                     {formatSpeed(status.speed)}
                                     {status.eta !== undefined && status.eta > 0 && ` · ${formatEta(status.eta)}`}
                                 </span>
                             )}
                         </div>
-                    ) : isCompleted ? (
-                        <div className="flex items-center gap-1">
+                    </div>
+                ) : (
+                    <div className="ep-actions" onClick={(e) => e.stopPropagation()}>
+                        <button
+                            type="button"
+                            className="ep-action"
+                            onClick={() => {
+                                navigator.clipboard.writeText(episode.title);
+                                toast.show(t('toast.title_copied'), 'success');
+                            }}
+                            title={t('episodes.copy_title')}
+                            aria-label={t('episodes.copy_title')}
+                        >
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                            </svg>
+                        </button>
+                        {isCompleted ? (
+                            <>
+                                <button
+                                    type="button"
+                                    className="ep-action"
+                                    onClick={() => handleResetStatus(guid)}
+                                    title={t('episodes.reset_status')}
+                                    aria-label={t('episodes.reset_status')}
+                                >
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                        <path d="M3 12a9 9 0 1 0 9-9"/><polyline points="3 4 3 12 11 12"/>
+                                    </svg>
+                                </button>
+                                <button
+                                    type="button"
+                                    className="ep-action"
+                                    onClick={() => window.api.showInFolder(currentFeed?.title || '', episode.title, url, episode.pubDate || episode.isoDate)}
+                                    title={t('episodes.open_folder')}
+                                    aria-label={t('episodes.open_folder')}
+                                >
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                                    </svg>
+                                </button>
+                            </>
+                        ) : (
                             <button
+                                type="button"
+                                className="ep-action download"
                                 onClick={() => handleDownload(episode)}
                                 disabled={!isOnline}
-                                className="hover-text-primary opacity-0 group-hover:opacity-100 p-1 rounded transition-all disabled:cursor-not-allowed"
-                                style={{ color: 'var(--color-on-surface-variant)' }}
-                                title={t('episodes.redownload')}
+                                title={isOnline ? t('episodes.download') : t('toast.offline_error')}
+                                aria-label={t('episodes.download')}
                             >
-                                <Icon name="download" size={16} />
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="7 10 12 15 17 10"/>
+                                    <line x1="12" y1="15" x2="12" y2="3"/>
+                                </svg>
                             </button>
-                            <button
-                                onClick={() => handleResetStatus(guid)}
-                                className="hover-text-warning opacity-0 group-hover:opacity-100 p-1 rounded transition-all"
-                                style={{ color: 'var(--color-on-surface-variant)' }}
-                                title={t('episodes.reset_status')}
-                            >
-                                <Icon name="restart_alt" size={16} />
-                            </button>
-                            <button
-                                onClick={() => window.api.showInFolder(currentFeed?.title || '', episode.title, url, episode.pubDate || episode.isoDate)}
-                                className="hover-text-surface opacity-0 group-hover:opacity-100 p-1 rounded transition-all"
-                                style={{ color: 'var(--color-on-surface-variant)' }}
-                                title={t('episodes.open_folder')}
-                            >
-                                <Icon name="folder_open" size={16} />
-                            </button>
-                            <Icon name="check_circle" size={20} filled className="text-[var(--color-secondary)]" style={{ color: 'var(--color-secondary)' }} />
-                        </div>
-                    ) : (
-                        <button
-                            onClick={() => handleDownload(episode)}
-                            disabled={!isOnline}
-                            className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] p-1.5 rounded-full transition-all disabled:cursor-not-allowed"
-                            style={{ background: 'var(--color-primary-container)', color: 'var(--color-on-primary-container)' }}
-                            title={isOnline ? t('episodes.download') : t('toast.offline_error')}
-                        >
-                            <Icon name="download" size={16} />
-                        </button>
-                    )}
-                </div>
+                        )}
+                    </div>
+                )}
             </div>
         );
     }, [downloads, downloadedGuids, currentFeed, t, isOnline, handleDownload, handleResetStatus, selectedGuids, handleRowClick, toast]);
@@ -550,97 +549,79 @@ export const EpisodeList: React.FC = () => {
     const imageUrl = typeof currentFeed.image === 'string' ? currentFeed.image : currentFeed.image?.url;
 
     // ── Render ────────────────────────────────────────────────────────────────
+    const totalEpisodes = currentFeed.episodes.length;
+    const archivedCount = currentFeed.episodes.reduce((n, ep) => {
+        const u = getEnclosureUrl(ep);
+        const g = ep.guid || u || '';
+        return g && downloadedGuids.includes(g) ? n + 1 : n;
+    }, 0);
+    const lastUpdatedStr = currentFeed.lastUpdated
+        ? new Date(currentFeed.lastUpdated).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })
+        : null;
+
     return (
         <div className="space-y-4 pb-8">
 
-            {/* ── Podcast header (bento) ─────────────────────────────────── */}
-            <section
-                className="bento-card rounded-xl overflow-hidden flex flex-col md:flex-row gap-8 p-8"
-                style={{ borderTop: '1px solid rgba(65,71,85,0.1)' }}
-            >
-                {/* Cover art */}
-                <div className="w-full md:w-56 h-56 shrink-0 relative group rounded-lg overflow-hidden shadow-2xl">
-                    {imageUrl ? (
-                        <img src={imageUrl} className="w-full h-full object-cover" alt={currentFeed.title} />
-                    ) : (
-                        <div
-                            className="w-full h-full flex items-center justify-center text-5xl"
-                            style={{ background: 'var(--color-surface-container-high)' }}
-                        >
-                            🎙️
-                        </div>
-                    )}
+            {/* ── Feed header ───────────────────────────────────────── */}
+            <section className="feed-header">
+                <div className="feed-header-thumb" aria-hidden="true">
+                    {imageUrl ? <img src={imageUrl} alt={currentFeed.title} /> : <span>{(currentFeed.title || '?').slice(0, 2).toUpperCase()}</span>}
                 </div>
-
-                {/* Info + actions */}
-                <div className="flex-1 flex flex-col justify-center min-w-0">
-                    <h2
-                        className="text-3xl font-extrabold tracking-tight mb-3 truncate"
-                        style={{ fontFamily: 'var(--font-headline)', color: 'var(--color-on-surface)' }}
-                    >
-                        {currentFeed.title}
-                    </h2>
-                    {currentFeed.description && (
-                        <p
-                            className="text-sm leading-relaxed mb-6 line-clamp-3"
-                            style={{ color: 'var(--color-on-surface-variant)' }}
-                        >
-                            {currentFeed.description}
-                        </p>
-                    )}
-
-                    {/* Action buttons */}
-                    <div className="flex flex-wrap gap-2">
-                        <button
-                            onClick={handleChangeFolder}
-                            className="hover-bg-primary-tinted flex items-center gap-2 px-4 py-2 rounded text-xs transition-colors"
-                            style={{ fontFamily: 'var(--font-label)', background: 'var(--color-surface-container-highest)', color: 'var(--color-on-surface)' }}
-                        >
-                            <Icon name="folder_open" size={16} />
-                            {t('episodes.change_folder')}
-                        </button>
-
-                        <button
-                            onClick={handleExportM3U}
-                            className="hover-bg-primary-tinted flex items-center gap-2 px-4 py-2 rounded text-xs transition-colors"
-                            style={{ fontFamily: 'var(--font-label)', background: 'var(--color-surface-container-highest)', color: 'var(--color-on-surface)' }}
-                        >
-                            <Icon name="playlist_add_check" size={16} />
-                            {t('episodes.export_m3u')}
-                        </button>
-
-                        <button
-                            onClick={handleDownloadAll}
-                            disabled={!isOnline}
-                            className="hover-bg-primary-tinted flex items-center gap-2 px-4 py-2 rounded text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            style={{ fontFamily: 'var(--font-label)', background: 'var(--color-surface-container-highest)', color: 'var(--color-on-surface)' }}
-                        >
-                            <Icon name="cloud_download" size={16} />
-                            {t('episodes.download_all')}
-                        </button>
-
-                        {selectedGuids.size > 0 && (
-                            <button
-                                onClick={handleDownloadSelected}
-                                disabled={!isOnline}
-                                className="btn-primary-gradient flex items-center gap-2 px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                <Icon name="download" size={16} />
-                                {t('episodes.download_selected', { count: selectedGuids.size })}
-                            </button>
-                        )}
-
-                        <button
-                            onClick={handleSyncNew}
-                            disabled={!isOnline || isSyncing}
-                            className="btn-primary-gradient flex items-center gap-2 px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            <Icon name="sync" size={16} className={isSyncing ? 'animate-spin' : ''} />
-                            {t('episodes.sync_new')}
-                        </button>
+                <div className="feed-header-info">
+                    <p className="feed-header-kicker">{t('episodes.current_feed_kicker', 'Runtime · Feed corrente')}</p>
+                    <h2>{currentFeed.title}</h2>
+                    <div className="feed-header-meta">
+                        <span>{t('episodes.episode_count', { defaultValue: '{{count}} episodi', count: totalEpisodes })}</span>
+                        {lastUpdatedStr && (<><span className="sep">·</span><span>{t('episodes.last_update', { defaultValue: 'Ultimo aggiornamento {{date}}', date: lastUpdatedStr })}</span></>)}
                     </div>
                 </div>
+                <div className="feed-header-actions">
+                    <button type="button" className="feed-action" onClick={handleSyncNew} disabled={!isOnline || isSyncing}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={isSyncing ? { animation: 'feedSyncSpin 1s linear infinite' } : undefined}>
+                            <path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/>
+                        </svg>
+                        {t('episodes.sync_new', 'Sincronizza')}
+                    </button>
+                    <button type="button" className="feed-action" onClick={handleExportM3U}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/>
+                        </svg>
+                        {t('episodes.export_m3u', 'Esporta M3U')}
+                    </button>
+                    <button type="button" className="feed-action" onClick={handleChangeFolder}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        {t('episodes.change_folder', 'Cartella')}
+                    </button>
+                </div>
             </section>
+
+            {/* ── Stats / Download All / Selected ──────────────────── */}
+            <div className="flex flex-wrap items-center gap-3" style={{ fontFamily: 'var(--font-mono)', fontSize: 10.5, color: 'var(--fg-3)' }}>
+                <span><strong style={{ color: 'var(--azure-soft)', fontWeight: 600 }}>{totalEpisodes}</strong> {t('episodes.totals', 'totali')}</span>
+                <span style={{ color: 'var(--fg-4)' }}>·</span>
+                <span><strong style={{ color: 'var(--azure-soft)', fontWeight: 600 }}>{archivedCount}</strong> {t('episodes.archived', 'archiviati')}</span>
+                {selectedGuids.size > 0 && (<>
+                    <span style={{ color: 'var(--fg-4)' }}>·</span>
+                    <span><strong style={{ color: 'var(--azure-soft)', fontWeight: 600 }}>{selectedGuids.size}</strong> {t('episodes.selected', 'selezionati')}</span>
+                </>)}
+                <div style={{ flex: 1 }} />
+                <button type="button" className="feed-action" onClick={handleDownloadAll} disabled={!isOnline}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    {t('episodes.download_all', 'Scarica tutti')}
+                </button>
+                {selectedGuids.size > 0 && (
+                    <button type="button" className="btn-download-selected" onClick={handleDownloadSelected} disabled={!isOnline}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        {t('episodes.download_selected', { defaultValue: 'Scarica · {{count}}', count: selectedGuids.size })}
+                    </button>
+                )}
+            </div>
 
             {/* ── Filter bar ────────────────────────────────────────────── */}
             <div className="flex flex-col gap-3">
@@ -828,7 +809,7 @@ export const EpisodeList: React.FC = () => {
             </div>
 
             {/* ── Episode list ──────────────────────────────────────────── */}
-            <div className="rounded-xl overflow-hidden" style={{ background: 'var(--color-surface)' }}>
+            <div className="ep-list">
                 <Virtuoso
                     customScrollParent={scrollParent ?? undefined}
                     data={filteredEpisodes}
