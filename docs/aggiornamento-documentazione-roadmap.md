@@ -290,7 +290,7 @@ Per ciascuna lingua, i file da aggiornare sono esattamente gli stessi del Tier 1
 | ✅ T2.2 | `{lang}/02-installazione.md` | COMPLETATO 12 mag 2026 — riferimenti versione 0.7.6→1.2.4 in tutte le 7 lingue |
 | ✅ T2.3 | `{lang}/03-interfaccia.md` | COMPLETATO 12 mag 2026 — en-GB/de-DE/fr-FR/es-ES/pt-PT/ru-RU/zh-CN tutti riscritti con sezioni 3.1–3.12 (sidebar, DownloadPanel, EpisodeDetailPanel, ArchiveView, CommandPalette). MD047 es-ES fixato. Nota: usare `*` + 1 spazio (non 3) — .markdownlint.json ha MD030 attivo con default=1 |
 | ✅ T2.4 | `{lang}/04-primo-archivio.md` | COMPLETATO 12 mag 2026 — sezioni 4.3 (path UI Impostazioni→Archivio + footer sidebar), 4.6 modo B (pulsante "Scarica Selezionati"), 4.7 (Pannello Download), 4.8 (apertura), 4.9 (flusso sidebar + Sync All + auto-refresh ref) aggiornate in en-GB/de-DE/fr-FR/es-ES/pt-PT/ru-RU/zh-CN |
-| T2.5 | `{lang}/05-gestione-feed.md` | DA FARE |
+| ✅ T2.5 | `{lang}/05-gestione-feed.md` | COMPLETATO 12 mag 2026 — sez. 5.3 step 6 (add to library), 5.4 (Library invece di History), 5.5/5.6 OPML aggiornati, 5.7 (rimosso ref stima pre-batch), 5.8 (gestione multi-feed), 5.9 (auto-refresh nuova) in tutte 7 lingue |
 | T2.6 | `{lang}/10-impostazioni-avanzate.md` | DA FARE |
 | ✅ T2.7 | `QUICKSTART_{en/fr/de/es/pt/ru/zh}.md` | COMPLETATO 12 mag 2026 — tutte e 6 le lingue aggiornate (sezioni 1–5 + DownloadPanel + Ctrl+K + M3U) |
 | T2.8 | `README_USER_{en/fr/de/es/pt/ru/zh}.md` | DA FARE |

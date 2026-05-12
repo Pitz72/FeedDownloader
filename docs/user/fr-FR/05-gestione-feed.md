@@ -33,20 +33,30 @@ Lorsque l'on clique sur **« Analyser »**, FeedDownloader Pro exécute les opé
 3.  **Parsing XML :** Lit et analyse le document RSS ou Atom. Le logiciel gère les feeds avec de légères déviations par rapport aux standards (encodage non déclaré, balises manquantes, espaces de noms non conventionnels).
 4.  **Déduplication :** Pour chaque épisode dans le feed, la base de données est interrogée pour vérifier si l'épisode a déjà été téléchargé. L'URL audio est utilisée comme clé d'identification unique.
 5.  **Remplissage de la liste :** Tous les épisodes sont affichés avec leur état actuel.
+6.  **Ajout à la bibliothèque :** Le feed est inséré de manière permanente dans la barre latérale s'il n'est pas déjà présent. Les feeds déjà dans la bibliothèque sont mis à jour avec le nombre d'épisodes le plus récent.
 
 ---
 
-## 5.4 Historique des feeds
+## 5.4 La bibliothèque de feeds
 
-FeedDownloader Pro maintient un **historique des feeds analysés**. Chaque URL saisie dans le champ de recherche est mémorisée avec le nom du podcast et le nombre d'épisodes, pour simplifier les accès futurs.
+FeedDownloader Pro maintient une **bibliothèque de feeds permanente**. Chaque feed analysé est enregistré dans la barre latérale et reste disponible entre les sessions, sans qu'il soit nécessaire de ressaisir l'URL à chaque lancement.
 
-**Accéder à l'historique :**
-Cliquer sur la flèche à droite du champ URL ou commencer à taper : le logiciel propose des suggestions automatiques basées sur l'historique.
+### Affichage
 
-**Gérer l'historique :**
-Dans les paramètres, il est possible d'afficher la liste complète des feeds en historique, de supprimer des entrées individuelles ou de vider complètement la liste.
+Chaque élément de la bibliothèque affiche : la couverture du podcast (vignette), le titre, la date de la dernière synchronisation avec le serveur et un badge numérique indiquant combien d'épisodes ont été publiés depuis le dernier téléchargement. Le badge disparaît dès que tous les nouveaux épisodes ont été téléchargés.
 
-*Remarque sur la confidentialité :* L'historique est enregistré exclusivement dans la base de données locale `feeddownloader.db`. Aucune donnée n'est transmise à des serveurs externes.
+Un clic sur un feed dans la barre latérale met immédiatement à jour la liste des épisodes dans la zone principale.
+
+### Supprimer un feed de la bibliothèque
+
+Pour supprimer un feed, passer la souris sur l'élément dans la barre latérale : le bouton corbeille apparaît dans l'angle droit de la ligne. Cliquer dessus ouvre une fenêtre de confirmation. La suppression efface le feed de la bibliothèque mais **n'efface pas les fichiers audio déjà téléchargés** ni les données associées dans la base de données ; les épisodes restent visibles dans la Vue Archive.
+
+### Recherche et tri
+
+*   **Recherche de feeds :** Le champ de recherche en haut de la barre latérale filtre les feeds par nom en temps réel. Utile pour les grandes bibliothèques.
+*   **Tri A–Z :** Le bouton de tri organise les feeds par ordre alphabétique de titre. Un nouveau clic rétablit l'ordre original.
+
+*Remarque sur la confidentialité :* La bibliothèque de feeds est enregistrée exclusivement dans la base de données locale. Aucune donnée n'est transmise à des serveurs externes.
 
 ---
 
@@ -55,10 +65,10 @@ Dans les paramètres, il est possible d'afficher la liste complète des feeds en
 **OPML** (Outline Processor Markup Language) est le format standard pour l'export et l'import de listes de podcasts entre différentes applications. Si vous disposez d'une bibliothèque de podcasts dans une application comme Pocket Casts, Overcast, AntennaPod ou tout autre client, il est possible de l'exporter en OPML et de l'importer directement dans FeedDownloader Pro.
 
 **Comment importer un fichier OPML :**
+
 1.  Aller dans **Paramètres → Archive**, section « Données et portabilité ».
-2.  Sélectionner le fichier `.opml` exporté depuis l'application de podcast.
-3.  FeedDownloader Pro analyse le fichier et affiche la liste des podcasts identifiés, avec la possibilité de sélectionner ceux qui vous intéressent.
-4.  Les feeds sélectionnés sont ajoutés à l'historique et, facultativement, analysés en séquence automatique.
+2.  Cliquer sur **Importer feeds (OPML)** et sélectionner le fichier `.opml` exporté depuis l'application de podcast.
+3.  FeedDownloader Pro analyse le fichier et ajoute les feeds identifiés à la bibliothèque.
 
 *Remarque :* Certaines applications de podcast utilisent des variantes propriétaires du format OPML. FeedDownloader Pro prend en charge les versions les plus répandues. Si un fichier n'est pas importé correctement, l'ouvrir avec un éditeur de texte et vérifier la présence de balises `<outline type="rss" xmlUrl="...">` pour chaque podcast.
 
@@ -66,14 +76,16 @@ Dans les paramètres, il est possible d'afficher la liste complète des feeds en
 
 ## 5.6 Exporter la bibliothèque en OPML
 
-Il est possible d'exporter l'historique des feeds au format OPML pour :
+Il est possible d'exporter la bibliothèque de feeds au format OPML pour :
+
 *   Créer une sauvegarde de la liste de podcasts.
 *   La partager avec d'autres utilisateurs ou avec une autre installation du logiciel.
 *   L'importer dans une application de podcast pour suivre les mêmes feeds.
 
 **Comment exporter :**
+
 1.  Aller dans **Paramètres → Archive**, section « Données et portabilité ».
-2.  Choisir un nom et un emplacement pour le fichier `.opml`.
+2.  Cliquer sur **Exporter feeds (OPML)** et choisir un nom et un emplacement pour le fichier.
 3.  Le fichier généré est compatible avec toute application prenant en charge le standard OPML.
 
 ---
@@ -84,18 +96,49 @@ Certains podcasts historiques ou archives de production radiophonique peuvent av
 
 *   **L'analyse initiale prend plus de temps :** Un feed avec 2 000 épisodes peut nécessiter 15 à 30 secondes pour le téléchargement et le parsing. Ce comportement est attendu.
 *   **Virtualisation de la liste :** Avec des milliers d'entrées, la liste ne charge que les lignes visibles à l'écran pour maintenir la réactivité de l'interface.
-*   **Estimation de l'espace nécessaire :** Avec 2 000 épisodes à environ 50 Mo chacun, le volume total est d'environ 100 Go. Le logiciel affiche une estimation de la taille totale avant le lancement du batch. Vérifier la disponibilité d'un espace suffisant avant de procéder.
+*   **Estimation de l'espace nécessaire :** Avec 2 000 épisodes à environ 50 Mo chacun, le volume total est d'environ 100 Go. Vérifier la disponibilité d'un espace suffisant avant de procéder.
 
 ---
 
-## 5.8 Limitations du feed multiple
+## 5.8 Gestion de plusieurs feeds
 
-FeedDownloader Pro analyse un feed à la fois. Il ne dispose pas d'un gestionnaire de feeds permanents avec mise à jour automatique : le logiciel est optimisé pour le téléchargement batch, et non pour la surveillance continue de plusieurs feeds.
+FeedDownloader Pro gère nativement une bibliothèque de plusieurs feeds. Il n'y a pas de limite au nombre de podcasts pouvant être ajoutés : tous sont conservés dans la barre latérale et restent accessibles d'une session à l'autre.
 
-Pour gérer plusieurs feeds en séquence, la stratégie recommandée est :
-1.  Utiliser la fonction OPML pour maintenir la liste des feeds dans un fichier centralisé.
-2.  Analyser et télécharger un podcast à la fois, en procédant de manière systématique.
-3.  Utiliser l'historique des feeds pour rappeler rapidement un podcast déjà analysé.
+### Naviguer entre les feeds
+
+Un clic sur un feed dans la barre latérale met immédiatement à jour la liste des épisodes dans la zone principale. Le logiciel se souvient du feed sélectionné à la dernière fermeture.
+
+### Synchroniser les feeds
+
+*   **Synchronisation individuelle :** Passer la souris sur un élément de feed dans la barre latérale pour faire apparaître l'icône de synchronisation. Cliquer dessus relit ce feed depuis le serveur et met à jour la liste avec les éventuels nouveaux épisodes.
+*   **Tout synchroniser :** Le bouton « Tout synchroniser » rafraîchit tous les feeds en parallèle en une seule opération. Pendant le processus, chaque vignette dans la barre latérale affiche son propre état en temps réel. À la fin, les éventuels nouveaux épisodes sont mis en évidence par le badge nouveaux épisodes.
+
+Pour la mise à jour automatique programmée sans intervention manuelle, voir la section 5.9.
+
+---
+
+## 5.9 Mise à jour automatique des feeds
+
+FeedDownloader Pro peut synchroniser automatiquement tous les feeds à intervalles réguliers, en arrière-plan, sans aucune action requise de l'utilisateur.
+
+### Configuration
+
+Le paramètre se trouve dans **Paramètres → Général → Mise à jour automatique des feeds**. Quatre options sont disponibles :
+
+| Option | Comportement |
+|--------|--------------|
+| **Désactivé** (par défaut) | Aucune synchronisation automatique. |
+| **Toutes les 6 heures** | Le logiciel synchronise tous les feeds toutes les 6 heures à partir du lancement. |
+| **Toutes les 12 heures** | Le logiciel synchronise tous les feeds toutes les 12 heures à partir du lancement. |
+| **Toutes les 24 heures** | Le logiciel synchronise tous les feeds une fois toutes les 24 heures à partir du lancement. |
+
+Le changement de paramètre est immédiat et ne nécessite pas le redémarrage du logiciel. Le minuteur démarre au lancement de l'application.
+
+### Comportement
+
+La mise à jour automatique **ne lance pas de téléchargements** : elle se limite à vérifier si de nouveaux épisodes ont été publiés. Si lors de la synchronisation automatique de nouveaux épisodes sont trouvés sur un ou plusieurs feeds, le système envoie une **notification du système d'exploitation** avec un récapitulatif des contenus trouvés (disponible dans les 8 langues prises en charge).
+
+Pour télécharger les nouveaux épisodes signalés, ouvrir le logiciel et utiliser les commandes habituelles du batch.
 
 ---
 
