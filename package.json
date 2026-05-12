@@ -140,7 +140,7 @@
     },
     "publish": {
       "provider": "github",
-      "owner": "Pitz72",
+      "owner": "Ecosystem-Runtime",
       "repo": "FeedDownloader-Releases",
       "releaseType": "release"
     }

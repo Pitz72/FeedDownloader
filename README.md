@@ -3,7 +3,7 @@
 > **Il modo più potente per archiviare i tuoi podcast.**
 
 ![Version](https://img.shields.io/badge/version-1.2.4-blue)
-![Build](https://github.com/Pitz72/FeedDownloader/actions/workflows/build.yml/badge.svg)
+![Build](https://github.com/Ecosystem-Runtime/FeedDownloader/actions/workflows/build.yml/badge.svg)
 ![Electron](https://img.shields.io/badge/Electron-30-47848F?logo=electron)
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)
@@ -61,11 +61,10 @@ La cronologia completa delle versioni si trova in [`docs/changelog/`](docs/chang
 
 | Piattaforma | Formato | Link |
 |---|---|---|
-| Windows 10/11 | NSIS Installer (`.exe`) | [GitHub Releases](https://github.com/Pitz72/FeedDownloader-Releases/releases) |
-| macOS 11+ | Disk Image (`.dmg`) | [GitHub Releases](https://github.com/Pitz72/FeedDownloader-Releases/releases) |
-| Linux | AppImage / `.deb` | [GitHub Releases](https://github.com/Pitz72/FeedDownloader-Releases/releases) |
+| Windows 10/11 | NSIS Installer (`.exe`) | [GitHub Releases](https://github.com/Ecosystem-Runtime/FeedDownloader-Releases/releases) |
+| Linux | AppImage / `.deb` | [GitHub Releases](https://github.com/Ecosystem-Runtime/FeedDownloader-Releases/releases) |
 
-I build per tutte le piattaforme sono prodotti automaticamente da GitHub Actions ad ogni release.
+I build sono prodotti da GitHub Actions con trigger manuale (workflow dispatch). macOS non è attualmente distribuito tramite CI.
 
 ## Quick Start (sviluppo)
 

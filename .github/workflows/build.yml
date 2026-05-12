@@ -1,119 +1,151 @@
 name: Build & Release
 
-# Trigger:
-# - push su master → build di verifica, artifacts caricati (no publish)
-# - push di tag v* → build completo + publish su GitHub Releases
-# - workflow_dispatch → trigger manuale
+# Trigger esclusivamente manuale (workflow_dispatch).
+# Nessun build su push o tag — la pubblicazione è una decisione esplicita.
+# Modello identico a Ecosystem-Runtime/Runtime-TelegramBot-Desktop-Titan-Edition.
 
 on:
-  push:
-    branches: [master]
-    tags: ['v*']
   workflow_dispatch:
+    inputs:
+      publish_release:
+        description: 'Publish release to bridge repo after build'
+        required: false
+        default: 'true'
+        type: choice
+        options: ['true', 'false']
 
 permissions:
   contents: write
 
 jobs:
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: windows-latest
-            platform: win
-          - os: macos-latest
-            platform: mac
-          - os: ubuntu-latest
-            platform: linux
-
-    runs-on: ${{ matrix.os }}
-    name: Build (${{ matrix.platform }})
-
+  build-linux:
+    runs-on: ubuntu-latest
     steps:
-      # ── 1. Checkout ──────────────────────────────────────────────────────────
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # ── 2. Node.js ───────────────────────────────────────────────────────────
-      - name: Setup Node.js 20
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
 
-      # ── 3. Dipendenze di sistema (Linux) ────────────────────────────────────
-      #    build-essential + python3: necessari per compilare better-sqlite3
-      #    imagemagick: usato per generare il set di icone PNG per electron-builder
-      - name: Install Linux system dependencies
-        if: runner.os == 'Linux'
+      - name: Cache Electron binary
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/electron
+          key: electron-linux-${{ hashFiles('package-lock.json') }}
+
+      # build-essential + python3 servono per compilare better-sqlite3
+      # imagemagick produce il set di icone PNG richiesto da electron-builder
+      # libfuse2 serve per impacchettare/eseguire AppImage
+      - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential python3 imagemagick
+          sudo apt-get install -y build-essential python3 imagemagick libfuse2
 
-      # ── 4. Installa dipendenze npm ───────────────────────────────────────────
       - name: Install npm dependencies
         run: npm ci
 
-      # ── 5. Genera icone macOS (.icns) ────────────────────────────────────────
-      #    Usa sips (nativo macOS) + iconutil per produrre il file .icns
-      #    richiesto da electron-builder nel campo mac.icon.
-      #    Sorgente: public/logo.png (presente nel repo)
-      - name: Generate macOS icon (.icns)
-        if: runner.os == 'macOS'
-        run: |
-          mkdir -p build/icon.iconset
-          sips -z 16   16   public/logo.png --out build/icon.iconset/icon_16x16.png
-          sips -z 32   32   public/logo.png --out build/icon.iconset/icon_16x16@2x.png
-          sips -z 32   32   public/logo.png --out build/icon.iconset/icon_32x32.png
-          sips -z 64   64   public/logo.png --out build/icon.iconset/icon_32x32@2x.png
-          sips -z 128  128  public/logo.png --out build/icon.iconset/icon_128x128.png
-          sips -z 256  256  public/logo.png --out build/icon.iconset/icon_128x128@2x.png
-          sips -z 256  256  public/logo.png --out build/icon.iconset/icon_256x256.png
-          sips -z 512  512  public/logo.png --out build/icon.iconset/icon_256x256@2x.png
-          sips -z 512  512  public/logo.png --out build/icon.iconset/icon_512x512.png
-          cp build/icon.iconset/icon_512x512.png build/icon.iconset/icon_512x512@2x.png
-          iconutil -c icns build/icon.iconset -o build/icon.icns
-          echo "✅ build/icon.icns generato"
-
-      # ── 6. Genera icone Linux (cartella PNG) ─────────────────────────────────
-      #    electron-builder richiede una directory build/icons/ con PNG a varie
-      #    risoluzioni. Si usa ImageMagick (installato al passo 3).
       - name: Generate Linux icons (PNG set)
-        if: runner.os == 'Linux'
         run: |
           mkdir -p build/icons
           for size in 16 24 32 48 64 96 128 256 512; do
             convert public/logo.png -resize ${size}x${size} build/icons/${size}x${size}.png
           done
-          echo "✅ build/icons/ generato ($(ls build/icons | wc -l) file)"
 
-      # ── 7a. Build senza publish (push su master, non tag) ────────────────────
-      - name: Build (artifact only)
-        if: "!startsWith(github.ref, 'refs/tags/v')"
-        run: npm run build
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build (Linux, no publish)
+        run: npx tsc && npx vite build && npx electron-builder --linux --publish never
 
-      # ── 7b. Build + publish su GitHub Releases (solo tag v*) ─────────────────
-      - name: Build and Publish to GitHub Releases
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: npm run release
-        env:
-          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-
-      # ── 8. Carica artifacts ──────────────────────────────────────────────────
-      #    Conservati 30 giorni — utili per test prima del rilascio ufficiale
-      - name: Upload build artifacts
+      - name: Upload Linux artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.platform }}-dist
+          name: linux-artifacts
           path: |
-            builds/**/*.exe
-            builds/**/*.dmg
-            builds/**/*.zip
             builds/**/*.AppImage
             builds/**/*.deb
-            builds/**/latest*.yml
-          if-no-files-found: warn
+            builds/**/latest-linux.yml
+          if-no-files-found: error
           retention-days: 30
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Cache Electron binary
+        uses: actions/cache@v4
+        with:
+          path: ~/AppData/Local/electron/Cache
+          key: electron-win-${{ hashFiles('package-lock.json') }}
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Build (Windows, no publish)
+        run: npx tsc && npx vite build && npx electron-builder --windows --publish never
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-artifacts
+          path: |
+            builds/**/*.exe
+            builds/**/*.blockmap
+            builds/**/latest.yml
+          if-no-files-found: error
+          retention-days: 30
+
+  release:
+    needs: [build-linux, build-windows]
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.publish_release == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read version from package.json
+        id: version
+        run: echo "tag=v$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-artifacts
+          path: artifacts/linux
+
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-artifacts
+          path: artifacts/windows
+
+      - name: Publish release to bridge repo
+        uses: softprops/action-gh-release@v2
+        with:
+          repository: Ecosystem-Runtime/FeedDownloader-Releases
+          token: ${{ secrets.RELEASE_TOKEN }}
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: "FeedDownloader Pro ${{ steps.version.outputs.tag }}"
+          body: |
+            ## Runtime FeedDownloader Pro ${{ steps.version.outputs.tag }}
+
+            Download the installer for your platform:
+
+            | Platform | File |
+            |----------|------|
+            | **Windows** | `*.exe` |
+            | **Linux (AppImage)** | `*.AppImage` |
+            | **Linux (deb)** | `*.deb` |
+
+            > macOS builds not currently supported.
+            > The app updates automatically — existing users will be notified in-app.
+          files: |
+            artifacts/linux/**/*.AppImage
+            artifacts/linux/**/*.deb
+            artifacts/linux/**/latest-linux.yml
+            artifacts/windows/**/*.exe
+            artifacts/windows/**/*.blockmap
+            artifacts/windows/**/latest.yml
