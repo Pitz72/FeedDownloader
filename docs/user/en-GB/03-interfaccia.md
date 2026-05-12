@@ -133,13 +133,16 @@ Each episode in the list is marked with a status indicator. Understanding these 
 On the right of each row in the list, when hovering, episode-specific control buttons appear. The visible buttons vary according to the status:
 
 **For all episodes:**
+
 *   **Copy title** (document icon): Copies the episode title to the system clipboard.
 *   **Checkbox:** For multiple selection (see section 3.4).
 
 **For To Download or Error episodes:**
+
 *   **Download** (downward arrow): Adds the individual episode to the download queue.
 
 **For Completed or Downloaded episodes:**
+
 *   **Re-download** (downward arrow): Adds the episode to the queue again, overwriting the existing file.
 *   **Reset status** (refresh icon): Clears the episode status, returning it to "To Download" without deleting the file from disk. Useful to force a new analysis.
 *   **Open folder** (folder icon): Opens the system file manager at the location of the downloaded file.
@@ -185,7 +188,7 @@ The panel opens **automatically** when each batch is started. When closed, the *
 
 The Detail Panel provides an in-depth view of a single episode: metadata, actions, and — if the episode is already in the archive — technical data from the downloaded file.
 
-### How to open it
+### Opening the Detail Panel
 
 A **single click** on any row in the episode list opens the panel, which slides in from the right side of the window (below the command bar). The panel closes automatically when a different feed is selected in the sidebar.
 
@@ -221,7 +224,7 @@ The Archive View updates automatically when each download completes.
 
 The Command Palette is a quick-access tool that allows you to reach any main function of the software without using the mouse.
 
-### How to open it
+### Opening the Command Palette
 
 The **Ctrl+K** shortcut (from anywhere in the app, even during a download) opens an overlay with a central search field.
 
@@ -244,6 +247,7 @@ The **Ctrl+K** shortcut (from anywhere in the app, even during a download) opens
 When the main window is closed by clicking the X, FeedDownloader Pro does not terminate the process: it minimises to the system notification area (system tray, near the Windows or macOS clock). This behaviour is intentional: downloads continue in the background whilst the window is not visible.
 
 **Tray context menu (right-click on the icon):**
+
 *   **Open FeedDownloader Pro:** Brings the main window back to the foreground.
 *   **Download Status:** Shows a summary line of current activity.
 *   **Quit:** Closes the programme and stops all active downloads.

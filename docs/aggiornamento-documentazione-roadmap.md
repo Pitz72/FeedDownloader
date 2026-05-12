@@ -288,7 +288,7 @@ Per ciascuna lingua, i file da aggiornare sono esattamente gli stessi del Tier 1
 |------|---------------------------|-------|
 | ✅ T2.1 | `{lang}/00-copertina.md` | COMPLETATO 12 mag 2026 — versione 1.2.4 + edizione Maggio 2026 in tutte le 7 lingue |
 | ✅ T2.2 | `{lang}/02-installazione.md` | COMPLETATO 12 mag 2026 — riferimenti versione 0.7.6→1.2.4 in tutte le 7 lingue |
-| ⚠️ T2.3 | `{lang}/03-interfaccia.md` | EN-GB riscritto (con warning MD032/MD024/MD047 da risolvere); de/fr/es/pt/ru/zh da fare |
+| ✅ T2.3 | `{lang}/03-interfaccia.md` | COMPLETATO 12 mag 2026 — en-GB/de-DE/fr-FR/es-ES/pt-PT/ru-RU/zh-CN tutti riscritti con sezioni 3.1–3.12 (sidebar, DownloadPanel, EpisodeDetailPanel, ArchiveView, CommandPalette). MD047 es-ES fixato. Nota: usare `*` + 1 spazio (non 3) — .markdownlint.json ha MD030 attivo con default=1 |
 | T2.4 | `{lang}/04-primo-archivio.md` | DA FARE |
 | T2.5 | `{lang}/05-gestione-feed.md` | DA FARE |
 | T2.6 | `{lang}/10-impostazioni-avanzate.md` | DA FARE |
