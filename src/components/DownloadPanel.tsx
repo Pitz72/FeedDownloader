@@ -2,7 +2,6 @@ import React, { useState, useCallback } from 'react';
 import { useStore, AppState } from '../store/useStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { Icon } from './Icon';
 import type { QueueItem, FailedDownload, DownloadProgress } from '../types';
 
 const ERROR_CODE_MAP: Record<string, string> = {
@@ -48,92 +47,71 @@ const QueueRow: React.FC<QueueRowProps> = ({ item, progress, onCancel }) => {
         : null;
 
     return (
-        <div
-            className="flex items-center gap-3 px-4 py-3 group/row"
-            style={{ borderBottom: '1px solid rgba(65,71,85,0.06)' }}
-        >
-            <div className="shrink-0 mt-0.5">
-                {isDownloading
-                    ? <Icon name="autorenew" size={15} className="animate-spin" style={{ color: 'var(--color-primary)' }} />
-                    : <Icon name="schedule" size={15} style={{ color: 'var(--color-on-surface-variant)', opacity: 0.4 }} />
-                }
+        <div className={`dl-item ${isDownloading ? 'active' : 'queued'}`}>
+            <div className="dl-item-icon" aria-hidden="true">
+                {isDownloading ? (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'feedSyncSpin 1s linear infinite' }}>
+                        <path d="M21 12a9 9 0 1 1-6.2-8.5"/>
+                    </svg>
+                ) : (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                )}
             </div>
-
-            <div className="flex-1 min-w-0">
-                <p
-                    className="text-xs font-semibold truncate"
-                    style={{ color: 'var(--color-on-surface)', fontFamily: 'var(--font-label)' }}
-                >
-                    {item.title}
+            <div className="dl-item-info">
+                <p className="dl-item-title">{item.title}</p>
+                <p className="dl-item-show">
+                    {item.podcastTitle}
+                    {!isDownloading && ` · ${t('progress.queued', 'in coda')}`}
                 </p>
-                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                    <p
-                        className="text-[10px] truncate max-w-[140px]"
-                        style={{ color: 'var(--color-on-surface-variant)', opacity: 0.55 }}
-                    >
-                        {item.podcastTitle}
-                    </p>
-                    {isDownloading && percent !== null && (
-                        <span
-                            className="text-[10px] shrink-0"
-                            style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-label)' }}
-                        >
-                            {percent}%
-                        </span>
-                    )}
-                    {isDownloading && progress?.speed != null && progress.speed > 0 && (
-                        <span
-                            className="text-[10px] shrink-0"
-                            style={{ color: 'var(--color-on-surface-variant)', opacity: 0.6 }}
-                        >
-                            {formatSpeed(progress.speed)}
-                            {progress.eta != null && progress.eta > 0 ? ` · ${formatEta(progress.eta)}` : ''}
-                        </span>
-                    )}
-                </div>
                 {isDownloading && percent !== null && (
-                    <div
-                        className="w-full rounded-full h-0.5 mt-1.5 overflow-hidden"
-                        style={{ background: 'var(--color-surface-container-highest)' }}
-                    >
-                        <div
-                            className="h-full rounded-full transition-all duration-300"
-                            style={{ width: `${percent}%`, background: 'var(--color-primary)' }}
-                        />
+                    <div className="dl-item-progress">
+                        <div className="dl-item-progress-bar"><i style={{ width: `${percent}%` }} /></div>
+                        <div className="dl-item-meta">
+                            <span className="pct">{percent}%</span>
+                            {progress?.speed != null && progress.speed > 0 && (
+                                <span>
+                                    {formatSpeed(progress.speed)}
+                                    {progress.eta != null && progress.eta > 0 ? ` · ${formatEta(progress.eta)}` : ''}
+                                </span>
+                            )}
+                        </div>
                     </div>
                 )}
             </div>
-
             <button
+                type="button"
+                className="ep-action"
                 onClick={onCancel}
-                className="shrink-0 p-1 rounded opacity-0 group-hover/row:opacity-100 transition-opacity hover-text-surface"
-                style={{ color: 'var(--color-on-surface-variant)' }}
-                title={t('progress.cancel_item')}
+                title={t('progress.cancel_item', 'Annulla')}
+                aria-label={t('progress.cancel_item', 'Annulla')}
+                style={{ alignSelf: 'flex-start' }}
             >
-                <Icon name="close" size={12} />
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
             </button>
         </div>
     );
 };
 
-interface FailureRowProps {
-    item: FailedDownload;
-}
-
-const FailureRow: React.FC<FailureRowProps> = ({ item }) => {
+const FailureRow: React.FC<{ item: FailedDownload }> = ({ item }) => {
     const { t } = useTranslation();
     const errorKey = ERROR_CODE_MAP[item.errorCode];
-    const errorMsg = errorKey ? t(errorKey) : t('progress.error_unknown');
+    const errorMsg = errorKey ? t(errorKey) : t('progress.error_unknown', 'Errore sconosciuto');
     return (
-        <div className="flex items-start gap-2 px-4 py-2">
-            <Icon name="error_outline" size={13} className="shrink-0 mt-0.5" style={{ color: 'var(--color-error)', opacity: 0.8 }} />
-            <div className="min-w-0">
-                <span className="text-xs block truncate" style={{ color: 'var(--color-on-surface)', fontFamily: 'var(--font-label)' }}>
-                    {item.title}
-                </span>
-                <span className="text-[10px] block" style={{ color: 'var(--color-error)', opacity: 0.7 }}>
-                    {errorMsg}
-                </span>
+        <div className="dl-failed-item">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <div className="info">
+                <p className="title">{item.title}</p>
+                <p className="err">{item.errorCode} · {errorMsg}</p>
             </div>
         </div>
     );
@@ -146,7 +124,7 @@ export const DownloadPanel: React.FC = () => {
         downloadPanelOpen, setDownloadPanelOpen,
     } = useStore((s: AppState) => s);
     const { t } = useTranslation();
-    const [showErrors, setShowErrors] = useState(false);
+    const [showErrors, setShowErrors] = useState(true);
 
     const handleCancelItem = useCallback(async (taskId: string) => {
         await window.api.cancelDownload(taskId);
@@ -154,9 +132,11 @@ export const DownloadPanel: React.FC = () => {
 
     const isVisible = isBatchDownloading ||
         (!isBatchDownloading && batchCompleted > 0 && batchCompleted >= batchTotal);
-
     const isComplete = !isBatchDownloading && batchCompleted > 0 && batchCompleted >= batchTotal;
     const progress = batchTotal > 0 ? Math.min((batchCompleted / batchTotal) * 100, 100) : 0;
+
+    const activeCount = queueItems.filter(q => q.status === 'downloading').length;
+    const queuedCount = queueItems.filter(q => q.status !== 'downloading').length;
 
     const sortedQueue = [...queueItems].sort((a, b) => {
         if (a.status === 'downloading' && b.status !== 'downloading') return -1;
@@ -168,68 +148,66 @@ export const DownloadPanel: React.FC = () => {
 
     return (
         <>
-            {/* Full-height side panel */}
             <AnimatePresence>
                 {downloadPanelOpen && (
-                    <motion.div
+                    <motion.aside
                         key="download-panel"
+                        className="dl-drawer"
                         initial={{ x: '100%' }}
                         animate={{ x: 0 }}
                         exit={{ x: '100%' }}
                         transition={{ type: 'spring', damping: 28, stiffness: 220 }}
-                        className="fixed right-0 z-50 flex flex-col"
-                        style={{
-                            top: '56px',
-                            bottom: 0,
-                            width: '380px',
-                            background: 'var(--color-surface-container-low)',
-                            borderLeft: '1px solid rgba(65,71,85,0.18)',
-                            boxShadow: '-12px 0 40px rgba(0,0,0,0.35)',
-                        }}
                     >
-                        {/* Header */}
-                        <div
-                            className="flex items-center gap-3 px-5 py-4 shrink-0"
-                            style={{ borderBottom: '1px solid rgba(65,71,85,0.12)' }}
-                        >
-                            {isComplete
-                                ? <Icon name="check_circle" size={18} filled style={{ color: 'var(--color-primary)' }} />
-                                : <Icon name="downloading" size={18} style={{ color: 'var(--color-primary)' }} className="animate-pulse" />
-                            }
-                            <span
-                                className="text-sm font-semibold flex-1"
-                                style={{ fontFamily: 'var(--font-headline)', color: 'var(--color-on-surface)' }}
-                            >
-                                {isComplete ? t('progress.completed') : t('progress.downloading')}
-                            </span>
-                            <span
-                                className="text-xs font-mono"
-                                style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-label)' }}
-                            >
-                                {batchCompleted}&thinsp;/&thinsp;{batchTotal}
-                            </span>
-                            {isBatchDownloading && (
-                                <button
-                                    onClick={() => useStore.getState().stopBatch()}
-                                    className="hover-stop p-1 rounded transition-all"
-                                    style={{ color: 'var(--color-on-surface-variant)' }}
-                                    title={t('progress.stop')}
-                                >
-                                    <Icon name="stop" size={16} filled />
-                                </button>
-                            )}
+                        <header className="dl-header">
+                            <div className={`dl-spinner ${isBatchDownloading ? 'spinning' : ''}`} aria-hidden="true">
+                                {isComplete ? (
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
+                                ) : (
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                        <polyline points="7 10 12 15 17 10"/>
+                                        <line x1="12" y1="15" x2="12" y2="3"/>
+                                    </svg>
+                                )}
+                            </div>
+                            <div className="dl-title">
+                                <h3>{isComplete ? t('progress.completed', 'Completato') : t('progress.downloading', 'Scaricando…')}</h3>
+                                <p>
+                                    {isComplete
+                                        ? t('progress.completed_summary', { defaultValue: '{{done}} di {{total}}', done: batchCompleted, total: batchTotal })
+                                        : t('progress.active_queued', { defaultValue: '{{active}} attivi · {{queued}} in coda', active: activeCount, queued: queuedCount })
+                                    }
+                                </p>
+                            </div>
+                            <div className="dl-counter">
+                                <span>{batchCompleted}</span><span className="total">/{batchTotal}</span>
+                            </div>
                             <button
+                                type="button"
+                                className="icon-btn"
                                 onClick={() => setDownloadPanelOpen(false)}
-                                className="hover-bg-surface-high p-1 rounded transition-all"
-                                style={{ color: 'var(--color-on-surface-variant)' }}
+                                title={t('common.close', 'Chiudi')}
+                                aria-label={t('common.close', 'Chiudi')}
                             >
-                                <Icon name="close" size={16} />
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                                    <line x1="18" y1="6" x2="6" y2="18"/>
+                                    <line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
                             </button>
+                        </header>
+
+                        <div className="dl-overall">
+                            <div className="dl-overall-bar"><i style={{ width: `${progress}%` }} /></div>
+                            <div className="dl-overall-meta">
+                                <span><strong>{Math.round(progress)}%</strong> · {batchCompleted}/{batchTotal} {t('progress.episodes_short', 'episodi')}</span>
+                                {isBatchDownloading && <span>{activeCount} {t('progress.active_short', 'attivi')}</span>}
+                            </div>
                         </div>
 
-                        {/* Queue list — active/pending downloads */}
                         {isBatchDownloading && sortedQueue.length > 0 && (
-                            <div className="flex-1 overflow-y-auto custom-scrollbar">
+                            <div className="dl-queue custom-scrollbar">
                                 {sortedQueue.map(item => (
                                     <QueueRow
                                         key={item.taskId}
@@ -241,109 +219,88 @@ export const DownloadPanel: React.FC = () => {
                             </div>
                         )}
 
-                        {/* Failure section — after completion */}
                         {isComplete && batchFailed.length > 0 && (
-                            <div className="flex-1 overflow-hidden flex flex-col px-4 pt-4">
-                                <button
-                                    onClick={() => setShowErrors(v => !v)}
-                                    className="flex items-center justify-between px-3 py-2 rounded-lg text-xs shrink-0"
-                                    style={{
-                                        background: 'rgba(147,0,10,0.12)',
-                                        color: 'var(--color-error)',
-                                        fontFamily: 'var(--font-label)',
-                                    }}
-                                >
-                                    <span className="flex items-center gap-1.5">
-                                        <Icon name="warning" size={13} filled />
-                                        {t('progress.n_failed', { count: batchFailed.length })}
+                            <div className="dl-failed">
+                                <div className="dl-failed-header">
+                                    <span className="label">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                            <line x1="12" y1="9" x2="12" y2="13"/>
+                                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                                        </svg>
+                                        {t('progress.n_failed', { defaultValue: '{{count}} download falliti', count: batchFailed.length })}
                                     </span>
-                                    <Icon name={showErrors ? 'expand_less' : 'expand_more'} size={14} />
-                                </button>
+                                    <button type="button" className="retry" onClick={() => setShowErrors(v => !v)}>
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                            <path d="M3 12a9 9 0 0 1 15-6.7L21 8"/>
+                                            <path d="M21 3v5h-5"/>
+                                        </svg>
+                                        {showErrors ? t('common.hide', 'Nascondi') : t('common.show', 'Mostra')}
+                                    </button>
+                                </div>
                                 {showErrors && (
-                                    <div className="flex-1 overflow-y-auto custom-scrollbar mt-2 rounded-lg py-1" style={{ background: 'rgba(147,0,10,0.07)' }}>
+                                    <div className="dl-failed-list custom-scrollbar">
                                         {batchFailed.map((f, i) => <FailureRow key={i} item={f} />)}
                                     </div>
                                 )}
                             </div>
                         )}
 
-                        {/* Spacer when complete and no errors or errors collapsed */}
-                        {(isComplete && batchFailed.length === 0) && <div className="flex-1" />}
+                        {(!isBatchDownloading && (!isComplete || batchFailed.length === 0)) && <div style={{ flex: 1 }} />}
 
-                        {/* Progress bar + footer */}
-                        <div className="px-5 pb-5 pt-3 shrink-0">
-                            <div
-                                className="w-full rounded-full h-1.5 overflow-hidden mb-2"
-                                style={{ background: 'var(--color-surface-container-highest)' }}
-                            >
-                                <div
-                                    className="h-full transition-all duration-300 ease-out rounded-full"
-                                    style={{
-                                        width: `${progress}%`,
-                                        background: isComplete
-                                            ? (batchFailed.length > 0
-                                                ? 'linear-gradient(90deg, var(--color-primary), var(--color-error))'
-                                                : 'var(--color-primary)')
-                                            : 'linear-gradient(90deg, var(--color-primary-container), var(--color-primary))',
-                                    }}
-                                />
-                            </div>
-                            {isBatchDownloading && (
-                                <p className="text-[10px] text-center" style={{ color: 'var(--color-on-surface-variant)', opacity: 0.5 }}>
-                                    {t('progress.dont_close')}
-                                </p>
-                            )}
-                            {isComplete && (
-                                <div className="flex justify-end mt-1">
-                                    <button
-                                        onClick={() => { setShowErrors(false); useStore.getState().resetBatch(); }}
-                                        className="text-xs px-3 py-1 rounded hover-bg-container transition-colors"
-                                        style={{ color: 'var(--color-on-surface-variant)', fontFamily: 'var(--font-label)' }}
-                                    >
-                                        {t('common.clear', 'Pulisci')}
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    </motion.div>
+                        <footer className="dl-footer">
+                            <span className="hint">
+                                {isBatchDownloading ? t('progress.dont_close', 'Non chiudere fino al termine') : ' '}
+                            </span>
+                            {isBatchDownloading ? (
+                                <button type="button" className="dl-stop" onClick={() => useStore.getState().stopBatch()}>
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                        <rect x="6" y="6" width="12" height="12"/>
+                                    </svg>
+                                    {t('progress.stop', 'Stop')}
+                                </button>
+                            ) : isComplete ? (
+                                <button
+                                    type="button"
+                                    className="feed-action"
+                                    onClick={() => { setShowErrors(true); useStore.getState().resetBatch(); }}
+                                >
+                                    {t('common.clear', 'Pulisci')}
+                                </button>
+                            ) : null}
+                        </footer>
+                    </motion.aside>
                 )}
             </AnimatePresence>
 
-            {/* Minimized FAB — when panel is closed but downloads are active */}
+            {/* Minimized FAB */}
             <AnimatePresence>
                 {!downloadPanelOpen && (
                     <motion.button
+                        type="button"
                         key="download-fab"
+                        className="dl-fab"
                         initial={{ scale: 0, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0, opacity: 0 }}
                         transition={{ type: 'spring', damping: 20, stiffness: 260 }}
                         onClick={() => setDownloadPanelOpen(true)}
-                        className="fixed bottom-6 right-6 z-50 rounded-full p-3 shadow-xl"
-                        style={{
-                            background: isComplete ? 'var(--color-secondary)' : 'var(--color-primary)',
-                            color: 'var(--color-on-primary-fixed)',
-                        }}
-                        title={t('progress.downloading')}
+                        title={isComplete ? t('progress.completed', 'Completato') : t('progress.downloading', 'Scaricando…')}
+                        aria-label={isComplete ? t('progress.completed', 'Completato') : t('progress.downloading', 'Scaricando…')}
                     >
-                        {isComplete
-                            ? <Icon name="check_circle" size={22} filled />
-                            : <Icon name="downloading" size={22} />
-                        }
+                        {isComplete ? (
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                        ) : (
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                        )}
                         {isBatchDownloading && batchTotal > batchCompleted && (
-                            <span
-                                className="absolute -top-1 -right-1 rounded-full px-1.5 font-bold"
-                                style={{
-                                    background: 'var(--color-error)',
-                                    color: 'white',
-                                    fontSize: '9px',
-                                    lineHeight: '14px',
-                                    minWidth: '14px',
-                                    textAlign: 'center',
-                                }}
-                            >
-                                {batchTotal - batchCompleted}
-                            </span>
+                            <span className="badge">{batchTotal - batchCompleted}</span>
                         )}
                     </motion.button>
                 )}
