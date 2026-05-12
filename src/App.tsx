@@ -7,55 +7,17 @@ import { DownloadPanel } from './components/DownloadPanel';
 import { CommandPalette } from './components/CommandPalette';
 import { IntroScreen } from './components/IntroScreen';
 import { SettingsModal } from './components/SettingsModal';
-import { Icon } from './components/Icon';
+import { OnboardHero } from './components/OnboardHero';
 import { useStore, AppState } from './store/useStore';
 import { ToastProvider, useToast } from './context/ToastContext';
 import { useTranslation } from 'react-i18next';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 
 const SIDEBAR_MIN = 240;
 const SIDEBAR_MAX = 640;
-const SIDEBAR_DEFAULT = 456;
+const SIDEBAR_DEFAULT = 360;
 
 const isMac = document.documentElement.dataset.platform === 'darwin';
-
-function OnboardingHint({ onDismiss }: { onDismiss: () => void }) {
-  const { t } = useTranslation();
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: -8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      className="rounded-xl p-5 space-y-3"
-      style={{
-        background: 'var(--color-surface-container-low)',
-        boxShadow: 'inset 0 0 0 1px rgba(65,71,85,0.2)',
-      }}
-    >
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Icon name="rss_feed" size={20} style={{ color: 'var(--color-primary)' }} />
-          <p className="text-sm font-medium" style={{ color: 'var(--color-on-surface)', fontFamily: 'var(--font-label)' }}>
-            {t('onboarding.hint_url')}
-          </p>
-        </div>
-        <button
-          onClick={onDismiss}
-          className="hover-bg-surface-high p-1 rounded-lg transition-all shrink-0"
-          style={{ color: 'var(--color-on-surface-variant)' }}
-        >
-          <Icon name="close" size={16} />
-        </button>
-      </div>
-      <div className="flex items-center gap-2 pl-9">
-        <Icon name="folder_open" size={14} style={{ color: 'var(--color-secondary)', opacity: 0.7 }} />
-        <p className="text-xs" style={{ color: 'var(--color-on-surface-variant)', opacity: 0.7 }}>
-          {t('onboarding.hint_folder')}
-        </p>
-      </div>
-    </motion.div>
-  );
-}
 
 function AppContent() {
   const updateDownload = useStore((state: AppState) => state.updateDownload);
@@ -64,6 +26,7 @@ function AppContent() {
   const setBatchFailed = useStore((state: AppState) => state.setBatchFailed);
   const setDownloadPath = useStore((state: AppState) => state.setDownloadPath);
   const viewMode = useStore((state: AppState) => state.viewMode);
+  const currentFeed = useStore((state: AppState) => state.currentFeed);
   const toast = useToast();
   const { t } = useTranslation();
 
@@ -126,7 +89,7 @@ function AppContent() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
-  // G7 — Onboarding: show on first run when no feeds exist
+  // Onboarding (G7 — first run, no feeds)
   useEffect(() => {
     if (localStorage.getItem('onboardingDone')) return;
     window.api.getFeeds().then(feeds => {
@@ -145,11 +108,6 @@ function AppContent() {
     return unsub;
   }, [showOnboarding]);
 
-  const dismissOnboarding = () => {
-    setShowOnboarding(false);
-    localStorage.setItem('onboardingDone', '1');
-  };
-
   useEffect(() => {
     const handleOnline  = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
@@ -161,7 +119,7 @@ function AppContent() {
     };
   }, []);
 
-  // G2 — Sidebar drag resize
+  // Sidebar drag-resize
   const [sidebarWidth, setSidebarWidth] = useState(() => {
     const stored = localStorage.getItem('sidebarWidth');
     if (stored) {
@@ -209,101 +167,115 @@ function AppContent() {
     document.body.style.userSelect = 'none';
   };
 
-  return (
-    <div className="flex h-screen overflow-hidden" style={{ background: 'var(--color-background)', color: 'var(--color-on-surface)' }}>
+  // Crumbs
+  const crumbsLeft  = viewMode === 'feeds' ? t('crumbs.feeds_active', 'Feeds attivi') : t('crumbs.archive', 'Archivio');
+  const crumbsRight = viewMode === 'feeds'
+    ? (currentFeed?.title || t('crumbs.no_feed', 'Nessun feed selezionato'))
+    : t('crumbs.all_archived', 'Tutti gli episodi archiviati');
 
-      {/* Offline banner */}
+  return (
+    <div className="app-shell" data-view={viewMode}>
+
+      {/* Top banners */}
       <AnimatePresence>
         {!isOnline && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="fixed top-0 left-0 right-0 z-50 text-center text-sm py-1 font-medium"
-            style={{ background: 'var(--color-error-container)', color: 'var(--color-error)' }}
-          >
-            {t('toast.offline_error')}
-          </motion.div>
+          <div className="banner-stack">
+            <div className="banner offline" role="status" aria-live="polite">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <line x1="1" y1="1" x2="23" y2="23"/>
+                <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/>
+                <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/>
+                <path d="M10.71 5.05A16 16 0 0 1 22.58 9"/>
+                <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/>
+                <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+                <line x1="12" y1="20" x2="12.01" y2="20"/>
+              </svg>
+              <span className="text">{t('banner.offline', 'Sei offline · i download sono in pausa fino al ripristino della connessione')}</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', letterSpacing: '0.14em', opacity: 0.6 }}>
+                {t('banner.retrying_auto', 'Riprovo automaticamente')}
+              </span>
+            </div>
+          </div>
         )}
       </AnimatePresence>
 
       {/* Sidebar */}
       <Sidebar onSettingsOpen={() => setIsSettingsOpen(true)} width={sidebarWidth} />
 
-      {/* G2 — Drag handle */}
+      {/* Drag handle (sidebar resize) */}
       <div
         onMouseDown={handleDividerMouseDown}
-        style={{
-          width: '4px',
-          flexShrink: 0,
-          cursor: 'col-resize',
-          background: 'rgba(65,71,85,0.12)',
-          transition: 'background 0.15s',
-          zIndex: 10,
-        }}
-        onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = 'rgba(173,198,255,0.3)'; }}
-        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = 'rgba(65,71,85,0.12)'; }}
+        className="sb-resize-grip"
+        style={{ position: 'relative', flexShrink: 0, width: 4 }}
+        aria-label="Resize sidebar"
+        role="separator"
       />
 
       {/* Settings modal — root level */}
       <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
 
       {/* Main area */}
-      <div className="flex-1 flex flex-col overflow-hidden" style={{ marginTop: !isOnline ? '2rem' : 0 }}>
+      <main className="main" style={!isOnline ? { marginTop: 36 } : undefined}>
 
-        {/* TopBar */}
-        <header
-          className={`flex items-center justify-between h-14 shrink-0 z-20 ${isMac ? 'pl-20 pr-8' : 'px-8'}`}
-          style={{ background: 'var(--color-background)' }}
-        >
-          <h1
-            className="text-lg font-extrabold tracking-tight"
-            style={{
-              fontFamily: 'var(--font-headline)',
-              background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-container))',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
-          >
-            {t('app.title')}
-          </h1>
-          <div className="flex items-center gap-3" style={{ color: 'var(--color-on-surface-variant)' }}>
+        <header className="topbar" style={isMac ? { paddingLeft: 80 } : undefined}>
+          <div className="topbar-title">
+            <h1>{t('app.title', 'FeedDownloader Pro')}</h1>
+            <div className="crumbs">
+              <span className="sep">/</span>
+              <span>{crumbsLeft}</span>
+              <span className="sep">/</span>
+              <strong>{crumbsRight}</strong>
+            </div>
+          </div>
+          <div className="topbar-actions">
             <button
-              onClick={() => setIsSettingsOpen(true)}
-              className="hover-text-primary transition-colors p-1"
-              style={{ color: 'var(--color-on-surface-variant)' }}
-              title={t('settings.title')}
+              type="button"
+              className="kbd-pill"
+              onClick={() => setIsCommandPaletteOpen(true)}
+              title={t('palette.open', 'Apri command palette')}
             >
-              <Icon name="settings" size={20} />
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+              </svg>
+              {t('topbar.search_actions', 'Cerca azioni')}
+              <span className="k">{isMac ? '⌘K' : 'Ctrl K'}</span>
+            </button>
+            <button
+              type="button"
+              className="icon-btn"
+              onClick={() => setIsSettingsOpen(true)}
+              title={t('settings.title')}
+              aria-label={t('settings.title')}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
             </button>
           </div>
         </header>
 
-        {/* Scrollable canvas */}
-        <main
+        <div
           id="main-scroll"
-          className={`flex-1 overflow-y-auto custom-scrollbar ${!isOnline ? 'opacity-50 pointer-events-none grayscale' : ''}`}
+          className="content custom-scrollbar"
+          style={!isOnline ? { opacity: 0.5, pointerEvents: 'none', filter: 'grayscale(1)' } : undefined}
         >
-          <div className="max-w-7xl mx-auto px-8 py-6 space-y-6">
-            {viewMode === 'feeds' ? (
-              <>
-                <UrlInput />
-                <AnimatePresence>
-                  {showOnboarding && <OnboardingHint key="onboarding" onDismiss={dismissOnboarding} />}
-                </AnimatePresence>
-                <EpisodeList />
-              </>
-            ) : (
-              <ArchiveView />
-            )}
-          </div>
-        </main>
-      </div>
+          {viewMode === 'feeds' ? (
+            <>
+              <UrlInput />
+              {showOnboarding && <OnboardHero />}
+              <EpisodeList />
+            </>
+          ) : (
+            <ArchiveView />
+          )}
+        </div>
+      </main>
 
-      {/* G1 — Download panel (fixed right drawer) */}
+      {/* Download panel (fixed right drawer) */}
       <DownloadPanel />
 
-      {/* G3 — Command palette */}
+      {/* Command palette */}
       <AnimatePresence>
         {isCommandPaletteOpen && (
           <CommandPalette
