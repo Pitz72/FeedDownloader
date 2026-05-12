@@ -31,3 +31,6 @@ distribuzione-linux/
 DISTRIBUZIONE/
 PORTING/
 .claude/
+
+# Credenziali locali — MAI committare
+.secrets/
