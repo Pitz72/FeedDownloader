@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
-/* ─── Fonts — importati da main.tsx per bundling corretto con Vite ─── */
+/* ─── Fonts — Inter + JetBrains Mono via Google Fonts (Epilogue + Space Grotesk + Material Symbols bundled in main.tsx) ─── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 /* Material Symbols configuration */
 .material-symbols-outlined {
@@ -23,31 +24,80 @@
   font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
-/* ─── Design Token Palette (Obsidian Command) ─────────────── */
+/* ──────────────────────────────────────────────────────────────
+   v1.3.0 — refined design tokens · electric azure on deep dark
+   ────────────────────────────────────────────────────────────── */
+:root {
+  /* Surfaces */
+  --bg:          #0a0a0c;
+  --bg-deep:     #060608;
+  --surf-1:      #111116;
+  --surf-2:      #16161d;
+  --surf-3:      #1d1d25;
+  --surf-4:      #25252f;
+  --border:      #25262e;
+  --border-soft: rgba(255,255,255,0.06);
+  --border-hard: rgba(255,255,255,0.12);
+
+  /* Primary — electric azure */
+  --azure:         #4b8eff;
+  --azure-hi:      #75abff;
+  --azure-lo:      #2b6fe6;
+  --azure-soft:    #adc6ff;
+  --azure-glow:    rgba(75,142,255,0.55);
+  --azure-glow-sm: rgba(75,142,255,0.25);
+
+  /* Status */
+  --ok:     #4ade80;
+  --warn:   #ffb770;
+  --danger: #ff6b6b;
+
+  /* Text */
+  --fg:   #f5f6fb;
+  --fg-2: #c8cbd8;
+  --fg-3: #888c9c;
+  --fg-4: #5a5d6c;
+
+  /* Type */
+  --font-display: 'Epilogue', system-ui, sans-serif;
+  --font-body:    'Inter', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', 'Space Grotesk Variable', ui-monospace, monospace;
+  --font-headline: var(--font-display);
+  --font-label:    var(--font-mono);
+
+  /* Radii */
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+  --r-pill: 999px;
+}
+
+/* ─── Tailwind @theme mapping (so existing utilities keep working) ─── */
 @theme {
   /* Surfaces */
-  --color-background:               #131313;
-  --color-surface:                  #131313;
-  --color-surface-dim:              #131313;
-  --color-surface-container-lowest: #0e0e0e;
-  --color-surface-container-low:    #1b1b1b;
-  --color-surface-container:        #1f1f1f;
-  --color-surface-container-high:   #2a2a2a;
-  --color-surface-container-highest:#353535;
-  --color-surface-bright:           #393939;
-  --color-surface-variant:          #353535;
+  --color-background:               #0a0a0c;
+  --color-surface:                  #0a0a0c;
+  --color-surface-dim:              #060608;
+  --color-surface-container-lowest: #060608;
+  --color-surface-container-low:    #111116;
+  --color-surface-container:        #16161d;
+  --color-surface-container-high:   #1d1d25;
+  --color-surface-container-highest:#25252f;
+  --color-surface-bright:           #25252f;
+  --color-surface-variant:          #1d1d25;
 
-  /* Primary (electric blue) */
+  /* Primary — azure */
   --color-primary:                  #adc6ff;
   --color-primary-fixed:            #d8e2ff;
   --color-primary-fixed-dim:        #adc6ff;
   --color-primary-container:        #4b8eff;
-  --color-on-primary:               #002e69;
-  --color-on-primary-fixed:         #001a41;
-  --color-on-primary-container:     #00285c;
-  --color-inverse-primary:          #005bc1;
+  --color-on-primary:               #001a35;
+  --color-on-primary-fixed:         #001a35;
+  --color-on-primary-container:     #001533;
+  --color-inverse-primary:          #2b6fe6;
 
-  /* Secondary (neon purple) */
+  /* Secondary (kept neon-purple accent for legacy code paths) */
   --color-secondary:                #e9b3ff;
   --color-secondary-container:      #7d01b1;
   --color-on-secondary:             #510074;
@@ -56,58 +106,58 @@
   --color-secondary-fixed-dim:      #e9b3ff;
 
   /* Tertiary */
-  --color-tertiary:                 #aac7ff;
-  --color-tertiary-container:       #3e90ff;
+  --color-tertiary:                 #75abff;
+  --color-tertiary-container:       #2b6fe6;
 
-  /* On-surface / text */
-  --color-on-surface:               #e2e2e2;
-  --color-on-surface-variant:       #c1c6d7;
-  --color-on-background:            #e2e2e2;
+  /* Text */
+  --color-on-surface:               #f5f6fb;
+  --color-on-surface-variant:       #c8cbd8;
+  --color-on-background:            #f5f6fb;
 
   /* Outlines */
-  --color-outline:                  #8b90a0;
-  --color-outline-variant:          #414755;
+  --color-outline:                  #5a5d6c;
+  --color-outline-variant:          #25262e;
 
   /* Error */
-  --color-error:                    #ffb4ab;
-  --color-error-container:          #93000a;
-  --color-on-error:                 #690005;
+  --color-error:                    #ff6b6b;
+  --color-error-container:          rgba(255,107,107,0.18);
+  --color-on-error:                 #001a35;
 
-  /* Warning (amber) */
+  /* Warning */
   --color-warning:                  #ffb770;
-  --color-warning-container:        #6e3200;
-  --color-on-warning:               #4a2000;
+  --color-warning-container:        rgba(255,183,112,0.18);
+  --color-on-warning:               #1a0f00;
 
   /* Misc */
-  --color-surface-tint:             #adc6ff;
-  --color-inverse-surface:          #e2e2e2;
-  --color-inverse-on-surface:       #303030;
+  --color-surface-tint:             #4b8eff;
+  --color-inverse-surface:          #f5f6fb;
+  --color-inverse-on-surface:       #16161d;
 
-  /* Legacy aliases (compatibilità componenti esistenti) */
-  --color-foreground:               #e2e2e2;
-  --color-card:                     #1b1b1b;
-  --color-card-foreground:          #e2e2e2;
-  --color-popover:                  #1f1f1f;
-  --color-popover-foreground:       #e2e2e2;
-  --color-muted:                    #2a2a2a;
-  --color-muted-foreground:         #c1c6d7;
-  --color-accent:                   #353535;
-  --color-accent-foreground:        #e2e2e2;
-  --color-destructive:              #93000a;
-  --color-destructive-foreground:   #ffb4ab;
-  --color-border:                   #414755;
-  --color-input:                    #353535;
-  --color-ring:                     #adc6ff;
+  /* Legacy aliases */
+  --color-foreground:               #f5f6fb;
+  --color-card:                     #111116;
+  --color-card-foreground:          #f5f6fb;
+  --color-popover:                  #16161d;
+  --color-popover-foreground:       #f5f6fb;
+  --color-muted:                    #1d1d25;
+  --color-muted-foreground:         #c8cbd8;
+  --color-accent:                   #1d1d25;
+  --color-accent-foreground:        #f5f6fb;
+  --color-destructive:              #ff6b6b;
+  --color-destructive-foreground:   #f5f6fb;
+  --color-border:                   #25262e;
+  --color-input:                    #16161d;
+  --color-ring:                     #4b8eff;
 
   /* Typography */
   --font-headline: 'Epilogue', system-ui, sans-serif;
   --font-body:     'Inter', system-ui, sans-serif;
-  --font-label:    'Space Grotesk Variable', 'Space Grotesk', system-ui, sans-serif;
+  --font-label:    'JetBrains Mono', 'Space Grotesk Variable', ui-monospace, monospace;
 
-  /* Border radius — sharp, pro-sumer */
-  --radius:    0.125rem;
-  --radius-lg: 0.375rem;
-  --radius-xl: 0.5rem;
+  /* Border radius */
+  --radius:    4px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
 }
 
 /* ─── Base ────────────────────────────────────────────────── */
@@ -116,95 +166,95 @@
     box-sizing: border-box;
   }
 
-  body {
-    background-color: var(--color-background);
-    color: var(--color-on-surface);
-    font-family: var(--font-body);
+  html, body {
+    height: 100%;
+    margin: 0;
     overflow: hidden;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-body);
+    font-size: 13px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
 }
 
-/* ─── Utility Classes ─────────────────────────────────────── */
+/* ─── Legacy utility classes (kept for compatibility) ─────── */
 
-/* Bento card — no border, surface layering */
 .bento-card {
-  background-color: var(--color-surface-container-low);
-  box-shadow: inset 0 0 0 1px rgba(65, 71, 85, 0.15);
+  background-color: var(--surf-1);
+  box-shadow: inset 0 0 0 1px var(--border-soft);
 }
 
-/* Glass panel (floating / input bar) */
 .glass-panel {
-  background: rgba(53, 53, 53, 0.6);
+  background: rgba(22, 22, 29, 0.6);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(65, 71, 85, 0.2);
+  border: 1px solid var(--border-soft);
 }
 
-/* Legacy glass-card — mantiene compatibilità SettingsModal e altri */
 .glass {
-  background: rgba(31, 31, 31, 0.8);
+  background: rgba(17, 17, 22, 0.85);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(65, 71, 85, 0.3);
+  border: 1px solid var(--border);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
 }
 
 .glass-card {
-  background: rgba(27, 27, 27, 0.8);
+  background: rgba(17, 17, 22, 0.85);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(65, 71, 85, 0.3);
+  border: 1px solid var(--border);
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
-  border-radius: 0.75rem;
+  border-radius: var(--r-md);
 }
 
-/* Primary gradient button */
 .btn-primary-gradient {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-container));
-  color: var(--color-on-primary-fixed);
-  font-family: var(--font-label);
+  background: linear-gradient(180deg, var(--azure-hi), var(--azure));
+  color: #001a35;
+  font-family: var(--font-mono);
   font-weight: 700;
-  font-size: 0.75rem;
-  border-radius: var(--radius-lg);
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  border-radius: var(--r-md);
   transition: filter 150ms cubic-bezier(0.2, 0, 0, 1), transform 150ms cubic-bezier(0.2, 0, 0, 1);
+  box-shadow: 0 2px 12px var(--azure-glow-sm), inset 0 1px 0 rgba(255,255,255,0.3);
 }
-.btn-primary-gradient:hover  { filter: brightness(1.1); }
+.btn-primary-gradient:hover  { filter: brightness(1.08); transform: translateY(-1px); }
 .btn-primary-gradient:active { transform: scale(0.97); }
 
-/* ─── Hover Utilities ─────────────────────────────────────── */
-.hover-text-primary:hover            { color: var(--color-primary); }
-.hover-text-surface:hover            { color: var(--color-on-surface); }
-.hover-text-warning:hover            { color: #fb923c; }
-.hover-bg-primary-tinted:hover       { background: rgba(173, 198, 255, 0.1); }
-.hover-bg-surface-high:hover         { background: var(--color-surface-container-high); color: var(--color-on-surface); }
-.hover-bg-bright:hover               { background: var(--color-surface-bright); }
-.hover-bg-container:hover            { background: var(--color-surface-container) !important; }
-.hover-bg-highest:hover              { background: var(--color-surface-container-highest) !important; }
+/* ─── Hover utilities (legacy compat) ─────────────────────── */
+.hover-text-primary:hover            { color: var(--azure-soft); }
+.hover-text-surface:hover            { color: var(--fg); }
+.hover-text-warning:hover            { color: var(--warn); }
+.hover-bg-primary-tinted:hover       { background: rgba(75,142,255,0.10); }
+.hover-bg-surface-high:hover         { background: var(--surf-3); color: var(--fg); }
+.hover-bg-bright:hover               { background: var(--surf-4); }
+.hover-bg-container:hover            { background: var(--surf-2) !important; }
+.hover-bg-highest:hover              { background: var(--surf-4) !important; }
 .hover-secondary-tinted:hover        { background: rgba(125, 1, 177, 0.2) !important; }
-.hover-primary-tinted-strong:hover   { background: rgba(173, 198, 255, 0.22) !important; }
-.hover-error-tinted-strong:hover     { background: rgba(147, 0, 10, 0.22) !important; }
+.hover-primary-tinted-strong:hover   { background: rgba(75,142,255,0.22) !important; }
+.hover-error-tinted-strong:hover     { background: rgba(255,107,107,0.22) !important; }
 .hover-opacity-dim:hover             { opacity: 0.85; }
-.hover-stop:hover                    { color: var(--color-error); background: rgba(147, 0, 10, 0.15); }
-.hover-danger:hover                  { background: rgba(255, 79, 79, 0.15); color: #ff6b6b; }
-.feed-item:hover:not(.feed-item-active) {
-  background: var(--color-surface-container-high);
-  color: var(--color-on-surface);
-}
-.settings-nav-item:hover:not(.settings-nav-active) {
-  background: var(--color-surface-container-high);
-  color: var(--color-on-surface);
-}
+.hover-stop:hover                    { color: var(--danger); background: rgba(255,107,107,0.15); }
+.hover-danger:hover                  { background: rgba(255,107,107,0.15); color: var(--danger); }
 .lang-btn-hover:hover:not(.lang-btn-active) {
   opacity: 1 !important;
-  background: var(--color-surface-container-high) !important;
+  background: var(--surf-3) !important;
 }
 .episode-row { transition: background 150ms ease; }
-.episode-row:hover { background: var(--color-surface-container-high) !important; }
+.episode-row:hover { background: var(--surf-2) !important; }
 
 /* ─── Scrollbar ───────────────────────────────────────────── */
-::-webkit-scrollbar         { width: 4px; height: 4px; }
+::-webkit-scrollbar         { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track   { background: transparent; }
-::-webkit-scrollbar-thumb   { background: var(--color-surface-container-highest); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: var(--color-outline); }
+::-webkit-scrollbar-thumb   { background: var(--surf-4); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--fg-4); }
 
-.custom-scrollbar::-webkit-scrollbar         { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar         { width: 6px; }
 .custom-scrollbar::-webkit-scrollbar-track   { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb   { background: var(--color-surface-container-highest); border-radius: 10px; }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--color-outline); }
+.custom-scrollbar::-webkit-scrollbar-thumb   { background: var(--surf-4); border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--fg-4); }
