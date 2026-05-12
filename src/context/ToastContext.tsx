@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useCallback } from 'react';
 import { Icon } from '../components/Icon';
 import clsx from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useStore, AppState } from '../store/useStore';
 
 type ToastType = 'success' | 'error' | 'info';
 
@@ -19,6 +20,11 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [toasts, setToasts] = useState<Toast[]>([]);
+    const isBatchDownloading = useStore((s: AppState) => s.isBatchDownloading);
+    const batchCompleted    = useStore((s: AppState) => s.batchCompleted);
+    const batchTotal        = useStore((s: AppState) => s.batchTotal);
+    const progressBarVisible = isBatchDownloading ||
+        (!isBatchDownloading && batchCompleted > 0 && batchCompleted >= batchTotal);
 
     const show = useCallback((message: string, type: ToastType = 'info') => {
         const id = Math.random().toString(36).substring(7);
@@ -36,7 +42,13 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return (
         <ToastContext.Provider value={{ show }}>
             {children}
-            <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
+            <div
+                className="fixed right-4 z-[60] flex flex-col gap-2"
+                style={{
+                    bottom: progressBarVisible ? '340px' : '1rem',
+                    transition: 'bottom 0.3s ease',
+                }}
+            >
                 <AnimatePresence>
                     {toasts.map((toast) => (
                         <motion.div

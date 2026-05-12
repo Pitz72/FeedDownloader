@@ -75,7 +75,8 @@
         "sort_dur_asc": "时长：最短",
         "redownload": "重新下载",
         "download_selected": "下载已选 ({{count}})",
-        "export_m3u": "导出 M3U"
+        "export_m3u": "导出 M3U",
+        "copy_title": "复制标题"
     },
     "progress": {
         "downloading": "下载中...",
@@ -111,7 +112,8 @@
         "sync_queued": "{{count}} 个新集已加入队列",
         "sync_none": "没有新剧集可下载",
         "m3u_exported": "M3U 播放列表已导出",
-        "m3u_empty": "没有已下载的集可导出"
+        "m3u_empty": "没有已下载的集可导出",
+        "title_copied": "标题已复制"
     },
     "confirm": {
         "mass_download": "您确定要下载全部 {{count}} 集吗？",
@@ -202,6 +204,10 @@
         "auto_refresh_6h": "6 小时",
         "auto_refresh_12h": "12 小时",
         "auto_refresh_24h": "24 小时"
+    },
+    "onboarding": {
+        "hint_url": "在上方栏中粘贴 RSS 订阅源链接以开始使用",
+        "hint_folder": "下载前，请在设置 → 下载中选择目标文件夹"
     },
     "diskspace": {
         "critical": "磁盘空间严重不足：可用空间少于 200 MB。下载已取消。",

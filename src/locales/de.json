@@ -75,7 +75,8 @@
         "sort_dur_asc": "Dauer: kürzeste zuerst",
         "redownload": "Erneut herunterladen",
         "download_selected": "Ausgewählte herunterladen ({{count}})",
-        "export_m3u": "M3U exportieren"
+        "export_m3u": "M3U exportieren",
+        "copy_title": "Titel kopieren"
     },
     "progress": {
         "downloading": "Wird heruntergeladen...",
@@ -111,7 +112,8 @@
         "sync_queued": "{{count}} neue Episoden in der Warteschlange",
         "sync_none": "Keine neuen Episoden zum Herunterladen",
         "m3u_exported": "M3U-Playlist exportiert",
-        "m3u_empty": "Keine heruntergeladenen Episoden zum Exportieren"
+        "m3u_empty": "Keine heruntergeladenen Episoden zum Exportieren",
+        "title_copied": "Titel kopiert"
     },
     "confirm": {
         "mass_download": "Möchten Sie wirklich alle {{count}} Episoden herunterladen?",
@@ -202,6 +204,10 @@
         "auto_refresh_6h": "6 Stunden",
         "auto_refresh_12h": "12 Stunden",
         "auto_refresh_24h": "24 Stunden"
+    },
+    "onboarding": {
+        "hint_url": "Fügen Sie die URL eines RSS-Feeds in die Leiste oben ein, um zu beginnen",
+        "hint_folder": "Wählen Sie vor dem Herunterladen den Zielordner unter Einstellungen → Download"
     },
     "diskspace": {
         "critical": "Kritischer Speicherplatz: weniger als 200 MB verfügbar. Download abgebrochen.",

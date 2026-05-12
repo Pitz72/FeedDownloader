@@ -14,6 +14,44 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const isMac = document.documentElement.dataset.platform === 'darwin';
 
+function OnboardingHint({ onDismiss }: { onDismiss: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      className="rounded-xl p-5 space-y-3"
+      style={{
+        background: 'var(--color-surface-container-low)',
+        boxShadow: 'inset 0 0 0 1px rgba(65,71,85,0.2)',
+      }}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <Icon name="rss_feed" size={20} style={{ color: 'var(--color-primary)' }} />
+          <p className="text-sm font-medium" style={{ color: 'var(--color-on-surface)', fontFamily: 'var(--font-label)' }}>
+            {t('onboarding.hint_url')}
+          </p>
+        </div>
+        <button
+          onClick={onDismiss}
+          className="hover-bg-surface-high p-1 rounded-lg transition-all shrink-0"
+          style={{ color: 'var(--color-on-surface-variant)' }}
+        >
+          <Icon name="close" size={16} />
+        </button>
+      </div>
+      <div className="flex items-center gap-2 pl-9">
+        <Icon name="folder_open" size={14} style={{ color: 'var(--color-secondary)', opacity: 0.7 }} />
+        <p className="text-xs" style={{ color: 'var(--color-on-surface-variant)', opacity: 0.7 }}>
+          {t('onboarding.hint_folder')}
+        </p>
+      </div>
+    </motion.div>
+  );
+}
+
 function AppContent() {
   const updateDownload = useStore((state: AppState) => state.updateDownload);
   const incrementBatch = useStore((state: AppState) => state.incrementBatch);
@@ -77,6 +115,31 @@ function AppContent() {
 
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  // G7 — Onboarding: show on first run when no feeds exist
+  useEffect(() => {
+    if (localStorage.getItem('onboardingDone')) return;
+    window.api.getFeeds().then(feeds => {
+      if (feeds.length === 0) setShowOnboarding(true);
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!showOnboarding) return;
+    const unsub = window.api.onFeedsUpdated((_e, feeds) => {
+      if (feeds.length > 0) {
+        setShowOnboarding(false);
+        localStorage.setItem('onboardingDone', '1');
+      }
+    });
+    return unsub;
+  }, [showOnboarding]);
+
+  const dismissOnboarding = () => {
+    setShowOnboarding(false);
+    localStorage.setItem('onboardingDone', '1');
+  };
 
   useEffect(() => {
     const handleOnline  = () => setIsOnline(true);
@@ -153,6 +216,9 @@ function AppContent() {
             {viewMode === 'feeds' ? (
               <>
                 <UrlInput />
+                <AnimatePresence>
+                  {showOnboarding && <OnboardingHint key="onboarding" onDismiss={dismissOnboarding} />}
+                </AnimatePresence>
                 <EpisodeList />
               </>
             ) : (

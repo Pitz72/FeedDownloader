@@ -75,7 +75,8 @@
         "sort_dur_asc": "Durata: più corta",
         "redownload": "Riscarica",
         "download_selected": "Scarica Selezionati ({{count}})",
-        "export_m3u": "Esporta M3U"
+        "export_m3u": "Esporta M3U",
+        "copy_title": "Copia titolo"
     },
     "progress": {
         "downloading": "Download in corso...",
@@ -111,7 +112,8 @@
         "sync_queued": "{{count}} nuovi episodi in coda",
         "sync_none": "Nessun nuovo episodio da scaricare",
         "m3u_exported": "Playlist M3U esportata",
-        "m3u_empty": "Nessun episodio scaricato da esportare"
+        "m3u_empty": "Nessun episodio scaricato da esportare",
+        "title_copied": "Titolo copiato"
     },
     "confirm": {
         "mass_download": "Vuoi davvero scaricare tutti i {{count}} episodi?",
@@ -202,6 +204,10 @@
         "auto_refresh_6h": "6 ore",
         "auto_refresh_12h": "12 ore",
         "auto_refresh_24h": "24 ore"
+    },
+    "onboarding": {
+        "hint_url": "Incolla l'URL di un feed RSS nella barra qui sopra per iniziare",
+        "hint_folder": "Prima di scaricare, scegli la cartella di destinazione in Impostazioni → Download"
     },
     "diskspace": {
         "critical": "Spazio disco critico: meno di 200 MB disponibili. Download annullato.",

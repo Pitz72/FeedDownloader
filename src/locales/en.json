@@ -75,7 +75,8 @@
         "sort_dur_asc": "Duration: shortest first",
         "redownload": "Re-download",
         "download_selected": "Download Selected ({{count}})",
-        "export_m3u": "Export M3U"
+        "export_m3u": "Export M3U",
+        "copy_title": "Copy title"
     },
     "progress": {
         "downloading": "Downloading...",
@@ -111,7 +112,8 @@
         "sync_queued": "{{count}} new episodes queued",
         "sync_none": "No new episodes to download",
         "m3u_exported": "M3U playlist exported",
-        "m3u_empty": "No downloaded episodes to export"
+        "m3u_empty": "No downloaded episodes to export",
+        "title_copied": "Title copied"
     },
     "confirm": {
         "mass_download": "Do you really want to download all {{count}} episodes?",
@@ -202,6 +204,10 @@
         "auto_refresh_6h": "6 hours",
         "auto_refresh_12h": "12 hours",
         "auto_refresh_24h": "24 hours"
+    },
+    "onboarding": {
+        "hint_url": "Paste an RSS feed URL in the bar above to get started",
+        "hint_folder": "Before downloading, choose your destination folder in Settings → Download"
     },
     "diskspace": {
         "critical": "Critical disk space: less than 200 MB available. Download cancelled.",

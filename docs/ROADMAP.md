@@ -1,7 +1,7 @@
 # Roadmap FeedDownloader Pro — Fonte di Verità
 
-**Versione di riferimento:** 1.2.0
-**Ultimo aggiornamento:** 12 maggio 2026 — v1.2.0
+**Versione di riferimento:** 1.2.1
+**Ultimo aggiornamento:** 12 maggio 2026 — v1.2.1
 
 Questo è l'unico documento autorevole per tutto il lavoro pendente post-v1.0.0.
 I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_2026.md`) sono archiviati in `archivio/`.
@@ -72,8 +72,8 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 | G3 | UI/UX | Command palette Ctrl+K | ⚪ | 🔲 |
 | G4 | UI/UX | Pannello dettaglio episodio (click) | ⚪ | 🔲 |
 | G5 | UI/UX | Sync All con progresso per-feed | ⚪ | 🔲 |
-| G6 | UI/UX | Toast stack — gestione collisioni con GlobalProgressBar | ⚪ | 🔲 |
-| G7 | UI/UX | Onboarding guidato primo avvio | ⚪ | 🔲 |
+| G6 | UI/UX | Toast stack — gestione collisioni con GlobalProgressBar | ⚪ | ✅ v1.2.1 |
+| G7 | UI/UX | Onboarding guidato primo avvio | ⚪ | ✅ v1.2.1 |
 
 ---
 
@@ -354,15 +354,17 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 - **Stato:** 🔲
 - **Descrizione:** Durante Sync All la sidebar non cambia. Ogni voce feed dovrebbe mostrare uno spinner individuale mentre è in corso il suo parse, e un check (✓) o errore (✗) al completamento. Il bottone diventa "Sincronizzando... 4/12".
 
-### G6 ⚪ Toast stack — gestione collisioni con GlobalProgressBar
+### G6 ⚪ ✅ v1.2.1 Toast stack — gestione collisioni con GlobalProgressBar
 
-- **Stato:** 🔲
-- **Descrizione:** Il GlobalProgressBar (bottom-right) e i toast (presumibilmente bottom) possono sovrapporsi durante batch download intensi con molti errori. Serve un sistema di stacking che sposti i toast sopra la progress bar quando è visibile.
+- **Stato:** ✅ v1.2.1
+- **File:** `src/context/ToastContext.tsx`
+- **Implementazione:** `ToastProvider` legge `isBatchDownloading`, `batchCompleted`, `batchTotal` da Zustand. Quando `progressBarVisible` è true, il container dei toast si sposta a `bottom: 340px` (con `transition 0.3s ease`), liberando lo spazio occupato dal pannello. Al termine del batch il container torna a `bottom: 1rem`.
 
-### G7 ⚪ Onboarding guidato al primo avvio
+### G7 ⚪ ✅ v1.2.1 Onboarding guidato al primo avvio
 
-- **Stato:** 🔲
-- **Descrizione:** Dopo l'IntroScreen, la sidebar è vuota con solo "Nessun feed". Un tooltip/callout guidato ("Incolla qui l'URL di un feed RSS") e un suggerimento per scegliere la cartella di download prima del primo utilizzo migliorerebbero significativamente l'adozione.
+- **Stato:** ✅ v1.2.1
+- **File:** `src/App.tsx`
+- **Implementazione:** Al mount, `AppContent` chiama `window.api.getFeeds()`: se la lista è vuota e `localStorage.onboardingDone` non è impostato, mostra `OnboardingHint` tra `UrlInput` e `EpisodeList`. Il callout contiene: riga principale con icona RSS e testo guida URL; riga secondaria con icona cartella e suggerimento Impostazioni → Download. Scompare automaticamente quando viene aggiunto il primo feed (listener `onFeedsUpdated`) o manualmente tramite il pulsante ×. Flag `localStorage.onboardingDone` persiste tra i riavvii.
 
 ---
 

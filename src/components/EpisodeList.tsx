@@ -367,6 +367,18 @@ export const EpisodeList: React.FC = () => {
 
                 {/* Actions / status — stop propagation so clicks don't toggle row selection */}
                 <div className="flex items-center gap-3 shrink-0" onClick={(e) => e.stopPropagation()}>
+                    {/* Copy title */}
+                    <button
+                        onClick={() => {
+                            navigator.clipboard.writeText(episode.title);
+                            toast.show(t('toast.title_copied'), 'success');
+                        }}
+                        className="opacity-0 group-hover:opacity-100 p-1 rounded transition-all"
+                        style={{ color: 'var(--color-on-surface-variant)' }}
+                        title={t('episodes.copy_title')}
+                    >
+                        <Icon name="content_copy" size={14} />
+                    </button>
                     {isDownloading ? (
                         <div className="flex flex-col items-end gap-0.5 text-xs" style={{ fontFamily: 'var(--font-label)', color: 'var(--color-primary)' }}>
                             <div className="flex items-center gap-2">
@@ -423,7 +435,7 @@ export const EpisodeList: React.FC = () => {
                 </div>
             </div>
         );
-    }, [downloads, downloadedGuids, currentFeed, t, isOnline, handleDownload, handleResetStatus, selectedGuids, handleRowClick]);
+    }, [downloads, downloadedGuids, currentFeed, t, isOnline, handleDownload, handleResetStatus, selectedGuids, handleRowClick, toast]);
 
     if (!currentFeed) return null;
 
