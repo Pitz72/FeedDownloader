@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 // Re-export shared types for use in global declarations
-import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveStats, HealthCheckResult, DiskSpaceInfo, MigrationResult, MigrationProgress, PathValidationResult, UpdateStatus, QueueItem, FailedDownload } from '../shared/types'
+import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveEntry, ArchiveStats, HealthCheckResult, DiskSpaceInfo, MigrationResult, MigrationProgress, PathValidationResult, UpdateStatus, QueueItem, FailedDownload } from '../shared/types'
 
 declare global {
     const __APP_VERSION__: string;
@@ -65,6 +65,9 @@ declare global {
             openFolder: (dirPath: string) => Promise<void>;
             // M3U Export
             exportM3U: (podcastTitle: string) => Promise<boolean | null>;
+            // Archive view (F1)
+            getArchive: () => Promise<ArchiveEntry[]>;
+            openArchiveFile: (podcastTitle: string, filename: string) => Promise<boolean>;
             // Auto-Update
             checkForUpdate: () => Promise<void>;
             installUpdate: () => Promise<void>;

@@ -15,6 +15,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen }) => {
   const [feeds, setFeeds] = useState<FeedEntry[]>([]);
   const { currentFeed, setCurrentFeed } = useStore((state: AppState) => state);
   const downloadPath = useStore((state: AppState) => state.downloadPath);
+  const viewMode = useStore((state: AppState) => state.viewMode);
+  const setViewMode = useStore((state: AppState) => state.setViewMode);
   const toast = useToast();
   const { t } = useTranslation();
   const [loadingUrl, setLoadingUrl] = useState<string | null>(null);
@@ -140,8 +142,35 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen }) => {
         </button>
       </div>
 
+      {/* Tab bar */}
+      <div className="flex px-4 pb-3 gap-1">
+        <button
+          onClick={() => setViewMode('feeds')}
+          className="flex-1 py-1.5 text-xs font-semibold rounded-lg transition-colors"
+          style={{
+            fontFamily: 'var(--font-label)',
+            background: viewMode === 'feeds' ? 'var(--color-primary-container)' : 'transparent',
+            color: viewMode === 'feeds' ? 'var(--color-primary)' : 'var(--color-on-surface-variant)',
+          }}
+        >
+          {t('sidebar.tab_feeds')}
+        </button>
+        <button
+          onClick={() => setViewMode('archive')}
+          className="flex-1 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5"
+          style={{
+            fontFamily: 'var(--font-label)',
+            background: viewMode === 'archive' ? 'var(--color-primary-container)' : 'transparent',
+            color: viewMode === 'archive' ? 'var(--color-primary)' : 'var(--color-on-surface-variant)',
+          }}
+        >
+          <Icon name="inventory_2" size={12} />
+          {t('sidebar.tab_archive')}
+        </button>
+      </div>
+
       {/* Search + sort bar */}
-      {feeds.length > 0 && (
+      {viewMode === 'feeds' && feeds.length > 0 && (
         <div className="px-3 pb-2 flex gap-2">
           <div
             className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg"
@@ -182,7 +211,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen }) => {
 
       {/* Feed list */}
       <div className="flex-1 overflow-y-auto custom-scrollbar px-3 space-y-1">
-        {feeds.length === 0 && (
+        {viewMode === 'archive' && (
+          <div
+            className="flex flex-col items-center justify-center mt-10 gap-3"
+            style={{ color: 'var(--color-on-surface-variant)' }}
+          >
+            <Icon name="inventory_2" size={36} style={{ opacity: 0.35 }} />
+            <span className="text-xs text-center px-4" style={{ fontFamily: 'var(--font-label)' }}>
+              {t('sidebar.archive_mode_hint')}
+            </span>
+          </div>
+        )}
+
+        {viewMode === 'feeds' && feeds.length === 0 && (
           <div
             className="text-center text-sm mt-10 px-4"
             style={{ color: 'var(--color-on-surface-variant)' }}
@@ -191,7 +232,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen }) => {
           </div>
         )}
 
-        {feeds.length > 0 && displayedFeeds.length === 0 && (
+        {viewMode === 'feeds' && feeds.length > 0 && displayedFeeds.length === 0 && (
           <div
             className="text-center text-sm mt-10 px-4"
             style={{ color: 'var(--color-on-surface-variant)' }}
@@ -200,7 +241,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen }) => {
           </div>
         )}
 
-        {displayedFeeds.map((feed) => {
+        {viewMode === 'feeds' && displayedFeeds.map((feed) => {
           const imageUrl = typeof feed.image === 'string' ? feed.image : feed.image?.url;
           const isActive = currentFeed?.url === feed.url;
           const isLoading = loadingUrl === feed.url;
@@ -286,7 +327,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen }) => {
 
       {/* Footer */}
       <div className="px-4 pt-4 pb-6 space-y-4">
-        {feeds.length > 0 && (
+        {viewMode === 'feeds' && feeds.length > 0 && (
           <button
             onClick={handleSyncAll}
             disabled={isSyncingAll}

@@ -1,7 +1,7 @@
 # Roadmap FeedDownloader Pro — Fonte di Verità
 
-**Versione di riferimento:** 1.1.21
-**Ultimo aggiornamento:** 11 maggio 2026
+**Versione di riferimento:** 1.1.22
+**Ultimo aggiornamento:** 12 maggio 2026
 
 Questo è l'unico documento autorevole per tutto il lavoro pendente post-v1.0.0.
 I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_2026.md`) sono archiviati in `archivio/`.
@@ -61,7 +61,7 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 | E5 | Feature | Re-download episodio già scaricato | 🔵 | ✅ v1.1.15 |
 | E6 | Feature | Path download visibile nella UI principale | 🔵 | ✅ v1.1.16 |
 | E7 | Feature | `lastUpdated` sidebar aggiornato al sync | 🔵 | ✅ v1.1.17 |
-| F1 | Feature | Vista archivio integrata in-app | 🟣 | 🔲 |
+| F1 | Feature | Vista archivio integrata in-app | 🟣 | ✅ v1.1.22 |
 | F2 | Feature | Badge "N nuovi" per feed in sidebar | 🟣 | ✅ v1.1.20 |
 | F3 | Feature | Auto-refresh feed periodico in background | 🟣 | 🔲 |
 | F4 | Feature | Selezione multipla episodi (Shift/Ctrl+click) | 🟣 | ✅ v1.1.18 |
@@ -297,10 +297,11 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 
 ## F — Funzionalità Suggerite 🟣
 
-### F1 🟣 Vista archivio integrata in-app
+### F1 🟣 ✅ v1.1.22 Vista archivio integrata in-app
 
-- **Stato:** 🔲
-- **Descrizione:** L'archivio esiste nel DB e nell'export CSV, ma non è navigabile dall'app. Una scheda "Archivio" con tabella virtualizzata (react-virtuoso), ricerca per titolo/podcast, ordinamento per data/dimensione, e filtro per podcast. Mostrerebbe anche checksum e bitrate.
+- **Stato:** ✅ v1.1.22
+- **File:** `shared/types.ts`, `electron/ipc.ts`, `electron/preload.ts`, `src/vite-env.d.ts`, `src/store/useStore.ts`, `src/components/ArchiveView.tsx`, `src/components/Sidebar.tsx`, `src/App.tsx`, `src/locales/*.json`
+- **Implementazione:** Tab bar sidebar Feed/Archivio. Vista archivio con tabella virtualizzata (react-virtuoso): ricerca per titolo/podcast, filtro per singolo podcast (dropdown), ordinamento per data download, data pubblicazione, dimensione, bitrate. Header con statistiche (N file, M podcast, totale GB). Pulsante "Mostra in cartella" on-hover. Aggiornamento automatico ad ogni download completato via `onDownloadsUpdated`.
 
 ### F2 🟣 ✅ v1.1.20 Badge "N nuovi" per feed nella sidebar
 

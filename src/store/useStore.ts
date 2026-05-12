@@ -31,6 +31,10 @@ export interface AppState {
     // E6 — Download path visible in UI
     downloadPath: string;
     setDownloadPath: (path: string) => void;
+
+    // F1 — Archive view
+    viewMode: 'feeds' | 'archive';
+    setViewMode: (mode: 'feeds' | 'archive') => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -112,4 +116,8 @@ export const useStore = create<AppState>((set) => ({
     // E6 — Download path visible in UI
     downloadPath: '',
     setDownloadPath: (path) => set({ downloadPath: path }),
+
+    // F1 — Archive view
+    viewMode: 'feeds',
+    setViewMode: (mode) => set({ viewMode: mode }),
 }));

@@ -503,6 +503,19 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         return libraryService.getArchiveStats();
     });
 
+    // ── Archive List (F1) ─────────────────────────────────
+    ipcMain.handle(CH.GET_ARCHIVE, async () => {
+        return libraryService.getArchive();
+    });
+
+    ipcMain.handle(CH.OPEN_ARCHIVE_FILE, async (_, { podcastTitle, filename }: { podcastTitle: string; filename: string }) => {
+        let baseDir = libraryService.getDownloadPath();
+        if (!baseDir) baseDir = path.join(app.getPath('documents'), 'FeedDownloader', 'downloads');
+        const filePath = path.join(baseDir, sanitize(podcastTitle), filename);
+        shell.showItemInFolder(filePath);
+        return true;
+    });
+
     // ── Locale Sync ──────────────────────────────────────
     ipcMain.handle(CH.SET_LOCALE, async (_, locale: string) => {
         uiLocale = locale;

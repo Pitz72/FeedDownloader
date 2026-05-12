@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { UrlInput } from './components/UrlInput';
 import { EpisodeList } from './components/EpisodeList';
+import { ArchiveView } from './components/ArchiveView';
 import { Sidebar } from './components/Sidebar';
 import { GlobalProgressBar } from './components/GlobalProgressBar';
 import { IntroScreen } from './components/IntroScreen';
@@ -19,6 +20,7 @@ function AppContent() {
   const setQueueItems = useStore((state: AppState) => state.setQueueItems);
   const setBatchFailed = useStore((state: AppState) => state.setBatchFailed);
   const setDownloadPath = useStore((state: AppState) => state.setDownloadPath);
+  const viewMode = useStore((state: AppState) => state.viewMode);
   const toast = useToast();
   const { t } = useTranslation();
 
@@ -148,8 +150,14 @@ function AppContent() {
           className={`flex-1 overflow-y-auto custom-scrollbar ${!isOnline ? 'opacity-50 pointer-events-none grayscale' : ''}`}
         >
           <div className="max-w-7xl mx-auto px-8 py-6 space-y-6">
-            <UrlInput />
-            <EpisodeList />
+            {viewMode === 'feeds' ? (
+              <>
+                <UrlInput />
+                <EpisodeList />
+              </>
+            ) : (
+              <ArchiveView />
+            )}
           </div>
           <GlobalProgressBar />
         </main>

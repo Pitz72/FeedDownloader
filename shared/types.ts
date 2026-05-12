@@ -205,4 +205,7 @@ export const IPC_CHANNELS = {
     OPEN_FOLDER: 'open-folder',
     // M3U playlist export (F5)
     EXPORT_M3U: 'export-m3u',
+    // Archive view (F1)
+    GET_ARCHIVE: 'get-archive',
+    OPEN_ARCHIVE_FILE: 'open-archive-file',
 } as const;

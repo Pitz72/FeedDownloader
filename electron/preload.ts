@@ -1,5 +1,5 @@
 import { ipcRenderer, contextBridge } from 'electron'
-import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveStats, HealthCheckResult, DiskSpaceInfo, MigrationResult, MigrationProgress, PathValidationResult, UpdateStatus } from '../shared/types'
+import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveEntry, ArchiveStats, HealthCheckResult, DiskSpaceInfo, MigrationResult, MigrationProgress, PathValidationResult, UpdateStatus } from '../shared/types'
 import { IPC_CHANNELS as CH } from '../shared/types'
 
 // Set platform data-attribute on <html> for macOS traffic-light CSS.
@@ -111,6 +111,11 @@ contextBridge.exposeInMainWorld('api', {
 
   // M3U Export
   exportM3U: (podcastTitle: string): Promise<boolean | null> => ipcRenderer.invoke(CH.EXPORT_M3U, podcastTitle),
+
+  // Archive view (F1)
+  getArchive: (): Promise<ArchiveEntry[]> => ipcRenderer.invoke(CH.GET_ARCHIVE),
+  openArchiveFile: (podcastTitle: string, filename: string): Promise<boolean> =>
+    ipcRenderer.invoke(CH.OPEN_ARCHIVE_FILE, { podcastTitle, filename }),
 
   // Auto-Update
   checkForUpdate: (): Promise<void> => ipcRenderer.invoke(CH.CHECK_FOR_UPDATE),
