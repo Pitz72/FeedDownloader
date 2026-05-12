@@ -160,7 +160,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         { id: 'advanced', labelKey: 'settings.nav_advanced', icon: <Icon name="warning"     size={16} /> },
     ];
 
-    const backdropVariants = { hidden: { opacity: 0 }, visible: { opacity: 1 } };
     const panelVariants = {
         hidden:  { x: 60, opacity: 0 },
         visible: { x: 0, opacity: 1, transition: { type: 'spring' as const, stiffness: 300, damping: 30 } },
@@ -196,92 +195,50 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8">
-                    {/* Backdrop */}
+                <div className="settings-bg" onClick={onClose}>
                     <motion.div
-                        className="absolute inset-0 backdrop-blur-sm"
-                        style={{ background: 'rgba(0,0,0,0.72)' }}
-                        variants={backdropVariants}
-                        initial="hidden" animate="visible" exit="hidden"
-                        onClick={onClose}
-                    />
-
-                    {/* Panel */}
-                    <motion.div
-                        className="relative z-10 rounded-2xl shadow-2xl w-full max-w-5xl flex flex-col overflow-hidden"
-                        style={{
-                            background: 'var(--color-surface-container-lowest)',
-                            boxShadow: 'inset 0 0 0 1px rgba(65,71,85,0.2), 0 24px 64px rgba(0,0,0,0.6)',
-                            maxHeight: 'calc(100vh - 4rem)', minHeight: '500px',
-                        }}
+                        className="settings-modal"
+                        onClick={(e) => e.stopPropagation()}
                         variants={panelVariants}
                         initial="hidden" animate="visible" exit="exit"
                     >
-                        {/* Header */}
-                        <div
-                            className="flex items-center justify-between px-6 py-4 shrink-0"
-                            style={{
-                                background: 'var(--color-surface-container-low)',
-                                borderBottom: '1px solid rgba(65,71,85,0.2)',
-                            }}
+                        <button
+                            type="button"
+                            className="settings-close"
+                            onClick={onClose}
+                            aria-label={t('common.close', 'Chiudi')}
+                            title={t('common.close', 'Chiudi')}
                         >
-                            <div className="flex items-center gap-2">
-                                <Icon name="settings" size={20} style={{ color: 'var(--color-primary)' }} />
-                                <h2
-                                    className="text-base font-bold"
-                                    style={{ color: 'var(--color-on-surface)', fontFamily: 'var(--font-headline)' }}
-                                >
-                                    {t('settings.title')}
-                                </h2>
-                            </div>
-                            <button
-                                onClick={onClose}
-                                className="hover-bg-surface-high p-1 rounded-lg transition-all"
-                                style={{ color: 'var(--color-on-surface-variant)' }}
-                            >
-                                <Icon name="close" size={20} />
-                            </button>
-                        </div>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
 
-                        {/* Body: two-column layout */}
-                        <div className="flex flex-1 overflow-hidden">
-                            {/* Left navigation */}
-                            <nav
-                                className="w-52 shrink-0 py-4 flex flex-col gap-1 px-2"
-                                style={{
-                                    background: 'var(--color-surface-container-lowest)',
-                                    borderRight: '1px solid rgba(65,71,85,0.15)',
-                                }}
-                            >
+                        <nav className="settings-nav">
+                            <div className="settings-nav-header">
+                                <h2>{t('settings.title', 'Impostazioni')}</h2>
+                                <p>Runtime · v{__APP_VERSION__}</p>
+                            </div>
+                            <div className="settings-nav-list">
                                 {navItems.map((item) => {
                                     const active = activeCategory === item.id;
                                     return (
                                         <button
                                             key={item.id}
+                                            type="button"
                                             onClick={() => setActiveCategory(item.id)}
-                                            className={`settings-nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-left border-l-2 ${active ? 'settings-nav-active' : ''}`}
-                                            style={active ? {
-                                                background: 'rgba(173,198,255,0.1)',
-                                                color: 'var(--color-primary)',
-                                                borderLeftColor: 'var(--color-primary)',
-                                                fontFamily: 'var(--font-label)',
-                                            } : {
-                                                color: 'var(--color-on-surface-variant)',
-                                                borderLeftColor: 'transparent',
-                                                fontFamily: 'var(--font-label)',
-                                            }}
+                                            className={`settings-nav-item ${active ? 'active' : ''}`}
                                         >
-                                            <span style={{ color: active ? 'var(--color-primary)' : 'var(--color-on-surface-variant)', opacity: active ? 1 : 0.7 }}>
-                                                {item.icon}
-                                            </span>
+                                            {item.icon}
                                             {t(item.labelKey)}
                                         </button>
                                     );
                                 })}
-                            </nav>
+                            </div>
+                        </nav>
 
-                            {/* Right content (scrollable) */}
-                            <div className="flex-1 overflow-y-auto custom-scrollbar">
+                        <div className="settings-content custom-scrollbar">
                                 {/* Skeleton overlay while settings are loading (D6) */}
                                 {isLoadingSettings && (
                                     <div className="p-8 space-y-6 animate-pulse">
@@ -798,7 +755,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
                                     </motion.div>
                                 </AnimatePresence>
-                            </div>
                         </div>
                     </motion.div>
                 </div>
