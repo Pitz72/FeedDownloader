@@ -127,47 +127,39 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 
 ## C — Bug Critici 🔴🟠
 
-### C1 🔴 `showInFolder` ignora naming template e estensione
+### C1 🔴 ✅ v1.0.5 `showInFolder` ignora naming template e estensione
 
-- **Stato:** 🔲
-- **File:** `electron/ipc.ts:338-349`, `electron/preload.ts:22`
-- **Problema:** L'handler `SHOW_IN_FOLDER` ricostruisce il path con `getSafePath(baseDir, podcastTitle, title, ext)` usando il titolo grezzo, ignorando completamente il naming template (es. `{date} - {title}`). Il file non viene trovato. In aggiunta, il renderer chiama `window.api.showInFolder(podcastTitle, episodeTitle)` senza passare `enclosureUrl`, quindi `ext` è sempre hardcoded `.mp3` anche per file `.m4a`, `.ogg`, `.opus`.
-- **Fix:** Passare l'`enclosureUrl` dalla chiamata renderer; nell'handler applicare `applyTemplate(namingTemplate, ...)` esattamente come in `START_DOWNLOAD` prima di `getSafePath`.
+- **Stato:** ✅ v1.0.5
+- **Fix applicato:** Passato `enclosureUrl` dalla chiamata renderer; nell'handler `SHOW_IN_FOLDER` applicato `applyTemplate(namingTemplate, ...)` esattamente come in `START_DOWNLOAD` prima di `getSafePath`. Estensione ricavata dall'URL reale dell'enclosure.
 
-### C2 🔴 Collisione silenziosa su titoli episodio identici
+### C2 🔴 ✅ v1.0.5 Collisione silenziosa su titoli episodio identici
 
-- **Stato:** 🔲
-- **File:** `electron/utils/getSafePath.ts`
-- **Problema:** Nessun controllo di esistenza del file. Due episodi con titolo identico dopo sanitizzazione (titoli corti, numerici, o solo punteggiatura) si sovrascrivono silenziosamente. La seconda scrittura cancella la prima senza alcun avviso all'utente.
-- **Fix:** Prima del rename `.part → target`, verificare se `outputPath` esiste già; in caso aggiungere un suffisso `_2`, `_3`, ecc.
+- **Stato:** ✅ v1.0.5
+- **Fix applicato:** Prima del rename `.part → target`, verifica esistenza del file. In caso di collisione, aggiunge suffisso `_2`, `_3`, ecc. con ciclo `do…while` fino a trovare un path libero.
 
-### C3 🟠 `Sync All` sequenziale — blocco su molti feed
+### C3 🟠 ✅ v1.0.6 `Sync All` sequenziale — blocco su molti feed
 
-- **Stato:** 🔲
-- **File:** `src/components/Sidebar.tsx:88-100`
-- **Problema:** Loop `for...of` con `await window.api.parseFeed(feed.url)` — ogni richiesta aspetta la risposta prima di partire con la successiva. Con 30 feed e latenza media 2s → ~60 secondi bloccati. Il pulsante nel frattempo non dà feedback di avanzamento.
-- **Fix:** `Promise.allSettled(feeds.map(...))` con aggiornamento UI per feed completato; feedback "Sincronizzando 4/12".
+- **Stato:** ✅ v1.0.6
+- **File:** `src/components/Sidebar.tsx`
+- **Fix applicato:** Sostituito loop `for…of` con `Promise.allSettled(feeds.map(...))` — tutti i feed vengono parsati in parallelo. Feedback "Sincronizzando..." durante l'operazione.
 
-### C4 🟠 `stopBatch` non annulla i download in-flight
+### C4 🟠 ✅ v1.0.7 `stopBatch` non annulla i download in-flight
 
-- **Stato:** 🔲
-- **File:** `electron/ipc.ts:260-264`
-- **Problema:** `queueService.clear()` rimuove i pending dalla coda `p-queue`, ma i download già avviati da `p-queue` (in-flight) continuano fino al completamento. Scrittura file, aggiornamento DB, emit eventi — tutto prosegue. L'utente vede "Stop" ma i file continuano ad accumularsi su disco.
-- **Fix:** `DownloadService` deve esporre un `AbortController` per cancel; `stopBatch` deve chiamare `abort()` sui download attivi.
+- **Stato:** ✅ v1.0.7
+- **File:** `electron/ipc.ts`
+- **Fix applicato:** `DownloadService` espone un `AbortController` per ogni download attivo; `stopBatch` chiama `abort()` su tutti i controller registrati in `activeDownloads` Map, oltre a svuotare la coda `p-queue`.
 
-### C5 🟠 Filtro "New" include episodi attualmente in download
+### C5 🟠 ✅ v1.0.8 Filtro "New" include episodi attualmente in download
 
-- **Stato:** 🔲
-- **File:** `src/components/EpisodeList.tsx:137-143`
-- **Problema:** `statusFilter === 'new'` filtra via i guid in `downloadedGuids` (completati) ma non considera i download in corso. Gli episodi in download appaiono ancora nel filtro "Nuovi" con il pulsante di download visibile accanto allo spinner.
-- **Fix:** Escludere anche gli URL presenti in `downloads` (store) dal filtro "new".
+- **Stato:** ✅ v1.0.8
+- **File:** `src/components/EpisodeList.tsx`
+- **Fix applicato:** Il filtro `statusFilter === 'new'` esclude ora anche gli URL presenti in `downloads` (store Zustand), non solo i guid in `downloadedGuids`.
 
-### C6 🟠 `addFeed` — metadata sidebar non si aggiorna mai
+### C6 🟠 ✅ v1.0.9 `addFeed` — metadata sidebar non si aggiorna mai
 
-- **Stato:** 🔲
-- **File:** `electron/services/DatabaseService.ts:76-85`
-- **Problema:** `INSERT OR IGNORE` significa che un feed già presente nel DB non viene mai aggiornato. Titolo, immagine e `lastUpdated` restano quelli della prima aggiunta. Dopo "Sync New" il feed viene riparse in memoria ma la sidebar mostra dati stale finché l'utente non rimuove e ri-aggiunge il feed.
-- **Fix:** Sostituire con `INSERT OR REPLACE` oppure aggiungere `UPDATE feeds SET title=?, image=?, lastUpdated=? WHERE url=?` dopo la insert.
+- **Stato:** ✅ v1.0.9
+- **File:** `electron/services/DatabaseService.ts`
+- **Fix applicato:** Sostituito `INSERT OR IGNORE` con upsert: `INSERT OR REPLACE` che aggiorna titolo, immagine e `lastUpdated` ad ogni ri-aggiunta del feed.
 
 ### C7 🟠 ✅ v1.1.0 `FeedService` fa due richieste HTTP per ogni parse
 
