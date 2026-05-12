@@ -20,10 +20,11 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [toasts, setToasts] = useState<Toast[]>([]);
+    const downloadPanelOpen = useStore((s: AppState) => s.downloadPanelOpen);
     const isBatchDownloading = useStore((s: AppState) => s.isBatchDownloading);
     const batchCompleted    = useStore((s: AppState) => s.batchCompleted);
     const batchTotal        = useStore((s: AppState) => s.batchTotal);
-    const progressBarVisible = isBatchDownloading ||
+    const panelVisible = isBatchDownloading ||
         (!isBatchDownloading && batchCompleted > 0 && batchCompleted >= batchTotal);
 
     const show = useCallback((message: string, type: ToastType = 'info') => {
@@ -43,10 +44,10 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         <ToastContext.Provider value={{ show }}>
             {children}
             <div
-                className="fixed right-4 z-[60] flex flex-col gap-2"
+                className="fixed bottom-4 z-[60] flex flex-col gap-2"
                 style={{
-                    bottom: progressBarVisible ? '340px' : '1rem',
-                    transition: 'bottom 0.3s ease',
+                    right: downloadPanelOpen && panelVisible ? 'calc(380px + 1rem)' : '1rem',
+                    transition: 'right 0.3s ease',
                 }}
             >
                 <AnimatePresence>

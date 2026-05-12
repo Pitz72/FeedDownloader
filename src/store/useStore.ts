@@ -35,6 +35,10 @@ export interface AppState {
     // F1 — Archive view
     viewMode: 'feeds' | 'archive';
     setViewMode: (mode: 'feeds' | 'archive') => void;
+
+    // G1 — Download panel visibility
+    downloadPanelOpen: boolean;
+    setDownloadPanelOpen: (open: boolean) => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -89,7 +93,7 @@ export const useStore = create<AppState>((set) => ({
         if (state.isBatchDownloading) {
             return { batchTotal: state.batchTotal + total };
         }
-        return { batchTotal: total, batchCompleted: 0, isBatchDownloading: true };
+        return { batchTotal: total, batchCompleted: 0, isBatchDownloading: true, downloadPanelOpen: true };
     }),
     incrementBatch: () => set((state) => {
         const newCompleted = state.batchCompleted + 1;
@@ -120,4 +124,8 @@ export const useStore = create<AppState>((set) => ({
     // F1 — Archive view
     viewMode: 'feeds',
     setViewMode: (mode) => set({ viewMode: mode }),
+
+    // G1 — Download panel visibility
+    downloadPanelOpen: false,
+    setDownloadPanelOpen: (open) => set({ downloadPanelOpen: open }),
 }));

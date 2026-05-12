@@ -1,7 +1,7 @@
 # Roadmap FeedDownloader Pro — Fonte di Verità
 
-**Versione di riferimento:** 1.2.2
-**Ultimo aggiornamento:** 12 maggio 2026 — v1.2.2
+**Versione di riferimento:** 1.2.3
+**Ultimo aggiornamento:** 12 maggio 2026 — v1.2.3
 
 Questo è l'unico documento autorevole per tutto il lavoro pendente post-v1.0.0.
 I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_2026.md`) sono archiviati in `archivio/`.
@@ -67,8 +67,8 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 | F4 | Feature | Selezione multipla episodi (Shift/Ctrl+click) | 🟣 | ✅ v1.1.18 |
 | F5 | Feature | Export playlist M3U | 🟣 | ✅ v1.1.21 |
 | F6 | Feature | Velocità/ETA inline per download attivo | 🟣 | ✅ v1.1.19 |
-| G1 | UI/UX | Pannello download laterale (replace GlobalProgressBar) | ⚪ | 🔲 |
-| G2 | UI/UX | Sidebar ridimensionabile via drag | ⚪ | 🔲 |
+| G1 | UI/UX | Pannello download laterale (replace GlobalProgressBar) | ⚪ | ✅ v1.2.3 |
+| G2 | UI/UX | Sidebar ridimensionabile via drag | ⚪ | ✅ v1.2.3 |
 | G3 | UI/UX | Command palette Ctrl+K | ⚪ | 🔲 |
 | G4 | UI/UX | Pannello dettaglio episodio (click) | ⚪ | ✅ v1.2.2 |
 | G5 | UI/UX | Sync All con progresso per-feed | ⚪ | ✅ v1.2.2 |
@@ -329,15 +329,17 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 
 ## G — Upgrade Interfaccia e Usabilità ⚪
 
-### G1 ⚪ Pannello download laterale
+### G1 ⚪ ✅ v1.2.3 Pannello download laterale
 
-- **Stato:** 🔲
-- **Descrizione:** Sostituire o affiancare il GlobalProgressBar floating con un drawer laterale che mostra la lista completa dei download in corso (nome episodio, podcast, velocità, ETA, pulsante cancel individuale) e i completati/falliti della sessione. Molto più professionale del widget 320px in basso a destra.
+- **Stato:** ✅ v1.2.3
+- **File:** `src/components/DownloadPanel.tsx`, `src/store/useStore.ts`, `src/context/ToastContext.tsx`, `src/components/EpisodeDetailPanel.tsx`
+- **Implementazione:** `GlobalProgressBar.tsx` eliminato e sostituito con `DownloadPanel` — drawer fisso a destra (380px, z-50, top 56px). Framer-motion spring slide-in/out. Header con contatore N/M, stop button, close button. Lista coda scrollabile con `QueueRow` (spinner/schedule icon, titolo, podcast, %, velocità, ETA, progress bar inline, cancel button hover-reveal). Sezione fallimenti espandibile post-completamento. FAB (floating action button) bottom-right quando pannello chiuso. `startBatch` in Zustand apre il pannello automaticamente. Toasts si spostano a sinistra del pannello quando aperto (`right: calc(380px + 1rem)`). `EpisodeDetailPanel` trasla a `right: 380px` quando DownloadPanel è visibile.
 
-### G2 ⚪ Sidebar ridimensionabile via drag
+### G2 ⚪ ✅ v1.2.3 Sidebar ridimensionabile via drag
 
-- **Stato:** 🔲
-- **Descrizione:** La sidebar è fissa a 456px. Su monitor da 13" è troppa, su 27" è poca. Un divider drag-resizable con persistenza della larghezza nel DB settings.
+- **Stato:** ✅ v1.2.3
+- **File:** `src/App.tsx`, `src/components/Sidebar.tsx`
+- **Implementazione:** Drag handle (4px, cursor col-resize) tra sidebar e area principale. `useRef` per isDragging/dragStartX/dragStartWidth (nessun re-render durante drag). `setSidebarWidth` su mousemove per aggiornamento in tempo reale. Limiti: min 240px, max 640px, default 456px. Persistenza in `localStorage` (chiave `sidebarWidth`). Highlight handle on hover con `rgba(173,198,255,0.3)`. `document.body.style.cursor/userSelect` durante drag per evitare selezione accidentale.
 
 ### G3 ⚪ Command palette (Ctrl+K)
 

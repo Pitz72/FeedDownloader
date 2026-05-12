@@ -9,9 +9,10 @@ import type { FeedEntry } from '../../shared/types';
 
 interface SidebarProps {
   onSettingsOpen: () => void;
+  width?: number;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen, width }) => {
   const [feeds, setFeeds] = useState<FeedEntry[]>([]);
   const { currentFeed, setCurrentFeed } = useStore((state: AppState) => state);
   const downloadPath = useStore((state: AppState) => state.downloadPath);
@@ -120,7 +121,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen }) => {
   return (
     <aside
       className="flex flex-col h-full shrink-0"
-      style={{ width: '456px', background: 'var(--color-surface-container-low)' }}
+      style={{ width: width ? `${width}px` : '456px', background: 'var(--color-surface-container-low)' }}
     >
       {/* Header */}
       <div className="px-6 py-6 flex items-center justify-between">

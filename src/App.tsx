@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { UrlInput } from './components/UrlInput';
 import { EpisodeList } from './components/EpisodeList';
 import { ArchiveView } from './components/ArchiveView';
 import { Sidebar } from './components/Sidebar';
-import { GlobalProgressBar } from './components/GlobalProgressBar';
+import { DownloadPanel } from './components/DownloadPanel';
 import { IntroScreen } from './components/IntroScreen';
 import { SettingsModal } from './components/SettingsModal';
 import { Icon } from './components/Icon';
@@ -11,6 +11,10 @@ import { useStore, AppState } from './store/useStore';
 import { ToastProvider, useToast } from './context/ToastContext';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
+
+const SIDEBAR_MIN = 240;
+const SIDEBAR_MAX = 640;
+const SIDEBAR_DEFAULT = 456;
 
 const isMac = document.documentElement.dataset.platform === 'darwin';
 
@@ -152,6 +156,54 @@ function AppContent() {
     };
   }, []);
 
+  // G2 — Sidebar drag resize
+  const [sidebarWidth, setSidebarWidth] = useState(() => {
+    const stored = localStorage.getItem('sidebarWidth');
+    if (stored) {
+      const n = parseInt(stored, 10);
+      if (n >= SIDEBAR_MIN && n <= SIDEBAR_MAX) return n;
+    }
+    return SIDEBAR_DEFAULT;
+  });
+  const isDraggingRef = useRef(false);
+  const dragStartXRef = useRef(0);
+  const dragStartWidthRef = useRef(0);
+  const currentWidthRef = useRef(sidebarWidth);
+
+  useEffect(() => { currentWidthRef.current = sidebarWidth; }, [sidebarWidth]);
+
+  useEffect(() => {
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isDraggingRef.current) return;
+      const delta = e.clientX - dragStartXRef.current;
+      const newWidth = Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, dragStartWidthRef.current + delta));
+      currentWidthRef.current = newWidth;
+      setSidebarWidth(newWidth);
+    };
+    const onMouseUp = () => {
+      if (!isDraggingRef.current) return;
+      isDraggingRef.current = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      localStorage.setItem('sidebarWidth', String(currentWidthRef.current));
+    };
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+    return () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+  }, []);
+
+  const handleDividerMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    isDraggingRef.current = true;
+    dragStartXRef.current = e.clientX;
+    dragStartWidthRef.current = currentWidthRef.current;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  };
+
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: 'var(--color-background)', color: 'var(--color-on-surface)' }}>
 
@@ -171,7 +223,22 @@ function AppContent() {
       </AnimatePresence>
 
       {/* Sidebar */}
-      <Sidebar onSettingsOpen={() => setIsSettingsOpen(true)} />
+      <Sidebar onSettingsOpen={() => setIsSettingsOpen(true)} width={sidebarWidth} />
+
+      {/* G2 — Drag handle */}
+      <div
+        onMouseDown={handleDividerMouseDown}
+        style={{
+          width: '4px',
+          flexShrink: 0,
+          cursor: 'col-resize',
+          background: 'rgba(65,71,85,0.12)',
+          transition: 'background 0.15s',
+          zIndex: 10,
+        }}
+        onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = 'rgba(173,198,255,0.3)'; }}
+        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = 'rgba(65,71,85,0.12)'; }}
+      />
 
       {/* Settings modal — root level */}
       <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
@@ -225,9 +292,11 @@ function AppContent() {
               <ArchiveView />
             )}
           </div>
-          <GlobalProgressBar />
         </main>
       </div>
+
+      {/* G1 — Download panel (fixed right drawer) */}
+      <DownloadPanel />
     </div>
   );
 }

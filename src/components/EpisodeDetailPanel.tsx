@@ -3,6 +3,7 @@ import { Icon } from './Icon';
 import { useTranslation } from 'react-i18next';
 import type { Episode, ArchiveEntry } from '../../shared/types';
 import { getEnclosureUrl } from '../../shared/getEnclosureUrl';
+import { useStore, AppState } from '../store/useStore';
 
 function stripHtml(html: string): string {
     return html
@@ -63,6 +64,13 @@ export const EpisodeDetailPanel: React.FC<EpisodeDetailPanelProps> = ({
     onClose, onDownload, onResetStatus, onShowInFolder,
 }) => {
     const { t } = useTranslation();
+    const downloadPanelOpen = useStore((s: AppState) => s.downloadPanelOpen);
+    const isBatchDownloading = useStore((s: AppState) => s.isBatchDownloading);
+    const batchCompleted = useStore((s: AppState) => s.batchCompleted);
+    const batchTotal = useStore((s: AppState) => s.batchTotal);
+    const downloadPanelVisible = isBatchDownloading ||
+        (!isBatchDownloading && batchCompleted > 0 && batchCompleted >= batchTotal);
+    const rightOffset = downloadPanelOpen && downloadPanelVisible ? '380px' : '0px';
 
     const rawDesc = episode.content || episode.description || episode.contentSnippet || '';
     const description = rawDesc ? stripHtml(rawDesc) : '';
@@ -77,14 +85,16 @@ export const EpisodeDetailPanel: React.FC<EpisodeDetailPanelProps> = ({
 
     return (
         <div
-            className="fixed right-0 z-40 flex flex-col overflow-hidden"
+            className="fixed z-40 flex flex-col overflow-hidden"
             style={{
                 top: '56px',
                 bottom: 0,
+                right: rightOffset,
                 width: '380px',
                 background: 'var(--color-surface-container-low)',
                 borderLeft: '1px solid rgba(65,71,85,0.18)',
                 boxShadow: '-12px 0 40px rgba(0,0,0,0.35)',
+                transition: 'right 0.3s ease',
             }}
         >
             {/* Header */}
