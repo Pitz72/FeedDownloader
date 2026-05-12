@@ -227,5 +227,19 @@
         "loading": "正在加载文档...",
         "error_loading": "无法加载文档",
         "footer_love": "由 Runtime 用心创建"
+    },
+    "cmd": {
+        "placeholder": "搜索操作和订阅...",
+        "group_actions": "操作",
+        "group_feeds": "订阅",
+        "action_settings": "打开设置",
+        "action_sync_all": "全部同步",
+        "action_add_feed": "添加订阅",
+        "action_view_archive": "前往归档",
+        "action_view_feeds": "前往订阅",
+        "no_results": "无结果",
+        "hint_navigate": "导航",
+        "hint_select": "选择",
+        "hint_close": "关闭"
     }
 }

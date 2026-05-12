@@ -84,6 +84,7 @@ export const UrlInput: React.FC = () => {
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder={isDragging ? t('input.drop_url') : t('input.placeholder')}
+          id="url-feed-input"
           className="w-full bg-transparent border-none outline-none text-sm"
           style={{ color: 'var(--color-on-surface)', fontFamily: 'var(--font-body)' }}
           onKeyDown={(e) => e.key === 'Enter' && handleAnalyze()}

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useStore, AppState } from '../store/useStore';
 import { Icon } from './Icon';
 import clsx from 'clsx';
@@ -93,7 +93,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen, width }) => {
   const isSyncingAll = syncStatuses.size > 0 && [...syncStatuses.values()].some(s => s === 'syncing');
   const syncDoneCount = [...syncStatuses.values()].filter(s => s !== 'syncing').length;
 
-  const handleSyncAll = async () => {
+  const handleSyncAll = useCallback(async () => {
     if (isSyncingAll) return;
     const initial = new Map<string, 'syncing' | 'done' | 'error'>();
     feeds.forEach(f => initial.set(f.url, 'syncing'));
@@ -116,7 +116,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen, width }) => {
     toast.show(t('toast.sync_complete', 'Sync completato'), 'success');
     if (errorCount > 0) toast.show(t('toast.feed_error'), 'error');
     setTimeout(() => setSyncStatuses(new Map()), 2500);
-  };
+  }, [isSyncingAll, feeds, currentFeed, setCurrentFeed, toast, t]);
+
+  useEffect(() => {
+    const onSyncAll = () => handleSyncAll();
+    window.addEventListener('feeddownloader:syncall', onSyncAll);
+    return () => window.removeEventListener('feeddownloader:syncall', onSyncAll);
+  }, [handleSyncAll]);
 
   return (
     <aside

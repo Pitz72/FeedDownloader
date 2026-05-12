@@ -227,5 +227,19 @@
         "loading": "Chargement de la documentation...",
         "error_loading": "Impossible de charger la documentation",
         "footer_love": "Créé avec amour par Runtime"
+    },
+    "cmd": {
+        "placeholder": "Rechercher actions et flux...",
+        "group_actions": "Actions",
+        "group_feeds": "Flux",
+        "action_settings": "Ouvrir les paramètres",
+        "action_sync_all": "Synchroniser tout",
+        "action_add_feed": "Ajouter un flux",
+        "action_view_archive": "Aller aux archives",
+        "action_view_feeds": "Aller aux flux",
+        "no_results": "Aucun résultat",
+        "hint_navigate": "naviguer",
+        "hint_select": "sélectionner",
+        "hint_close": "fermer"
     }
 }

@@ -227,5 +227,19 @@
         "loading": "Загрузка документации...",
         "error_loading": "Не удалось загрузить документацию",
         "footer_love": "Создано с любовью Runtime"
+    },
+    "cmd": {
+        "placeholder": "Поиск действий и лент...",
+        "group_actions": "Действия",
+        "group_feeds": "Ленты",
+        "action_settings": "Открыть настройки",
+        "action_sync_all": "Синхронизировать всё",
+        "action_add_feed": "Добавить ленту",
+        "action_view_archive": "Перейти к архиву",
+        "action_view_feeds": "Перейти к лентам",
+        "no_results": "Нет результатов",
+        "hint_navigate": "навигация",
+        "hint_select": "выбрать",
+        "hint_close": "закрыть"
     }
 }

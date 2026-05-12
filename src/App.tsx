@@ -4,6 +4,7 @@ import { EpisodeList } from './components/EpisodeList';
 import { ArchiveView } from './components/ArchiveView';
 import { Sidebar } from './components/Sidebar';
 import { DownloadPanel } from './components/DownloadPanel';
+import { CommandPalette } from './components/CommandPalette';
 import { IntroScreen } from './components/IntroScreen';
 import { SettingsModal } from './components/SettingsModal';
 import { Icon } from './components/Icon';
@@ -105,7 +106,10 @@ function AppContent() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen(v => !v);
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
         const filterInput = document.getElementById('episode-filter-input');
         if (filterInput) {
           e.preventDefault();
@@ -120,6 +124,7 @@ function AppContent() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
   // G7 — Onboarding: show on first run when no feeds exist
   useEffect(() => {
@@ -297,6 +302,17 @@ function AppContent() {
 
       {/* G1 — Download panel (fixed right drawer) */}
       <DownloadPanel />
+
+      {/* G3 — Command palette */}
+      <AnimatePresence>
+        {isCommandPaletteOpen && (
+          <CommandPalette
+            key="cmd-palette"
+            onClose={() => setIsCommandPaletteOpen(false)}
+            onOpenSettings={() => { setIsCommandPaletteOpen(false); setIsSettingsOpen(true); }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

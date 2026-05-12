@@ -227,5 +227,19 @@
         "loading": "Loading documentation...",
         "error_loading": "Could not load documentation",
         "footer_love": "Created with love by Runtime"
+    },
+    "cmd": {
+        "placeholder": "Search actions and feeds...",
+        "group_actions": "Actions",
+        "group_feeds": "Feeds",
+        "action_settings": "Open Settings",
+        "action_sync_all": "Sync All",
+        "action_add_feed": "Add Feed",
+        "action_view_archive": "Go to Archive",
+        "action_view_feeds": "Go to Feeds",
+        "no_results": "No results",
+        "hint_navigate": "navigate",
+        "hint_select": "select",
+        "hint_close": "close"
     }
 }

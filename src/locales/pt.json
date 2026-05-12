@@ -227,5 +227,19 @@
         "loading": "A carregar documentação...",
         "error_loading": "Não foi possível carregar a documentação",
         "footer_love": "Criado com amor pela Runtime"
+    },
+    "cmd": {
+        "placeholder": "Pesquisar ações e feeds...",
+        "group_actions": "Ações",
+        "group_feeds": "Feeds",
+        "action_settings": "Abrir definições",
+        "action_sync_all": "Sincronizar tudo",
+        "action_add_feed": "Adicionar feed",
+        "action_view_archive": "Ir para arquivo",
+        "action_view_feeds": "Ir para feeds",
+        "no_results": "Sem resultados",
+        "hint_navigate": "navegar",
+        "hint_select": "selecionar",
+        "hint_close": "fechar"
     }
 }

@@ -227,5 +227,19 @@
         "loading": "Dokumentation wird geladen...",
         "error_loading": "Dokumentation konnte nicht geladen werden",
         "footer_love": "Mit Liebe erstellt von Runtime"
+    },
+    "cmd": {
+        "placeholder": "Aktionen und Feeds suchen...",
+        "group_actions": "Aktionen",
+        "group_feeds": "Feeds",
+        "action_settings": "Einstellungen öffnen",
+        "action_sync_all": "Alle synchronisieren",
+        "action_add_feed": "Feed hinzufügen",
+        "action_view_archive": "Zum Archiv",
+        "action_view_feeds": "Zu den Feeds",
+        "no_results": "Keine Ergebnisse",
+        "hint_navigate": "navigieren",
+        "hint_select": "auswählen",
+        "hint_close": "schließen"
     }
 }

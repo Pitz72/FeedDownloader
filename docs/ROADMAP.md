@@ -1,7 +1,7 @@
 # Roadmap FeedDownloader Pro — Fonte di Verità
 
-**Versione di riferimento:** 1.2.3
-**Ultimo aggiornamento:** 12 maggio 2026 — v1.2.3
+**Versione di riferimento:** 1.2.4
+**Ultimo aggiornamento:** 12 maggio 2026 — v1.2.4
 
 Questo è l'unico documento autorevole per tutto il lavoro pendente post-v1.0.0.
 I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_2026.md`) sono archiviati in `archivio/`.
@@ -69,7 +69,7 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 | F6 | Feature | Velocità/ETA inline per download attivo | 🟣 | ✅ v1.1.19 |
 | G1 | UI/UX | Pannello download laterale (replace GlobalProgressBar) | ⚪ | ✅ v1.2.3 |
 | G2 | UI/UX | Sidebar ridimensionabile via drag | ⚪ | ✅ v1.2.3 |
-| G3 | UI/UX | Command palette Ctrl+K | ⚪ | 🔲 |
+| G3 | UI/UX | Command palette Ctrl+K | ⚪ | ✅ v1.2.4 |
 | G4 | UI/UX | Pannello dettaglio episodio (click) | ⚪ | ✅ v1.2.2 |
 | G5 | UI/UX | Sync All con progresso per-feed | ⚪ | ✅ v1.2.2 |
 | G6 | UI/UX | Toast stack — gestione collisioni con GlobalProgressBar | ⚪ | ✅ v1.2.1 |
@@ -341,10 +341,11 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 - **File:** `src/App.tsx`, `src/components/Sidebar.tsx`
 - **Implementazione:** Drag handle (4px, cursor col-resize) tra sidebar e area principale. `useRef` per isDragging/dragStartX/dragStartWidth (nessun re-render durante drag). `setSidebarWidth` su mousemove per aggiornamento in tempo reale. Limiti: min 240px, max 640px, default 456px. Persistenza in `localStorage` (chiave `sidebarWidth`). Highlight handle on hover con `rgba(173,198,255,0.3)`. `document.body.style.cursor/userSelect` durante drag per evitare selezione accidentale.
 
-### G3 ⚪ Command palette (Ctrl+K)
+### G3 ⚪ ✅ v1.2.4 Command palette (Ctrl+K)
 
-- **Stato:** 🔲
-- **Descrizione:** Ricerca unificata: feed, episodi, azioni (Impostazioni, Sync All, Aggiungi feed, Apri archivio). Standard nelle app desktop moderne, rende l'app completamente navigabile da tastiera.
+- **Stato:** ✅ v1.2.4
+- **File:** `src/components/CommandPalette.tsx`, `src/App.tsx`, `src/components/Sidebar.tsx`, `src/components/UrlInput.tsx`
+- **Implementazione:** Overlay backdrop-blur con modal 560px, spring animation framer-motion. Input di ricerca con filtro real-time. Gruppo Azioni (5 comandi: Impostazioni, Sync All, Aggiungi Feed, Vai Archivio, Vai Feed) + gruppo Feed (top 5 quando query vuota, filtrati per query). Navigazione ↑↓ Enter ESC, scroll automatico active item. Selezione feed: parseFeed async con spinner loading per quel feed. "Sync All" tramite CustomEvent `feeddownloader:syncall` catturato da Sidebar. "Aggiungi Feed" focalizza `#url-feed-input`. Tutti i testi in 8 lingue.
 
 ### G4 ⚪ ✅ v1.2.2 Pannello dettaglio episodio
 
