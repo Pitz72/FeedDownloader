@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Icon } from './Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import Markdown from 'react-markdown';
 
@@ -28,11 +27,8 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
         }
     }, [i18n.language, t]);
 
-    useEffect(() => {
-        if (isOpen) loadHelp();
-    }, [isOpen, loadHelp]);
+    useEffect(() => { if (isOpen) loadHelp(); }, [isOpen, loadHelp]);
 
-    // Esc key
     useEffect(() => {
         if (!isOpen) return;
         const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -43,109 +39,69 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+                <div className="help-bg" onClick={onClose}>
                     <motion.div
-                        className="absolute inset-0 backdrop-blur-sm"
-                        style={{ background: 'rgba(0,0,0,0.72)' }}
-                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        onClick={onClose}
-                    />
-                    <motion.div
-                        className="relative z-10 w-full max-w-4xl flex flex-col overflow-hidden rounded-2xl shadow-2xl"
-                        style={{
-                            background: 'var(--color-surface-container-low)',
-                            boxShadow: 'inset 0 0 0 1px rgba(65,71,85,0.2), 0 24px 64px rgba(0,0,0,0.6)',
-                            height: '80vh',
-                        }}
+                        className="help-modal"
+                        onClick={(e) => e.stopPropagation()}
                         initial={{ opacity: 0, y: 40, scale: 0.96 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 40, scale: 0.96 }}
                         transition={{ duration: 0.2 }}
+                        role="dialog"
+                        aria-modal="true"
                     >
-                        {/* Header */}
-                        <div
-                            className="px-6 py-4 flex justify-between items-center shrink-0"
-                            style={{ borderBottom: '1px solid rgba(65,71,85,0.2)', background: 'var(--color-surface-container)' }}
-                        >
-                            <h2
-                                className="text-base font-bold flex items-center gap-2"
-                                style={{ color: 'var(--color-on-surface)', fontFamily: 'var(--font-headline)' }}
-                            >
-                                <Icon name="menu_book" size={20} style={{ color: 'var(--color-primary)' }} />
-                                {t('help.title', 'User Guide')}
+                        <header className="help-header">
+                            <h2>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                                </svg>
+                                {t('help.title', 'Manuale utente')}
                             </h2>
                             <button
+                                type="button"
+                                className="icon-btn"
                                 onClick={onClose}
-                                className="hover-bg-surface-high p-1 rounded-lg transition-all"
-                                style={{ color: 'var(--color-on-surface-variant)' }}
+                                aria-label={t('common.close', 'Chiudi')}
+                                title={t('common.close', 'Chiudi')}
                             >
-                                <Icon name="close" size={22} />
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                                    <line x1="18" y1="6" x2="6" y2="18"/>
+                                    <line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
                             </button>
-                        </div>
+                        </header>
 
-                        {/* Body */}
-                        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-                            {loading ? (
-                                <div className="flex justify-center items-center h-full text-sm" style={{ color: 'var(--color-on-surface-variant)' }}>
-                                    {t('help.loading')}
-                                </div>
-                            ) : (
-                                <div>
+                        <div className="help-body">
+                            <div className="help-content custom-scrollbar">
+                                {loading ? (
+                                    <p style={{ textAlign: 'center', padding: '40px 0', color: 'var(--fg-3)' }}>
+                                        {t('help.loading', 'Caricamento…')}
+                                    </p>
+                                ) : (
                                     <Markdown
                                         components={{
-                                            h1: ({ node: _node, ...props }) => (
-                                                <h1 className="text-3xl font-bold mb-6 pb-4"
-                                                    style={{ color: 'var(--color-on-surface)', fontFamily: 'var(--font-headline)', borderBottom: '1px solid rgba(65,71,85,0.2)' }}
-                                                    {...props} />
-                                            ),
-                                            h2: ({ node: _node, ...props }) => (
-                                                <h2 className="text-xl font-semibold mt-8 mb-4"
-                                                    style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-headline)' }}
-                                                    {...props} />
-                                            ),
-                                            h3: ({ node: _node, ...props }) => (
-                                                <h3 className="text-base font-medium mt-6 mb-3"
-                                                    style={{ color: 'var(--color-on-surface)', fontFamily: 'var(--font-label)' }}
-                                                    {...props} />
-                                            ),
-                                            p: ({ node: _node, ...props }) => (
-                                                <p className="leading-relaxed mb-4 text-sm"
-                                                    style={{ color: 'var(--color-on-surface-variant)' }}
-                                                    {...props} />
-                                            ),
-                                            ul: ({ node: _node, ...props }) => (
-                                                <ul className="list-disc pl-6 space-y-1.5 mb-4 text-sm"
-                                                    style={{ color: 'var(--color-on-surface-variant)' }}
-                                                    {...props} />
-                                            ),
-                                            li: ({ node: _node, ...props }) => <li className="pl-1" {...props} />,
-                                            strong: ({ node: _node, ...props }) => (
-                                                <strong style={{ color: 'var(--color-on-surface)', fontWeight: 600 }} {...props} />
-                                            ),
-                                            a: ({ node: _node, ...props }) => (
-                                                <a style={{ color: 'var(--color-primary)' }} className="hover:underline"
-                                                    target="_blank" rel="noreferrer" {...props} />
-                                            ),
-                                            code: ({ node: _node, ...props }) => (
-                                                <code className="text-xs px-1.5 py-0.5 rounded font-mono"
-                                                    style={{ background: 'var(--color-surface-container-highest)', color: 'var(--color-secondary)' }}
-                                                    {...props} />
-                                            ),
+                                            h1: ({ node: _node, ...props }) => <h1 {...props} />,
+                                            h2: ({ node: _node, ...props }) => <h2 {...props} />,
+                                            h3: ({ node: _node, ...props }) => <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: 'var(--fg)', marginTop: 24, marginBottom: 8 }} {...props} />,
+                                            p: ({ node: _node, ...props }) => <p {...props} />,
+                                            ul: ({ node: _node, ...props }) => <ul {...props} />,
+                                            li: ({ node: _node, ...props }) => <li {...props} />,
+                                            strong: ({ node: _node, ...props }) => <strong {...props} />,
+                                            a: ({ node: _node, ...props }) => <a target="_blank" rel="noreferrer" {...props} />,
+                                            code: ({ node: _node, ...props }) => <code {...props} />,
                                         }}
                                     >
                                         {content}
                                     </Markdown>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
 
-                        {/* Footer */}
-                        <div
-                            className="px-6 py-3 text-center text-xs shrink-0"
-                            style={{ borderTop: '1px solid rgba(65,71,85,0.15)', color: 'var(--color-on-surface-variant)', opacity: 0.6, background: 'var(--color-surface-container)' }}
-                        >
-                            {t('help.footer_love')}
-                        </div>
+                        <footer className="help-footer">
+                            <span>{t('help.footer_love', 'Runtime FeedDownloader · documentazione integrata')}</span>
+                            <span>v{__APP_VERSION__}</span>
+                        </footer>
                     </motion.div>
                 </div>
             )}

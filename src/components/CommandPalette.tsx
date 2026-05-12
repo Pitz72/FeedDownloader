@@ -2,14 +2,17 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useStore, AppState } from '../store/useStore';
-import { Icon } from './Icon';
 import type { FeedEntry } from '../../shared/types';
+
+const isMac = document.documentElement.dataset.platform === 'darwin';
 
 type ActionItem = {
     kind: 'action';
     id: string;
     label: string;
-    icon: string;
+    description?: string;
+    shortcut?: string[];
+    iconPath: React.ReactNode;
     onSelect: () => void;
 };
 
@@ -25,6 +28,21 @@ type ResultItem = ActionItem | FeedItem;
 interface CommandPaletteProps {
     onClose: () => void;
     onOpenSettings: () => void;
+}
+
+// Tint hash (must match Sidebar)
+function tintFor(seed: string): number {
+    let h = 0;
+    for (let i = 0; i < seed.length; i++) h = ((h << 5) - h + seed.charCodeAt(i)) | 0;
+    return (Math.abs(h) % 6) + 1;
+}
+
+function initialsFor(title: string | undefined | null): string {
+    if (!title) return '?';
+    const parts = title.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return '?';
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
 }
 
 export const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose, onOpenSettings }) => {
@@ -56,20 +74,31 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose, onOpenS
         }
     }, [setCurrentFeed, setViewMode, onClose]);
 
+    const modKey = isMac ? '⌘' : 'Ctrl';
+
     const actions: ActionItem[] = useMemo(() => [
         {
-            kind: 'action', id: 'settings',
-            label: t('cmd.action_settings'), icon: 'settings',
-            onSelect: () => { onClose(); onOpenSettings(); },
-        },
-        {
             kind: 'action', id: 'sync_all',
-            label: t('cmd.action_sync_all'), icon: 'sync',
+            label: t('cmd.action_sync_all', 'Sincronizza tutti i feed'),
+            description: t('cmd.action_sync_all_desc', 'Controlla nuovi episodi in tutti i feed salvati'),
+            shortcut: [modKey, 'S'],
+            iconPath: (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/>
+                    <path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/>
+                </svg>
+            ),
             onSelect: () => { window.dispatchEvent(new CustomEvent('feeddownloader:syncall')); onClose(); },
         },
         {
             kind: 'action', id: 'add_feed',
-            label: t('cmd.action_add_feed'), icon: 'add_circle',
+            label: t('cmd.action_add_feed', 'Aggiungi feed'),
+            description: t('cmd.action_add_feed_desc', 'Apri il campo URL per analizzare un nuovo feed'),
+            iconPath: (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/>
+                </svg>
+            ),
             onSelect: () => {
                 setViewMode('feeds');
                 onClose();
@@ -78,20 +107,48 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose, onOpenS
         },
         {
             kind: 'action', id: 'view_archive',
-            label: t('cmd.action_view_archive'), icon: 'inventory_2',
+            label: t('cmd.action_view_archive', 'Apri archivio'),
+            description: t('cmd.action_view_archive_desc', 'Mostra tutti gli episodi archiviati'),
+            shortcut: [modKey, 'A'],
+            iconPath: (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="4" width="20" height="5" rx="1"/>
+                    <path d="M4 9v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9"/>
+                    <path d="M10 13h4"/>
+                </svg>
+            ),
             onSelect: () => { setViewMode('archive'); onClose(); },
         },
         {
             kind: 'action', id: 'view_feeds',
-            label: t('cmd.action_view_feeds'), icon: 'rss_feed',
+            label: t('cmd.action_view_feeds', 'Torna ai feed'),
+            iconPath: (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 11a9 9 0 0 1 9 9"/>
+                    <path d="M4 4a16 16 0 0 1 16 16"/>
+                    <circle cx="5" cy="19" r="1.6" fill="currentColor"/>
+                </svg>
+            ),
             onSelect: () => { setViewMode('feeds'); onClose(); },
         },
-    ], [t, onClose, onOpenSettings, setViewMode]);
+        {
+            kind: 'action', id: 'settings',
+            label: t('cmd.action_settings', 'Apri impostazioni'),
+            description: t('cmd.action_settings_desc', 'Concorrenza, cartella, lingua, integrità'),
+            shortcut: [modKey, ','],
+            iconPath: (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+            ),
+            onSelect: () => { onClose(); onOpenSettings(); },
+        },
+    ], [t, onClose, onOpenSettings, setViewMode, modKey]);
 
     const q = query.toLowerCase().trim();
-
-    const filteredActions = useMemo(() =>
-        q ? actions.filter(a => a.label.toLowerCase().includes(q)) : actions,
+    const filteredActions = useMemo(
+        () => q ? actions.filter(a => a.label.toLowerCase().includes(q)) : actions,
         [q, actions]
     );
 
@@ -108,7 +165,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose, onOpenS
         }));
     }, [q, feeds]);
 
-    const allResults: ResultItem[] = useMemo(() => [...filteredActions, ...filteredFeeds], [filteredActions, filteredFeeds]);
+    const allResults: ResultItem[] = useMemo(
+        () => [...filteredActions, ...filteredFeeds],
+        [filteredActions, filteredFeeds]
+    );
 
     useEffect(() => { setActiveIdx(0); }, [allResults.length]);
 
@@ -143,106 +203,75 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose, onOpenS
     }, [activeIdx]);
 
     return (
-        <div
-            className="fixed inset-0 z-[70] flex items-start justify-center"
-            style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', paddingTop: '10vh' }}
-            onClick={onClose}
-        >
+        <div className="palette-bg" onClick={onClose}>
             <motion.div
+                className="palette"
                 initial={{ opacity: 0, scale: 0.96, y: -8 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.96, y: -8 }}
                 transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-                className="w-full flex flex-col rounded-2xl overflow-hidden"
-                style={{
-                    maxWidth: '560px',
-                    maxHeight: '65vh',
-                    background: 'var(--color-surface-container)',
-                    border: '1px solid rgba(65,71,85,0.22)',
-                    boxShadow: '0 32px 80px rgba(0,0,0,0.65)',
-                }}
                 onClick={e => e.stopPropagation()}
             >
-                {/* Search input */}
-                <div
-                    className="flex items-center gap-3 px-4 py-3.5 shrink-0"
-                    style={{ borderBottom: '1px solid rgba(65,71,85,0.12)' }}
-                >
-                    <Icon name="search" size={18} style={{ color: 'var(--color-on-surface-variant)', flexShrink: 0 }} />
+                <div className="palette-search">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+                    </svg>
                     <input
                         ref={inputRef}
                         type="text"
                         value={query}
                         onChange={e => setQuery(e.target.value)}
-                        placeholder={t('cmd.placeholder')}
-                        className="flex-1 bg-transparent text-sm outline-none"
-                        style={{ fontFamily: 'var(--font-label)', color: 'var(--color-on-surface)' }}
+                        placeholder={t('cmd.placeholder', 'Cerca azione, feed, episodio…')}
                     />
-                    <span
-                        className="text-[10px] px-1.5 py-0.5 rounded shrink-0"
-                        style={{
-                            background: 'var(--color-surface-container-high)',
-                            color: 'var(--color-on-surface-variant)',
-                            fontFamily: 'var(--font-label)',
-                        }}
-                    >
-                        ESC
-                    </span>
+                    <span className="esc">esc</span>
                 </div>
 
-                {/* Results */}
-                <div ref={listRef} className="overflow-y-auto custom-scrollbar flex-1 pb-1">
+                <div ref={listRef} className="palette-list custom-scrollbar">
                     {allResults.length === 0 && (
-                        <p
-                            className="text-xs text-center py-8"
-                            style={{ color: 'var(--color-on-surface-variant)', opacity: 0.45, fontFamily: 'var(--font-label)' }}
-                        >
-                            {t('cmd.no_results')}
-                        </p>
+                        <div className="palette-section">
+                            <p className="palette-section-label" style={{ textAlign: 'center', padding: '24px 22px' }}>
+                                {t('cmd.no_results', 'Nessun risultato')}
+                            </p>
+                        </div>
                     )}
 
-                    {/* Actions group */}
                     {filteredActions.length > 0 && (
-                        <>
-                            <p
-                                className="px-4 pt-3 pb-1 text-[10px] uppercase tracking-widest"
-                                style={{ fontFamily: 'var(--font-label)', color: 'var(--color-on-surface-variant)', opacity: 0.38 }}
-                            >
-                                {t('cmd.group_actions')}
-                            </p>
+                        <div className="palette-section">
+                            <p className="palette-section-label">{t('cmd.group_actions', 'Azioni rapide')}</p>
                             {filteredActions.map((item, i) => (
                                 <button
+                                    type="button"
                                     key={item.id}
                                     data-idx={i}
                                     onClick={item.onSelect}
                                     onMouseEnter={() => setActiveIdx(i)}
-                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors"
-                                    style={{
-                                        background: activeIdx === i ? 'var(--color-surface-container-high)' : 'transparent',
-                                        color: 'var(--color-on-surface)',
-                                    }}
+                                    className={`palette-item ${activeIdx === i ? 'active' : ''}`}
                                 >
-                                    <Icon name={item.icon} size={16} style={{ color: 'var(--color-on-surface-variant)', flexShrink: 0 }} />
-                                    <span className="text-sm" style={{ fontFamily: 'var(--font-label)' }}>{item.label}</span>
+                                    {item.iconPath}
+                                    <div className="text">
+                                        {item.label}
+                                        {item.description && <small>{item.description}</small>}
+                                    </div>
+                                    {item.shortcut && (
+                                        <div className="shortcut">
+                                            {item.shortcut.map((k, ki) => <kbd key={ki}>{k}</kbd>)}
+                                        </div>
+                                    )}
                                 </button>
                             ))}
-                        </>
+                        </div>
                     )}
 
-                    {/* Feeds group */}
                     {filteredFeeds.length > 0 && (
-                        <>
-                            <p
-                                className="px-4 pt-3 pb-1 text-[10px] uppercase tracking-widest"
-                                style={{ fontFamily: 'var(--font-label)', color: 'var(--color-on-surface-variant)', opacity: 0.38 }}
-                            >
-                                {t('cmd.group_feeds')}
-                            </p>
+                        <div className="palette-section">
+                            <p className="palette-section-label">{t('cmd.group_feeds', 'Salta al feed')}</p>
                             {filteredFeeds.map((item, i) => {
                                 const globalIdx = filteredActions.length + i;
                                 const isLoading = loadingFeedUrl === item.url;
+                                const tint = tintFor(item.url);
                                 return (
                                     <button
+                                        type="button"
                                         key={item.url}
                                         data-idx={globalIdx}
                                         onClick={() => {
@@ -251,48 +280,38 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose, onOpenS
                                         }}
                                         onMouseEnter={() => setActiveIdx(globalIdx)}
                                         disabled={!!loadingFeedUrl}
-                                        className="w-full flex items-center gap-3 px-4 py-2 text-left transition-colors disabled:opacity-60"
-                                        style={{
-                                            background: activeIdx === globalIdx ? 'var(--color-surface-container-high)' : 'transparent',
-                                            color: 'var(--color-on-surface)',
-                                        }}
+                                        className={`palette-item ${activeIdx === globalIdx ? 'active' : ''}`}
                                     >
-                                        <div
-                                            className="w-7 h-7 rounded overflow-hidden shrink-0 flex items-center justify-center"
-                                            style={{ background: 'var(--color-surface-container-highest)' }}
+                                        <span
+                                            className={`feed-thumb tint-${tint}`}
+                                            style={{ width: 24, height: 24, fontSize: 11, borderRadius: 4 }}
+                                            aria-hidden="true"
                                         >
                                             {isLoading ? (
-                                                <Icon name="progress_activity" size={14} className="animate-spin" style={{ color: 'var(--color-primary)' }} />
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ animation: 'feedSyncSpin 1s linear infinite' }}>
+                                                    <path d="M21 12a9 9 0 1 1-6.2-8.5"/>
+                                                </svg>
                                             ) : item.image ? (
-                                                <img src={item.image} className="w-full h-full object-cover" alt={item.title} />
+                                                <img src={item.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                             ) : (
-                                                <Icon name="podcasts" size={14} style={{ color: 'var(--color-on-surface-variant)' }} />
+                                                <span>{initialsFor(item.title)}</span>
                                             )}
-                                        </div>
-                                        <span className="text-sm truncate flex-1" style={{ fontFamily: 'var(--font-label)' }}>
-                                            {item.title}
                                         </span>
+                                        <div className="text">{item.title}</div>
                                     </button>
                                 );
                             })}
-                        </>
+                        </div>
                     )}
                 </div>
 
-                {/* Footer hint */}
-                <div
-                    className="px-4 py-2 flex items-center gap-4 shrink-0"
-                    style={{
-                        borderTop: '1px solid rgba(65,71,85,0.1)',
-                        color: 'var(--color-on-surface-variant)',
-                        opacity: 0.38,
-                        fontFamily: 'var(--font-label)',
-                        fontSize: '10px',
-                    }}
-                >
-                    <span>↑↓ {t('cmd.hint_navigate')}</span>
-                    <span>↵ {t('cmd.hint_select')}</span>
-                    <span>ESC {t('cmd.hint_close')}</span>
+                <div className="palette-footer">
+                    <div className="nav">
+                        <span><kbd>↑</kbd><kbd>↓</kbd> {t('cmd.hint_navigate', 'per navigare')}</span>
+                        <span><kbd>↵</kbd> {t('cmd.hint_select', 'per eseguire')}</span>
+                        <span><kbd>esc</kbd> {t('cmd.hint_close', 'per chiudere')}</span>
+                    </div>
+                    <span>Runtime Command</span>
                 </div>
             </motion.div>
         </div>

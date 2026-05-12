@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Icon } from './Icon';
 import { useTranslation } from 'react-i18next';
 
 interface ConfirmModalProps {
@@ -14,45 +13,17 @@ interface ConfirmModalProps {
     onCancel: () => void;
 }
 
-const variantConfig = {
-    danger: {
-        iconName: 'error',
-        iconColor: 'var(--color-error)',
-        cardBg: 'rgba(147,0,10,0.12)',
-        cardBorder: 'rgba(255,180,171,0.2)',
-        btnBg: 'var(--color-error-container)',
-        btnColor: 'var(--color-error)',
-    },
-    warning: {
-        iconName: 'warning',
-        iconColor: 'var(--color-warning)',
-        cardBg: 'rgba(110,50,0,0.18)',
-        cardBorder: 'rgba(255,183,112,0.2)',
-        btnBg: 'var(--color-warning-container)',
-        btnColor: 'var(--color-warning)',
-    },
-    info: {
-        iconName: 'info',
-        iconColor: 'var(--color-primary)',
-        cardBg: 'rgba(75,142,255,0.10)',
-        cardBorder: 'rgba(173,198,255,0.2)',
-        btnBg: 'var(--color-primary-container)',
-        btnColor: 'var(--color-on-primary-fixed)',
-    },
+const variantIconColor: Record<NonNullable<ConfirmModalProps['variant']>, string> = {
+    danger:  'var(--danger)',
+    warning: 'var(--warn)',
+    info:    'var(--azure-soft)',
 };
 
 export const ConfirmModal: React.FC<ConfirmModalProps> = ({
-    isOpen,
-    title,
-    message,
-    confirmLabel,
-    cancelLabel,
-    variant = 'warning',
-    onConfirm,
-    onCancel,
+    isOpen, title, message, confirmLabel, cancelLabel, variant = 'warning', onConfirm, onCancel,
 }) => {
     const { t } = useTranslation();
-    const cfg = variantConfig[variant];
+    const iconColor = variantIconColor[variant];
 
     useEffect(() => {
         if (!isOpen) return;
@@ -64,58 +35,55 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                <div className="confirm-bg" onClick={onCancel}>
                     <motion.div
-                        className="absolute inset-0 backdrop-blur-sm"
-                        style={{ background: 'rgba(0,0,0,0.65)' }}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={onCancel}
-                    />
-                    <motion.div
-                        className="relative z-10 w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden p-6"
-                        style={{
-                            background: cfg.cardBg,
-                            border: `1px solid ${cfg.cardBorder}`,
-                            backdropFilter: 'blur(20px)',
-                        }}
+                        className="confirm-dialog"
+                        onClick={(e) => e.stopPropagation()}
                         initial={{ opacity: 0, scale: 0.92, y: 16 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.92, y: 16 }}
                         transition={{ duration: 0.2 }}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="confirm-title"
                     >
-                        <div className="flex items-start gap-3 mb-5">
-                            <Icon name={cfg.iconName} size={22} filled style={{ color: cfg.iconColor, flexShrink: 0, marginTop: 2 }} />
-                            <div>
-                                <h3 className="font-semibold text-base" style={{ color: 'var(--color-on-surface)', fontFamily: 'var(--font-headline)' }}>
-                                    {title}
-                                </h3>
-                                <p className="text-sm mt-1 leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
-                                    {message}
-                                </p>
+                        <div className="confirm-body">
+                            <div className="confirm-icon" style={{ color: iconColor }} aria-hidden="true">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    {variant === 'danger' ? (
+                                        <>
+                                            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                            <line x1="12" y1="9" x2="12" y2="13"/>
+                                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                                        </>
+                                    ) : variant === 'warning' ? (
+                                        <>
+                                            <circle cx="12" cy="12" r="10"/>
+                                            <line x1="12" y1="8" x2="12" y2="12"/>
+                                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <circle cx="12" cy="12" r="10"/>
+                                            <path d="M12 16v-4"/>
+                                            <path d="M12 8h.01"/>
+                                        </>
+                                    )}
+                                </svg>
+                            </div>
+                            <div className="confirm-text">
+                                <h3 id="confirm-title">{title}</h3>
+                                <p>{message}</p>
                             </div>
                         </div>
-                        <div className="flex gap-2">
-                            <button
-                                onClick={onCancel}
-                                className="hover-bg-bright flex-1 py-2.5 rounded-lg text-sm font-medium transition-all"
-                                style={{
-                                    background: 'var(--color-surface-container-highest)',
-                                    color: 'var(--color-on-surface-variant)',
-                                    fontFamily: 'var(--font-label)',
-                                }}
-                            >
+                        <div className="confirm-actions">
+                            <button type="button" className="confirm-btn" onClick={onCancel}>
                                 {cancelLabel || t('common.cancel', 'Annulla')}
                             </button>
                             <button
+                                type="button"
+                                className={`confirm-btn ${variant === 'danger' ? 'danger' : ''}`}
                                 onClick={onConfirm}
-                                className="flex-1 py-2.5 rounded-lg text-sm font-medium transition-all shadow-lg"
-                                style={{
-                                    background: cfg.btnBg,
-                                    color: cfg.btnColor,
-                                    fontFamily: 'var(--font-label)',
-                                }}
                             >
                                 {confirmLabel || t('common.confirm', 'Conferma')}
                             </button>

@@ -188,67 +188,52 @@ export const ArchiveView: React.FC = () => {
     return (
         <div className="flex flex-col space-y-4">
 
-            {/* Stats + Filters */}
-            <div className="bento-card p-5">
-                <div className="mb-4">
-                    <h2
-                        className="text-base font-extrabold"
-                        style={{ fontFamily: 'var(--font-headline)', color: 'var(--color-on-surface)' }}
-                    >
-                        {t('archive.title')}
-                    </h2>
-                    <p className="text-xs mt-1" style={{ color: 'var(--color-on-surface-variant)' }}>
-                        {t('archive.files_count', { count: entries.length })}
-                        {' · '}
-                        {t('archive.podcasts_count', { count: podcasts.length })}
-                        {' · '}
-                        {formatBytes(totalSize)}
-                    </p>
+            {/* Archive search bar */}
+            <div className="archive-search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+                </svg>
+                <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    placeholder={t('archive.search_placeholder', "Cerca nell'archivio · titolo, show, data, durata…")}
+                />
+                <div className="archive-stats">
+                    <span><strong>{entries.length.toLocaleString()}</strong> {t('archive.episodes_short', 'episodi')}</span>
+                    <span><strong>{(totalSize / (1024 ** 3)).toFixed(1)}</strong> GB</span>
+                    <span><strong>{podcasts.length}</strong> {t('archive.podcasts_short', 'show')}</span>
                 </div>
+            </div>
 
-                <div className="flex gap-3 flex-wrap">
-                    {/* Search */}
-                    <div
-                        className="flex-1 min-w-[180px] flex items-center gap-2 px-3 py-2 rounded-lg"
-                        style={{ background: 'var(--color-surface-container-high)' }}
-                    >
-                        <Icon name="search" size={14} style={{ color: 'var(--color-on-surface-variant)', flexShrink: 0 }} />
-                        <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={e => setSearchQuery(e.target.value)}
-                            placeholder={t('archive.search_placeholder')}
-                            className="flex-1 bg-transparent text-sm outline-none min-w-0"
-                            style={{ fontFamily: 'var(--font-label)', color: 'var(--color-on-surface)' }}
-                        />
-                        {searchQuery && (
-                            <button
-                                onClick={() => setSearchQuery('')}
-                                className="hover-text-surface shrink-0"
-                                style={{ color: 'var(--color-on-surface-variant)' }}
-                            >
-                                <Icon name="close" size={14} />
-                            </button>
-                        )}
-                    </div>
+            <div className="section-heading">
+                <h3>{t('archive.title', 'Tutti gli episodi archiviati')}</h3>
+                <span className="kicker">{t('archive.sorted_by_date', 'Ordinati per data · più recenti')}</span>
+            </div>
 
-                    {/* Podcast filter */}
+            {/* Secondary filters (podcast filter + sort) */}
+            <div className="ep-filter-bar">
+                <div className="field" style={{ flex: 'none' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--fg-3)', letterSpacing: '0.14em', textTransform: 'uppercase' }}>{t('archive.filter_label', 'Filtra')}</span>
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', flex: 1, justifyContent: 'flex-end' }}>
                     <select
                         value={podcastFilter}
                         onChange={e => setPodcastFilter(e.target.value)}
-                        className="px-3 py-2 rounded-lg text-xs outline-none cursor-pointer"
                         style={{
-                            background: 'var(--color-surface-container-high)',
-                            color: 'var(--color-on-surface)',
-                            fontFamily: 'var(--font-label)',
-                            border: 'none',
+                            background: 'var(--surf-2)',
+                            color: 'var(--fg)',
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: 10.5,
+                            border: '1px solid var(--border)',
+                            borderRadius: 'var(--r-sm)',
+                            padding: '6px 10px',
+                            cursor: 'pointer',
                         }}
                     >
                         <option value="">{t('archive.filter_all_podcasts')}</option>
                         {podcasts.map(p => <option key={p} value={p}>{p}</option>)}
                     </select>
-
-                    {/* Sort */}
                     <select
                         value={`${sortKey}-${sortDir}`}
                         onChange={e => {
@@ -258,12 +243,15 @@ export const ArchiveView: React.FC = () => {
                             setSortKey(key);
                             setSortDir(dir);
                         }}
-                        className="px-3 py-2 rounded-lg text-xs outline-none cursor-pointer"
                         style={{
-                            background: 'var(--color-surface-container-high)',
-                            color: 'var(--color-on-surface)',
-                            fontFamily: 'var(--font-label)',
-                            border: 'none',
+                            background: 'var(--surf-2)',
+                            color: 'var(--fg)',
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: 10.5,
+                            border: '1px solid var(--border)',
+                            borderRadius: 'var(--r-sm)',
+                            padding: '6px 10px',
+                            cursor: 'pointer',
                         }}
                     >
                         <option value="downloadedAt-desc">{t('archive.sort_downloaded_desc')}</option>
