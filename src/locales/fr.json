@@ -195,7 +195,13 @@
         "update_install": "Redémarrer & Installer",
         "update_error": "Vérification des mises à jour échouée",
         "health_mark_not_downloaded": "Marquer comme non téléchargés",
-        "health_mark_success": "Fichiers manquants supprimés du registre. Ils peuvent maintenant être re-téléchargés."
+        "health_mark_success": "Fichiers manquants supprimés du registre. Ils peuvent maintenant être re-téléchargés.",
+        "auto_refresh": "Actualisation Automatique des Podcasts",
+        "auto_refresh_hint": "Vérifie les nouveaux épisodes en arrière-plan et envoie une notification système",
+        "auto_refresh_off": "Désactivé",
+        "auto_refresh_6h": "6 heures",
+        "auto_refresh_12h": "12 heures",
+        "auto_refresh_24h": "24 heures"
     },
     "diskspace": {
         "critical": "Espace disque critique : moins de 200 Mo disponibles. Téléchargement annulé.",

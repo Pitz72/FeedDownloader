@@ -195,7 +195,13 @@
         "update_install": "Neu starten & Installieren",
         "update_error": "Update-Prüfung fehlgeschlagen",
         "health_mark_not_downloaded": "Als nicht heruntergeladen markieren",
-        "health_mark_success": "Fehlende Dateien aus dem Register entfernt. Sie können jetzt erneut heruntergeladen werden."
+        "health_mark_success": "Fehlende Dateien aus dem Register entfernt. Sie können jetzt erneut heruntergeladen werden.",
+        "auto_refresh": "Automatische Feed-Aktualisierung",
+        "auto_refresh_hint": "Prüft im Hintergrund auf neue Episoden und sendet eine Systembenachrichtigung",
+        "auto_refresh_off": "Deaktiviert",
+        "auto_refresh_6h": "6 Stunden",
+        "auto_refresh_12h": "12 Stunden",
+        "auto_refresh_24h": "24 Stunden"
     },
     "diskspace": {
         "critical": "Kritischer Speicherplatz: weniger als 200 MB verfügbar. Download abgebrochen.",

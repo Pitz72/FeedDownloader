@@ -61,6 +61,74 @@ const FEED_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 // UI locale synced from renderer for localized OS notifications
 let uiLocale = 'en';
 
+// ── Auto-Refresh (F3) ────────────────────────────────────────
+let autoRefreshTimer: ReturnType<typeof setInterval> | null = null;
+
+function clearAutoRefresh() {
+    if (autoRefreshTimer) {
+        clearInterval(autoRefreshTimer);
+        autoRefreshTimer = null;
+    }
+}
+
+async function runBackgroundRefresh(win: BrowserWindow) {
+    const feeds = libraryService.getFeeds();
+    if (feeds.length === 0) return;
+
+    let totalNew = 0;
+    const feedsWithNew: string[] = [];
+
+    await Promise.allSettled(feeds.map(async (feedEntry) => {
+        try {
+            // Invalidate cache to force a fresh HTTP fetch
+            feedCache.delete(feedEntry.url);
+            parseFeedLastCall.delete(feedEntry.url);
+
+            const previousCount = libraryService.getEpisodeCount(feedEntry.url) ?? 0;
+            const feed = await feedService.parseFeed(feedEntry.url);
+            const newCount = ((feed as unknown) as { episodes?: unknown[] }).episodes?.length ?? 0;
+
+            feedCache.set(feedEntry.url, { feed, timestamp: Date.now() });
+            libraryService.touchFeed(feedEntry.url, new Date().toISOString());
+
+            if (newCount > previousCount) {
+                totalNew += newCount - previousCount;
+                feedsWithNew.push(feedEntry.title);
+            }
+            libraryService.updateEpisodeCount(feedEntry.url, newCount);
+        } catch {
+            // silently skip feeds that fail in background
+        }
+    }));
+
+    pushEvent(win, CH.FEEDS_UPDATED, libraryService.getFeeds());
+
+    if (totalNew > 0 && Notification.isSupported()) {
+        const notifBodies: Record<string, string> = {
+            en: `${totalNew} new episode${totalNew !== 1 ? 's' : ''} found in ${feedsWithNew.length} podcast${feedsWithNew.length !== 1 ? 's' : ''}.`,
+            it: `${totalNew} nuovo${totalNew !== 1 ? 'i' : ''} episodio${totalNew !== 1 ? 'i' : ''} trovato${totalNew !== 1 ? 'i' : ''} in ${feedsWithNew.length} podcast.`,
+            fr: `${totalNew} nouvel${totalNew !== 1 ? 's' : ''} épisode${totalNew !== 1 ? 's' : ''} trouvé${totalNew !== 1 ? 's' : ''} dans ${feedsWithNew.length} podcast${feedsWithNew.length !== 1 ? 's' : ''}.`,
+            de: `${totalNew} neue Episode${totalNew !== 1 ? 'n' : ''} in ${feedsWithNew.length} Feed${feedsWithNew.length !== 1 ? 's' : ''} gefunden.`,
+            es: `${totalNew} nuevo${totalNew !== 1 ? 's' : ''} episodio${totalNew !== 1 ? 's' : ''} encontrado${totalNew !== 1 ? 's' : ''} en ${feedsWithNew.length} podcast${feedsWithNew.length !== 1 ? 's' : ''}.`,
+            pt: `${totalNew} novo${totalNew !== 1 ? 's' : ''} episódio${totalNew !== 1 ? 's' : ''} encontrado${totalNew !== 1 ? 's' : ''} em ${feedsWithNew.length} podcast${feedsWithNew.length !== 1 ? 's' : ''}.`,
+            ru: `Найдено ${totalNew} нов${totalNew !== 1 ? 'ых эпизодов' : 'ый эпизод'} в ${feedsWithNew.length} подкаст${feedsWithNew.length !== 1 ? 'ах' : 'е'}.`,
+            zh: `在 ${feedsWithNew.length} 个播客中发现 ${totalNew} 个新节目。`,
+        };
+        new Notification({
+            title: 'Runtime FeedDownloader Pro',
+            body: notifBodies[uiLocale] ?? notifBodies['en'],
+            icon: path.join(process.env.VITE_PUBLIC || '', 'logo.png'),
+        }).show();
+    }
+}
+
+function startAutoRefreshTimer(win: BrowserWindow, hours: number) {
+    clearAutoRefresh();
+    if (hours === 0) return;
+    const ms = hours * 60 * 60 * 1000;
+    autoRefreshTimer = setInterval(() => { runBackgroundRefresh(win); }, ms);
+}
+
 export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
     // ── Feed Parsing ──────────────────────────────────────
@@ -666,6 +734,9 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         });
     }
 
+    // Start auto-refresh timer using the persisted interval (0 = off)
+    startAutoRefreshTimer(mainWindow, libraryService.getAutoRefreshInterval());
+
     // ── M3U Playlist Export ──────────────────────────────────
     ipcMain.handle(CH.EXPORT_M3U, async (_, podcastTitle: string): Promise<boolean | null> => {
         const entries = libraryService.getArchiveByPodcast(podcastTitle).filter(e => e.filename);
@@ -687,6 +758,17 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         }
 
         await fs.writeFile(result.filePath, content, 'utf-8');
+        return true;
+    });
+
+    // ── Auto-Refresh (F3) ────────────────────────────────────
+    ipcMain.handle(CH.GET_AUTO_REFRESH_INTERVAL, async () => {
+        return libraryService.getAutoRefreshInterval();
+    });
+
+    ipcMain.handle(CH.SET_AUTO_REFRESH_INTERVAL, async (_, hours: number) => {
+        libraryService.setAutoRefreshInterval(hours);
+        startAutoRefreshTimer(mainWindow, hours);
         return true;
     });
 

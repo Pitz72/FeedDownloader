@@ -307,6 +307,21 @@ export class DatabaseService {
         this.setSetting('speedLimitKBps', String(Math.max(0, Math.floor(kbps))));
     }
 
+    getAutoRefreshInterval(): number {
+        const val = this.getSetting('autoRefreshInterval');
+        const parsed = val ? parseInt(val, 10) : 0;
+        return [0, 6, 12, 24].includes(parsed) ? parsed : 0;
+    }
+
+    setAutoRefreshInterval(hours: number): void {
+        this.setSetting('autoRefreshInterval', String(hours));
+    }
+
+    getEpisodeCount(url: string): number | null {
+        const row = this.db.prepare('SELECT episodeCount FROM feeds WHERE url = ?').get(url) as { episodeCount: number | null } | undefined;
+        return row?.episodeCount ?? null;
+    }
+
     // ── Lifecycle ────────────────────────────────────────────
 
     close(): void {

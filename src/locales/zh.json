@@ -195,7 +195,13 @@
         "update_install": "重启并安装",
         "update_error": "检查更新失败",
         "health_mark_not_downloaded": "标记为未下载",
-        "health_mark_success": "缺失文件已从记录中移除，现在可以重新下载。"
+        "health_mark_success": "缺失文件已从记录中移除，现在可以重新下载。",
+        "auto_refresh": "自动刷新订阅源",
+        "auto_refresh_hint": "在后台检查新节目并发送系统通知",
+        "auto_refresh_off": "禁用",
+        "auto_refresh_6h": "6 小时",
+        "auto_refresh_12h": "12 小时",
+        "auto_refresh_24h": "24 小时"
     },
     "diskspace": {
         "critical": "磁盘空间严重不足：可用空间少于 200 MB。下载已取消。",

@@ -130,6 +130,10 @@ export class LibraryService {
     getSpeedLimit(): number { return this.db.getSpeedLimit(); }
     setSpeedLimit(kbps: number): void { this.db.setSpeedLimit(kbps); }
 
+    getAutoRefreshInterval(): number { return this.db.getAutoRefreshInterval(); }
+    setAutoRefreshInterval(hours: number): void { this.db.setAutoRefreshInterval(hours); }
+    getEpisodeCount(url: string): number | null { return this.db.getEpisodeCount(url); }
+
     // ── OPML ─────────────────────────────────────────────────
 
     async importOPML(xmlContent: string): Promise<number> {

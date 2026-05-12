@@ -31,6 +31,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     const [isMarkingMissing, setIsMarkingMissing] = useState(false);
     const [isLoadingSettings, setIsLoadingSettings] = useState(false);
     const [activeCategory, setActiveCategory] = useState<NavCategory>('general');
+    const [autoRefreshInterval, setAutoRefreshInterval] = useState<number>(0);
     const [migrationProgress, setMigrationProgress] = useState<{ moved: number; total: number } | null>(null);
     const [updateStatus, setUpdateStatus] = useState<UpdateStatus>({ type: 'idle' });
     const isBatchDownloading = useStore((state: AppState) => state.isBatchDownloading);
@@ -74,6 +75,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             setId3Enabled(id3);
             const sl = await window.api.getSpeedLimit();
             setSpeedLimit(sl);
+            const ar = await window.api.getAutoRefreshInterval();
+            setAutoRefreshInterval(ar);
         } finally {
             setIsLoadingSettings(false);
         }
@@ -321,6 +324,45 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                             <option value="ru">Русский</option>
                                                             <option value="zh">中文</option>
                                                         </select>
+                                                    </div>
+                                                </div>
+
+                                                {/* Auto-refresh */}
+                                                <div className="space-y-2 pt-4" style={{ borderTop: '1px solid rgba(65,71,85,0.15)' }}>
+                                                    <h3 style={sectionHeading('var(--color-primary)')}>
+                                                        <Icon name="schedule" size={14} />
+                                                        {t('settings.auto_refresh')}
+                                                    </h3>
+                                                    <p className="text-xs" style={{ color: 'var(--color-on-surface-variant)', opacity: 0.65 }}>
+                                                        {t('settings.auto_refresh_hint')}
+                                                    </p>
+                                                    <div className="flex gap-2">
+                                                        {[
+                                                            { value: 0,  label: t('settings.auto_refresh_off') },
+                                                            { value: 6,  label: t('settings.auto_refresh_6h') },
+                                                            { value: 12, label: t('settings.auto_refresh_12h') },
+                                                            { value: 24, label: t('settings.auto_refresh_24h') },
+                                                        ].map(opt => (
+                                                            <button
+                                                                key={opt.value}
+                                                                onClick={async () => {
+                                                                    setAutoRefreshInterval(opt.value);
+                                                                    await window.api.setAutoRefreshInterval(opt.value);
+                                                                }}
+                                                                className="flex-1 py-2 rounded-lg text-sm font-medium transition-all"
+                                                                style={autoRefreshInterval === opt.value ? {
+                                                                    background: 'var(--color-primary-container)',
+                                                                    color: 'var(--color-on-primary-fixed)',
+                                                                    fontFamily: 'var(--font-label)',
+                                                                } : {
+                                                                    background: 'var(--color-surface-container)',
+                                                                    color: 'var(--color-on-surface-variant)',
+                                                                    fontFamily: 'var(--font-label)',
+                                                                }}
+                                                            >
+                                                                {opt.label}
+                                                            </button>
+                                                        ))}
                                                     </div>
                                                 </div>
 

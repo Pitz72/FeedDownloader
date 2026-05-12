@@ -1,7 +1,7 @@
 # Roadmap FeedDownloader Pro — Fonte di Verità
 
-**Versione di riferimento:** 1.1.22
-**Ultimo aggiornamento:** 12 maggio 2026
+**Versione di riferimento:** 1.2.0
+**Ultimo aggiornamento:** 12 maggio 2026 — v1.2.0
 
 Questo è l'unico documento autorevole per tutto il lavoro pendente post-v1.0.0.
 I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_2026.md`) sono archiviati in `archivio/`.
@@ -63,7 +63,7 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 | E7 | Feature | `lastUpdated` sidebar aggiornato al sync | 🔵 | ✅ v1.1.17 |
 | F1 | Feature | Vista archivio integrata in-app | 🟣 | ✅ v1.1.22 |
 | F2 | Feature | Badge "N nuovi" per feed in sidebar | 🟣 | ✅ v1.1.20 |
-| F3 | Feature | Auto-refresh feed periodico in background | 🟣 | 🔲 |
+| F3 | Feature | Auto-refresh feed periodico in background | 🟣 | ✅ v1.2.0 |
 | F4 | Feature | Selezione multipla episodi (Shift/Ctrl+click) | 🟣 | ✅ v1.1.18 |
 | F5 | Feature | Export playlist M3U | 🟣 | ✅ v1.1.21 |
 | F6 | Feature | Velocità/ETA inline per download attivo | 🟣 | ✅ v1.1.19 |
@@ -301,10 +301,11 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 - **File:** `shared/types.ts`, `electron/services/DatabaseService.ts`, `electron/services/LibraryService.ts`, `electron/ipc.ts`, `src/components/Sidebar.tsx`
 - **Implementazione:** `episodeCount` persistito in DB ad ogni parse; `getFeeds()` computa `newCount = MAX(0, episodeCount - downloadedByPodcastTitle)` via JOIN con archive. Badge pill (9px, colore primary) nella sidebar accanto alla data. `FEEDS_UPDATED` pushato anche al completamento di ogni download per aggiornamento in tempo reale.
 
-### F3 🟣 Auto-refresh feed periodico in background
+### F3 🟣 ✅ v1.2.0 Auto-refresh feed periodico in background
 
-- **Stato:** 🔲
-- **Descrizione:** Background refresh configurabile (ogni 6/12/24 ore) con notifica OS quando un feed ha nuovi episodi. Oggi l'utente deve aprire l'app e cliccare manualmente per scoprire novità.
+- **Stato:** ✅ v1.2.0
+- **File:** `shared/types.ts`, `electron/services/DatabaseService.ts`, `electron/services/LibraryService.ts`, `electron/ipc.ts`, `electron/preload.ts`, `src/vite-env.d.ts`, `src/components/SettingsModal.tsx`, `src/locales/*.json`
+- **Implementazione:** Impostazione `autoRefreshInterval` (0/6/12/24 ore) persista in DB. Timer `setInterval` avviato al boot in `registerIpcHandlers` con l'intervallo salvato. Ogni tick: invalida cache, fa fresh fetch di tutti i feed via `Promise.allSettled`, confronta `episodeCount` nuovo vs salvato, aggiorna DB + invia `FEEDS_UPDATED`. Se ci sono nuovi episodi, invia notifica OS localizzata in 8 lingue. UI nella tab Generale di Impostazioni: selettore preset a 4 pulsanti (Disattivato / 6 ore / 12 ore / 24 ore). Riconfigurazione del timer immediata al cambio impostazione.
 
 ### F4 🟣 ✅ v1.1.18 Selezione multipla episodi (Shift/Ctrl+click)
 

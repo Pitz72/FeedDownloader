@@ -195,7 +195,13 @@
         "update_install": "Reiniciar e Instalar",
         "update_error": "Falha na verificação de atualizações",
         "health_mark_not_downloaded": "Marcar como não descarregados",
-        "health_mark_success": "Ficheiros em falta removidos do registo. Agora podem ser descarregados novamente."
+        "health_mark_success": "Ficheiros em falta removidos do registo. Agora podem ser descarregados novamente.",
+        "auto_refresh": "Atualização Automática de Feeds",
+        "auto_refresh_hint": "Verifica novos episódios em segundo plano e envia uma notificação do sistema",
+        "auto_refresh_off": "Desativado",
+        "auto_refresh_6h": "6 horas",
+        "auto_refresh_12h": "12 horas",
+        "auto_refresh_24h": "24 horas"
     },
     "diskspace": {
         "critical": "Espaço em disco crítico: menos de 200 MB disponíveis. Download cancelado.",

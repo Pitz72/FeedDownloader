@@ -72,6 +72,9 @@ declare global {
             checkForUpdate: () => Promise<void>;
             installUpdate: () => Promise<void>;
             onUpdateStatus: (callback: (event: Electron.IpcRendererEvent, status: UpdateStatus) => void) => () => void;
+            // Auto-Refresh (F3)
+            getAutoRefreshInterval: () => Promise<number>;
+            setAutoRefreshInterval: (hours: number) => Promise<boolean>;
         };
     }
 }

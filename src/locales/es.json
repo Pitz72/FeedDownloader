@@ -195,7 +195,13 @@
         "update_install": "Reiniciar e Instalar",
         "update_error": "Error al verificar actualizaciones",
         "health_mark_not_downloaded": "Marcar como no descargados",
-        "health_mark_success": "Archivos faltantes eliminados del registro. Ahora pueden volver a descargarse."
+        "health_mark_success": "Archivos faltantes eliminados del registro. Ahora pueden volver a descargarse.",
+        "auto_refresh": "Actualización Automática de Feeds",
+        "auto_refresh_hint": "Busca nuevos episodios en segundo plano y envía una notificación del sistema",
+        "auto_refresh_off": "Desactivado",
+        "auto_refresh_6h": "6 horas",
+        "auto_refresh_12h": "12 horas",
+        "auto_refresh_24h": "24 horas"
     },
     "diskspace": {
         "critical": "Espacio en disco crítico: menos de 200 MB disponibles. Descarga cancelada.",

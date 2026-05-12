@@ -195,7 +195,13 @@
         "update_install": "Restart & Install",
         "update_error": "Update check failed",
         "health_mark_not_downloaded": "Mark as not downloaded",
-        "health_mark_success": "Missing files removed from the registry. They can now be re-downloaded."
+        "health_mark_success": "Missing files removed from the registry. They can now be re-downloaded.",
+        "auto_refresh": "Automatic Feed Refresh",
+        "auto_refresh_hint": "Check for new episodes in the background and send a system notification",
+        "auto_refresh_off": "Disabled",
+        "auto_refresh_6h": "6 hours",
+        "auto_refresh_12h": "12 hours",
+        "auto_refresh_24h": "24 hours"
     },
     "diskspace": {
         "critical": "Critical disk space: less than 200 MB available. Download cancelled.",

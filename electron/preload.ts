@@ -125,4 +125,8 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.on(CH.UPDATE_STATUS, subscription);
     return () => ipcRenderer.removeListener(CH.UPDATE_STATUS, subscription);
   },
+
+  // Auto-Refresh (F3)
+  getAutoRefreshInterval: (): Promise<number> => ipcRenderer.invoke(CH.GET_AUTO_REFRESH_INTERVAL),
+  setAutoRefreshInterval: (hours: number): Promise<boolean> => ipcRenderer.invoke(CH.SET_AUTO_REFRESH_INTERVAL, hours),
 })

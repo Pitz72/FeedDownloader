@@ -195,7 +195,13 @@
         "update_downloading": "Download aggiornamento... {{percent}}%",
         "update_ready": "Aggiornamento scaricato — riavvia per installare",
         "update_install": "Riavvia e Installa",
-        "update_error": "Verifica aggiornamenti fallita"
+        "update_error": "Verifica aggiornamenti fallita",
+        "auto_refresh": "Aggiornamento Automatico Feed",
+        "auto_refresh_hint": "Controlla nuovi episodi in background e invia una notifica del sistema",
+        "auto_refresh_off": "Disattivato",
+        "auto_refresh_6h": "6 ore",
+        "auto_refresh_12h": "12 ore",
+        "auto_refresh_24h": "24 ore"
     },
     "diskspace": {
         "critical": "Spazio disco critico: meno di 200 MB disponibili. Download annullato.",

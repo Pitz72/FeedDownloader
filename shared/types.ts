@@ -208,4 +208,7 @@ export const IPC_CHANNELS = {
     // Archive view (F1)
     GET_ARCHIVE: 'get-archive',
     OPEN_ARCHIVE_FILE: 'open-archive-file',
+    // Auto-refresh (F3)
+    GET_AUTO_REFRESH_INTERVAL: 'get-auto-refresh-interval',
+    SET_AUTO_REFRESH_INTERVAL: 'set-auto-refresh-interval',
 } as const;
