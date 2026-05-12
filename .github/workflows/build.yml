@@ -1,4 +1,4 @@
-name: Build & Release
+name: Build and Release
 
 # Trigger esclusivamente manuale (workflow_dispatch).
 # Nessun build su push o tag — la pubblicazione è una decisione esplicita.
