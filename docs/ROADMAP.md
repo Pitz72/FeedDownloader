@@ -1,7 +1,7 @@
 # Roadmap FeedDownloader Pro — Fonte di Verità
 
-**Versione di riferimento:** 1.2.1
-**Ultimo aggiornamento:** 12 maggio 2026 — v1.2.1
+**Versione di riferimento:** 1.2.2
+**Ultimo aggiornamento:** 12 maggio 2026 — v1.2.2
 
 Questo è l'unico documento autorevole per tutto il lavoro pendente post-v1.0.0.
 I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_2026.md`) sono archiviati in `archivio/`.
@@ -70,8 +70,8 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 | G1 | UI/UX | Pannello download laterale (replace GlobalProgressBar) | ⚪ | 🔲 |
 | G2 | UI/UX | Sidebar ridimensionabile via drag | ⚪ | 🔲 |
 | G3 | UI/UX | Command palette Ctrl+K | ⚪ | 🔲 |
-| G4 | UI/UX | Pannello dettaglio episodio (click) | ⚪ | 🔲 |
-| G5 | UI/UX | Sync All con progresso per-feed | ⚪ | 🔲 |
+| G4 | UI/UX | Pannello dettaglio episodio (click) | ⚪ | ✅ v1.2.2 |
+| G5 | UI/UX | Sync All con progresso per-feed | ⚪ | ✅ v1.2.2 |
 | G6 | UI/UX | Toast stack — gestione collisioni con GlobalProgressBar | ⚪ | ✅ v1.2.1 |
 | G7 | UI/UX | Onboarding guidato primo avvio | ⚪ | ✅ v1.2.1 |
 
@@ -344,15 +344,17 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 - **Stato:** 🔲
 - **Descrizione:** Ricerca unificata: feed, episodi, azioni (Impostazioni, Sync All, Aggiungi feed, Apri archivio). Standard nelle app desktop moderne, rende l'app completamente navigabile da tastiera.
 
-### G4 ⚪ Pannello dettaglio episodio
+### G4 ⚪ ✅ v1.2.2 Pannello dettaglio episodio
 
-- **Stato:** 🔲
-- **Descrizione:** Click su un episodio apre un side panel (o modal) con: descrizione completa / show notes, link originale, durata, data, dimensione stimata, stato download con data e checksum se scaricato. Oggi gli episodi sono righe cliccabili che non fanno nulla.
+- **Stato:** ✅ v1.2.2
+- **File:** `src/components/EpisodeDetailPanel.tsx`, `src/components/EpisodeList.tsx`
+- **Implementazione:** Click semplice su riga episodio apre pannello fisso laterale (380px, sotto header). Contenuto: meta (data, durata, dimensione enclosure), azioni contestuali (Scarica/Riscarica/Reset/Apri Cartella), dati archivio se scaricato (downloadedAt, fileSize, bitrate, sampleRate, filename, checksum SHA-256), link sorgente con copia, show notes HTML-stripped con preservazione newline. Ctrl/Shift+click riservati alla selezione multipla (F4 invariato). Pannello chiuso al cambio feed.
 
-### G5 ⚪ Sync All con progressivo per-feed
+### G5 ⚪ ✅ v1.2.2 Sync All con progressivo per-feed
 
-- **Stato:** 🔲
-- **Descrizione:** Durante Sync All la sidebar non cambia. Ogni voce feed dovrebbe mostrare uno spinner individuale mentre è in corso il suo parse, e un check (✓) o errore (✗) al completamento. Il bottone diventa "Sincronizzando... 4/12".
+- **Stato:** ✅ v1.2.2
+- **File:** `src/components/Sidebar.tsx`
+- **Implementazione:** Sostituito `isSyncingAll: boolean` con `syncStatuses: Map<string, 'syncing'|'done'|'error'>`. Durante Sync All, ogni thumbnail feed mostra spinner `sync` animato (in corso), `check_circle` verde (completato) o `error` rosso (fallito). Bottone mostra "Sincronizzando... N/M" con counter in tempo reale. Stati visibili 2,5s poi reset automatico.
 
 ### G6 ⚪ ✅ v1.2.1 Toast stack — gestione collisioni con GlobalProgressBar
 
