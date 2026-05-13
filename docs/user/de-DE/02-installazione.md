@@ -23,7 +23,7 @@ Runtime FeedDownloader Pro ist eine Desktop-Anwendung auf Basis der Electron-Tec
 
 ## 2.2 Installation unter Windows
 
-1.  Die Installationsdatei `Runtime-FeedDownloader-Pro-Setup-1.2.4.exe` von der offiziellen Release-Seite herunterladen.
+1.  Die Installationsdatei `Runtime-FeedDownloader-Pro-Setup-1.3.0.exe` von der offiziellen Release-Seite herunterladen.
 2.  Die heruntergeladene Datei mit einem Doppelklick öffnen, um das Installationsprogramm zu starten.
 3.  Falls Windows die Meldung **„Windows hat Ihren PC geschützt"** (SmartScreen) anzeigt, auf **„Weitere Informationen"** und anschließend auf **„Trotzdem ausführen"** klicken. Diese Meldung ist bei Software üblich, die außerhalb des Microsoft Store vertrieben wird und noch keine ausreichende Verbreitung für das Windows-Reputationssystem erreicht hat.
 4.  Den Anweisungen auf dem Bildschirm folgen: den Lizenzvertrag akzeptieren, den Installationsordner auswählen und auf **„Installieren"** klicken.
@@ -36,7 +36,7 @@ Das Programm wird in `C:\Program Files\Runtime FeedDownloader Pro\` installiert.
 
 ## 2.3 Installation unter macOS
 
-1.  Die Datei `Runtime-FeedDownloader-Pro-1.2.4.dmg` herunterladen.
+1.  Die Datei `Runtime-FeedDownloader-Pro-1.3.0.dmg` herunterladen.
 2.  Die `.dmg`-Datei mit einem Doppelklick öffnen. Es erscheint ein Fenster mit dem Anwendungssymbol.
 3.  Das Symbol von **FeedDownloader Pro** in den Ordner **Programme** ziehen, wie durch den Pfeil im `.dmg`-Fenster angezeigt.
 4.  **Erster Start unter macOS:** Da die Software nicht über den Mac App Store vertrieben wird, zeigt macOS beim ersten Öffnen eine Sicherheitswarnung an. So geht man vor:
@@ -51,11 +51,11 @@ Das Programm wird in `C:\Program Files\Runtime FeedDownloader Pro\` installiert.
 
 ## 2.4 Installation unter Linux
 
-1.  Die Datei `Runtime-FeedDownloader-Pro-1.2.4.AppImage` herunterladen.
+1.  Die Datei `Runtime-FeedDownloader-Pro-1.3.0.AppImage` herunterladen.
 2.  Die Datei als ausführbar markieren. Die verfügbaren Methoden sind:
     *   **Über die grafische Oberfläche:** Rechtsklick auf die Datei → Eigenschaften → Reiter Berechtigungen → Häkchen bei „Datei als Programm ausführen erlauben".
-    *   **Über das Terminal:** `chmod +x Runtime-FeedDownloader-Pro-1.2.4.AppImage`
-3.  Die Datei mit einem Doppelklick oder über das Terminal starten: `./Runtime-FeedDownloader-Pro-1.2.4.AppImage`
+    *   **Über das Terminal:** `chmod +x Runtime-FeedDownloader-Pro-1.3.0.AppImage`
+3.  Die Datei mit einem Doppelklick oder über das Terminal starten: `./Runtime-FeedDownloader-Pro-1.3.0.AppImage`
 
 **Desktop-Integration (optional):**
 Um FeedDownloader Pro zum Launcher und Anwendungsmenü hinzuzufügen, kann **AppImageLauncher** verwendet werden (in den Repositories der meisten Distributionen verfügbar), der AppImage-Dateien automatisch in das System integriert.

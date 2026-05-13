@@ -1,6 +1,6 @@
 # Runtime FeedDownloader Pro
 ## Manuel d'utilisation avancé
-### Version 1.2.4
+### Version 1.3.0
 
 ---
 

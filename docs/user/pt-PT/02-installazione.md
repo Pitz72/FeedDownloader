@@ -23,7 +23,7 @@ Runtime FeedDownloader Pro é uma aplicação de ambiente de trabalho baseada na
 
 ## 2.2 Instalação no Windows
 
-1.  Transferir o ficheiro de instalação `Runtime-FeedDownloader-Pro-Setup-1.2.4.exe` a partir da página de lançamentos oficial.
+1.  Transferir o ficheiro de instalação `Runtime-FeedDownloader-Pro-Setup-1.3.0.exe` a partir da página de lançamentos oficial.
 2.  Fazer duplo clique no ficheiro transferido para iniciar o programa de instalação.
 3.  Se o Windows mostrar um aviso **"O Windows protegeu o PC"** (SmartScreen), clicar em **"Mais informações"** e depois em **"Executar mesmo assim"**. Este aviso é padrão para software distribuído fora da Microsoft Store que ainda não atingiu um limiar suficiente de adoção para o sistema de reputação do Windows.
 4.  Seguir as instruções no ecrã: aceitar o contrato de licença, escolher a pasta de instalação e clicar em **"Instalar"**.
@@ -36,7 +36,7 @@ O programa é instalado em `C:\Program Files\Runtime FeedDownloader Pro\`. A bas
 
 ## 2.3 Instalação no macOS
 
-1.  Transferir o ficheiro `Runtime-FeedDownloader-Pro-1.2.4.dmg`.
+1.  Transferir o ficheiro `Runtime-FeedDownloader-Pro-1.3.0.dmg`.
 2.  Abrir o ficheiro `.dmg` com um duplo clique. Será apresentada uma janela com o ícone da aplicação.
 3.  Arrastar o ícone do **FeedDownloader Pro** para a pasta **Aplicações**, conforme indicado pela seta na janela do `.dmg`.
 4.  **Primeiro arranque no macOS:** Como o software não é distribuído através da Mac App Store, o macOS apresentará um aviso de segurança na primeira abertura. Para continuar:
@@ -51,11 +51,11 @@ O programa é instalado em `C:\Program Files\Runtime FeedDownloader Pro\`. A bas
 
 ## 2.4 Instalação no Linux
 
-1.  Transferir o ficheiro `Runtime-FeedDownloader-Pro-1.2.4.AppImage`.
+1.  Transferir o ficheiro `Runtime-FeedDownloader-Pro-1.3.0.AppImage`.
 2.  Tornar o ficheiro executável. As opções disponíveis são:
     *   **Através da interface gráfica:** clique direito no ficheiro → Propriedades → separador Permissões → marcar "Permitir executar o ficheiro como programa".
-    *   **Através do terminal:** `chmod +x Runtime-FeedDownloader-Pro-1.2.4.AppImage`
-3.  Iniciar o ficheiro com um duplo clique ou a partir do terminal: `./Runtime-FeedDownloader-Pro-1.2.4.AppImage`
+    *   **Através do terminal:** `chmod +x Runtime-FeedDownloader-Pro-1.3.0.AppImage`
+3.  Iniciar o ficheiro com um duplo clique ou a partir do terminal: `./Runtime-FeedDownloader-Pro-1.3.0.AppImage`
 
 **Integração com o ambiente de trabalho (opcional):**
 Para adicionar o FeedDownloader Pro ao lançador e ao menu de aplicações, pode utilizar o **AppImageLauncher** (disponível nos repositórios da maioria das distribuições), que integra automaticamente os ficheiros AppImage no sistema.

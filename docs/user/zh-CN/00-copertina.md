@@ -1,6 +1,6 @@
 # Runtime FeedDownloader Pro
 ## 高级使用手册
-### 版本 1.2.4
+### 版本 1.3.0
 
 ---
 
