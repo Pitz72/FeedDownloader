@@ -9,6 +9,7 @@ import { EpisodeDetailPanel } from './EpisodeDetailPanel';
 import type { Episode, ArchiveEntry } from '../../shared/types';
 import { getEnclosureUrl } from '../../shared/getEnclosureUrl';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
+import type { TFunction } from 'i18next';
 
 function parseDurationMinutes(duration?: string): number | null {
     if (!duration) return null;
@@ -56,9 +57,172 @@ function formatEta(seconds: number): string {
     return `${seconds}s`;
 }
 
+// ── Memoized episode row (B4) ────────────────────────────────────────────────
+// Each row subscribes ONLY to its own download slice (downloads[url]) via Zustand,
+// so a progress tick re-renders just that one row instead of the whole list.
+interface EpisodeRowProps {
+    episode: Episode;
+    index: number;
+    isSelected: boolean;
+    isDownloadedByGuid: boolean;
+    currentFeedTitle: string;
+    isOnline: boolean;
+    t: TFunction;
+    onRowClick: (episode: Episode, index: number, e: React.MouseEvent) => void;
+    onDownload: (episode: Episode) => void;
+    onResetStatus: (guid: string) => void;
+    onCopyTitle: (title: string) => void;
+}
+
+const EpisodeRow = React.memo(function EpisodeRow({
+    episode, index, isSelected, isDownloadedByGuid, currentFeedTitle, isOnline, t,
+    onRowClick, onDownload, onResetStatus, onCopyTitle,
+}: EpisodeRowProps) {
+    const url = getEnclosureUrl(episode);
+    const guid = episode.guid || url || '';
+    const status = useStore((s: AppState) => (url ? s.downloads[url] : undefined));
+    const isDownloading = !!(status && !status.completed && !status.error);
+    const isCompleted = !!(status?.completed || isDownloadedByGuid);
+    const progressPercent = (status && status.total && status.total > 0)
+        ? Math.round((status.loaded / status.total) * 100)
+        : null;
+
+    const pubDate = episode.pubDate
+        ? new Date(episode.pubDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+        : '';
+    const dur = formatDuration(episode.itunes?.duration);
+
+    const stateClass = isDownloading ? 'downloading' : isCompleted ? 'downloaded' : isSelected ? 'selected' : '';
+
+    return (
+        <div
+            className={`ep-row ${stateClass}`}
+            onClick={(e) => onRowClick(episode, index, e)}
+        >
+            <div
+                className="ep-check"
+                onClick={(e) => { e.stopPropagation(); onRowClick(episode, index, { ...e, ctrlKey: true } as unknown as React.MouseEvent); }}
+                role="checkbox"
+                aria-checked={isSelected}
+            >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+            </div>
+
+            <span className="ep-num">#{String(index + 1).padStart(2, '0')}</span>
+
+            <div className="ep-icon" aria-hidden="true">
+                {isDownloading ? (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                ) : isCompleted ? (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                ) : (
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polygon points="5 3 19 12 5 21 5 3"/>
+                    </svg>
+                )}
+            </div>
+
+            <div className="ep-main">
+                <p className="ep-title">{episode.title}</p>
+                <div className="ep-meta">
+                    {pubDate && <span>{pubDate}</span>}
+                    {pubDate && dur && <span className="sep">·</span>}
+                    {dur && <span>{dur}</span>}
+                    {isCompleted && <span className="tag archived">{t('episodes.tag_archived', 'ARCHIVIATO')}</span>}
+                    {!isDownloading && !isCompleted && isSelected && <span className="tag new">{t('episodes.tag_new', 'NUOVO')}</span>}
+                </div>
+            </div>
+
+            {isDownloading ? (
+                <div className="ep-progress" onClick={(e) => e.stopPropagation()}>
+                    <div className="ep-progress-bar">
+                        <i style={{ width: `${progressPercent ?? 0}%` }} />
+                    </div>
+                    <div className="ep-progress-meta">
+                        <span className="pct">{progressPercent !== null ? `${progressPercent}%` : '…'}</span>
+                        {status?.speed !== undefined && status.speed > 0 && (
+                            <span>
+                                {formatSpeed(status.speed)}
+                                {status.eta !== undefined && status.eta > 0 && ` · ${formatEta(status.eta)}`}
+                            </span>
+                        )}
+                    </div>
+                </div>
+            ) : (
+                <div className="ep-actions" onClick={(e) => e.stopPropagation()}>
+                    <button
+                        type="button"
+                        className="ep-action"
+                        onClick={() => onCopyTitle(episode.title)}
+                        title={t('episodes.copy_title')}
+                        aria-label={t('episodes.copy_title')}
+                    >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <rect x="9" y="9" width="13" height="13" rx="2"/>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                        </svg>
+                    </button>
+                    {isCompleted ? (
+                        <>
+                            <button
+                                type="button"
+                                className="ep-action"
+                                onClick={() => onResetStatus(guid)}
+                                title={t('episodes.reset_status')}
+                                aria-label={t('episodes.reset_status')}
+                            >
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                    <path d="M3 12a9 9 0 1 0 9-9"/><polyline points="3 4 3 12 11 12"/>
+                                </svg>
+                            </button>
+                            <button
+                                type="button"
+                                className="ep-action"
+                                onClick={() => window.api.showInFolder(currentFeedTitle, episode.title, url, episode.pubDate || episode.isoDate)}
+                                title={t('episodes.open_folder')}
+                                aria-label={t('episodes.open_folder')}
+                            >
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                                </svg>
+                            </button>
+                        </>
+                    ) : (
+                        <button
+                            type="button"
+                            className="ep-action download"
+                            onClick={() => onDownload(episode)}
+                            disabled={!isOnline}
+                            title={isOnline ? t('episodes.download') : t('toast.offline_error')}
+                            aria-label={t('episodes.download')}
+                        >
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                        </button>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+});
+
 export const EpisodeList: React.FC = () => {
     const currentFeed = useStore((state: AppState) => state.currentFeed);
-    const downloads = useStore((state: AppState) => state.downloads);
+    // B4: subscribe to the SET OF KEYS, not the whole downloads object. The key
+    // signature only changes when a download starts/ends — not on every progress
+    // tick — so the list/filter don't recompute while bytes stream in.
+    const downloadingKeys = useStore((state: AppState) => Object.keys(state.downloads).sort().join('\n'));
     const startBatch = useStore((state: AppState) => state.startBatch);
     const setDownloadPath = useStore((state: AppState) => state.setDownloadPath);
     const toast = useToast();
@@ -107,6 +271,8 @@ export const EpisodeList: React.FC = () => {
 
     // G4 — Episode detail panel
     const [detailEpisode, setDetailEpisode] = useState<Episode | null>(null);
+    const detailUrl = detailEpisode ? getEnclosureUrl(detailEpisode) : null;
+    const detailStatus = useStore((st: AppState) => (detailUrl ? st.downloads[detailUrl] : undefined));
     const [detailArchiveEntry, setDetailArchiveEntry] = useState<ArchiveEntry | null>(null);
 
     useEffect(() => {
@@ -189,11 +355,12 @@ export const EpisodeList: React.FC = () => {
         }
 
         if (statusFilter !== 'all') {
+            const inProgress = downloadingKeys ? new Set(downloadingKeys.split('\n')) : new Set<string>();
             episodes = episodes.filter((ep: Episode) => {
                 const url = getEnclosureUrl(ep);
                 const guid = ep.guid || url || '';
                 const isDownloaded = guid ? downloadedGuids.includes(guid) : false;
-                const isInProgress = url ? url in downloads : false;
+                const isInProgress = url ? inProgress.has(url) : false;
                 if (statusFilter === 'downloaded') return isDownloaded;
                 return !isDownloaded && !isInProgress;
             });
@@ -223,7 +390,7 @@ export const EpisodeList: React.FC = () => {
         }
 
         return episodes;
-    }, [currentFeed, searchQuery, dateFrom, dateTo, downloadedGuids, downloads, statusFilter, minDuration, maxDuration, sortOrder]);
+    }, [currentFeed, searchQuery, dateFrom, dateTo, downloadedGuids, downloadingKeys, statusFilter, minDuration, maxDuration, sortOrder]);
 
     // Keep ref in sync so handleRowClick can read current list without being recreated
     filteredEpisodesRef.current = filteredEpisodes;
@@ -318,150 +485,31 @@ export const EpisodeList: React.FC = () => {
         lastSelectedGuidRef.current = null;
     }, [selectedGuids, downloadedGuids, startBatch, handleDownload, toast, t]);
 
-    // ── Episode row renderer ──────────────────────────────────────────────────
+    // ── Episode row renderer (thin wrapper around the memoized EpisodeRow, B4) ──
+    const handleCopyTitle = useCallback((title: string) => {
+        navigator.clipboard.writeText(title);
+        toast.show(t('toast.title_copied'), 'success');
+    }, [toast, t]);
+
     const renderEpisodeRow = useCallback((index: number, episode: Episode) => {
         const url = getEnclosureUrl(episode);
         const guid = episode.guid || url || '';
-        const status = url ? downloads[url] : null;
-        const isDownloading = !!(status && !status.completed && !status.error);
-        const isCompleted = !!(status?.completed || downloadedGuids.includes(guid));
-        const progressPercent = (status && status.total && status.total > 0)
-            ? Math.round((status.loaded / status.total) * 100)
-            : null;
-        const isSelected = selectedGuids.has(guid);
-
-        const pubDate = episode.pubDate
-            ? new Date(episode.pubDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
-            : '';
-        const dur = formatDuration(episode.itunes?.duration);
-
-        const stateClass = isDownloading ? 'downloading' : isCompleted ? 'downloaded' : isSelected ? 'selected' : '';
-
         return (
-            <div
-                className={`ep-row ${stateClass}`}
-                onClick={(e) => handleRowClick(episode, index, e)}
-            >
-                <div
-                    className="ep-check"
-                    onClick={(e) => { e.stopPropagation(); handleRowClick(episode, index, { ...e, ctrlKey: true } as unknown as React.MouseEvent); }}
-                    role="checkbox"
-                    aria-checked={isSelected}
-                >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                </div>
-
-                <span className="ep-num">#{String(index + 1).padStart(2, '0')}</span>
-
-                <div className="ep-icon" aria-hidden="true">
-                    {isDownloading ? (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                            <polyline points="7 10 12 15 17 10"/>
-                            <line x1="12" y1="15" x2="12" y2="3"/>
-                        </svg>
-                    ) : isCompleted ? (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="20 6 9 17 4 12"/>
-                        </svg>
-                    ) : (
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <polygon points="5 3 19 12 5 21 5 3"/>
-                        </svg>
-                    )}
-                </div>
-
-                <div className="ep-main">
-                    <p className="ep-title">{episode.title}</p>
-                    <div className="ep-meta">
-                        {pubDate && <span>{pubDate}</span>}
-                        {pubDate && dur && <span className="sep">·</span>}
-                        {dur && <span>{dur}</span>}
-                        {isCompleted && <span className="tag archived">{t('episodes.tag_archived', 'ARCHIVIATO')}</span>}
-                        {!isDownloading && !isCompleted && isSelected && <span className="tag new">{t('episodes.tag_new', 'NUOVO')}</span>}
-                    </div>
-                </div>
-
-                {isDownloading ? (
-                    <div className="ep-progress" onClick={(e) => e.stopPropagation()}>
-                        <div className="ep-progress-bar">
-                            <i style={{ width: `${progressPercent ?? 0}%` }} />
-                        </div>
-                        <div className="ep-progress-meta">
-                            <span className="pct">{progressPercent !== null ? `${progressPercent}%` : '…'}</span>
-                            {status?.speed !== undefined && status.speed > 0 && (
-                                <span>
-                                    {formatSpeed(status.speed)}
-                                    {status.eta !== undefined && status.eta > 0 && ` · ${formatEta(status.eta)}`}
-                                </span>
-                            )}
-                        </div>
-                    </div>
-                ) : (
-                    <div className="ep-actions" onClick={(e) => e.stopPropagation()}>
-                        <button
-                            type="button"
-                            className="ep-action"
-                            onClick={() => {
-                                navigator.clipboard.writeText(episode.title);
-                                toast.show(t('toast.title_copied'), 'success');
-                            }}
-                            title={t('episodes.copy_title')}
-                            aria-label={t('episodes.copy_title')}
-                        >
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                                <rect x="9" y="9" width="13" height="13" rx="2"/>
-                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                            </svg>
-                        </button>
-                        {isCompleted ? (
-                            <>
-                                <button
-                                    type="button"
-                                    className="ep-action"
-                                    onClick={() => handleResetStatus(guid)}
-                                    title={t('episodes.reset_status')}
-                                    aria-label={t('episodes.reset_status')}
-                                >
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                                        <path d="M3 12a9 9 0 1 0 9-9"/><polyline points="3 4 3 12 11 12"/>
-                                    </svg>
-                                </button>
-                                <button
-                                    type="button"
-                                    className="ep-action"
-                                    onClick={() => window.api.showInFolder(currentFeed?.title || '', episode.title, url, episode.pubDate || episode.isoDate)}
-                                    title={t('episodes.open_folder')}
-                                    aria-label={t('episodes.open_folder')}
-                                >
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-                                    </svg>
-                                </button>
-                            </>
-                        ) : (
-                            <button
-                                type="button"
-                                className="ep-action download"
-                                onClick={() => handleDownload(episode)}
-                                disabled={!isOnline}
-                                title={isOnline ? t('episodes.download') : t('toast.offline_error')}
-                                aria-label={t('episodes.download')}
-                            >
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                                    <polyline points="7 10 12 15 17 10"/>
-                                    <line x1="12" y1="15" x2="12" y2="3"/>
-                                </svg>
-                            </button>
-                        )}
-                    </div>
-                )}
-            </div>
+            <EpisodeRow
+                episode={episode}
+                index={index}
+                isSelected={selectedGuids.has(guid)}
+                isDownloadedByGuid={downloadedGuids.includes(guid)}
+                currentFeedTitle={currentFeed?.title || ''}
+                isOnline={isOnline}
+                t={t}
+                onRowClick={handleRowClick}
+                onDownload={handleDownload}
+                onResetStatus={handleResetStatus}
+                onCopyTitle={handleCopyTitle}
+            />
         );
-    }, [downloads, downloadedGuids, currentFeed, t, isOnline, handleDownload, handleResetStatus, selectedGuids, handleRowClick, toast]);
+    }, [selectedGuids, downloadedGuids, currentFeed, isOnline, t, handleRowClick, handleDownload, handleResetStatus, handleCopyTitle]);
 
     if (!currentFeed) return null;
 
@@ -833,7 +881,7 @@ export const EpisodeList: React.FC = () => {
             {detailEpisode && (() => {
                 const url = getEnclosureUrl(detailEpisode);
                 const guid = detailEpisode.guid || url || '';
-                const status = url ? downloads[url] : null;
+                const status = detailStatus ?? null;
                 const isDownloading = !!(status && !status.completed && !status.error);
                 const isDownloaded = !!(status?.completed || (guid && downloadedGuids.includes(guid)));
                 return (
