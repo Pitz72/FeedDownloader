@@ -16,7 +16,7 @@ export interface Episode {
     guid?: string;
     isoDate?: string;
     description?: string;
-    itunes?: { duration?: string };
+    itunes?: { duration?: string; image?: string };
 }
 
 export interface Feed {
@@ -97,8 +97,9 @@ export interface DownloadRequest {
     podcastTitle: string;
     guid: string;
     pubDate?: string;
-    feedImageUrl?: string;  // URL immagine del feed per cover art ID3 (v0.6.4)
-    feedUrl?: string;       // v1.3.5 — URL del feed di origine (B6)
+    feedImageUrl?: string;     // URL cover di default del podcast per ID3 (v0.6.4)
+    episodeImageUrl?: string;  // URL cover specifica dell'episodio, ha priorità (v1.3.10)
+    feedUrl?: string;          // v1.3.5 — URL del feed di origine (B6)
 }
 
 export interface DownloadResult {

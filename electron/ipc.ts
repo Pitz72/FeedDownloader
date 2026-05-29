@@ -233,7 +233,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     });
 
     // ── Download Engine ──────────────────────────────────
-    ipcMain.handle(CH.START_DOWNLOAD, async (_, { url, title, podcastTitle, guid, pubDate, feedImageUrl, feedUrl }: DownloadRequest) => {
+    ipcMain.handle(CH.START_DOWNLOAD, async (_, { url, title, podcastTitle, guid, pubDate, feedImageUrl, episodeImageUrl, feedUrl }: DownloadRequest) => {
         const check = validateUrl(url);
         if (!check.valid) {
             throw new Error(check.error);
@@ -351,7 +351,8 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                         title,
                         podcastTitle,
                         pubDate,
-                        feedImageUrl: feedImageUrl,
+                        feedImageUrl,
+                        episodeImageUrl, // v1.3.10 — cover episodio (priorità sul feed)
                     }).catch((e) => console.error('[ID3] Failed to write tags:', e));
                 }
 

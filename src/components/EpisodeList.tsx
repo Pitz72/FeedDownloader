@@ -390,6 +390,7 @@ export const EpisodeList: React.FC = () => {
             guid,
             pubDate: episode.pubDate || episode.isoDate,
             feedImageUrl: imageUrl,
+            episodeImageUrl: episode.itunes?.image,  // v1.3.10 — cover specifica episodio
             feedUrl: currentFeed?.url,
         });
         if (!silent) toast.show(t('toast.download_started'), 'info');
