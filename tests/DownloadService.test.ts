@@ -221,6 +221,39 @@ describe('DownloadService', () => {
         expect(fs.rename).toHaveBeenCalled();
     });
 
+    it('should throw EPISODE_NOT_FOUND on HTTP 404 and NOT retry', async () => {
+        const dataStream = createMockDataStream([]);
+        (axios as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+            status: 404,
+            headers: {},
+            data: dataStream,
+        });
+
+        await expect(
+            service.downloadFile('https://cdn.com/gone.mp3', '/tmp/gone.mp3', vi.fn())
+        ).rejects.toThrow('EPISODE_NOT_FOUND');
+
+        // 404 is permanent: must not retry
+        expect(axios).toHaveBeenCalledTimes(1);
+    });
+
+    it('should retry on transient HTTP 5xx status', async () => {
+        const errStream = createMockDataStream([]);
+        const okChunk = Buffer.from('data');
+        const okStream = createMockDataStream([okChunk]);
+        (axios as unknown as ReturnType<typeof vi.fn>)
+            .mockResolvedValueOnce({ status: 503, headers: {}, data: errStream })
+            .mockResolvedValueOnce({ status: 200, headers: { 'content-length': String(okChunk.length) }, data: okStream });
+
+        const downloadPromise = service.downloadFile('https://cdn.com/ep.mp3', '/tmp/ep.mp3', vi.fn());
+        await new Promise(r => setTimeout(r, 1200)); // backoff 1s + stream
+        mockWriter.emit('finish');
+        await downloadPromise;
+
+        expect(axios).toHaveBeenCalledTimes(2);
+        expect(fs.rename).toHaveBeenCalled();
+    });
+
     it('should clean up partial files on error', async () => {
         (axios as unknown as ReturnType<typeof vi.fn>)
             .mockRejectedValueOnce(new Error('Fail 1'))
