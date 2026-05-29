@@ -1,5 +1,6 @@
 import Parser from 'rss-parser';
 import axios from 'axios';
+import { SAFE_AXIOS_CONFIG } from '../utils/safeHttp';
 
 export class FeedService {
   private parser: Parser;
@@ -14,6 +15,7 @@ export class FeedService {
       const response = await axios.get<string>(url, {
         timeout: 15000,
         responseType: 'text',
+        ...SAFE_AXIOS_CONFIG, // SSRF: validate resolved IP on every hop
         headers: { 'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*' }
       });
 

@@ -1,6 +1,8 @@
 import NodeID3 from 'node-id3';
 import axios from 'axios';
 import path from 'path';
+import { validateUrl } from './validateUrl';
+import { SAFE_AXIOS_CONFIG } from './safeHttp';
 
 interface Id3Input {
     title: string;
@@ -20,12 +22,14 @@ export async function writeId3Tags(filePath: string, data: Id3Input): Promise<vo
         year: data.pubDate ? new Date(data.pubDate).getFullYear().toString() : undefined,
     };
 
-    // Cover art: scarica se URL disponibile
-    if (data.feedImageUrl) {
+    // Cover art: scarica se URL disponibile e sicura (SSRF — la URL viene dal
+    // feed remoto, quindi va validata come ogni altra fetch).
+    if (data.feedImageUrl && validateUrl(data.feedImageUrl).valid) {
         try {
             const response = await axios.get(data.feedImageUrl, {
                 responseType: 'arraybuffer',
                 timeout: 10000,
+                ...SAFE_AXIOS_CONFIG, // SSRF: validate resolved IP on every hop
             });
             const mime = (response.headers['content-type'] || 'image/jpeg').split(';')[0];
             tags.image = {

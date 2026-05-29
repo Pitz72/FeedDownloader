@@ -1,21 +1,19 @@
 /**
- * URL Validator — prevents SSRF attacks in the Electron main process.
+ * URL Validator — first line of SSRF defense in the Electron main process.
  *
- * Validates that URLs passed from the renderer are safe to fetch:
+ * This is a fast, lexical pre-check on URLs passed from the renderer:
  * - Only HTTP/HTTPS protocols allowed
- * - Blocks private/reserved IP ranges (RFC 1918, RFC 4193, loopback)
+ * - Blocks literal private/reserved IPs (RFC 1918, RFC 4193, loopback, CGNAT,
+ *   IPv4-mapped IPv6, and numeric/octal/hex notations via net.isIP)
  * - Blocks well-known internal hostnames
+ *
+ * It does NOT (and cannot) defend against DNS rebinding or redirects to private
+ * hosts — a hostname that resolves to a private IP passes here. That second,
+ * authoritative layer lives in safeHttp.ts: the http(s) agents re-validate the
+ * resolved IP on every connection and redirect hop. Keep both in place.
  */
 
-/** Private IPv4 ranges and loopback */
-const PRIVATE_IPV4_PATTERNS = [
-    /^127\./,                    // 127.0.0.0/8 (loopback)
-    /^10\./,                     // 10.0.0.0/8
-    /^172\.(1[6-9]|2\d|3[01])\./, // 172.16.0.0/12
-    /^192\.168\./,               // 192.168.0.0/16
-    /^169\.254\./,               // 169.254.0.0/16 (link-local)
-    /^0\./,                      // 0.0.0.0/8
-];
+import { isPrivateIp } from './safeHttp';
 
 /** Blocked hostnames */
 const BLOCKED_HOSTNAMES = new Set([
@@ -73,22 +71,11 @@ export function validateUrl(url: string): ValidationResult {
         return { valid: false, error: 'URL_PRIVATE_HOST' };
     }
 
-    // Block IPv6 loopback (URL normalizes [::1] to just ::1)
-    if (hostname === '::1' || hostname === '[::1]') {
-        return { valid: false, error: 'URL_PRIVATE_HOST' };
-    }
-
-    // Block private IPv4 ranges
-    for (const pattern of PRIVATE_IPV4_PATTERNS) {
-        if (pattern.test(hostname)) {
-            return { valid: false, error: 'URL_PRIVATE_IP' };
-        }
-    }
-
-    // Block IPv6 private ranges (fc00::/7 — unique local, fe80::/10 — link-local)
-    // URL() normalizes [fc00::1] to fc00::1 (no brackets)
-    const hostForIpv6 = hostname.replace(/^\[|\]$/g, '');
-    if (hostForIpv6.startsWith('fc') || hostForIpv6.startsWith('fd') || hostForIpv6.startsWith('fe80')) {
+    // Block any literal private/reserved IP — covers IPv4 (incl. CGNAT),
+    // IPv6 loopback/ULA/link-local, and IPv4-mapped IPv6. Numeric/octal/hex
+    // hostnames that aren't literal IPs fall through and are caught at connect
+    // time by the safeHttp agent lookup once resolved.
+    if (isPrivateIp(hostname)) {
         return { valid: false, error: 'URL_PRIVATE_IP' };
     }
 

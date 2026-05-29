@@ -2,7 +2,7 @@
 
 > **Il modo più potente per archiviare i tuoi podcast.**
 
-![Version](https://img.shields.io/badge/version-1.3.0-blue)
+![Version](https://img.shields.io/badge/version-1.3.1-blue)
 ![Build](https://github.com/Ecosystem-Runtime/FeedDownloader/actions/workflows/build.yml/badge.svg)
 ![Electron](https://img.shields.io/badge/Electron-30-47848F?logo=electron)
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)

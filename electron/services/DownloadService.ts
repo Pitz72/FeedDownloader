@@ -1,6 +1,7 @@
 import axios from 'axios';
 import fs from 'fs-extra';
 import { createThrottleStream } from '../utils/throttleStream';
+import { SAFE_AXIOS_CONFIG } from '../utils/safeHttp';
 
 /** Timeout for the initial HTTP connection (ms) */
 const CONNECTION_TIMEOUT_MS = 30_000; // 30s
@@ -63,6 +64,7 @@ export class DownloadService {
                 responseType: 'stream',
                 timeout: CONNECTION_TIMEOUT_MS,
                 signal,
+                ...SAFE_AXIOS_CONFIG, // SSRF: validate resolved IP on every hop
                 ...(resumedBytes > 0 ? { headers: { Range: `bytes=${resumedBytes}-` } } : {}),
             });
 
