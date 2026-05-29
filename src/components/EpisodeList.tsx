@@ -310,7 +310,8 @@ export const EpisodeList: React.FC = () => {
             return guid && selectedGuids.has(guid) && !downloadedGuids.includes(guid);
         });
         if (toDownload.length === 0) { toast.show(t('toast.all_downloaded'), 'info'); return; }
-        startBatch(toDownload.length);
+        const urls = toDownload.map(ep => getEnclosureUrl(ep)).filter((u): u is string => !!u);
+        startBatch(urls.length, urls);
         toast.show(t('toast.mass_download_started'), 'success');
         toDownload.forEach(ep => handleDownload(ep, true));
         setSelectedGuids(new Set());
@@ -487,7 +488,8 @@ export const EpisodeList: React.FC = () => {
                 }
             }
 
-            startBatch(newEpisodes.length);
+            const urls = newEpisodes.map((ep: Episode) => getEnclosureUrl(ep)).filter((u): u is string => !!u);
+            startBatch(urls.length, urls);
             toast.show(t('toast.sync_queued', { count: newEpisodes.length }), 'success');
             newEpisodes.forEach((ep: Episode) => handleDownload(ep, true));
         } catch {
@@ -523,7 +525,8 @@ export const EpisodeList: React.FC = () => {
             message: t('confirm.mass_download', { count: episodesToDownload.length }) + diskWarning,
             onConfirm: () => {
                 setConfirmState(prev => ({ ...prev, isOpen: false }));
-                startBatch(episodesToDownload.length);
+                const urls = episodesToDownload.map((ep: Episode) => getEnclosureUrl(ep)).filter((u): u is string => !!u);
+                startBatch(urls.length, urls);
                 toast.show(t('toast.mass_download_started'), 'success');
                 episodesToDownload.forEach((episode: Episode) => handleDownload(episode, true));
             }

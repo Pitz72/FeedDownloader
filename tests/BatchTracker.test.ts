@@ -84,7 +84,7 @@ describe('BatchTracker', () => {
         tracker.complete(); // 1
         tracker.complete(); // 2
         const result = tracker.complete(); // 3 — done!
-        expect(result).toBe(3);
+        expect(result?.total).toBe(3);
     });
 
     it('should auto-reset after returning total', () => {
@@ -123,7 +123,7 @@ describe('BatchTracker', () => {
         tracker.complete(); // 3
         tracker.complete(); // 4
         const finalResult = tracker.complete(); // 5 — now all done
-        expect(finalResult).toBe(5);
+        expect(finalResult?.total).toBe(5);
     });
 
     it('should handle interleaved track/complete without false positives', () => {
@@ -143,7 +143,7 @@ describe('BatchTracker', () => {
         tracker.complete(); // 3
         tracker.complete(); // 4
         const result = tracker.complete(); // 5
-        expect(result).toBe(5);
+        expect(result?.total).toBe(5);
     });
 
     // ── reset() ──────────────────────────────────────────────────
@@ -170,7 +170,7 @@ describe('BatchTracker', () => {
         tracker.track();
         vi.advanceTimersByTime(200);
         const result = tracker.complete();
-        expect(result).toBe(1);
+        expect(result?.total).toBe(1);
     });
 
     // ── Second batch after first completes ────────────────────────
@@ -181,7 +181,7 @@ describe('BatchTracker', () => {
         vi.advanceTimersByTime(200);
         tracker.complete();
         const r1 = tracker.complete();
-        expect(r1).toBe(2);
+        expect(r1?.total).toBe(2);
 
         // Second batch (3 downloads) — tracker auto-reset
         tracker.track();
@@ -191,6 +191,43 @@ describe('BatchTracker', () => {
         tracker.complete();
         tracker.complete();
         const r2 = tracker.complete();
-        expect(r2).toBe(3);
+        expect(r2?.total).toBe(3);
+    });
+
+    // ── B3: generation separation (no batch merging) ──────────────
+    it('should NOT merge a second batch started while the first is sealed but draining', () => {
+        // Batch A: 2 downloads, sealed
+        const a = tracker.track();
+        tracker.track();
+        vi.advanceTimersByTime(200); // A sealed
+        tracker.complete(a); // A: 1/2 done — A still draining
+
+        // Batch B starts now (A sealed, not complete) → must be a NEW generation
+        const b = tracker.track();
+        tracker.track();
+        tracker.track();
+        vi.advanceTimersByTime(200); // B sealed
+
+        // A finishes its last download → returns A's total (2), NOT merged with B
+        const ra = tracker.complete(a);
+        expect(ra?.total).toBe(2);
+
+        // B finishes independently → returns B's total (3)
+        tracker.complete(b);
+        tracker.complete(b);
+        const rb = tracker.complete(b);
+        expect(rb?.total).toBe(3);
+    });
+
+    it('should keep failures isolated per generation', () => {
+        const a = tracker.track();
+        tracker.track();
+        vi.advanceTimersByTime(200);
+        tracker.recordFailure(a, { title: 'epA', podcastTitle: 'P', errorCode: 'HTTP_500' });
+        tracker.complete(a); // 1/2
+        const ra = tracker.complete(a); // 2/2 done
+        expect(ra?.total).toBe(2);
+        expect(ra?.failed).toHaveLength(1);
+        expect(ra?.failed[0].title).toBe('epA');
     });
 });

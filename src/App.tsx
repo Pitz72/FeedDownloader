@@ -38,7 +38,7 @@ function AppContent() {
     const removeListener = window.api.onDownloadProgress((_event, data) => {
       updateDownload(data);
       if (data.completed || data.error) {
-        incrementBatch();
+        incrementBatch(data.url);
       }
       if (data.error) {
         if (data.notFound) {

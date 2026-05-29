@@ -13,7 +13,7 @@ import { validateUrl } from './utils/validateUrl';
 import { validateNetworkPath } from './utils/validateNetworkPath';
 import { autoUpdater } from 'electron-updater';
 import { IPC_CHANNELS as CH } from '../shared/types';
-import type { FeedEntry, DownloadRequest, HealthCheckResult, DiskSpaceInfo, MigrationResult, MigrationProgress, PathValidationResult, UpdateStatus, QueueItem, FailedDownload } from '../shared/types';
+import type { FeedEntry, DownloadRequest, HealthCheckResult, DiskSpaceInfo, MigrationResult, MigrationProgress, PathValidationResult, UpdateStatus, QueueItem } from '../shared/types';
 import path from 'path';
 import fs from 'fs-extra';
 import { statfs } from 'fs/promises';
@@ -43,8 +43,6 @@ const activeDownloads = new Map<string, AbortController>();
 const queueItems = new Map<string, QueueItem>();
 // taskIds cancelled while still pending (task not yet executing)
 const cancelledTaskIds = new Set<string>();
-// Failures accumulated during current batch, sent with BATCH_COMPLETED
-let failedDownloads: FailedDownload[] = [];
 
 function pushQueueUpdated(win: BrowserWindow) {
     pushEvent(win, CH.QUEUE_UPDATED, Array.from(queueItems.values()));
@@ -233,7 +231,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
             } while (await fs.pathExists(targetFile));
         }
 
-        batchTracker.track();
+        const batchGen = batchTracker.track();
 
         const taskId = crypto.randomUUID();
         const controller = new AbortController();
@@ -351,7 +349,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                 } else {
                     console.error('Download error:', error);
                     queueItems.delete(taskId);
-                    failedDownloads.push({ title, podcastTitle, errorCode: errMsg });
+                    batchTracker.recordFailure(batchGen, { title, podcastTitle, errorCode: errMsg });
                     pushQueueUpdated(mainWindow);
                     const isNotFound = errMsg === 'EPISODE_NOT_FOUND';
                     pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, {
@@ -361,9 +359,11 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                 }
             } finally {
                 activeDownloads.delete(taskId);
-                const finishedTotal = batchTracker.complete();
-                if (finishedTotal !== null) {
-                    const failedCount = failedDownloads.length;
+                const batchResult = batchTracker.complete(batchGen);
+                if (batchResult !== null) {
+                    const finishedTotal = batchResult.total;
+                    const failed = batchResult.failed;
+                    const failedCount = failed.length;
                     const okCount = finishedTotal - failedCount;
                     if (Notification.isSupported()) {
                         const notificationBodies: Record<string, string> = {
@@ -382,8 +382,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                             icon: path.join(process.env.VITE_PUBLIC || '', 'logo.png'),
                         }).show();
                     }
-                    pushEvent(mainWindow, CH.BATCH_COMPLETED, { total: finishedTotal, failed: [...failedDownloads] });
-                    failedDownloads = [];
+                    pushEvent(mainWindow, CH.BATCH_COMPLETED, { total: finishedTotal, failed: [...failed] });
                 }
             }
         });
@@ -419,7 +418,6 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         batchTracker.reset();
         queueItems.clear();
         cancelledTaskIds.clear();
-        failedDownloads = [];
         pushQueueUpdated(mainWindow);
         return true;
     });

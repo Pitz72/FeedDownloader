@@ -3,6 +3,11 @@ import type { Feed, DownloadProgress, QueueItem, FailedDownload } from '../types
 
 const speedCache = new Map<string, { loaded: number; time: number }>();
 
+// URLs that belong to the CURRENT batch. Module-level (not in state) to avoid
+// re-renders. When set, only completions of these URLs count toward the batch —
+// so a single, non-batch download finishing mid-batch can't inflate the counter.
+let batchUrls: Set<string> | null = null;
+
 export interface AppState {
     currentFeed: Feed | null;
     feeds: Feed[];
@@ -15,8 +20,8 @@ export interface AppState {
     batchTotal: number;
     batchCompleted: number;
     isBatchDownloading: boolean;
-    startBatch: (total: number) => void;
-    incrementBatch: () => void;
+    startBatch: (total: number, urls?: string[]) => void;
+    incrementBatch: (url?: string) => void;
     resetBatch: () => void;
     stopBatch: () => Promise<void>;
 
@@ -89,22 +94,39 @@ export const useStore = create<AppState>((set) => ({
     batchCompleted: 0,
     isBatchDownloading: false,
 
-    startBatch: (total) => set((state) => {
+    startBatch: (total, urls) => set((state) => {
+        if (urls) {
+            if (batchUrls && state.isBatchDownloading) {
+                urls.forEach(u => batchUrls!.add(u)); // merge into the running batch
+            } else {
+                batchUrls = new Set(urls);
+            }
+        }
         if (state.isBatchDownloading) {
             return { batchTotal: state.batchTotal + total };
         }
         return { batchTotal: total, batchCompleted: 0, isBatchDownloading: true, downloadPanelOpen: true };
     }),
-    incrementBatch: () => set((state) => {
+    incrementBatch: (url) => set((state) => {
+        // B5: ignore completions outside an active batch (e.g. single downloads
+        // while idle), and — when we know the batch's URLs — completions that
+        // don't belong to this batch.
+        if (!state.isBatchDownloading) return {};
+        if (batchUrls && url) {
+            if (!batchUrls.has(url)) return {};
+            batchUrls.delete(url);
+        }
         const newCompleted = state.batchCompleted + 1;
         const isFinished = newCompleted >= state.batchTotal;
+        if (isFinished) batchUrls = null;
         return {
             batchCompleted: newCompleted,
             isBatchDownloading: !isFinished
         };
     }),
-    resetBatch: () => set({ batchTotal: 0, batchCompleted: 0, isBatchDownloading: false, batchFailed: [] }),
+    resetBatch: () => { batchUrls = null; set({ batchTotal: 0, batchCompleted: 0, isBatchDownloading: false, batchFailed: [] }); },
     stopBatch: async () => {
+        batchUrls = null;
         set({ isBatchDownloading: false, batchTotal: 0, batchCompleted: 0, queueItems: [], batchFailed: [] });
         await window.api.stopBatch();
     },
