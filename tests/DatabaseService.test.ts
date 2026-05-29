@@ -57,6 +57,30 @@ describe('DatabaseService', () => {
             db.removeFeed('https://nonexistent.com/feed');
             expect(db.getFeeds()).toEqual([]);
         });
+
+        // B6 — newCount correlated by feedUrl, not by shared title
+        it('should count downloaded episodes per feed by feedUrl, not shared title', () => {
+            db.addFeed({ url: 'https://a.com/feed', title: 'Daily News' });
+            db.addFeed({ url: 'https://b.com/feed', title: 'Daily News' }); // same title!
+            db.updateEpisodeCount('https://a.com/feed', 10);
+            db.updateEpisodeCount('https://b.com/feed', 5);
+            // 3 downloads, all from feed A
+            ['a1', 'a2', 'a3'].forEach(g =>
+                db.addArchiveEntry({ guid: g, podcastTitle: 'Daily News', title: g, pubDate: '', downloadedAt: '', feedUrl: 'https://a.com/feed' }));
+
+            const feeds = db.getFeeds();
+            const a = feeds.find(f => f.url === 'https://a.com/feed');
+            const b = feeds.find(f => f.url === 'https://b.com/feed');
+            expect(a?.newCount).toBe(7); // 10 - 3
+            expect(b?.newCount).toBe(5); // 5 - 0 (NOT 5 - 3, the old title-based bug)
+        });
+
+        it('should fall back to title for legacy archive rows without feedUrl', () => {
+            db.addFeed({ url: 'https://a.com/feed', title: 'Show' });
+            db.updateEpisodeCount('https://a.com/feed', 4);
+            db.addArchiveEntry({ guid: 'g1', podcastTitle: 'Show', title: 'x', pubDate: '', downloadedAt: '' }); // no feedUrl
+            expect(db.getFeeds()[0].newCount).toBe(3); // 4 - 1 via title fallback
+        });
     });
 
     // ── Downloads ────────────────────────────────────────────

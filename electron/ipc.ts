@@ -55,6 +55,22 @@ const PARSE_FEED_COOLDOWN_MS = 3000;
 // in-memory feed cache: avoids re-fetching on repeated clicks
 const feedCache = new Map<string, { feed: unknown; timestamp: number }>();
 const FEED_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const FEED_CACHE_MAX = 200; // hard cap so a long session / OPML import can't grow it unbounded (B7)
+
+/** Evict expired cache/cooldown entries and enforce the size cap. */
+function pruneFeedCaches(now: number): void {
+    for (const [u, v] of feedCache) {
+        if (now - v.timestamp >= FEED_CACHE_TTL_MS) feedCache.delete(u);
+    }
+    for (const [u, t] of parseFeedLastCall) {
+        if (now - t >= PARSE_FEED_COOLDOWN_MS) parseFeedLastCall.delete(u);
+    }
+    if (feedCache.size > FEED_CACHE_MAX) {
+        const oldestFirst = [...feedCache.entries()].sort((a, b) => a[1].timestamp - b[1].timestamp);
+        const excess = feedCache.size - FEED_CACHE_MAX;
+        for (let i = 0; i < excess; i++) feedCache.delete(oldestFirst[i][0]);
+    }
+}
 
 // UI locale synced from renderer for localized OS notifications
 let uiLocale = 'en';
@@ -137,6 +153,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         }
 
         const now = Date.now();
+        pruneFeedCaches(now); // B7: keep the in-memory maps bounded
 
         // return cached feed if fresh (avoids double HTTP round-trip on repeat clicks)
         const cached = feedCache.get(url);
@@ -176,6 +193,8 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
     ipcMain.handle(CH.REMOVE_FEED, async (_, url: string) => {
         libraryService.removeFeed(url);
+        feedCache.delete(url);          // B7: don't keep a removed feed cached
+        parseFeedLastCall.delete(url);
         const feeds = libraryService.getFeeds();
         pushEvent(mainWindow, CH.FEEDS_UPDATED, feeds);
         return feeds;
@@ -199,7 +218,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     });
 
     // ── Download Engine ──────────────────────────────────
-    ipcMain.handle(CH.START_DOWNLOAD, async (_, { url, title, podcastTitle, guid, pubDate, feedImageUrl }: DownloadRequest) => {
+    ipcMain.handle(CH.START_DOWNLOAD, async (_, { url, title, podcastTitle, guid, pubDate, feedImageUrl, feedUrl }: DownloadRequest) => {
         const check = validateUrl(url);
         if (!check.valid) {
             throw new Error(check.error);
@@ -302,6 +321,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                         checksum,
                         bitrate,
                         sampleRate,
+                        feedUrl,
                     });
                 }
 

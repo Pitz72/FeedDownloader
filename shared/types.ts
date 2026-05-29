@@ -69,6 +69,7 @@ export interface ArchiveEntry {
     pubDate: string;
     downloadedAt: string;
     filename?: string;
+    feedUrl?: string;     // v1.3.5 — feed origin, for accurate per-feed counts (B6)
     fileSize?: number;    // v0.7.4 — bytes on disk
     checksum?: string;    // v0.7.4 — SHA-256 hex
     bitrate?: number;     // v0.7.4 — kbps
@@ -97,6 +98,7 @@ export interface DownloadRequest {
     guid: string;
     pubDate?: string;
     feedImageUrl?: string;  // URL immagine del feed per cover art ID3 (v0.6.4)
+    feedUrl?: string;       // v1.3.5 — URL del feed di origine (B6)
 }
 
 export interface DownloadResult {

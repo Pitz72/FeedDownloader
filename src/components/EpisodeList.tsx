@@ -408,7 +408,8 @@ export const EpisodeList: React.FC = () => {
             podcastTitle: currentFeed?.title || '',
             guid,
             pubDate: episode.pubDate || episode.isoDate,
-            feedImageUrl: imageUrl
+            feedImageUrl: imageUrl,
+            feedUrl: currentFeed?.url,
         });
         if (!silent) toast.show(t('toast.download_started'), 'info');
     }, [currentFeed, t, toast]);

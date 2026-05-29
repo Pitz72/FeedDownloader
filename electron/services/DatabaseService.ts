@@ -62,6 +62,7 @@ export class DatabaseService {
             'ALTER TABLE archive ADD COLUMN checksum TEXT',
             'ALTER TABLE archive ADD COLUMN bitrate INTEGER',
             'ALTER TABLE archive ADD COLUMN sampleRate INTEGER',
+            'ALTER TABLE archive ADD COLUMN feedUrl TEXT',
             'ALTER TABLE feeds ADD COLUMN episodeCount INTEGER',
         ]) {
             try { this.db.exec(sql); } catch { /* column already exists */ }
@@ -75,20 +76,32 @@ export class DatabaseService {
             'SELECT url, title, image, lastUpdated, episodeCount FROM feeds ORDER BY rowid'
         ).all() as (FeedEntry & { episodeCount: number | null })[];
 
-        const counts = this.db.prepare(
-            'SELECT podcastTitle, COUNT(*) AS cnt FROM archive GROUP BY podcastTitle'
-        ).all() as { podcastTitle: string; cnt: number }[];
-        const countMap = new Map(counts.map(r => [r.podcastTitle, r.cnt]));
+        // Downloaded-count correlation (B6): prefer feedUrl (exact), fall back to
+        // podcastTitle for legacy rows written before feedUrl existed. Title-only
+        // correlation mis-attributed counts across feeds sharing a title or after
+        // a feed was renamed.
+        const byUrl = this.db.prepare(
+            "SELECT feedUrl, COUNT(*) AS cnt FROM archive WHERE feedUrl IS NOT NULL AND feedUrl != '' GROUP BY feedUrl"
+        ).all() as { feedUrl: string; cnt: number }[];
+        const urlMap = new Map(byUrl.map(r => [r.feedUrl, r.cnt]));
 
-        return feeds.map(f => ({
-            url: f.url,
-            title: f.title,
-            image: f.image,
-            lastUpdated: f.lastUpdated,
-            newCount: f.episodeCount != null
-                ? Math.max(0, f.episodeCount - (countMap.get(f.title) ?? 0))
-                : null,
-        }));
+        const byTitle = this.db.prepare(
+            "SELECT podcastTitle, COUNT(*) AS cnt FROM archive WHERE feedUrl IS NULL OR feedUrl = '' GROUP BY podcastTitle"
+        ).all() as { podcastTitle: string; cnt: number }[];
+        const titleMap = new Map(byTitle.map(r => [r.podcastTitle, r.cnt]));
+
+        return feeds.map(f => {
+            const downloaded = (urlMap.get(f.url) ?? 0) + (titleMap.get(f.title) ?? 0);
+            return {
+                url: f.url,
+                title: f.title,
+                image: f.image,
+                lastUpdated: f.lastUpdated,
+                newCount: f.episodeCount != null
+                    ? Math.max(0, f.episodeCount - downloaded)
+                    : null,
+            };
+        });
     }
 
     updateEpisodeCount(url: string, count: number): void {
@@ -164,8 +177,8 @@ export class DatabaseService {
     addArchiveEntry(entry: ArchiveEntry): void {
         this.db.prepare(
             `INSERT OR IGNORE INTO archive
-             (guid, podcastTitle, title, pubDate, downloadedAt, filename, fileSize, checksum, bitrate, sampleRate)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+             (guid, podcastTitle, title, pubDate, downloadedAt, filename, fileSize, checksum, bitrate, sampleRate, feedUrl)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
         ).run(
             entry.guid,
             entry.podcastTitle,
@@ -177,6 +190,7 @@ export class DatabaseService {
             entry.checksum ?? null,
             entry.bitrate ?? null,
             entry.sampleRate ?? null,
+            entry.feedUrl ?? null,
         );
     }
 
