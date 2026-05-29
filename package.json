@@ -1,7 +1,7 @@
 {
   "name": "runtime-feeddownloader-pro",
   "private": true,
-  "version": "1.3.10",
+  "version": "1.3.11",
   "description": "Professional podcast archiving tool — batch download, network resilience, SHA-256 integrity",
   "author": {
     "name": "Simone Pizzi",
@@ -92,6 +92,7 @@
     "directories": {
       "output": "builds/${version}"
     },
+    "artifactName": "Runtime-FeedDownloader-Pro-${version}.${ext}",
     "files": [
       "dist",
       "dist-electron",

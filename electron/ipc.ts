@@ -768,11 +768,51 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     {
         const pushUpdateStatus = (status: UpdateStatus) => pushEvent(mainWindow, CH.UPDATE_STATUS, status);
 
+        // Proactive OS notification — the in-app status only shows inside Settings,
+        // so notify the user when an update is found and when it's ready to install.
+        const notifyUpdate = (kind: 'available' | 'ready', version?: string) => {
+            if (!Notification.isSupported()) return;
+            const bodies: Record<'available' | 'ready', Record<string, string>> = {
+                available: {
+                    en: `Version ${version} is available — it's downloading in the background.`,
+                    it: `La versione ${version} è disponibile — il download è in corso in background.`,
+                    fr: `La version ${version} est disponible — téléchargement en arrière-plan.`,
+                    de: `Version ${version} ist verfügbar — wird im Hintergrund heruntergeladen.`,
+                    es: `La versión ${version} está disponible — se descarga en segundo plano.`,
+                    pt: `A versão ${version} está disponível — a descarregar em segundo plano.`,
+                    ru: `Доступна версия ${version} — загрузка в фоне.`,
+                    zh: `版本 ${version} 可用 — 正在后台下载。`,
+                },
+                ready: {
+                    en: 'Update ready. Restart the app from Settings to install it.',
+                    it: "Aggiornamento pronto. Riavvia l'app dalle Impostazioni per installarlo.",
+                    fr: "Mise à jour prête. Redémarrez l'app depuis les Réglages pour l'installer.",
+                    de: 'Update bereit. Starten Sie die App in den Einstellungen neu, um es zu installieren.',
+                    es: 'Actualización lista. Reinicia la app desde Ajustes para instalarla.',
+                    pt: 'Atualização pronta. Reinicie a app nas Definições para a instalar.',
+                    ru: 'Обновление готово. Перезапустите приложение в настройках для установки.',
+                    zh: '更新已就绪。请在设置中重启应用以安装。',
+                },
+            };
+            const body = bodies[kind][uiLocale] ?? bodies[kind]['en'];
+            new Notification({
+                title: 'Runtime FeedDownloader Pro',
+                body,
+                icon: path.join(process.env.VITE_PUBLIC || '', 'logo.png'),
+            }).show();
+        };
+
         autoUpdater.on('checking-for-update', () => pushUpdateStatus({ type: 'checking' }));
-        autoUpdater.on('update-available', (info: { version: string }) => pushUpdateStatus({ type: 'available', version: info.version }));
+        autoUpdater.on('update-available', (info: { version: string }) => {
+            pushUpdateStatus({ type: 'available', version: info.version });
+            notifyUpdate('available', info.version);
+        });
         autoUpdater.on('update-not-available', () => pushUpdateStatus({ type: 'not-available' }));
         autoUpdater.on('download-progress', (progress: { percent: number }) => pushUpdateStatus({ type: 'downloading', percent: Math.round(progress.percent) }));
-        autoUpdater.on('update-downloaded', () => pushUpdateStatus({ type: 'ready' }));
+        autoUpdater.on('update-downloaded', () => {
+            pushUpdateStatus({ type: 'ready' });
+            notifyUpdate('ready');
+        });
         autoUpdater.on('error', (err: Error) => pushUpdateStatus({ type: 'error', message: err.message }));
 
         // Auto-check on startup (packaged only), with 3-second delay
