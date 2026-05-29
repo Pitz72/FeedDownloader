@@ -373,6 +373,38 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 
 ---
 
+## Pianificato — post v1.3.11 (da affrontare in una prossima versione)
+
+Raccolto dal feedback d'uso del 29 maggio 2026 (auto-update riparato in v1.3.11).
+
+### N1 ⚪🔵 Notifica aggiornamento sempre visibile all'avvio — 🔲 Non avviato
+
+- **Problema:** l'auto-update ora scarica correttamente, ma la notifica OS aggiunta in
+  v1.3.11 **non compare** (probabilmente soppressa da Windows / Assistente notifiche, o non
+  emessa al momento giusto). Lo stato "in download" e il pulsante "Riavvia per installare"
+  sono visibili **solo** dentro Impostazioni → Aggiornamenti.
+- **Obiettivo:** la presenza di un aggiornamento (disponibile / in download / pronto) deve
+  essere segnalata **sempre e comunque all'avvio**, in modo visibile fuori dalle Impostazioni.
+- **Direzione:** non affidarsi alla sola `Notification` OS — aggiungere un **banner/indicatore
+  in-app persistente** (es. nella topbar o un toast non effimero) con azione "Riavvia e installa"
+  raggiungibile direttamente. Verificare anche perché la Notification OS non appaia
+  (permessi/Focus Assist, timing rispetto al `ready-to-show`).
+
+### N2 🔵 Check automatico nuovi episodi all'avvio + ciclico con notifica — 🔲 Non avviato
+
+- **Problema:** il conteggio "N nuovi" e l'eventuale notifica si aggiornano **solo** quando
+  l'utente clicca sul feed. Esiste già `runBackgroundRefresh` (F3) con notifica OS, ma è legato
+  all'intervallo di auto-refresh che di **default è 0 (spento)**.
+- **Obiettivo:** il software deve controllare i feed **automaticamente all'avvio** e poi
+  **ciclicamente**, notificando i nuovi episodi senza alcuna interazione.
+- **Direzione:** eseguire un `runBackgroundRefresh` all'avvio (dopo l'init) e abilitare un
+  intervallo di default sensato (es. 6h) per le nuove installazioni; mantenere la notifica già
+  presente in `runBackgroundRefresh`. Valutare un check anche al ritorno online.
+
+> Nota: la cover art per-episodio (v1.3.10) è confermata OK — nessun intervento.
+
+---
+
 ## Archivio roadmap precedenti
 
 | Documento | Archiviato | Contenuto originale |
