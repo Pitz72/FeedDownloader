@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Tray, Menu, screen } from 'electron'
+import { app, BrowserWindow, Tray, Menu, screen, shell } from 'electron'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import { registerIpcHandlers } from './ipc'
@@ -105,15 +105,64 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.mjs'),
       nodeIntegration: false,
       contextIsolation: true,
-      sandbox: false, // sandbox:true incompatible with preload+better-sqlite3 native module
+      // sandbox stays false because the preload is bundled as ESM (preload.mjs);
+      // Electron sandboxed preloads must be CommonJS. Enabling sandbox requires
+      // migrating the preload build to CJS first. (B9)
+      sandbox: false,
+      webSecurity: true,
     },
   })
 
-  // Prevent permission requests (GPS, Notifications, etc.)
+  // Prevent permission requests (GPS, Notifications, etc.) — request + check.
+  const denyPermission = () => false;
   win.webContents.session.setPermissionRequestHandler((_webContents, permission, callback) => {
     console.log(`Blocked permission request: ${permission}`);
     return callback(false);
   });
+  win.webContents.session.setPermissionCheckHandler(denyPermission);
+
+  // B8: navigation hardening. The app is a single fixed document; deny opening
+  // new windows and navigating away. http(s) links (e.g. from feed content) are
+  // routed to the system browser instead.
+  const openExternal = (url: string) => {
+    if (/^https?:\/\//i.test(url)) shell.openExternal(url).catch(() => { });
+  };
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    openExternal(url);
+    return { action: 'deny' };
+  });
+  win.webContents.on('will-navigate', (event, url) => {
+    const base = VITE_DEV_SERVER_URL ?? 'file://';
+    if (!url.startsWith(base)) {
+      event.preventDefault();
+      openExternal(url);
+    }
+  });
+
+  // B8: Content-Security-Policy. Applied only to packaged builds — the Vite dev
+  // server needs inline/eval and a websocket for HMR. Allows Google Fonts (used
+  // via @import in index.css) and remote feed images.
+  if (!VITE_DEV_SERVER_URL) {
+    const csp = [
+      "default-src 'self'",
+      "script-src 'self'",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com data:",
+      "img-src 'self' https: data:",
+      "connect-src 'self'",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "frame-ancestors 'none'",
+    ].join('; ');
+    win.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+      callback({
+        responseHeaders: {
+          ...details.responseHeaders,
+          'Content-Security-Policy': [csp],
+        },
+      });
+    });
+  }
 
   registerIpcHandlers(win);
 
