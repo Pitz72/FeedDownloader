@@ -1,7 +1,7 @@
 import { app, BrowserWindow, Tray, Menu, screen, shell } from 'electron'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
-import { registerIpcHandlers } from './ipc'
+import { registerIpcHandlers, cleanup } from './ipc'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -208,6 +208,11 @@ function createWindow() {
     win.loadFile(path.join(RENDERER_DIST, 'index.html'))
   }
 }
+
+// L4: stop the auto-refresh timer and close the database before the process exits.
+app.on('will-quit', () => {
+  cleanup();
+});
 
 // Quit when all windows are closed
 app.on('window-all-closed', () => {

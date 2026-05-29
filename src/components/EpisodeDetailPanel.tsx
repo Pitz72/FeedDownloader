@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import type { Episode, ArchiveEntry } from '../../shared/types';
 import { getEnclosureUrl } from '../../shared/getEnclosureUrl';
 import { useStore, AppState } from '../store/useStore';
+import { useToast } from '../context/ToastContext';
+import { formatDuration } from '../utils/duration';
 
 function stripHtml(html: string): string {
     return html
@@ -26,28 +28,6 @@ function formatBytes(bytes: number): string {
     return `${Math.round(bytes / 1024)} KB`;
 }
 
-function formatDuration(duration?: string): { short: string; long: string } | null {
-    if (!duration) return null;
-    const trimmed = duration.trim();
-    let totalSec: number | null = null;
-    if (/^\d+$/.test(trimmed)) {
-        totalSec = parseInt(trimmed, 10);
-    } else {
-        const parts = trimmed.split(':').map(p => parseInt(p, 10));
-        if (!parts.some(isNaN)) {
-            if (parts.length === 3) totalSec = parts[0] * 3600 + parts[1] * 60 + parts[2];
-            else if (parts.length === 2) totalSec = parts[0] * 60 + parts[1];
-        }
-    }
-    if (totalSec === null) return null;
-    const h = Math.floor(totalSec / 3600);
-    const m = Math.floor((totalSec % 3600) / 60);
-    const s = totalSec % 60;
-    const short = h > 0 ? `${h}h ${m}m` : `${m} min`;
-    const long = h > 0 ? `${h}h ${m}m ${s}s` : `${m}m ${s}s`;
-    return { short, long };
-}
-
 interface EpisodeDetailPanelProps {
     episode: Episode;
     archiveEntry: ArchiveEntry | null;
@@ -65,6 +45,14 @@ export const EpisodeDetailPanel: React.FC<EpisodeDetailPanelProps> = ({
     onClose, onDownload, onResetStatus, onShowInFolder,
 }) => {
     const { t } = useTranslation();
+    const toast = useToast();
+    // L8: give the copy-link actions explicit feedback instead of silently writing
+    // to the clipboard from a bare `<a href="#">`.
+    const copyToClipboard = (text: string) => {
+        navigator.clipboard.writeText(text)
+            .then(() => toast.show(t('toast.copied', 'Copiato negli appunti'), 'success'))
+            .catch(() => toast.show(t('toast.copy_failed', 'Copia non riuscita'), 'error'));
+    };
     const downloadPanelOpen = useStore((s: AppState) => s.downloadPanelOpen);
     const isBatchDownloading = useStore((s: AppState) => s.isBatchDownloading);
     const batchCompleted = useStore((s: AppState) => s.batchCompleted);
@@ -222,14 +210,14 @@ export const EpisodeDetailPanel: React.FC<EpisodeDetailPanelProps> = ({
                         <div className="show-notes">
                             {episode.link && (
                                 <p>
-                                    <a href="#" onClick={(e) => { e.preventDefault(); navigator.clipboard.writeText(episode.link!); }} title={t('episodes.copy_link', 'Copia link')}>
+                                    <a href="#" onClick={(e) => { e.preventDefault(); copyToClipboard(episode.link!); }} title={t('episodes.copy_link', 'Copia link')}>
                                         {episode.link}
                                     </a>
                                 </p>
                             )}
                             {enclosureUrl && (
                                 <p>
-                                    <a href="#" onClick={(e) => { e.preventDefault(); navigator.clipboard.writeText(enclosureUrl); }} title={t('episodes.copy_link', 'Copia link')}>
+                                    <a href="#" onClick={(e) => { e.preventDefault(); copyToClipboard(enclosureUrl); }} title={t('episodes.copy_link', 'Copia link')}>
                                         Audio: {enclosureUrl}
                                     </a>
                                 </p>

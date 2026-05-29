@@ -358,6 +358,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen, width }) => {
                   aria-label={t('sidebar.remove', 'Rimuovi')}
                   onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '1'; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '0'; }}
+                  // L3: also reveal on keyboard focus so the button is reachable via Tab
+                  onFocus={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '1'; }}
+                  onBlur={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '0'; }}
                 >
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <polyline points="3 6 5 6 21 6"/>

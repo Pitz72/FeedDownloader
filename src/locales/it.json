@@ -121,7 +121,9 @@
         "sync_none": "Nessun nuovo episodio da scaricare",
         "m3u_exported": "Playlist M3U esportata",
         "m3u_empty": "Nessun episodio scaricato da esportare",
-        "title_copied": "Titolo copiato"
+        "title_copied": "Titolo copiato",
+        "copied": "Copiato negli appunti",
+        "copy_failed": "Copia non riuscita"
     },
     "confirm": {
         "mass_download": "Vuoi davvero scaricare tutti i {{count}} episodi?",

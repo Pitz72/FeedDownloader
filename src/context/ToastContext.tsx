@@ -18,6 +18,10 @@ interface ToastContextType {
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
+// L2: monotonic counter for toast keys. Math.random().substring(7) could collide
+// (and even yield an empty string), which breaks React keys and the removal filter.
+let toastSeq = 0;
+
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [toasts, setToasts] = useState<Toast[]>([]);
     const downloadPanelOpen = useStore((s: AppState) => s.downloadPanelOpen);
@@ -28,7 +32,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         (!isBatchDownloading && batchCompleted > 0 && batchCompleted >= batchTotal);
 
     const show = useCallback((message: string, type: ToastType = 'info') => {
-        const id = Math.random().toString(36).substring(7);
+        const id = `toast-${++toastSeq}`;
         setToasts((prev) => [...prev, { id, message, type }]);
 
         setTimeout(() => {

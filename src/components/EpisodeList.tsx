@@ -10,26 +10,7 @@ import type { Episode, ArchiveEntry } from '../../shared/types';
 import { getEnclosureUrl } from '../../shared/getEnclosureUrl';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import type { TFunction } from 'i18next';
-
-function parseDurationMinutes(duration?: string): number | null {
-    if (!duration) return null;
-    const trimmed = duration.trim();
-    if (/^\d+$/.test(trimmed)) return Math.floor(parseInt(trimmed, 10) / 60);
-    const parts = trimmed.split(':').map(p => parseInt(p, 10));
-    if (parts.some(isNaN)) return null;
-    if (parts.length === 3) return parts[0] * 60 + parts[1];
-    if (parts.length === 2) return parts[0];
-    return null;
-}
-
-function formatDuration(duration?: string): string | null {
-    const mins = parseDurationMinutes(duration);
-    if (mins === null) return null;
-    const h = Math.floor(mins / 60);
-    const m = mins % 60;
-    if (h > 0) return `${h}h ${m}m`;
-    return `${m} min`;
-}
+import { parseDurationMinutes, formatDuration } from '../utils/duration';
 
 function formatBytes(bytes: number): string {
     if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
@@ -90,7 +71,7 @@ const EpisodeRow = React.memo(function EpisodeRow({
     const pubDate = episode.pubDate
         ? new Date(episode.pubDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
         : '';
-    const dur = formatDuration(episode.itunes?.duration);
+    const dur = formatDuration(episode.itunes?.duration)?.short ?? null;
 
     const stateClass = isDownloading ? 'downloading' : isCompleted ? 'downloaded' : isSelected ? 'selected' : '';
 

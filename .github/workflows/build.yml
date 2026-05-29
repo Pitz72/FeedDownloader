@@ -18,7 +18,46 @@ permissions:
   contents: write
 
 jobs:
+  # L5: quality gate — lint + type-check (renderer + main) block the build;
+  # tests and npm audit run as informational (continue-on-error) until the test
+  # suite is repaired, so they surface without blocking a release.
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install system dependencies (better-sqlite3)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential python3
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type-check (renderer + preload)
+        run: npx tsc --noEmit
+
+      - name: Type-check (main process, no DOM)
+        run: npx tsc -p tsconfig.electron.json
+
+      - name: Tests (informational)
+        run: npm test
+        continue-on-error: true
+
+      - name: npm audit (informational)
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
   build-linux:
+    needs: verify
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -53,7 +92,7 @@ jobs:
           done
 
       - name: Build (Linux, no publish)
-        run: npx tsc && npx vite build && npx electron-builder --linux --publish never
+        run: npx tsc && npx tsc -p tsconfig.electron.json && npx vite build && npx electron-builder --linux --publish never
 
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v4
@@ -67,6 +106,7 @@ jobs:
           retention-days: 30
 
   build-windows:
+    needs: verify
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -86,7 +126,7 @@ jobs:
         run: npm ci
 
       - name: Build (Windows, no publish)
-        run: npx tsc && npx vite build && npx electron-builder --windows --publish never
+        run: npx tsc && npx tsc -p tsconfig.electron.json && npx vite build && npx electron-builder --windows --publish never
 
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4

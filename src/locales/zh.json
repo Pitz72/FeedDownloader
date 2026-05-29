@@ -121,7 +121,9 @@
         "sync_none": "没有新剧集可下载",
         "m3u_exported": "M3U 播放列表已导出",
         "m3u_empty": "没有已下载的集可导出",
-        "title_copied": "标题已复制"
+        "title_copied": "标题已复制",
+        "copied": "已复制到剪贴板",
+        "copy_failed": "复制失败"
     },
     "confirm": {
         "mass_download": "您确定要下载全部 {{count}} 集吗？",

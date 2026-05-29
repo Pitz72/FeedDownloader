@@ -30,6 +30,11 @@ export class LibraryService {
         this.db.removeFeed(url);
     }
 
+    /** L4: close the database on app shutdown. */
+    close(): void {
+        this.db.close();
+    }
+
     touchFeed(url: string, lastUpdated: string): void {
         this.db.touchFeed(url, lastUpdated);
     }

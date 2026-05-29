@@ -149,6 +149,15 @@ function startAutoRefreshTimer(win: BrowserWindow, hours: number) {
     autoRefreshTimer = setInterval(() => { runBackgroundRefresh(win); }, ms);
 }
 
+/**
+ * L4: release resources on app shutdown — stop the background auto-refresh timer
+ * and close the SQLite handle so WAL is flushed cleanly.
+ */
+export function cleanup() {
+    clearAutoRefresh();
+    libraryService.close();
+}
+
 export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
     // ── Feed Parsing ──────────────────────────────────────
@@ -464,6 +473,13 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         if (result.canceled || result.filePaths.length === 0) return { count: 0 };
 
         try {
+            // L7: cap the OPML size before reading it into memory. A feed list is
+            // small; anything past a few MB is malformed or hostile.
+            const OPML_MAX_BYTES = 5 * 1024 * 1024;
+            const { size } = await fs.stat(result.filePaths[0]);
+            if (size > OPML_MAX_BYTES) {
+                throw new Error('OPML_TOO_LARGE');
+            }
             const content = await fs.readFile(result.filePaths[0], 'utf-8');
             const count = await libraryService.importOPML(content);
             pushEvent(mainWindow, CH.FEEDS_UPDATED, libraryService.getFeeds());
