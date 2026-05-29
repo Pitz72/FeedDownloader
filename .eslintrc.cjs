@@ -27,5 +27,11 @@ module.exports = {
         '@typescript-eslint/no-explicit-any': 'off',
       },
     },
+    {
+      // M7: the main process and preload run in Node, not the browser. Lint them
+      // with Node globals (process, Buffer, __dirname…) instead of browser ones.
+      files: ['electron/**/*.ts', 'shared/**/*.ts'],
+      env: { browser: false, node: true, es2020: true },
+    },
   ],
 }

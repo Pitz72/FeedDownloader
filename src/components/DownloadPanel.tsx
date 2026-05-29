@@ -118,11 +118,16 @@ const FailureRow: React.FC<{ item: FailedDownload }> = ({ item }) => {
 };
 
 export const DownloadPanel: React.FC = () => {
-    const {
-        batchTotal, batchCompleted, isBatchDownloading,
-        queueItems, batchFailed, downloads,
-        downloadPanelOpen, setDownloadPanelOpen,
-    } = useStore((s: AppState) => s);
+    // M6: select individual slices instead of (s => s) so the panel only re-renders
+    // when its own state changes, not on every unrelated store update.
+    const batchTotal = useStore((s: AppState) => s.batchTotal);
+    const batchCompleted = useStore((s: AppState) => s.batchCompleted);
+    const isBatchDownloading = useStore((s: AppState) => s.isBatchDownloading);
+    const queueItems = useStore((s: AppState) => s.queueItems);
+    const batchFailed = useStore((s: AppState) => s.batchFailed);
+    const downloads = useStore((s: AppState) => s.downloads);
+    const downloadPanelOpen = useStore((s: AppState) => s.downloadPanelOpen);
+    const setDownloadPanelOpen = useStore((s: AppState) => s.setDownloadPanelOpen);
     const { t } = useTranslation();
     const [showErrors, setShowErrors] = useState(true);
 

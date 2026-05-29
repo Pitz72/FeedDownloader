@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { Virtuoso } from 'react-virtuoso';
 import { Icon } from './Icon';
 import { useTranslation } from 'react-i18next';
@@ -67,10 +67,21 @@ export const ArchiveView: React.FC = () => {
             .catch(() => setIsLoading(false));
     }, []);
 
+    // M5: during a batch the main process fires downloads-updated after every single
+    // file. Re-fetching the entire archive each time is wasteful on large libraries —
+    // coalesce the reloads behind a short debounce.
+    const reloadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     useEffect(() => {
         loadEntries();
-        const unsub = window.api.onDownloadsUpdated(() => loadEntries());
-        return () => unsub();
+        const scheduleReload = () => {
+            if (reloadTimer.current) clearTimeout(reloadTimer.current);
+            reloadTimer.current = setTimeout(() => loadEntries(), 600);
+        };
+        const unsub = window.api.onDownloadsUpdated(scheduleReload);
+        return () => {
+            if (reloadTimer.current) clearTimeout(reloadTimer.current);
+            unsub();
+        };
     }, [loadEntries]);
 
     const podcasts = useMemo(() => {

@@ -1,0 +1,26 @@
+{
+  /* M7: dedicated type-check for the Electron main process + preload.
+     Unlike the renderer (tsconfig.json), this config does NOT include the DOM
+     libs — the main process runs in Node, so `document`, `window`, etc. must be
+     type errors here, not silently allowed. */
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["electron", "shared"],
+  /* preload.ts runs in the renderer's isolated world (uses window/document) —
+     it's type-checked with the DOM libs via the root tsconfig instead. */
+  "exclude": ["electron/preload.ts"]
+}

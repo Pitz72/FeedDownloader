@@ -39,7 +39,10 @@ function formatRelativeDate(value: number | string | undefined | null, locale: s
 
 export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen, width }) => {
   const [feeds, setFeeds] = useState<FeedEntry[]>([]);
-  const { currentFeed, setCurrentFeed } = useStore((state: AppState) => state);
+  // M6: select individual slices — subscribing to the whole store (s => s) made the
+  // Sidebar re-render on every unrelated state change (downloads, queue, batch…).
+  const currentFeed = useStore((state: AppState) => state.currentFeed);
+  const setCurrentFeed = useStore((state: AppState) => state.setCurrentFeed);
   const downloadPath = useStore((state: AppState) => state.downloadPath);
   const viewMode = useStore((state: AppState) => state.viewMode);
   const setViewMode = useStore((state: AppState) => state.setViewMode);
