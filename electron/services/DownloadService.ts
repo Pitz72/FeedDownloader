@@ -192,7 +192,10 @@ export class DownloadService {
                     // skip integrity check on resumed partial content
                     if (contentLength && !isResuming) {
                         const expected = parseInt(contentLength);
-                        if (expected > 0 && Math.abs(loaded - expected) / expected > 0.01) {
+                        // M3: tightened 1% → 0.1%. A correct transfer matches Content-Length
+                        // exactly; the small tolerance only absorbs trailing-byte quirks, not
+                        // a truncated download.
+                        if (expected > 0 && Math.abs(loaded - expected) / expected > 0.001) {
                             await fs.remove(tempPath).catch(() => { });
                             fail(new Error('INTEGRITY_CHECK_FAILED'));
                             return;

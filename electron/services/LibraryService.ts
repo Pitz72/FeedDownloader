@@ -1,5 +1,6 @@
 import { XMLParser, XMLBuilder } from 'fast-xml-parser';
 import { DatabaseService } from './DatabaseService';
+import { hasDangerousDoctype } from '../utils/xmlSafety';
 import type { FeedEntry, ArchiveEntry, ArchiveStats } from '../../shared/types';
 
 /**
@@ -137,6 +138,10 @@ export class LibraryService {
     // ── OPML ─────────────────────────────────────────────────
 
     async importOPML(xmlContent: string): Promise<number> {
+        // M4: refuse OPML with a DOCTYPE entity definition (XXE / entity expansion).
+        if (hasDangerousDoctype(xmlContent)) {
+            throw new Error('INVALID_OPML: File contains a disallowed DOCTYPE declaration.');
+        }
         const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: "" });
         const result = parser.parse(xmlContent);
 

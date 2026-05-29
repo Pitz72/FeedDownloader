@@ -1,6 +1,7 @@
 import Parser from 'rss-parser';
 import axios from 'axios';
 import { SAFE_AXIOS_CONFIG } from '../utils/safeHttp';
+import { hasDangerousDoctype } from '../utils/xmlSafety';
 
 export class FeedService {
   private parser: Parser;
@@ -15,9 +16,20 @@ export class FeedService {
       const response = await axios.get<string>(url, {
         timeout: 15000,
         responseType: 'text',
+        // M4: bound the response size — a feed is small; this stops a hostile or
+        // misbehaving server from streaming an unbounded body into memory.
+        maxContentLength: 15 * 1024 * 1024,
+        maxBodyLength: 15 * 1024 * 1024,
         ...SAFE_AXIOS_CONFIG, // SSRF: validate resolved IP on every hop
         headers: { 'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*' }
       });
+
+      // M4: reject XML that declares a DOCTYPE with entity definitions — an XXE /
+      // billion-laughs vector. rss-parser's underlying XML layer does not expand
+      // external entities, but we refuse such documents explicitly rather than rely on it.
+      if (hasDangerousDoctype(response.data)) {
+        throw new Error('INVALID_FEED_TYPE: Feed contains a disallowed DOCTYPE declaration.');
+      }
 
       const contentType = response.headers['content-type'] || '';
       const isHtml = contentType.includes('text/html') || contentType.includes('application/html');

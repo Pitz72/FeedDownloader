@@ -43,6 +43,12 @@ const activeDownloads = new Map<string, AbortController>();
 const queueItems = new Map<string, QueueItem>();
 // taskIds cancelled while still pending (task not yet executing)
 const cancelledTaskIds = new Set<string>();
+// M1: absolute target paths claimed by in-flight downloads. The completed-file
+// collision check only sees files on disk, so two concurrent downloads resolving
+// to the same name would both write the same `.part` and corrupt each other.
+// Reserving the chosen path here (synchronously) makes every in-flight target —
+// and therefore its `.part` — unique. Released in the task's finally / cancel path.
+const reservedTargets = new Set<string>();
 
 function pushQueueUpdated(win: BrowserWindow) {
     pushEvent(win, CH.QUEUE_UPDATED, Array.from(queueItems.values()));
@@ -240,15 +246,20 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         const targetDir = path.dirname(baseSafePath);
         await fs.ensureDir(targetDir);
 
-        // Collision check: if a completed file already exists, add _2, _3 suffix
+        // Collision check: avoid both a completed file already on disk AND a path
+        // already claimed by another in-flight download (M1). existsSync keeps the
+        // whole selection synchronous, so reserving the result is atomic — no two
+        // concurrent handlers can settle on the same path.
         let targetFile = baseSafePath;
-        if (await fs.pathExists(targetFile)) {
+        {
             const { dir, name, ext: fileExt } = path.parse(baseSafePath);
-            let i = 2;
-            do {
-                targetFile = path.join(dir, `${name}_${i++}${fileExt}`);
-            } while (await fs.pathExists(targetFile));
+            let i = 1;
+            while (reservedTargets.has(targetFile) || fs.existsSync(targetFile)) {
+                i++;
+                targetFile = path.join(dir, `${name}_${i}${fileExt}`);
+            }
         }
+        reservedTargets.add(targetFile);
 
         const batchGen = batchTracker.track();
 
@@ -265,6 +276,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
             if (cancelledTaskIds.has(taskId)) {
                 cancelledTaskIds.delete(taskId);
                 queueItems.delete(taskId);
+                reservedTargets.delete(targetFile); // M1: release the claimed path
                 pushQueueUpdated(mainWindow);
                 // Signal renderer so incrementBatch() fires and the counter stays accurate
                 pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded: 0, total: 0, completed: true });
@@ -379,6 +391,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                 }
             } finally {
                 activeDownloads.delete(taskId);
+                reservedTargets.delete(targetFile); // M1: release the claimed path
                 const batchResult = batchTracker.complete(batchGen);
                 if (batchResult !== null) {
                     const finishedTotal = batchResult.total;
@@ -515,7 +528,13 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
     // ── Open folder in file manager ──────────────────────
     ipcMain.handle(CH.OPEN_FOLDER, async (_, dirPath: string) => {
-        await shell.openPath(dirPath);
+        // M2: only ever open a real, existing directory — never an arbitrary file
+        // path handed in from the renderer.
+        if (!dirPath || typeof dirPath !== 'string') return;
+        const resolved = path.resolve(dirPath);
+        const stat = await fs.stat(resolved).catch(() => null);
+        if (!stat || !stat.isDirectory()) return;
+        await shell.openPath(resolved);
     });
 
     // ── Show in folder ───────────────────────────────────
@@ -597,7 +616,14 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     ipcMain.handle(CH.OPEN_ARCHIVE_FILE, async (_, { podcastTitle, filename }: { podcastTitle: string; filename: string }) => {
         let baseDir = libraryService.getDownloadPath();
         if (!baseDir) baseDir = path.join(app.getPath('documents'), 'FeedDownloader', 'downloads');
-        const filePath = path.join(baseDir, sanitize(podcastTitle), filename);
+        // M2: sanitize the filename too (not just the podcast title) and confirm the
+        // resolved path stays inside baseDir — defends against `..` traversal in a
+        // crafted archive entry.
+        const rootDir = path.resolve(baseDir);
+        const filePath = path.resolve(rootDir, sanitize(podcastTitle), sanitize(filename));
+        if (filePath !== rootDir && !filePath.startsWith(rootDir + path.sep)) {
+            return false;
+        }
         shell.showItemInFolder(filePath);
         return true;
     });
