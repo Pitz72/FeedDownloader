@@ -2,6 +2,7 @@ import Parser from 'rss-parser';
 import axios from 'axios';
 import { SAFE_AXIOS_CONFIG } from '../utils/safeHttp';
 import { hasDangerousDoctype } from '../utils/xmlSafety';
+import { validateUrl } from '../utils/validateUrl';
 
 export class FeedService {
   private parser: Parser;
@@ -51,22 +52,36 @@ export class FeedService {
   /**
    * Extract the "next page" URL from raw XML following RFC 5005.
    * Looks for `<atom:link rel="next" href="...">` or `<link rel="next" href="...">`.
-   * Returns the href value, or null if no next page is found.
+   *
+   * The raw href is resolved against `baseUrl` (RFC 5005 links may be relative)
+   * and then run through `validateUrl` — the same SSRF/protocol pre-check applied
+   * to the user-supplied feed URL. A hostile feed must not be able to walk
+   * pagination onto an internal host or a non-http(s) scheme. Returns an absolute,
+   * validated URL, or null if there is no next page or it fails validation.
    */
-  private extractNextPageUrl(xml: string): string | null {
+  private extractNextPageUrl(xml: string, baseUrl: string): string | null {
     // Match both atom:link and link variants, with rel and href in either order.
     const pattern =
       /<(?:atom:)?link\s[^>]*?rel\s*=\s*["']next["'][^>]*?href\s*=\s*["']([^"']+)["'][^>]*?\/?>/i;
-    const match = xml.match(pattern);
-    if (match) return match[1];
-
-    // Also handle the case where href appears before rel in the tag.
     const patternReversed =
       /<(?:atom:)?link\s[^>]*?href\s*=\s*["']([^"']+)["'][^>]*?rel\s*=\s*["']next["'][^>]*?\/?>/i;
-    const matchReversed = xml.match(patternReversed);
-    if (matchReversed) return matchReversed[1];
 
-    return null;
+    const raw = xml.match(pattern)?.[1] ?? xml.match(patternReversed)?.[1];
+    if (!raw) return null;
+
+    // Resolve relative hrefs against the page that contained them.
+    let absolute: string;
+    try {
+      absolute = new URL(raw, baseUrl).toString();
+    } catch {
+      return null;
+    }
+
+    if (!validateUrl(absolute).valid) {
+      console.warn(`[FeedService] Ignoring unsafe pagination link: ${absolute}`);
+      return null;
+    }
+    return absolute;
   }
 
   async parseFeed(url: string) {
@@ -87,10 +102,19 @@ export class FeedService {
       const allItems: Record<string, unknown>[] = [...feed.items];
 
       // --- Pagination: RFC 5005 <atom:link rel="next"> ---
-      let nextUrl = this.extractNextPageUrl(firstPageXml);
+      // `visited` guards against a feed whose next-links form a cycle (e.g. a
+      // page pointing back to itself), which would otherwise burn all MAX_PAGES.
+      const visited = new Set<string>([url]);
+      let currentUrl = url;
+      let nextUrl = this.extractNextPageUrl(firstPageXml, currentUrl);
       let pageCount = 1;
 
       while (nextUrl && pageCount < FeedService.MAX_PAGES) {
+        if (visited.has(nextUrl)) {
+          console.warn(`[FeedService] Pagination cycle detected at ${nextUrl}, stopping.`);
+          break;
+        }
+        visited.add(nextUrl);
         pageCount++;
         console.log(`[FeedService] Fetching paginated feed page ${pageCount}: ${nextUrl}`);
 
@@ -107,7 +131,8 @@ export class FeedService {
           break;
         }
 
-        nextUrl = this.extractNextPageUrl(pageXml);
+        currentUrl = nextUrl;
+        nextUrl = this.extractNextPageUrl(pageXml, currentUrl);
       }
 
       if (pageCount >= FeedService.MAX_PAGES && nextUrl) {

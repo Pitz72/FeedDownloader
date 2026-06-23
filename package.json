@@ -10,13 +10,20 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "predev": "npm run rebuild:electron",
     "build": "npm run lint && tsc && tsc -p tsconfig.electron.json && vite build && electron-builder --publish never",
     "release": "npm run lint && tsc && tsc -p tsconfig.electron.json && vite build && electron-builder --publish always",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "test": "vitest run",
+    "pretest": "npm run rebuild:node",
+    "posttest": "npm run rebuild:electron",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "pretest:watch": "npm run rebuild:node",
+    "test:coverage": "vitest run --coverage",
+    "pretest:coverage": "npm run rebuild:node",
+    "rebuild:node": "npm rebuild better-sqlite3",
+    "rebuild:electron": "electron-rebuild -f -w better-sqlite3"
   },
   "files": [
     "dist",
@@ -62,6 +69,7 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
+    "@electron/rebuild": "^4.0.4",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/better-sqlite3": "^7.6.13",
     "@types/react": "^18.2.64",

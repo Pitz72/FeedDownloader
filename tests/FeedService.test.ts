@@ -171,4 +171,33 @@ describe('FeedService', () => {
         await service.parseFeed('https://example.com/feed.xml');
         expect(axios.get).toHaveBeenCalledTimes(1);
     });
+
+    it('should ignore an unsafe (private-IP) pagination link (SSRF guard)', async () => {
+        const page1 = `<?xml version="1.0"?><rss><channel>
+            <atom:link rel="next" href="http://127.0.0.1:8080/admin" />
+        </channel></rss>`;
+        (axios.get as ReturnType<typeof vi.fn>).mockResolvedValue(xmlResponse(page1));
+
+        const result = await service.parseFeed('https://example.com/feed.xml');
+
+        // validateUrl rejects the loopback target → no second fetch.
+        expect(axios.get).toHaveBeenCalledTimes(1);
+        expect(result.episodes).toHaveLength(2);
+    });
+
+    it('should resolve a relative rel="next" href against the page URL', async () => {
+        const page1 = `<?xml version="1.0"?><rss><channel>
+            <atom:link rel="next" href="feed?page=2" />
+        </channel></rss>`;
+        const get = axios.get as ReturnType<typeof vi.fn>;
+        get
+            .mockResolvedValueOnce(xmlResponse(page1))
+            .mockResolvedValueOnce(xmlResponse(XML_NO_NEXT));
+
+        await service.parseFeed('https://example.com/feed.xml');
+
+        expect(get).toHaveBeenCalledTimes(2);
+        // Second call must use the absolute, resolved URL.
+        expect(get.mock.calls[1][0]).toBe('https://example.com/feed?page=2');
+    });
 });

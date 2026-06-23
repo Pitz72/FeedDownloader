@@ -140,7 +140,8 @@ describe('DatabaseService', () => {
 
         it('should export CSV with correct headers', () => {
             const csv = db.exportArchiveCSV();
-            expect(csv).toContain('Podcast,Episode Title,Publish Date,Downloaded At,GUID');
+            // v0.7.4: extended header with integrity columns (size/bitrate/sample rate/checksum/status)
+            expect(csv).toContain('Podcast,Episode Title,Publish Date,Downloaded At,File Size (bytes),Bitrate (kbps),Sample Rate (Hz),SHA-256 Checksum,Validation Status,GUID');
         });
 
         it('should export CSV with escaped quotes', () => {

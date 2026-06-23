@@ -18,9 +18,10 @@ permissions:
   contents: write
 
 jobs:
-  # L5: quality gate — lint + type-check (renderer + main) block the build;
-  # tests and npm audit run as informational (continue-on-error) until the test
-  # suite is repaired, so they surface without blocking a release.
+  # L5: quality gate — lint + type-check (renderer + main) AND the test suite
+  # block the build. `npm ci` produces a better-sqlite3 binary for the CI Node
+  # ABI, so vitest is run directly (no electron-rebuild needed here). npm audit
+  # stays informational (transitive advisories shouldn't block a release).
   verify:
     runs-on: ubuntu-latest
     steps:
@@ -48,9 +49,8 @@ jobs:
       - name: Type-check (main process, no DOM)
         run: npx tsc -p tsconfig.electron.json
 
-      - name: Tests (informational)
-        run: npm test
-        continue-on-error: true
+      - name: Tests (blocking)
+        run: npx vitest run
 
       - name: npm audit (informational)
         run: npm audit --audit-level=high
