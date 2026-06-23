@@ -133,9 +133,9 @@ jobs:
         with:
           name: windows-artifacts
           path: |
-            builds/**/*.exe
-            builds/**/*.blockmap
-            builds/**/latest.yml
+            builds/*/*.exe
+            builds/*/*.blockmap
+            builds/*/latest.yml
           if-no-files-found: error
           retention-days: 30
 
@@ -186,6 +186,6 @@ jobs:
             artifacts/linux/**/*.AppImage
             artifacts/linux/**/*.deb
             artifacts/linux/**/latest-linux.yml
-            artifacts/windows/**/*.exe
-            artifacts/windows/**/*.blockmap
-            artifacts/windows/**/latest.yml
+            artifacts/windows/*/*.exe
+            artifacts/windows/*/*.blockmap
+            artifacts/windows/*/latest.yml
