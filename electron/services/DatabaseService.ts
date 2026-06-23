@@ -56,6 +56,18 @@ export class DatabaseService {
             );
         `);
 
+        // F3-fix: Track known episode GUIDs per feed for accurate new-episode detection.
+        // The old approach compared raw episode counts, which broke for feeds with
+        // a rolling window (publishing new episodes while removing old ones).
+        this.db.exec(`
+            CREATE TABLE IF NOT EXISTS known_episodes (
+                guid    TEXT NOT NULL,
+                feedUrl TEXT NOT NULL,
+                firstSeen TEXT NOT NULL DEFAULT (datetime('now')),
+                PRIMARY KEY (guid, feedUrl)
+            );
+        `);
+
         // idempotent: add integrity/metadata columns if not already present
         for (const sql of [
             'ALTER TABLE archive ADD COLUMN fileSize INTEGER',
@@ -334,6 +346,50 @@ export class DatabaseService {
     getEpisodeCount(url: string): number | null {
         const row = this.db.prepare('SELECT episodeCount FROM feeds WHERE url = ?').get(url) as { episodeCount: number | null } | undefined;
         return row?.episodeCount ?? null;
+    }
+
+    // ── Known Episodes (F3-fix) ──────────────────────────────
+
+    /**
+     * Return the set of GUIDs already known for the given feed.
+     */
+    getKnownGuids(feedUrl: string): Set<string> {
+        const rows = this.db.prepare(
+            'SELECT guid FROM known_episodes WHERE feedUrl = ?'
+        ).all(feedUrl) as { guid: string }[];
+        return new Set(rows.map(r => r.guid));
+    }
+
+    /**
+     * Record a batch of GUIDs as known for the given feed (INSERT OR IGNORE).
+     */
+    markGuidsAsKnown(feedUrl: string, guids: string[]): void {
+        if (guids.length === 0) return;
+        const stmt = this.db.prepare(
+            'INSERT OR IGNORE INTO known_episodes (guid, feedUrl) VALUES (?, ?)'
+        );
+        const transaction = this.db.transaction((items: string[]) => {
+            for (const guid of items) {
+                stmt.run(guid, feedUrl);
+            }
+        });
+        transaction(guids);
+    }
+
+    /**
+     * Return GUIDs from `currentGuids` that are NOT yet known for this feed.
+     */
+    findNewGuids(feedUrl: string, currentGuids: string[]): string[] {
+        if (currentGuids.length === 0) return [];
+        const known = this.getKnownGuids(feedUrl);
+        return currentGuids.filter(g => g && !known.has(g));
+    }
+
+    /**
+     * Remove known-episode records for a feed (called when a feed is deleted).
+     */
+    removeKnownEpisodes(feedUrl: string): void {
+        this.db.prepare('DELETE FROM known_episodes WHERE feedUrl = ?').run(feedUrl);
     }
 
     // ── Lifecycle ────────────────────────────────────────────

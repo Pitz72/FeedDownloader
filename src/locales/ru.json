@@ -19,7 +19,9 @@
         "tab_archive": "Архив",
         "archive_mode_hint": "Просмотрите архив на главной панели",
         "sync_all": "Синхронизировать всё",
-        "syncing_count": "Синхронизация... {{done}}/{{total}}"
+        "syncing_count": "Синхронизация... {{done}}/{{total}}",
+        "new_count_one": "1 К ЗАГРУЗКЕ",
+        "new_count_other": "{{count}} К ЗАГРУЗКЕ"
     },
     "archive": {
         "title": "Архив",

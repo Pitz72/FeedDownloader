@@ -19,7 +19,9 @@
         "tab_archive": "归档",
         "archive_mode_hint": "在主面板中浏览归档",
         "sync_all": "同步全部",
-        "syncing_count": "同步中... {{done}}/{{total}}"
+        "syncing_count": "同步中... {{done}}/{{total}}",
+        "new_count_one": "1 个待下载",
+        "new_count_other": "{{count}} 个待下载"
     },
     "archive": {
         "title": "归档",

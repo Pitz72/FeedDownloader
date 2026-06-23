@@ -104,18 +104,33 @@ async function runBackgroundRefresh(win: BrowserWindow) {
             feedCache.delete(feedEntry.url);
             parseFeedLastCall.delete(feedEntry.url);
 
-            const previousCount = libraryService.getEpisodeCount(feedEntry.url) ?? 0;
             const feed = await feedService.parseFeed(feedEntry.url);
-            const newCount = ((feed as unknown) as { episodes?: unknown[] }).episodes?.length ?? 0;
+            const episodes = ((feed as unknown) as { episodes?: { guid?: string }[] }).episodes ?? [];
+            const currentGuids = episodes.map(e => e.guid).filter((g): g is string => !!g);
 
             feedCache.set(feedEntry.url, { feed, timestamp: Date.now() });
             libraryService.touchFeed(feedEntry.url, new Date().toISOString());
 
-            if (newCount > previousCount) {
-                totalNew += newCount - previousCount;
-                feedsWithNew.push(feedEntry.title);
+            // F3-fix: GUID-based detection — correctly detects new episodes even when
+            // the feed removes old ones (rolling window), which broke the old
+            // count-comparison approach.
+            const known = libraryService.getKnownGuids(feedEntry.url);
+            if (known.size === 0) {
+                // No baseline yet: feed added before this feature shipped (existing
+                // installs after upgrade) or imported via OPML and never opened.
+                // Seed silently — without this the first refresh would report every
+                // pre-existing episode as "new" and fire one huge false notification.
+                libraryService.markGuidsAsKnown(feedEntry.url, currentGuids);
+            } else {
+                const newGuids = currentGuids.filter(g => !known.has(g));
+                if (newGuids.length > 0) {
+                    totalNew += newGuids.length;
+                    feedsWithNew.push(feedEntry.title);
+                }
+                // Record all current GUIDs as known for future comparisons
+                libraryService.markGuidsAsKnown(feedEntry.url, currentGuids);
             }
-            libraryService.updateEpisodeCount(feedEntry.url, newCount);
+            libraryService.updateEpisodeCount(feedEntry.url, episodes.length);
         } catch {
             // silently skip feeds that fail in background
         }
@@ -124,15 +139,18 @@ async function runBackgroundRefresh(win: BrowserWindow) {
     pushEvent(win, CH.FEEDS_UPDATED, libraryService.getFeeds());
 
     if (totalNew > 0 && Notification.isSupported()) {
+        const fp = feedsWithNew.length;
         const notifBodies: Record<string, string> = {
-            en: `${totalNew} new episode${totalNew !== 1 ? 's' : ''} found in ${feedsWithNew.length} podcast${feedsWithNew.length !== 1 ? 's' : ''}.`,
-            it: `${totalNew} nuovo${totalNew !== 1 ? 'i' : ''} episodio${totalNew !== 1 ? 'i' : ''} trovato${totalNew !== 1 ? 'i' : ''} in ${feedsWithNew.length} podcast.`,
-            fr: `${totalNew} nouvel${totalNew !== 1 ? 's' : ''} épisode${totalNew !== 1 ? 's' : ''} trouvé${totalNew !== 1 ? 's' : ''} dans ${feedsWithNew.length} podcast${feedsWithNew.length !== 1 ? 's' : ''}.`,
-            de: `${totalNew} neue Episode${totalNew !== 1 ? 'n' : ''} in ${feedsWithNew.length} Feed${feedsWithNew.length !== 1 ? 's' : ''} gefunden.`,
-            es: `${totalNew} nuevo${totalNew !== 1 ? 's' : ''} episodio${totalNew !== 1 ? 's' : ''} encontrado${totalNew !== 1 ? 's' : ''} en ${feedsWithNew.length} podcast${feedsWithNew.length !== 1 ? 's' : ''}.`,
-            pt: `${totalNew} novo${totalNew !== 1 ? 's' : ''} episódio${totalNew !== 1 ? 's' : ''} encontrado${totalNew !== 1 ? 's' : ''} em ${feedsWithNew.length} podcast${feedsWithNew.length !== 1 ? 's' : ''}.`,
-            ru: `Найдено ${totalNew} нов${totalNew !== 1 ? 'ых эпизодов' : 'ый эпизод'} в ${feedsWithNew.length} подкаст${feedsWithNew.length !== 1 ? 'ах' : 'е'}.`,
-            zh: `在 ${feedsWithNew.length} 个播客中发现 ${totalNew} 个新节目。`,
+            en: `${totalNew} new episode${totalNew !== 1 ? 's' : ''} found in ${fp} podcast${fp !== 1 ? 's' : ''}.`,
+            it: totalNew === 1
+                ? `1 nuovo episodio trovato in ${fp} podcast.`
+                : `${totalNew} nuovi episodi trovati in ${fp} podcast.`,
+            fr: `${totalNew} nouvel${totalNew !== 1 ? 'les' : ''} épisode${totalNew !== 1 ? 's' : ''} trouvé${totalNew !== 1 ? 's' : ''} dans ${fp} podcast${fp !== 1 ? 's' : ''}.`,
+            de: `${totalNew} neue Episode${totalNew !== 1 ? 'n' : ''} in ${fp} Feed${fp !== 1 ? 's' : ''} gefunden.`,
+            es: `${totalNew} nuevo${totalNew !== 1 ? 's' : ''} episodio${totalNew !== 1 ? 's' : ''} encontrado${totalNew !== 1 ? 's' : ''} en ${fp} podcast${fp !== 1 ? 's' : ''}.`,
+            pt: `${totalNew} novo${totalNew !== 1 ? 's' : ''} episódio${totalNew !== 1 ? 's' : ''} encontrado${totalNew !== 1 ? 's' : ''} em ${fp} podcast${fp !== 1 ? 's' : ''}.`,
+            ru: `Найдено ${totalNew} нов${totalNew !== 1 ? 'ых эпизодов' : 'ый эпизод'} в ${fp} подкаст${fp !== 1 ? 'ах' : 'е'}.`,
+            zh: `在 ${fp} 个播客中发现 ${totalNew} 个新节目。`,
         };
         new Notification({
             title: 'Runtime FeedDownloader Pro',
@@ -188,7 +206,15 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
         // Update lastUpdated + episodeCount in DB (fresh network fetch only, not cache hits)
         libraryService.touchFeed(url, new Date().toISOString());
-        libraryService.updateEpisodeCount(url, ((feed as unknown) as { episodes?: unknown[] }).episodes?.length ?? 0);
+        const episodes = ((feed as unknown) as { episodes?: { guid?: string }[] }).episodes ?? [];
+        libraryService.updateEpisodeCount(url, episodes.length);
+
+        // F3-fix: seed known_episodes on first parse so that the background refresh
+        // has a baseline — without this, the first auto-refresh would report every
+        // existing episode as "new".
+        const guids = episodes.map(e => e.guid).filter((g): g is string => !!g);
+        libraryService.markGuidsAsKnown(url, guids);
+
         pushEvent(mainWindow, CH.FEEDS_UPDATED, libraryService.getFeeds());
 
         return feed;
@@ -208,6 +234,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
     ipcMain.handle(CH.REMOVE_FEED, async (_, url: string) => {
         libraryService.removeFeed(url);
+        libraryService.removeKnownEpisodes(url); // F3-fix: clean up known_episodes
         feedCache.delete(url);          // B7: don't keep a removed feed cached
         parseFeedLastCall.delete(url);
         const feeds = libraryService.getFeeds();

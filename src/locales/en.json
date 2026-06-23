@@ -19,7 +19,9 @@
         "tab_archive": "Archive",
         "archive_mode_hint": "Browse the archive in the main panel",
         "sync_all": "Sync All",
-        "syncing_count": "Syncing... {{done}}/{{total}}"
+        "syncing_count": "Syncing... {{done}}/{{total}}",
+        "new_count_one": "1 TO DOWNLOAD",
+        "new_count_other": "{{count}} TO DOWNLOAD"
     },
     "archive": {
         "title": "Archive",

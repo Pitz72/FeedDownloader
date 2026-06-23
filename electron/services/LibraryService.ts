@@ -140,6 +140,12 @@ export class LibraryService {
     setAutoRefreshInterval(hours: number): void { this.db.setAutoRefreshInterval(hours); }
     getEpisodeCount(url: string): number | null { return this.db.getEpisodeCount(url); }
 
+    // ── Known Episodes (F3-fix) ──────────────────────────────
+    getKnownGuids(feedUrl: string): Set<string> { return this.db.getKnownGuids(feedUrl); }
+    markGuidsAsKnown(feedUrl: string, guids: string[]): void { this.db.markGuidsAsKnown(feedUrl, guids); }
+    findNewGuids(feedUrl: string, currentGuids: string[]): string[] { return this.db.findNewGuids(feedUrl, currentGuids); }
+    removeKnownEpisodes(feedUrl: string): void { this.db.removeKnownEpisodes(feedUrl); }
+
     // ── OPML ─────────────────────────────────────────────────
 
     async importOPML(xmlContent: string): Promise<number> {

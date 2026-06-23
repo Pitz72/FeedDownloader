@@ -342,8 +342,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen, width }) => {
                     {feed.newCount != null && feed.newCount > 0 && (
                       <span className="feed-badge">
                         {feed.newCount === 1
-                          ? t('sidebar.new_count_one', '1 NUOVO')
-                          : t('sidebar.new_count_other', '{{count}} NUOVI', { count: feed.newCount })}
+                          ? t('sidebar.new_count_one', '1 DA SCARICARE')
+                          : t('sidebar.new_count_other', '{{count}} DA SCARICARE', { count: feed.newCount })}
                       </span>
                     )}
                   </div>

@@ -19,7 +19,9 @@
         "tab_archive": "Arquivo",
         "archive_mode_hint": "Navegue no arquivo no painel principal",
         "sync_all": "Sincronizar Tudo",
-        "syncing_count": "Sincronizando... {{done}}/{{total}}"
+        "syncing_count": "Sincronizando... {{done}}/{{total}}",
+        "new_count_one": "1 POR TRANSFERIR",
+        "new_count_other": "{{count}} POR TRANSFERIR"
     },
     "archive": {
         "title": "Arquivo",

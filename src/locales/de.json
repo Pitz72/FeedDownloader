@@ -19,7 +19,9 @@
         "tab_archive": "Archiv",
         "archive_mode_hint": "Archiv im Hauptbereich durchsuchen",
         "sync_all": "Alle synchronisieren",
-        "syncing_count": "Synchronisiere... {{done}}/{{total}}"
+        "syncing_count": "Synchronisiere... {{done}}/{{total}}",
+        "new_count_one": "1 OFFEN",
+        "new_count_other": "{{count}} OFFEN"
     },
     "archive": {
         "title": "Archiv",
