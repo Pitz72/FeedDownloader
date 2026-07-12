@@ -12,7 +12,7 @@ declare global {
             addFeed: (feed: FeedEntry) => Promise<FeedEntry[]>;
             removeFeed: (url: string) => Promise<FeedEntry[]>;
             startDownload: (data: DownloadRequest) => Promise<DownloadResult>;
-            getDownloadedEpisodes: () => Promise<string[]>;
+            getDownloadedEpisodes: (feedUrl?: string) => Promise<string[]>;
             onDownloadProgress: (callback: (event: Electron.IpcRendererEvent, data: DownloadProgress) => void) => () => void;
             chooseFolder: () => Promise<string | null>;
             getDownloadPath: () => Promise<string>;

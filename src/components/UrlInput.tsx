@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import clsx from 'clsx';
 import { useStore, AppState } from '../store/useStore';
 import { useToast } from '../context/ToastContext';
@@ -11,6 +11,8 @@ export const UrlInput: React.FC = () => {
   const setCurrentFeed = useStore((state: AppState) => state.setCurrentFeed);
   const toast = useToast();
   const { t } = useTranslation();
+  // S9: only the latest parseFeed request may update state (stale responses are dropped)
+  const latestRequestRef = useRef<string | null>(null);
 
   const analyzeFeed = async (feedUrl: string) => {
     const trimmed = feedUrl.trim();
@@ -19,14 +21,17 @@ export const UrlInput: React.FC = () => {
       toast.show(t('toast.offline_error'), 'error');
       return;
     }
+    latestRequestRef.current = trimmed;
     setLoading(true);
     try {
       const feed = await window.api.parseFeed(trimmed);
+      if (latestRequestRef.current !== trimmed) return;
       const fullFeed = { ...feed, url: trimmed };
       setCurrentFeed(fullFeed);
       await window.api.addFeed(fullFeed);
     } catch (error: unknown) {
       console.error(error);
+      if (latestRequestRef.current !== trimmed) return;
       const msg_src = error instanceof Error ? error.message : '';
       let msg = t('toast.parse_error');
       if (msg_src.includes('INVALID_FEED_TYPE')) msg = t('toast.invalid_feed');
@@ -34,7 +39,7 @@ export const UrlInput: React.FC = () => {
       else if (msg_src.includes('404')) msg = t('toast.feed_not_found');
       toast.show(msg, 'error');
     } finally {
-      setLoading(false);
+      if (latestRequestRef.current === trimmed) setLoading(false);
     }
   };
 

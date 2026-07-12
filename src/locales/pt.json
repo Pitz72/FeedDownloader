@@ -21,7 +21,10 @@
         "sync_all": "Sincronizar Tudo",
         "syncing_count": "Sincronizando... {{done}}/{{total}}",
         "new_count_one": "1 POR TRANSFERIR",
-        "new_count_other": "{{count}} POR TRANSFERIR"
+        "new_count_other": "{{count}} POR TRANSFERIR",
+        "connected": "Ligado",
+        "offline": "Offline",
+        "subtitle": "Gestor de feeds"
     },
     "archive": {
         "title": "Arquivo",
@@ -45,7 +48,11 @@
         "files_count": "{{count}} ficheiros",
         "podcasts_count": "{{count}} podcasts",
         "show_in_folder": "Mostrar na pasta",
-        "loading": "A carregar o arquivo..."
+        "loading": "A carregar o arquivo...",
+        "episodes_short": "episódios",
+        "filter_label": "Filtrar",
+        "podcasts_short": "programas",
+        "sorted_by_date": "Ordenados por data · mais recentes primeiro"
     },
     "input": {
         "placeholder": "Introduza URL RSS do podcast...",
@@ -86,7 +93,27 @@
         "detail_source_link": "Link de origem",
         "detail_estimated_size": "Tamanho estimado",
         "detail_downloaded_on": "Baixado em",
-        "detail_no_description": "Sem descrição disponível."
+        "detail_no_description": "Sem descrição disponível.",
+        "archived": "arquivados",
+        "count_label": "episódios",
+        "current_feed_kicker": "Runtime · Feed atual",
+        "detail_archive_data": "Arquivo · Dados técnicos",
+        "detail_archived": "Arquivado",
+        "detail_bitrate_sr": "Bitrate · Taxa de amostragem",
+        "detail_checksum": "Checksum SHA-256 · verificado",
+        "detail_duration": "Duração",
+        "detail_kicker": "Episódio",
+        "detail_links": "Links",
+        "detail_path": "Caminho do ficheiro",
+        "detail_size": "Tamanho",
+        "detail_state": "Estado",
+        "episode_count_one": "{{count}} episódio",
+        "episode_count_other": "{{count}} episódios",
+        "last_update": "Última atualização {{date}}",
+        "selected": "selecionados",
+        "tag_archived": "ARQUIVADO",
+        "tag_new": "NOVO",
+        "totals": "no total"
     },
     "progress": {
         "downloading": "A descarregar...",
@@ -101,7 +128,12 @@
         "error_disk_full": "Disco cheio",
         "error_integrity": "Falha na verificação de integridade",
         "error_permission": "Acesso negado",
-        "error_unknown": "Erro desconhecido"
+        "error_unknown": "Erro desconhecido",
+        "active_queued": "{{active}} ativas · {{queued}} em fila",
+        "active_short": "ativas",
+        "completed_summary": "{{done}} de {{total}}",
+        "episodes_short": "episódios",
+        "queued": "em fila"
     },
     "toast": {
         "download_started": "Descarga iniciada...",
@@ -125,7 +157,8 @@
         "m3u_empty": "Nenhum episódio descarregado para exportar",
         "title_copied": "Título copiado",
         "copied": "Copiado para a área de transferência",
-        "copy_failed": "Falha ao copiar"
+        "copy_failed": "Falha ao copiar",
+        "sync_complete": "Sincronização concluída"
     },
     "confirm": {
         "mass_download": "Quer mesmo descarregar todos os {{count}} episódios?",
@@ -137,7 +170,11 @@
     "common": {
         "cancel": "Cancelar",
         "confirm": "Confirmar",
-        "clear": "Limpar"
+        "clear": "Limpar",
+        "close": "Fechar",
+        "error": "Erro",
+        "hide": "Ocultar",
+        "show": "Mostrar"
     },
     "settings": {
         "title": "Definições",
@@ -215,11 +252,23 @@
         "auto_refresh_off": "Desativado",
         "auto_refresh_6h": "6 horas",
         "auto_refresh_12h": "12 horas",
-        "auto_refresh_24h": "24 horas"
+        "auto_refresh_24h": "24 horas",
+        "reset_success": "Histórico de descargas limpo."
     },
     "onboarding": {
         "hint_url": "Cole o URL de um feed RSS na barra acima para começar",
-        "hint_folder": "Antes de descarregar, escolha a pasta de destino em Definições → Download"
+        "hint_folder": "Antes de descarregar, escolha a pasta de destino em Definições → Download",
+        "kicker": "Bem-vindo ao FeedDownloader Pro",
+        "title": "Adicione o seu primeiro feed para começar",
+        "subtitle": "Cole o URL de um feed RSS acima, arraste-o do navegador ou importe um ficheiro OPML. O FeedDownloader irá descarregar, organizar e catalogar cada episódio.",
+        "step1_title": "Cole um URL RSS",
+        "step1_body": "Prima",
+        "step1_body2": "no campo acima ou arraste um link do navegador.",
+        "step2_title": "Escolha a pasta",
+        "step2_body": "Defina o destino — até um NAS ou um volume SMB.",
+        "step3_title": "Descarregue e arquive",
+        "step3_body": "Selecione os episódios com",
+        "step3_body2": "e descarregue-os em lote."
     },
     "diskspace": {
         "critical": "Espaço em disco crítico: menos de 200 MB disponíveis. Download cancelado.",
@@ -244,6 +293,31 @@
         "no_results": "Sem resultados",
         "hint_navigate": "navegar",
         "hint_select": "selecionar",
-        "hint_close": "fechar"
+        "hint_close": "fechar",
+        "action_add_feed_desc": "Abrir o campo URL para analisar um novo feed",
+        "action_settings_desc": "Concorrência, pasta, idioma, integridade",
+        "action_sync_all_desc": "Verificar novos episódios em todos os feeds guardados",
+        "action_view_archive_desc": "Mostrar todos os episódios arquivados"
+    },
+    "banner": {
+        "offline": "Está offline · as descargas estão em pausa até a ligação ser restabelecida",
+        "retrying_auto": "A tentar novamente automaticamente"
+    },
+    "crumbs": {
+        "all_archived": "Todos os episódios arquivados",
+        "archive": "Arquivo",
+        "feeds_active": "Feeds ativos",
+        "no_feed": "Nenhum feed selecionado"
+    },
+    "intro": {
+        "overline": "Runtime · Archive Suite",
+        "status_acquiring": "A adquirir sinal",
+        "status_channel": "Canal 01"
+    },
+    "palette": {
+        "open": "Abrir a paleta de comandos"
+    },
+    "topbar": {
+        "search_actions": "Pesquisar ações"
     }
 }

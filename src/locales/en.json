@@ -21,7 +21,10 @@
         "sync_all": "Sync All",
         "syncing_count": "Syncing... {{done}}/{{total}}",
         "new_count_one": "1 TO DOWNLOAD",
-        "new_count_other": "{{count}} TO DOWNLOAD"
+        "new_count_other": "{{count}} TO DOWNLOAD",
+        "connected": "Connected",
+        "offline": "Offline",
+        "subtitle": "Feed Manager"
     },
     "archive": {
         "title": "Archive",
@@ -45,7 +48,11 @@
         "files_count": "{{count}} files",
         "podcasts_count": "{{count}} podcasts",
         "show_in_folder": "Show in folder",
-        "loading": "Loading archive..."
+        "loading": "Loading archive...",
+        "episodes_short": "episodes",
+        "filter_label": "Filter",
+        "podcasts_short": "shows",
+        "sorted_by_date": "Sorted by date · newest first"
     },
     "input": {
         "placeholder": "Enter podcast RSS URL...",
@@ -86,7 +93,27 @@
         "detail_source_link": "Source link",
         "detail_estimated_size": "Estimated size",
         "detail_downloaded_on": "Downloaded on",
-        "detail_no_description": "No description available."
+        "detail_no_description": "No description available.",
+        "archived": "archived",
+        "count_label": "episodes",
+        "current_feed_kicker": "Runtime · Current feed",
+        "detail_archive_data": "Archive · Technical data",
+        "detail_archived": "Archived",
+        "detail_bitrate_sr": "Bitrate · Sample rate",
+        "detail_checksum": "SHA-256 checksum · verified",
+        "detail_duration": "Duration",
+        "detail_kicker": "Episode",
+        "detail_links": "Links",
+        "detail_path": "File path",
+        "detail_size": "Size",
+        "detail_state": "Status",
+        "episode_count_one": "{{count}} episode",
+        "episode_count_other": "{{count}} episodes",
+        "last_update": "Last updated {{date}}",
+        "selected": "selected",
+        "tag_archived": "ARCHIVED",
+        "tag_new": "NEW",
+        "totals": "total"
     },
     "progress": {
         "downloading": "Downloading...",
@@ -101,7 +128,12 @@
         "error_disk_full": "Disk full",
         "error_integrity": "Integrity check failed",
         "error_permission": "Access denied",
-        "error_unknown": "Unknown error"
+        "error_unknown": "Unknown error",
+        "active_queued": "{{active}} active · {{queued}} queued",
+        "active_short": "active",
+        "completed_summary": "{{done}} of {{total}}",
+        "episodes_short": "episodes",
+        "queued": "queued"
     },
     "toast": {
         "download_started": "Download started...",
@@ -125,7 +157,8 @@
         "m3u_empty": "No downloaded episodes to export",
         "title_copied": "Title copied",
         "copied": "Copied to clipboard",
-        "copy_failed": "Copy failed"
+        "copy_failed": "Copy failed",
+        "sync_complete": "Sync complete"
     },
     "confirm": {
         "mass_download": "Do you really want to download all {{count}} episodes?",
@@ -137,7 +170,11 @@
     "common": {
         "cancel": "Cancel",
         "confirm": "Confirm",
-        "clear": "Clear"
+        "clear": "Clear",
+        "close": "Close",
+        "error": "Error",
+        "hide": "Hide",
+        "show": "Show"
     },
     "settings": {
         "title": "Settings",
@@ -215,11 +252,23 @@
         "auto_refresh_off": "Disabled",
         "auto_refresh_6h": "6 hours",
         "auto_refresh_12h": "12 hours",
-        "auto_refresh_24h": "24 hours"
+        "auto_refresh_24h": "24 hours",
+        "reset_success": "Download history cleared."
     },
     "onboarding": {
         "hint_url": "Paste an RSS feed URL in the bar above to get started",
-        "hint_folder": "Before downloading, choose your destination folder in Settings → Download"
+        "hint_folder": "Before downloading, choose your destination folder in Settings → Download",
+        "kicker": "Welcome to FeedDownloader Pro",
+        "title": "Add your first feed to get started",
+        "subtitle": "Paste an RSS feed URL above, drag it from your browser, or import an OPML file. FeedDownloader will download, organize and catalog every episode.",
+        "step1_title": "Paste an RSS URL",
+        "step1_body": "Press",
+        "step1_body2": "in the field above, or drag a link from your browser.",
+        "step2_title": "Choose the folder",
+        "step2_body": "Set the destination — even a NAS or an SMB volume.",
+        "step3_title": "Download and archive",
+        "step3_body": "Select episodes with",
+        "step3_body2": "and download them in batch."
     },
     "diskspace": {
         "critical": "Critical disk space: less than 200 MB available. Download cancelled.",
@@ -244,6 +293,31 @@
         "no_results": "No results",
         "hint_navigate": "navigate",
         "hint_select": "select",
-        "hint_close": "close"
+        "hint_close": "close",
+        "action_add_feed_desc": "Open the URL field to analyze a new feed",
+        "action_settings_desc": "Concurrency, folder, language, integrity",
+        "action_sync_all_desc": "Check for new episodes in all saved feeds",
+        "action_view_archive_desc": "Show all archived episodes"
+    },
+    "banner": {
+        "offline": "You are offline · downloads are paused until the connection is restored",
+        "retrying_auto": "Retrying automatically"
+    },
+    "crumbs": {
+        "all_archived": "All archived episodes",
+        "archive": "Archive",
+        "feeds_active": "Active feeds",
+        "no_feed": "No feed selected"
+    },
+    "intro": {
+        "overline": "Runtime · Archive Suite",
+        "status_acquiring": "Acquiring signal",
+        "status_channel": "Channel 01"
+    },
+    "palette": {
+        "open": "Open command palette"
+    },
+    "topbar": {
+        "search_actions": "Search actions"
     }
 }

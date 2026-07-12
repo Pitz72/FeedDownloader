@@ -22,7 +22,7 @@ async function fetchCover(imageUrl: string): Promise<NodeID3.Tags['image'] | nul
             maxContentLength: 10 * 1024 * 1024, // una cover non supera qualche MB
             ...SAFE_AXIOS_CONFIG, // SSRF: validate resolved IP on every hop
         });
-        const mime = (response.headers['content-type'] || 'image/jpeg').split(';')[0];
+        const mime = String(response.headers['content-type'] || 'image/jpeg').split(';')[0];
         return {
             mime,
             type: { id: 3, name: 'front cover' },

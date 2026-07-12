@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore, AppState } from '../store/useStore';
 import clsx from 'clsx';
 import { useToast } from '../context/ToastContext';
@@ -53,6 +53,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen, width }) => {
   const [sortAlpha, setSortAlpha] = useState(false);
   const [syncStatuses, setSyncStatuses] = useState<Map<string, 'syncing' | 'done' | 'error'>>(new Map());
   const [confirmState, setConfirmState] = useState<{ isOpen: boolean; url: string }>({ isOpen: false, url: '' });
+  // S9: only the latest parseFeed request may update state (stale responses are dropped)
+  const latestRequestRef = useRef<string | null>(null);
 
   const displayedFeeds = useMemo(() => {
     let result = feeds;
@@ -89,14 +91,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen, width }) => {
 
   const handleSelectFeed = async (feedUrl: string) => {
     if (currentFeed?.url === feedUrl) return;
+    if (loadingUrl === feedUrl) return;
+    latestRequestRef.current = feedUrl;
     setLoadingUrl(feedUrl);
     try {
       const feed = await window.api.parseFeed(feedUrl);
+      if (latestRequestRef.current !== feedUrl) return;
       setCurrentFeed({ ...feed, url: feedUrl });
     } catch {
+      if (latestRequestRef.current !== feedUrl) return;
       toast.show(t('toast.feed_error'), 'error');
     } finally {
-      setLoadingUrl(null);
+      if (latestRequestRef.current === feedUrl) setLoadingUrl(null);
     }
   };
 

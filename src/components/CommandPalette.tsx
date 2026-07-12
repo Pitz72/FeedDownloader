@@ -53,6 +53,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose, onOpenS
     const [activeIdx, setActiveIdx] = useState(0);
     const inputRef = useRef<HTMLInputElement>(null);
     const listRef = useRef<HTMLDivElement>(null);
+    // S9: only the latest parseFeed request may update state (stale responses are dropped)
+    const latestRequestRef = useRef<string | null>(null);
 
     const setViewMode = useStore((s: AppState) => s.setViewMode);
     const setCurrentFeed = useStore((s: AppState) => s.setCurrentFeed);
@@ -63,14 +65,16 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose, onOpenS
     }, []);
 
     const handleSelectFeed = useCallback(async (feed: FeedEntry) => {
+        latestRequestRef.current = feed.url;
         setLoadingFeedUrl(feed.url);
         try {
             const parsed = await window.api.parseFeed(feed.url);
+            if (latestRequestRef.current !== feed.url) return;
             setCurrentFeed({ ...parsed, url: feed.url });
             setViewMode('feeds');
             onClose();
         } catch {
-            setLoadingFeedUrl(null);
+            if (latestRequestRef.current === feed.url) setLoadingFeedUrl(null);
         }
     }, [setCurrentFeed, setViewMode, onClose]);
 

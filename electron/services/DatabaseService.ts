@@ -1,6 +1,7 @@
 import Database from 'better-sqlite3';
 import { app } from 'electron';
 import path from 'path';
+import fs from 'node:fs';
 import type { FeedEntry, ArchiveEntry, ArchiveStats } from '../../shared/types';
 
 /**
@@ -15,13 +16,40 @@ import type { FeedEntry, ArchiveEntry, ArchiveStats } from '../../shared/types';
 export class DatabaseService {
     private db: Database.Database;
 
+    /** True when the on-disk DB was unreadable and had to be replaced with a
+     *  fresh one (the damaged files are kept aside as `.corrupt-<timestamp>`). */
+    public recoveredFromError = false;
+
     constructor(dbPath?: string) {
         const resolvedPath = dbPath || path.join(
             app.getPath('userData'),
             'feeddownloader.sqlite'
         );
-        this.db = new Database(resolvedPath);
-        this.init();
+        let opened: Database.Database | null = null;
+        try {
+            opened = new Database(resolvedPath);
+            this.db = opened;
+            this.init();
+        } catch (err) {
+            try { opened?.close(); } catch { /* not open */ }
+            // A corrupted file would otherwise make the app permanently unable
+            // to start. Move the damaged DB aside (never delete user data) and
+            // start over with an empty one. In-memory DBs (tests) can't recover.
+            if (resolvedPath === ':memory:') throw err;
+            console.error('[DB] Failed to open database, attempting recovery:', err);
+            const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+            for (const suffix of ['', '-wal', '-shm']) {
+                const file = resolvedPath + suffix;
+                try {
+                    if (fs.existsSync(file)) fs.renameSync(file, `${resolvedPath}.corrupt-${stamp}${suffix}`);
+                } catch (renameErr) {
+                    console.error(`[DB] Could not move damaged file ${file}:`, renameErr);
+                }
+            }
+            this.db = new Database(resolvedPath);
+            this.init();
+            this.recoveredFromError = true;
+        }
     }
 
     private init(): void {
@@ -38,16 +66,24 @@ export class DatabaseService {
             );
 
             CREATE TABLE IF NOT EXISTS downloads (
-                guid TEXT PRIMARY KEY
+                guid    TEXT NOT NULL,
+                feedUrl TEXT NOT NULL DEFAULT '',
+                PRIMARY KEY (guid, feedUrl)
             );
 
             CREATE TABLE IF NOT EXISTS archive (
-                guid          TEXT PRIMARY KEY,
+                guid          TEXT NOT NULL,
+                feedUrl       TEXT NOT NULL DEFAULT '',
                 podcastTitle  TEXT NOT NULL DEFAULT '',
                 title         TEXT NOT NULL DEFAULT '',
                 pubDate       TEXT NOT NULL DEFAULT '',
                 downloadedAt  TEXT NOT NULL DEFAULT '',
-                filename      TEXT
+                filename      TEXT,
+                fileSize      INTEGER,
+                checksum      TEXT,
+                bitrate       INTEGER,
+                sampleRate    INTEGER,
+                PRIMARY KEY (guid, feedUrl)
             );
 
             CREATE TABLE IF NOT EXISTS settings (
@@ -68,7 +104,10 @@ export class DatabaseService {
             );
         `);
 
-        // idempotent: add integrity/metadata columns if not already present
+        // idempotent: add integrity/metadata columns if not already present.
+        // S5: only "duplicate column" may be swallowed — any other failure
+        // (disk full, readonly DB, I/O error) must propagate, otherwise later
+        // INSERTs fail silently and downloads are never recorded.
         for (const sql of [
             'ALTER TABLE archive ADD COLUMN fileSize INTEGER',
             'ALTER TABLE archive ADD COLUMN checksum TEXT',
@@ -77,8 +116,76 @@ export class DatabaseService {
             'ALTER TABLE archive ADD COLUMN feedUrl TEXT',
             'ALTER TABLE feeds ADD COLUMN episodeCount INTEGER',
         ]) {
-            try { this.db.exec(sql); } catch { /* column already exists */ }
+            try {
+                this.db.exec(sql);
+            } catch (err) {
+                if (!/duplicate column name/i.test(String((err as Error).message))) throw err;
+            }
         }
+
+        this.migrateToCompositeKeys();
+
+        // Indexes for the hot queries: per-feed download lookups, per-feed
+        // archive counts (run on every getFeeds), archive sorting/filtering,
+        // and known-episode lookups (the (guid, feedUrl) PK can't serve a
+        // feedUrl-only scan).
+        this.db.exec(`
+            CREATE INDEX IF NOT EXISTS idx_downloads_feedUrl ON downloads (feedUrl);
+            CREATE INDEX IF NOT EXISTS idx_archive_feedUrl ON archive (feedUrl);
+            CREATE INDEX IF NOT EXISTS idx_archive_podcastTitle ON archive (podcastTitle);
+            CREATE INDEX IF NOT EXISTS idx_archive_downloadedAt ON archive (downloadedAt);
+            CREATE INDEX IF NOT EXISTS idx_known_episodes_feedUrl ON known_episodes (feedUrl);
+        `);
+    }
+
+    /**
+     * S6: GUIDs are only unique within a feed — plenty of real feeds use "1",
+     * "2", or a page URL. The original schema keyed downloads/archive on guid
+     * alone, so two feeds with colliding GUIDs produced false "already
+     * downloaded" states and silently dropped archive rows. Rebuild both
+     * tables with a (guid, feedUrl) key; legacy rows keep feedUrl = '' and act
+     * as a match-any-feed fallback so existing libraries stay recognized.
+     */
+    private migrateToCompositeKeys(): void {
+        const downloadsCols = this.db.pragma('table_info(downloads)') as { name: string }[];
+        if (downloadsCols.some(c => c.name === 'feedUrl')) return; // already migrated
+
+        const migrate = this.db.transaction(() => {
+            this.db.exec(`
+                CREATE TABLE downloads_new (
+                    guid    TEXT NOT NULL,
+                    feedUrl TEXT NOT NULL DEFAULT '',
+                    PRIMARY KEY (guid, feedUrl)
+                );
+                INSERT OR IGNORE INTO downloads_new (guid, feedUrl)
+                    SELECT guid, '' FROM downloads;
+                DROP TABLE downloads;
+                ALTER TABLE downloads_new RENAME TO downloads;
+
+                CREATE TABLE archive_new (
+                    guid          TEXT NOT NULL,
+                    feedUrl       TEXT NOT NULL DEFAULT '',
+                    podcastTitle  TEXT NOT NULL DEFAULT '',
+                    title         TEXT NOT NULL DEFAULT '',
+                    pubDate       TEXT NOT NULL DEFAULT '',
+                    downloadedAt  TEXT NOT NULL DEFAULT '',
+                    filename      TEXT,
+                    fileSize      INTEGER,
+                    checksum      TEXT,
+                    bitrate       INTEGER,
+                    sampleRate    INTEGER,
+                    PRIMARY KEY (guid, feedUrl)
+                );
+                INSERT OR IGNORE INTO archive_new
+                    (guid, feedUrl, podcastTitle, title, pubDate, downloadedAt, filename, fileSize, checksum, bitrate, sampleRate)
+                    SELECT guid, COALESCE(feedUrl, ''), podcastTitle, title, pubDate, downloadedAt, filename, fileSize, checksum, bitrate, sampleRate
+                    FROM archive;
+                DROP TABLE archive;
+                ALTER TABLE archive_new RENAME TO archive;
+            `);
+        });
+        migrate();
+        console.log('[DB] Migrated downloads/archive to composite (guid, feedUrl) keys.');
     }
 
     // ── Feeds ────────────────────────────────────────────────
@@ -141,17 +248,26 @@ export class DatabaseService {
 
     // ── Downloads ────────────────────────────────────────────
 
-    getDownloadedEpisodes(): string[] {
-        const rows = this.db.prepare('SELECT guid FROM downloads').all() as { guid: string }[];
+    /**
+     * GUIDs downloaded for a specific feed (legacy rows with feedUrl = ''
+     * match every feed), or every GUID when no feed is given.
+     */
+    getDownloadedEpisodes(feedUrl?: string): string[] {
+        const rows = (feedUrl !== undefined
+            ? this.db.prepare("SELECT DISTINCT guid FROM downloads WHERE feedUrl IN (?, '')").all(feedUrl)
+            : this.db.prepare('SELECT DISTINCT guid FROM downloads').all()
+        ) as { guid: string }[];
         return rows.map(r => r.guid);
     }
 
-    markAsDownloaded(guid: string): void {
-        this.db.prepare('INSERT OR IGNORE INTO downloads (guid) VALUES (?)').run(guid);
+    markAsDownloaded(guid: string, feedUrl = ''): void {
+        this.db.prepare('INSERT OR IGNORE INTO downloads (guid, feedUrl) VALUES (?, ?)').run(guid, feedUrl);
     }
 
-    isDownloaded(guid: string): boolean {
-        const row = this.db.prepare('SELECT 1 FROM downloads WHERE guid = ?').get(guid);
+    isDownloaded(guid: string, feedUrl = ''): boolean {
+        const row = this.db.prepare(
+            "SELECT 1 FROM downloads WHERE guid = ? AND feedUrl IN (?, '')"
+        ).get(guid, feedUrl);
         return !!row;
     }
 
@@ -202,8 +318,21 @@ export class DatabaseService {
             entry.checksum ?? null,
             entry.bitrate ?? null,
             entry.sampleRate ?? null,
-            entry.feedUrl ?? null,
+            entry.feedUrl ?? '',
         );
+    }
+
+    /**
+     * S7: mark-as-downloaded + archive row in a single transaction — a crash
+     * between the two writes would leave an episode flagged as downloaded but
+     * invisible to Archive and Health Check, forever.
+     */
+    recordDownload(entry: ArchiveEntry): void {
+        const transaction = this.db.transaction(() => {
+            this.markAsDownloaded(entry.guid, entry.feedUrl ?? '');
+            this.addArchiveEntry(entry);
+        });
+        transaction();
     }
 
     getArchive(): ArchiveEntry[] {

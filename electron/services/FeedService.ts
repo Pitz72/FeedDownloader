@@ -38,7 +38,7 @@ export class FeedService {
       throw new Error('INVALID_FEED_TYPE: Feed contains a disallowed DOCTYPE declaration.');
     }
 
-    const contentType = response.headers['content-type'] || '';
+    const contentType = String(response.headers['content-type'] || '');
     const isHtml = contentType.includes('text/html') || contentType.includes('application/html');
     const isXml = ['xml', 'rss', 'atom', 'rdf'].some(t => contentType.includes(t));
 
@@ -147,18 +147,27 @@ export class FeedService {
       feed.items = allItems;
 
       // Map 'items' to 'episodes' for UI consistency
-      feed.episodes = feed.items.map((item) => ({
-        title: item.title,
-        pubDate: item.pubDate,
-        link: item.link,
-        enclosure: item.enclosure,
-        enclosures: item.enclosures,
-        content: item.content,
-        contentSnippet: item.contentSnippet,
-        guid: item.guid,
-        isoDate: item.isoDate,
-        itunes: item.itunes,
-      }));
+      feed.episodes = feed.items.map((item) => {
+        // S2: feeds without <guid> exist in the wild — without a fallback those
+        // episodes were downloaded but never recorded (no history, no archive,
+        // no new-episode detection). The enclosure URL is stable across fetches.
+        const enclosureUrl = (item.enclosure as { url?: string } | undefined)?.url
+          || (item.enclosures as { url?: string }[] | undefined)?.[0]?.url;
+        const fallbackGuid = enclosureUrl
+          || (item.link && item.pubDate ? `${item.link}|${item.pubDate}` : undefined);
+        return {
+          title: item.title,
+          pubDate: item.pubDate,
+          link: item.link,
+          enclosure: item.enclosure,
+          enclosures: item.enclosures,
+          content: item.content,
+          contentSnippet: item.contentSnippet,
+          guid: item.guid || fallbackGuid,
+          isoDate: item.isoDate,
+          itunes: item.itunes,
+        };
+      });
 
       return feed;
     } catch (error: unknown) {

@@ -32,6 +32,7 @@ export class DownloadService {
                 // on integrity failure, delete .part to force a fresh download
                 if (err.message === 'INTEGRITY_CHECK_FAILED') {
                     await fs.remove(`${outputPath}.part`).catch(() => { });
+                    await fs.remove(`${outputPath}.part.meta`).catch(() => { });
                 }
                 // For other transient errors, keep .part file so next attempt can resume
                 await fs.remove(outputPath).catch(() => { });
@@ -46,6 +47,16 @@ export class DownloadService {
 
     private async attemptDownload(url: string, outputPath: string, onProgress: (loaded: number, total: number) => void, speedLimitKBps?: number, signal?: AbortSignal) {
         const tempPath = `${outputPath}.part`;
+        // S1: resuming blindly can splice bytes of a *changed* remote file onto a
+        // stale prefix — silent audio corruption. The validator (ETag or
+        // Last-Modified) of the response that created the .part is persisted next
+        // to it and sent back as If-Range; a changed file then returns 200 (full
+        // body) instead of 206 and the stale partial is discarded.
+        const metaPath = `${tempPath}.meta`;
+        const removeTemp = async () => {
+            await fs.remove(tempPath).catch(() => { });
+            await fs.remove(metaPath).catch(() => { });
+        };
 
         let resumedBytes = 0;
         try {
@@ -53,6 +64,22 @@ export class DownloadService {
             resumedBytes = stat.size;
         } catch {
             // No partial file — start from scratch
+        }
+
+        let resumeValidator: string | null = null;
+        if (resumedBytes > 0) {
+            try {
+                const meta = await fs.readJson(metaPath) as { validator?: string };
+                resumeValidator = typeof meta?.validator === 'string' && meta.validator ? meta.validator : null;
+            } catch {
+                resumeValidator = null;
+            }
+            if (!resumeValidator) {
+                // No validator stored (old .part or server sent none): a resume
+                // can't be verified, so start fresh.
+                await removeTemp();
+                resumedBytes = 0;
+            }
         }
 
         let writer: fs.WriteStream | null = null;
@@ -68,7 +95,7 @@ export class DownloadService {
                 // so 404 → EPISODE_NOT_FOUND is reachable (axios default rejects ≥400).
                 validateStatus: () => true,
                 ...SAFE_AXIOS_CONFIG, // SSRF: validate resolved IP on every hop
-                ...(resumedBytes > 0 ? { headers: { Range: `bytes=${resumedBytes}-` } } : {}),
+                ...(resumedBytes > 0 ? { headers: { Range: `bytes=${resumedBytes}-`, 'If-Range': resumeValidator! } } : {}),
             });
 
             // ── Status handling ──────────────────────────────────
@@ -76,13 +103,13 @@ export class DownloadService {
             const status = response.status;
             if (status === 404) {
                 response.data?.destroy?.();
-                await fs.remove(tempPath).catch(() => { });
+                await removeTemp();
                 throw new Error('EPISODE_NOT_FOUND');
             }
             // Server can't honor our Range (e.g. .part already complete): reset & retry fresh
             if (status === 416) {
                 response.data?.destroy?.();
-                await fs.remove(tempPath).catch(() => { });
+                await removeTemp();
                 throw new Error('RANGE_RESET'); // retryable
             }
             if (status !== undefined && status !== 200 && status !== 206) {
@@ -92,21 +119,32 @@ export class DownloadService {
 
             const isResuming = resumedBytes > 0 && status === 206;
 
-            // server ignored Range (200 not 206): discard partial, start fresh
+            // server ignored Range, or If-Range detected a changed file (200 not
+            // 206): discard partial, start fresh
             if (resumedBytes > 0 && status === 200) {
-                await fs.remove(tempPath).catch(() => { });
+                await removeTemp();
                 resumedBytes = 0;
+            }
+
+            if (!isResuming) {
+                const rawValidator = response.headers['etag'] || response.headers['last-modified'];
+                const validator = typeof rawValidator === 'string' ? rawValidator : undefined;
+                if (validator) {
+                    try { void fs.writeJson(metaPath, { validator }).catch(() => { }); } catch { /* best-effort: without it the next attempt starts fresh */ }
+                }
             }
 
             writer = isResuming
                 ? fs.createWriteStream(tempPath, { flags: 'a' }) // append to partial
                 : fs.createWriteStream(tempPath);
 
-            const contentLength = response.headers['content-length'];
-            // for 206 responses, Content-Length is remaining bytes; add resumed offset for total
-            const totalBytes = contentLength
-                ? (isResuming ? resumedBytes + parseInt(contentLength) : parseInt(contentLength))
-                : 0;
+            const contentLength = response.headers['content-length'] != null ? String(response.headers['content-length']) : '';
+            // for 206 responses, prefer the authoritative total from Content-Range
+            // ("bytes start-end/total"); fall back to resumed offset + remainder
+            const rangeTotal = String(response.headers['content-range'] ?? '').match(/\/(\d+)\s*$/)?.[1];
+            const totalBytes = isResuming
+                ? (rangeTotal ? parseInt(rangeTotal) : (contentLength ? resumedBytes + parseInt(contentLength) : 0))
+                : (contentLength ? parseInt(contentLength) : 0);
 
             let loaded = resumedBytes; // Start progress counter from resume offset
 
@@ -189,21 +227,20 @@ export class DownloadService {
                     if (settled) return;
                     if (stallTimer) { clearTimeout(stallTimer); stallTimer = null; }
 
-                    // skip integrity check on resumed partial content
-                    if (contentLength && !isResuming) {
-                        const expected = parseInt(contentLength);
-                        // M3: tightened 1% → 0.1%. A correct transfer matches Content-Length
-                        // exactly; the small tolerance only absorbs trailing-byte quirks, not
-                        // a truncated download.
-                        if (expected > 0 && Math.abs(loaded - expected) / expected > 0.001) {
-                            await fs.remove(tempPath).catch(() => { });
-                            fail(new Error('INTEGRITY_CHECK_FAILED'));
-                            return;
-                        }
+                    // S1: size check applies to resumed transfers too — totalBytes
+                    // already accounts for the resumed offset (Content-Range total).
+                    // M3: tightened 1% → 0.1%. A correct transfer matches the expected
+                    // size exactly; the small tolerance only absorbs trailing-byte
+                    // quirks, not a truncated download.
+                    if (totalBytes > 0 && Math.abs(loaded - totalBytes) / totalBytes > 0.001) {
+                        await removeTemp();
+                        fail(new Error('INTEGRITY_CHECK_FAILED'));
+                        return;
                     }
 
                     try {
                         await fs.rename(tempPath, outputPath);
+                        await fs.remove(metaPath).catch(() => { });
                         done();
                     } catch (e) {
                         fail(e);
@@ -211,7 +248,7 @@ export class DownloadService {
                 });
 
                 writer!.on('error', async (err: NodeJS.ErrnoException) => {
-                    await fs.remove(tempPath).catch(() => { });
+                    await removeTemp();
                     if (err.code === 'ENOSPC') fail(new Error('DISK_FULL'));
                     else fail(err);
                 });
@@ -221,7 +258,7 @@ export class DownloadService {
 
             const axiosErr = error as { code?: string };
             if (axiosErr.code === 'ERR_CANCELED') {
-                await fs.remove(tempPath).catch(() => {});
+                await removeTemp();
                 throw new Error('DOWNLOAD_ABORTED');
             }
             if (axiosErr.code === 'ECONNABORTED') {

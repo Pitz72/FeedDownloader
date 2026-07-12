@@ -19,7 +19,7 @@ contextBridge.exposeInMainWorld('api', {
   addFeed: (feed: FeedEntry): Promise<FeedEntry[]> => ipcRenderer.invoke(CH.ADD_FEED, feed),
   removeFeed: (url: string): Promise<FeedEntry[]> => ipcRenderer.invoke(CH.REMOVE_FEED, url),
   startDownload: (data: DownloadRequest): Promise<DownloadResult> => ipcRenderer.invoke(CH.START_DOWNLOAD, data),
-  getDownloadedEpisodes: (): Promise<string[]> => ipcRenderer.invoke(CH.GET_DOWNLOADED_EPISODES),
+  getDownloadedEpisodes: (feedUrl?: string): Promise<string[]> => ipcRenderer.invoke(CH.GET_DOWNLOADED_EPISODES, feedUrl),
   chooseFolder: (): Promise<string | null> => ipcRenderer.invoke(CH.CHOOSE_FOLDER),
   getDownloadPath: (): Promise<string> => ipcRenderer.invoke(CH.GET_DOWNLOAD_PATH),
   setDownloadPath: (path: string): Promise<boolean> => ipcRenderer.invoke(CH.SET_DOWNLOAD_PATH, path),

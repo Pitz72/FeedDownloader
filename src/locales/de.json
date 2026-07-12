@@ -21,7 +21,10 @@
         "sync_all": "Alle synchronisieren",
         "syncing_count": "Synchronisiere... {{done}}/{{total}}",
         "new_count_one": "1 OFFEN",
-        "new_count_other": "{{count}} OFFEN"
+        "new_count_other": "{{count}} OFFEN",
+        "connected": "Verbunden",
+        "offline": "Offline",
+        "subtitle": "Feed-Manager"
     },
     "archive": {
         "title": "Archiv",
@@ -45,7 +48,11 @@
         "files_count": "{{count}} Dateien",
         "podcasts_count": "{{count}} Podcasts",
         "show_in_folder": "Im Ordner anzeigen",
-        "loading": "Archiv wird geladen..."
+        "loading": "Archiv wird geladen...",
+        "episodes_short": "Episoden",
+        "filter_label": "Filtern",
+        "podcasts_short": "Shows",
+        "sorted_by_date": "Nach Datum sortiert · neueste zuerst"
     },
     "input": {
         "placeholder": "Podcast-RSS-URL eingeben...",
@@ -86,7 +93,27 @@
         "detail_source_link": "Quellenlink",
         "detail_estimated_size": "Geschätzte Größe",
         "detail_downloaded_on": "Heruntergeladen am",
-        "detail_no_description": "Keine Beschreibung verfügbar."
+        "detail_no_description": "Keine Beschreibung verfügbar.",
+        "archived": "archiviert",
+        "count_label": "Episoden",
+        "current_feed_kicker": "Runtime · Aktueller Feed",
+        "detail_archive_data": "Archiv · Technische Daten",
+        "detail_archived": "Archiviert",
+        "detail_bitrate_sr": "Bitrate · Abtastrate",
+        "detail_checksum": "SHA-256-Prüfsumme · verifiziert",
+        "detail_duration": "Dauer",
+        "detail_kicker": "Episode",
+        "detail_links": "Links",
+        "detail_path": "Dateipfad",
+        "detail_size": "Größe",
+        "detail_state": "Status",
+        "episode_count_one": "{{count}} Episode",
+        "episode_count_other": "{{count}} Episoden",
+        "last_update": "Zuletzt aktualisiert {{date}}",
+        "selected": "ausgewählt",
+        "tag_archived": "ARCHIVIERT",
+        "tag_new": "NEU",
+        "totals": "gesamt"
     },
     "progress": {
         "downloading": "Wird heruntergeladen...",
@@ -101,7 +128,12 @@
         "error_disk_full": "Festplatte voll",
         "error_integrity": "Integritätsprüfung fehlgeschlagen",
         "error_permission": "Zugriff verweigert",
-        "error_unknown": "Unbekannter Fehler"
+        "error_unknown": "Unbekannter Fehler",
+        "active_queued": "{{active}} aktiv · {{queued}} in Warteschlange",
+        "active_short": "aktiv",
+        "completed_summary": "{{done}} von {{total}}",
+        "episodes_short": "Episoden",
+        "queued": "in Warteschlange"
     },
     "toast": {
         "download_started": "Download gestartet...",
@@ -125,7 +157,8 @@
         "m3u_empty": "Keine heruntergeladenen Episoden zum Exportieren",
         "title_copied": "Titel kopiert",
         "copied": "In Zwischenablage kopiert",
-        "copy_failed": "Kopieren fehlgeschlagen"
+        "copy_failed": "Kopieren fehlgeschlagen",
+        "sync_complete": "Synchronisierung abgeschlossen"
     },
     "confirm": {
         "mass_download": "Möchten Sie wirklich alle {{count}} Episoden herunterladen?",
@@ -137,7 +170,11 @@
     "common": {
         "cancel": "Abbrechen",
         "confirm": "Bestätigen",
-        "clear": "Löschen"
+        "clear": "Löschen",
+        "close": "Schließen",
+        "error": "Fehler",
+        "hide": "Ausblenden",
+        "show": "Anzeigen"
     },
     "settings": {
         "title": "Einstellungen",
@@ -215,11 +252,23 @@
         "auto_refresh_off": "Deaktiviert",
         "auto_refresh_6h": "6 Stunden",
         "auto_refresh_12h": "12 Stunden",
-        "auto_refresh_24h": "24 Stunden"
+        "auto_refresh_24h": "24 Stunden",
+        "reset_success": "Download-Verlauf gelöscht."
     },
     "onboarding": {
         "hint_url": "Fügen Sie die URL eines RSS-Feeds in die Leiste oben ein, um zu beginnen",
-        "hint_folder": "Wählen Sie vor dem Herunterladen den Zielordner unter Einstellungen → Download"
+        "hint_folder": "Wählen Sie vor dem Herunterladen den Zielordner unter Einstellungen → Download",
+        "kicker": "Willkommen bei FeedDownloader Pro",
+        "title": "Fügen Sie Ihren ersten Feed hinzu, um zu beginnen",
+        "subtitle": "Fügen Sie oben die URL eines RSS-Feeds ein, ziehen Sie sie aus dem Browser hierher oder importieren Sie eine OPML-Datei. FeedDownloader lädt jede Episode herunter, organisiert und katalogisiert sie.",
+        "step1_title": "RSS-URL einfügen",
+        "step1_body": "Drücken Sie",
+        "step1_body2": "im Feld oben oder ziehen Sie einen Link aus dem Browser hierher.",
+        "step2_title": "Ordner wählen",
+        "step2_body": "Legen Sie das Ziel fest — auch ein NAS oder ein SMB-Volume.",
+        "step3_title": "Herunterladen und archivieren",
+        "step3_body": "Wählen Sie Episoden mit",
+        "step3_body2": "aus und laden Sie sie im Stapel herunter."
     },
     "diskspace": {
         "critical": "Kritischer Speicherplatz: weniger als 200 MB verfügbar. Download abgebrochen.",
@@ -244,6 +293,31 @@
         "no_results": "Keine Ergebnisse",
         "hint_navigate": "navigieren",
         "hint_select": "auswählen",
-        "hint_close": "schließen"
+        "hint_close": "schließen",
+        "action_add_feed_desc": "URL-Feld öffnen, um einen neuen Feed zu analysieren",
+        "action_settings_desc": "Parallelität, Ordner, Sprache, Integrität",
+        "action_sync_all_desc": "Alle gespeicherten Feeds auf neue Episoden prüfen",
+        "action_view_archive_desc": "Alle archivierten Episoden anzeigen"
+    },
+    "banner": {
+        "offline": "Sie sind offline · Downloads sind pausiert, bis die Verbindung wiederhergestellt ist",
+        "retrying_auto": "Automatischer Neuversuch"
+    },
+    "crumbs": {
+        "all_archived": "Alle archivierten Episoden",
+        "archive": "Archiv",
+        "feeds_active": "Aktive Feeds",
+        "no_feed": "Kein Feed ausgewählt"
+    },
+    "intro": {
+        "overline": "Runtime · Archive Suite",
+        "status_acquiring": "Signalerfassung",
+        "status_channel": "Kanal 01"
+    },
+    "palette": {
+        "open": "Befehlspalette öffnen"
+    },
+    "topbar": {
+        "search_actions": "Aktionen suchen"
     }
 }

@@ -16,6 +16,11 @@ export class LibraryService {
         this.db = db || new DatabaseService();
     }
 
+    /** True when the on-disk DB was damaged and replaced at startup. */
+    get wasRecovered(): boolean {
+        return this.db.recoveredFromError;
+    }
+
     // ── Feeds ────────────────────────────────────────────────
 
     getFeeds(): FeedEntry[] {
@@ -45,16 +50,16 @@ export class LibraryService {
 
     // ── Downloads ────────────────────────────────────────────
 
-    getDownloadedEpisodes(): string[] {
-        return this.db.getDownloadedEpisodes();
+    getDownloadedEpisodes(feedUrl?: string): string[] {
+        return this.db.getDownloadedEpisodes(feedUrl);
     }
 
-    markAsDownloaded(guid: string): void {
-        this.db.markAsDownloaded(guid);
+    markAsDownloaded(guid: string, feedUrl = ''): void {
+        this.db.markAsDownloaded(guid, feedUrl);
     }
 
-    isDownloaded(guid: string): boolean {
-        return this.db.isDownloaded(guid);
+    isDownloaded(guid: string, feedUrl = ''): boolean {
+        return this.db.isDownloaded(guid, feedUrl);
     }
 
     removeDownloadedEpisode(guid: string): void {
@@ -73,6 +78,10 @@ export class LibraryService {
 
     addArchiveEntry(entry: ArchiveEntry): void {
         this.db.addArchiveEntry(entry);
+    }
+
+    recordDownload(entry: ArchiveEntry): void {
+        this.db.recordDownload(entry);
     }
 
     exportArchiveCSV(): string {

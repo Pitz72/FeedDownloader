@@ -21,7 +21,10 @@
         "sync_all": "同步全部",
         "syncing_count": "同步中... {{done}}/{{total}}",
         "new_count_one": "1 个待下载",
-        "new_count_other": "{{count}} 个待下载"
+        "new_count_other": "{{count}} 个待下载",
+        "connected": "已连接",
+        "offline": "离线",
+        "subtitle": "订阅管理器"
     },
     "archive": {
         "title": "归档",
@@ -45,7 +48,11 @@
         "files_count": "{{count}} 个文件",
         "podcasts_count": "{{count}} 个播客",
         "show_in_folder": "在文件夹中显示",
-        "loading": "正在加载归档..."
+        "loading": "正在加载归档...",
+        "episodes_short": "集",
+        "filter_label": "筛选",
+        "podcasts_short": "个播客",
+        "sorted_by_date": "按日期排序 · 最新优先"
     },
     "input": {
         "placeholder": "输入播客 RSS URL...",
@@ -86,7 +93,26 @@
         "detail_source_link": "来源链接",
         "detail_estimated_size": "估计大小",
         "detail_downloaded_on": "下载于",
-        "detail_no_description": "暂无描述。"
+        "detail_no_description": "暂无描述。",
+        "archived": "已归档",
+        "count_label": "集",
+        "current_feed_kicker": "Runtime · 当前订阅",
+        "detail_archive_data": "归档 · 技术数据",
+        "detail_archived": "已归档",
+        "detail_bitrate_sr": "比特率 · 采样率",
+        "detail_checksum": "SHA-256 校验和 · 已验证",
+        "detail_duration": "时长",
+        "detail_kicker": "剧集",
+        "detail_links": "链接",
+        "detail_path": "文件路径",
+        "detail_size": "大小",
+        "detail_state": "状态",
+        "episode_count_other": "{{count}} 集",
+        "last_update": "最近更新于 {{date}}",
+        "selected": "已选择",
+        "tag_archived": "已归档",
+        "tag_new": "新",
+        "totals": "总计"
     },
     "progress": {
         "downloading": "下载中...",
@@ -101,7 +127,12 @@
         "error_disk_full": "磁盘已满",
         "error_integrity": "完整性验证失败",
         "error_permission": "访问被拒绝",
-        "error_unknown": "未知错误"
+        "error_unknown": "未知错误",
+        "active_queued": "{{active}} 个进行中 · {{queued}} 个排队中",
+        "active_short": "个进行中",
+        "completed_summary": "{{done}}/{{total}}",
+        "episodes_short": "集",
+        "queued": "排队中"
     },
     "toast": {
         "download_started": "下载已开始...",
@@ -125,7 +156,8 @@
         "m3u_empty": "没有已下载的集可导出",
         "title_copied": "标题已复制",
         "copied": "已复制到剪贴板",
-        "copy_failed": "复制失败"
+        "copy_failed": "复制失败",
+        "sync_complete": "同步完成"
     },
     "confirm": {
         "mass_download": "您确定要下载全部 {{count}} 集吗？",
@@ -137,7 +169,11 @@
     "common": {
         "cancel": "取消",
         "confirm": "确认",
-        "clear": "清除"
+        "clear": "清除",
+        "close": "关闭",
+        "error": "错误",
+        "hide": "隐藏",
+        "show": "显示"
     },
     "settings": {
         "title": "设置",
@@ -215,11 +251,23 @@
         "auto_refresh_off": "禁用",
         "auto_refresh_6h": "6 小时",
         "auto_refresh_12h": "12 小时",
-        "auto_refresh_24h": "24 小时"
+        "auto_refresh_24h": "24 小时",
+        "reset_success": "下载历史已清除。"
     },
     "onboarding": {
         "hint_url": "在上方栏中粘贴 RSS 订阅源链接以开始使用",
-        "hint_folder": "下载前，请在设置 → 下载中选择目标文件夹"
+        "hint_folder": "下载前，请在设置 → 下载中选择目标文件夹",
+        "kicker": "欢迎使用 FeedDownloader Pro",
+        "title": "添加您的第一个订阅以开始使用",
+        "subtitle": "在上方粘贴 RSS 订阅源链接、从浏览器拖入，或导入 OPML 文件。FeedDownloader 将下载、整理并编目每一集。",
+        "step1_title": "粘贴 RSS 链接",
+        "step1_body": "按下",
+        "step1_body2": "粘贴到上方输入框，或从浏览器拖入链接。",
+        "step2_title": "选择文件夹",
+        "step2_body": "设置目标位置 — 也可以是 NAS 或 SMB 卷。",
+        "step3_title": "下载并归档",
+        "step3_body": "使用",
+        "step3_body2": "选择剧集，然后批量下载。"
     },
     "diskspace": {
         "critical": "磁盘空间严重不足：可用空间少于 200 MB。下载已取消。",
@@ -244,6 +292,31 @@
         "no_results": "无结果",
         "hint_navigate": "导航",
         "hint_select": "选择",
-        "hint_close": "关闭"
+        "hint_close": "关闭",
+        "action_add_feed_desc": "打开 URL 输入框以分析新订阅",
+        "action_settings_desc": "并行数、文件夹、语言、完整性",
+        "action_sync_all_desc": "检查所有已保存订阅中的新剧集",
+        "action_view_archive_desc": "显示所有已归档剧集"
+    },
+    "banner": {
+        "offline": "您已离线 · 下载已暂停，恢复连接后将继续",
+        "retrying_auto": "自动重试中"
+    },
+    "crumbs": {
+        "all_archived": "所有已归档剧集",
+        "archive": "归档",
+        "feeds_active": "活跃订阅",
+        "no_feed": "未选择订阅"
+    },
+    "intro": {
+        "overline": "Runtime · Archive Suite",
+        "status_acquiring": "正在获取信号",
+        "status_channel": "频道 01"
+    },
+    "palette": {
+        "open": "打开命令面板"
+    },
+    "topbar": {
+        "search_actions": "搜索操作"
     }
 }

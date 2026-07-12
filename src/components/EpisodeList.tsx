@@ -205,6 +205,7 @@ export const EpisodeList: React.FC = () => {
     // tick — so the list/filter don't recompute while bytes stream in.
     const downloadingKeys = useStore((state: AppState) => Object.keys(state.downloads).sort().join('\n'));
     const startBatch = useStore((state: AppState) => state.startBatch);
+    const incrementBatch = useStore((state: AppState) => state.incrementBatch);
     const setDownloadPath = useStore((state: AppState) => state.setDownloadPath);
     const toast = useToast();
     const [downloadedGuids, setDownloadedGuids] = useState<string[]>([]);
@@ -262,9 +263,13 @@ export const EpisodeList: React.FC = () => {
         const guid = detailEpisode.guid || url || '';
         if (!guid || !downloadedGuids.includes(guid)) { setDetailArchiveEntry(null); return; }
         window.api.getArchive().then(entries => {
-            setDetailArchiveEntry(entries.find(e => e.guid === guid) ?? null);
+            // S6: same GUID can exist in other feeds — prefer this feed's row
+            // (legacy rows have an empty feedUrl and match any feed)
+            setDetailArchiveEntry(
+                entries.find(e => e.guid === guid && (!e.feedUrl || e.feedUrl === currentFeed?.url)) ?? null
+            );
         }).catch(() => setDetailArchiveEntry(null));
-    }, [detailEpisode, downloadedGuids]);
+    }, [detailEpisode, downloadedGuids, currentFeed?.url]);
 
     // Virtuoso scroll container — punta al <main id="main-scroll"> in App.tsx
     const [scrollParent, setScrollParent] = useState<HTMLElement | null>(null);
@@ -277,24 +282,24 @@ export const EpisodeList: React.FC = () => {
         isOpen: false, title: '', message: '', onConfirm: () => { }
     });
 
-    // Initial fetch + push event listener
-    const fetchDownloaded = async () => {
-        try {
-            const guids = await window.api.getDownloadedEpisodes();
-            setDownloadedGuids(guids);
-        } catch (e) {
-            console.error(e);
-        }
-    };
-
+    // Initial fetch + push event listener.
+    // S6: the downloaded-GUIDs list is scoped to the current feed — GUIDs are
+    // only unique within a feed, so a global list produced false "already
+    // downloaded" states across feeds with colliding GUIDs.
     useEffect(() => {
+        let cancelled = false;
+        const fetchDownloaded = async () => {
+            try {
+                const guids = await window.api.getDownloadedEpisodes(currentFeed?.url);
+                if (!cancelled) setDownloadedGuids(guids);
+            } catch (e) {
+                console.error(e);
+            }
+        };
         fetchDownloaded();
-        const removeListener = window.api.onDownloadsUpdated((_event, guids) => {
-            try { setDownloadedGuids(guids); }
-            catch (err) { console.error('Error in onDownloadsUpdated:', err); }
-        });
-        return () => removeListener();
-    }, []);
+        const removeListener = window.api.onDownloadsUpdated(() => { fetchDownloaded(); });
+        return () => { cancelled = true; removeListener(); };
+    }, [currentFeed?.url]);
 
 
     const estimateDownloadBytes = (episodes: Episode[]): number => {
@@ -392,9 +397,13 @@ export const EpisodeList: React.FC = () => {
             feedImageUrl: imageUrl,
             episodeImageUrl: episode.itunes?.image,  // v1.3.10 — cover specifica episodio
             feedUrl: currentFeed?.url,
-        });
+        }).then((result) => {
+            // S3: the main process refused a second task for an URL already in
+            // queue — consume it so the batch counter still reaches its total.
+            if (result?.status === 'duplicate') incrementBatch(url);
+        }).catch(() => { });
         if (!silent) toast.show(t('toast.download_started'), 'info');
-    }, [currentFeed, t, toast]);
+    }, [currentFeed, incrementBatch, t, toast]);
 
     const handleResetStatus = useCallback(async (guid: string) => {
         setConfirmState({
@@ -454,13 +463,15 @@ export const EpisodeList: React.FC = () => {
     }, []); // stable — reads only refs
 
     const handleDownloadSelected = useCallback(() => {
+        // S3: skip episodes whose enclosure URL is already queued/downloading
+        const inFlight = new Set(useStore.getState().queueItems.map(q => q.url));
         const toDownload = filteredEpisodesRef.current.filter(ep => {
             const url = getEnclosureUrl(ep);
             const guid = ep.guid || url || '';
-            return guid && selectedGuids.has(guid) && !downloadedGuids.includes(guid);
+            return guid && selectedGuids.has(guid) && !downloadedGuids.includes(guid) && !(url && inFlight.has(url));
         });
         if (toDownload.length === 0) { toast.show(t('toast.all_downloaded'), 'info'); return; }
-        const urls = toDownload.map(ep => getEnclosureUrl(ep)).filter((u): u is string => !!u);
+        const urls = [...new Set(toDownload.map(ep => getEnclosureUrl(ep)).filter((u): u is string => !!u))];
         startBatch(urls.length, urls);
         toast.show(t('toast.mass_download_started'), 'success');
         toDownload.forEach(ep => handleDownload(ep, true));
@@ -501,10 +512,11 @@ export const EpisodeList: React.FC = () => {
         setIsSyncing(true);
         try {
             const freshFeed = await window.api.parseFeed(currentFeed.url);
+            const inFlight = new Set(useStore.getState().queueItems.map(q => q.url));
             const newEpisodes = freshFeed.episodes.filter((ep: Episode) => {
                 const url = getEnclosureUrl(ep);
                 const guid = ep.guid || url || '';
-                return guid ? !downloadedGuids.includes(guid) : false;
+                return guid ? !downloadedGuids.includes(guid) && !(url && inFlight.has(url)) : false;
             });
             if (newEpisodes.length === 0) { toast.show(t('toast.sync_none'), 'info'); return; }
 
@@ -519,7 +531,7 @@ export const EpisodeList: React.FC = () => {
                 }
             }
 
-            const urls = newEpisodes.map((ep: Episode) => getEnclosureUrl(ep)).filter((u): u is string => !!u);
+            const urls = [...new Set(newEpisodes.map((ep: Episode) => getEnclosureUrl(ep)).filter((u): u is string => !!u))];
             startBatch(urls.length, urls);
             toast.show(t('toast.sync_queued', { count: newEpisodes.length }), 'success');
             newEpisodes.forEach((ep: Episode) => handleDownload(ep, true));
@@ -531,10 +543,11 @@ export const EpisodeList: React.FC = () => {
     };
 
     const handleDownloadAll = async () => {
+        const inFlight = new Set(useStore.getState().queueItems.map(q => q.url));
         const episodesToDownload = filteredEpisodes.filter((episode: Episode) => {
             const url = getEnclosureUrl(episode);
             const guid = episode.guid || url;
-            return guid && !downloadedGuids.includes(guid);
+            return guid && !downloadedGuids.includes(guid) && !(url && inFlight.has(url));
         });
         if (episodesToDownload.length === 0) { toast.show(t('toast.all_downloaded'), 'info'); return; }
 
@@ -556,7 +569,7 @@ export const EpisodeList: React.FC = () => {
             message: t('confirm.mass_download', { count: episodesToDownload.length }) + diskWarning,
             onConfirm: () => {
                 setConfirmState(prev => ({ ...prev, isOpen: false }));
-                const urls = episodesToDownload.map((ep: Episode) => getEnclosureUrl(ep)).filter((u): u is string => !!u);
+                const urls = [...new Set(episodesToDownload.map((ep: Episode) => getEnclosureUrl(ep)).filter((u): u is string => !!u))];
                 startBatch(urls.length, urls);
                 toast.show(t('toast.mass_download_started'), 'success');
                 episodesToDownload.forEach((episode: Episode) => handleDownload(episode, true));

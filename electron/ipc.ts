@@ -21,10 +21,24 @@ import { parseFile as parseAudioMetadata } from 'music-metadata';
 import sanitize from 'sanitize-filename';
 
 const feedService = new FeedService();
-const libraryService = new LibraryService();
 const downloadService = new DownloadService();
-const initialConcurrency = libraryService.getConcurrency();
-const queueService = new QueueService(initialConcurrency);
+
+// S4: created in initServices(), NOT at module scope — opening the DB can throw
+// (corrupted file, unwritable userData) and an import-time crash would kill the
+// app before any window or error dialog exists.
+let libraryService: LibraryService;
+let queueService: QueueService;
+
+/**
+ * Open the database and build the services that depend on it. Must be called
+ * before registerIpcHandlers. Throws if the DB can't be opened even after the
+ * built-in corruption recovery; the caller decides how to surface the failure.
+ */
+export function initServices(): { recovered: boolean } {
+    libraryService = new LibraryService();
+    queueService = new QueueService(libraryService.getConcurrency());
+    return { recovered: libraryService.wasRecovered };
+}
 
 // Helper: send push event to renderer safely
 function pushEvent(win: BrowserWindow, channel: string, data?: unknown) {
@@ -173,7 +187,7 @@ function startAutoRefreshTimer(win: BrowserWindow, hours: number) {
  */
 export function cleanup() {
     clearAutoRefresh();
-    libraryService.close();
+    if (libraryService) libraryService.close();
 }
 
 export function registerIpcHandlers(mainWindow: BrowserWindow) {
@@ -243,8 +257,8 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     });
 
     // ── Download Status ──────────────────────────────────
-    ipcMain.handle(CH.GET_DOWNLOADED_EPISODES, async () => {
-        return libraryService.getDownloadedEpisodes();
+    ipcMain.handle(CH.GET_DOWNLOADED_EPISODES, async (_, feedUrl?: string) => {
+        return libraryService.getDownloadedEpisodes(feedUrl);
     });
 
     ipcMain.handle(CH.REMOVE_HISTORY_ITEM, async (_, guid: string) => {
@@ -264,6 +278,19 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         const check = validateUrl(url);
         if (!check.valid) {
             throw new Error(check.error);
+        }
+
+        // S2: feeds without <guid> exist in the wild — fall back to the
+        // enclosure URL so the download is still recorded in history/archive.
+        const effectiveGuid = guid || url;
+
+        // S3: the same episode queued twice (double click, overlapping batches)
+        // would produce a duplicate file with a `_2` suffix and a second archive
+        // row. One in-flight task per enclosure URL.
+        for (const item of queueItems.values()) {
+            if (item.url === url) {
+                return { status: 'duplicate' };
+            }
         }
 
         let baseDir = libraryService.getDownloadPath();
@@ -356,22 +383,21 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                     console.warn('[Integrity] Failed to compute metadata:', e);
                 }
 
-                if (guid) {
-                    libraryService.markAsDownloaded(guid);
-                    libraryService.addArchiveEntry({
-                        guid,
-                        title,
-                        podcastTitle,
-                        pubDate: pubDate || new Date().toISOString(),
-                        downloadedAt: new Date().toISOString(),
-                        filename: path.basename(targetFile),
-                        fileSize,
-                        checksum,
-                        bitrate,
-                        sampleRate,
-                        feedUrl,
-                    });
-                }
+                // S7: single transaction — a crash between the two writes left
+                // an episode marked downloaded but missing from the archive.
+                libraryService.recordDownload({
+                    guid: effectiveGuid,
+                    title,
+                    podcastTitle,
+                    pubDate: pubDate || new Date().toISOString(),
+                    downloadedAt: new Date().toISOString(),
+                    filename: path.basename(targetFile),
+                    fileSize,
+                    checksum,
+                    bitrate,
+                    sampleRate,
+                    feedUrl: feedUrl ?? '',
+                });
 
                 if (libraryService.getId3Enabled()) {
                     await writeId3Tags(targetFile, {
@@ -391,7 +417,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                     const sidecar = {
                         title,
                         podcast: podcastTitle,
-                        guid: guid || null,
+                        guid: effectiveGuid,
                         pubDate: pubDate || null,
                         downloadedAt: new Date().toISOString(),
                         sourceUrl: url,
@@ -488,6 +514,10 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         batchTracker.reset();
         queueItems.clear();
         cancelledTaskIds.clear();
+        // Pending tasks discarded by queueService.clear() never run their
+        // finally block, so their reserved paths would leak and force spurious
+        // `_2` suffixes on every future download of the same episodes.
+        reservedTargets.clear();
         pushQueueUpdated(mainWindow);
         return true;
     });

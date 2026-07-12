@@ -21,7 +21,10 @@
         "sync_all": "Sincronizza Tutti",
         "syncing_count": "Sincronizzando... {{done}}/{{total}}",
         "new_count_one": "1 DA SCARICARE",
-        "new_count_other": "{{count}} DA SCARICARE"
+        "new_count_other": "{{count}} DA SCARICARE",
+        "connected": "Connesso",
+        "offline": "Offline",
+        "subtitle": "Feed Manager"
     },
     "archive": {
         "title": "Archivio",
@@ -45,7 +48,11 @@
         "files_count": "{{count}} file",
         "podcasts_count": "{{count}} podcast",
         "show_in_folder": "Mostra in cartella",
-        "loading": "Caricamento archivio..."
+        "loading": "Caricamento archivio...",
+        "episodes_short": "episodi",
+        "filter_label": "Filtra",
+        "podcasts_short": "show",
+        "sorted_by_date": "Ordinati per data · più recenti"
     },
     "input": {
         "placeholder": "Inserisci URL RSS del podcast...",
@@ -86,7 +93,27 @@
         "detail_source_link": "Link sorgente",
         "detail_estimated_size": "Dimensione stimata",
         "detail_downloaded_on": "Scaricato il",
-        "detail_no_description": "Nessuna descrizione disponibile."
+        "detail_no_description": "Nessuna descrizione disponibile.",
+        "archived": "archiviati",
+        "count_label": "episodi",
+        "current_feed_kicker": "Runtime · Feed corrente",
+        "detail_archive_data": "Archivio · Dati tecnici",
+        "detail_archived": "Archiviato",
+        "detail_bitrate_sr": "Bitrate · Sample rate",
+        "detail_checksum": "Checksum SHA-256 · verificato",
+        "detail_duration": "Durata",
+        "detail_kicker": "Episodio",
+        "detail_links": "Link",
+        "detail_path": "Percorso file",
+        "detail_size": "Dimensione",
+        "detail_state": "Stato",
+        "episode_count_one": "{{count}} episodio",
+        "episode_count_other": "{{count}} episodi",
+        "last_update": "Ultimo aggiornamento {{date}}",
+        "selected": "selezionati",
+        "tag_archived": "ARCHIVIATO",
+        "tag_new": "NUOVO",
+        "totals": "totali"
     },
     "progress": {
         "downloading": "Download in corso...",
@@ -101,7 +128,12 @@
         "error_disk_full": "Disco pieno",
         "error_integrity": "Verifica integrità fallita",
         "error_permission": "Accesso negato",
-        "error_unknown": "Errore sconosciuto"
+        "error_unknown": "Errore sconosciuto",
+        "active_queued": "{{active}} attivi · {{queued}} in coda",
+        "active_short": "attivi",
+        "completed_summary": "{{done}} di {{total}}",
+        "episodes_short": "episodi",
+        "queued": "in coda"
     },
     "toast": {
         "download_started": "Download avviato...",
@@ -125,7 +157,8 @@
         "m3u_empty": "Nessun episodio scaricato da esportare",
         "title_copied": "Titolo copiato",
         "copied": "Copiato negli appunti",
-        "copy_failed": "Copia non riuscita"
+        "copy_failed": "Copia non riuscita",
+        "sync_complete": "Sync completato"
     },
     "confirm": {
         "mass_download": "Vuoi davvero scaricare tutti i {{count}} episodi?",
@@ -137,7 +170,11 @@
     "common": {
         "cancel": "Annulla",
         "confirm": "Conferma",
-        "clear": "Pulisci"
+        "clear": "Pulisci",
+        "close": "Chiudi",
+        "error": "Errore",
+        "hide": "Nascondi",
+        "show": "Mostra"
     },
     "settings": {
         "title": "Impostazioni",
@@ -215,11 +252,23 @@
         "auto_refresh_off": "Disattivato",
         "auto_refresh_6h": "6 ore",
         "auto_refresh_12h": "12 ore",
-        "auto_refresh_24h": "24 ore"
+        "auto_refresh_24h": "24 ore",
+        "reset_success": "Storico download cancellato."
     },
     "onboarding": {
         "hint_url": "Incolla l'URL di un feed RSS nella barra qui sopra per iniziare",
-        "hint_folder": "Prima di scaricare, scegli la cartella di destinazione in Impostazioni → Download"
+        "hint_folder": "Prima di scaricare, scegli la cartella di destinazione in Impostazioni → Download",
+        "kicker": "Benvenuto in FeedDownloader Pro",
+        "title": "Aggiungi il tuo primo feed per iniziare",
+        "subtitle": "Incolla l'URL di un feed RSS qui sopra, trascinalo dal browser, o importa un file OPML. FeedDownloader scaricherà, organizzerà e catalogherà ogni episodio.",
+        "step1_title": "Incolla un URL RSS",
+        "step1_body": "Premi",
+        "step1_body2": "nel campo qui sopra o trascina un link dal browser.",
+        "step2_title": "Scegli la cartella",
+        "step2_body": "Imposta la destinazione — anche un NAS o un volume SMB.",
+        "step3_title": "Scarica e archivia",
+        "step3_body": "Seleziona gli episodi con",
+        "step3_body2": "e scarica in batch."
     },
     "diskspace": {
         "critical": "Spazio disco critico: meno di 200 MB disponibili. Download annullato.",
@@ -244,6 +293,31 @@
         "no_results": "Nessun risultato",
         "hint_navigate": "naviga",
         "hint_select": "seleziona",
-        "hint_close": "chiudi"
+        "hint_close": "chiudi",
+        "action_add_feed_desc": "Apri il campo URL per analizzare un nuovo feed",
+        "action_settings_desc": "Concorrenza, cartella, lingua, integrità",
+        "action_sync_all_desc": "Controlla nuovi episodi in tutti i feed salvati",
+        "action_view_archive_desc": "Mostra tutti gli episodi archiviati"
+    },
+    "banner": {
+        "offline": "Sei offline · i download sono in pausa fino al ripristino della connessione",
+        "retrying_auto": "Riprovo automaticamente"
+    },
+    "crumbs": {
+        "all_archived": "Tutti gli episodi archiviati",
+        "archive": "Archivio",
+        "feeds_active": "Feed attivi",
+        "no_feed": "Nessun feed selezionato"
+    },
+    "intro": {
+        "overline": "Runtime · Archive Suite",
+        "status_acquiring": "Acquisizione segnale",
+        "status_channel": "Canale 01"
+    },
+    "palette": {
+        "open": "Apri command palette"
+    },
+    "topbar": {
+        "search_actions": "Cerca azioni"
     }
 }

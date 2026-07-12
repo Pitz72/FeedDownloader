@@ -103,7 +103,9 @@ export interface DownloadRequest {
 }
 
 export interface DownloadResult {
-    status: 'queued';
+    // 'duplicate': the same enclosure URL is already queued or downloading —
+    // the request was ignored (S3)
+    status: 'queued' | 'duplicate';
 }
 
 // v0.6.9 — Disk space info returned by CHECK_DISK_SPACE

@@ -127,7 +127,11 @@ export const useStore = create<AppState>((set) => ({
     resetBatch: () => { batchUrls = null; set({ batchTotal: 0, batchCompleted: 0, isBatchDownloading: false, batchFailed: [] }); },
     stopBatch: async () => {
         batchUrls = null;
-        set({ isBatchDownloading: false, batchTotal: 0, batchCompleted: 0, queueItems: [], batchFailed: [] });
+        speedCache.clear();
+        // S11: also drop the per-episode progress entries — aborted in-flight
+        // downloads never send a final progress event, so without this their
+        // rows stay stuck on a frozen spinner until app restart.
+        set({ isBatchDownloading: false, batchTotal: 0, batchCompleted: 0, queueItems: [], batchFailed: [], downloads: {} });
         await window.api.stopBatch();
     },
 

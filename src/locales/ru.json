@@ -21,7 +21,10 @@
         "sync_all": "Синхронизировать всё",
         "syncing_count": "Синхронизация... {{done}}/{{total}}",
         "new_count_one": "1 К ЗАГРУЗКЕ",
-        "new_count_other": "{{count}} К ЗАГРУЗКЕ"
+        "new_count_other": "{{count}} К ЗАГРУЗКЕ",
+        "connected": "Подключено",
+        "offline": "Не в сети",
+        "subtitle": "Менеджер подписок"
     },
     "archive": {
         "title": "Архив",
@@ -45,7 +48,11 @@
         "files_count": "{{count}} файлов",
         "podcasts_count": "{{count}} подкастов",
         "show_in_folder": "Показать в папке",
-        "loading": "Загрузка архива..."
+        "loading": "Загрузка архива...",
+        "episodes_short": "эпизодов",
+        "filter_label": "Фильтр",
+        "podcasts_short": "подкастов",
+        "sorted_by_date": "Отсортировано по дате · сначала новые"
     },
     "input": {
         "placeholder": "Введите RSS URL подкаста...",
@@ -86,7 +93,29 @@
         "detail_source_link": "Исходная ссылка",
         "detail_estimated_size": "Предполагаемый размер",
         "detail_downloaded_on": "Загружено",
-        "detail_no_description": "Описание недоступно."
+        "detail_no_description": "Описание недоступно.",
+        "archived": "в архиве",
+        "count_label": "эпизодов",
+        "current_feed_kicker": "Runtime · Текущая подписка",
+        "detail_archive_data": "Архив · Технические данные",
+        "detail_archived": "В архиве",
+        "detail_bitrate_sr": "Битрейт · Частота дискретизации",
+        "detail_checksum": "Контрольная сумма SHA-256 · проверена",
+        "detail_duration": "Длительность",
+        "detail_kicker": "Эпизод",
+        "detail_links": "Ссылки",
+        "detail_path": "Путь к файлу",
+        "detail_size": "Размер",
+        "detail_state": "Статус",
+        "episode_count_one": "{{count}} эпизод",
+        "episode_count_few": "{{count}} эпизода",
+        "episode_count_many": "{{count}} эпизодов",
+        "episode_count_other": "{{count}} эпизода",
+        "last_update": "Последнее обновление {{date}}",
+        "selected": "выбрано",
+        "tag_archived": "В АРХИВЕ",
+        "tag_new": "НОВЫЙ",
+        "totals": "всего"
     },
     "progress": {
         "downloading": "Загрузка...",
@@ -101,7 +130,12 @@
         "error_disk_full": "Диск заполнен",
         "error_integrity": "Ошибка проверки целостности",
         "error_permission": "Доступ запрещён",
-        "error_unknown": "Неизвестная ошибка"
+        "error_unknown": "Неизвестная ошибка",
+        "active_queued": "{{active}} активных · {{queued}} в очереди",
+        "active_short": "активных",
+        "completed_summary": "{{done}} из {{total}}",
+        "episodes_short": "эпизодов",
+        "queued": "в очереди"
     },
     "toast": {
         "download_started": "Загрузка начата...",
@@ -125,7 +159,8 @@
         "m3u_empty": "Нет загруженных эпизодов для экспорта",
         "title_copied": "Название скопировано",
         "copied": "Скопировано в буфер обмена",
-        "copy_failed": "Не удалось скопировать"
+        "copy_failed": "Не удалось скопировать",
+        "sync_complete": "Синхронизация завершена"
     },
     "confirm": {
         "mass_download": "Вы действительно хотите загрузить все {{count}} выпусков?",
@@ -137,7 +172,11 @@
     "common": {
         "cancel": "Отмена",
         "confirm": "Подтвердить",
-        "clear": "Очистить"
+        "clear": "Очистить",
+        "close": "Закрыть",
+        "error": "Ошибка",
+        "hide": "Скрыть",
+        "show": "Показать"
     },
     "settings": {
         "title": "Настройки",
@@ -215,11 +254,23 @@
         "auto_refresh_off": "Отключено",
         "auto_refresh_6h": "6 часов",
         "auto_refresh_12h": "12 часов",
-        "auto_refresh_24h": "24 часа"
+        "auto_refresh_24h": "24 часа",
+        "reset_success": "История загрузок очищена."
     },
     "onboarding": {
         "hint_url": "Вставьте URL RSS-канала в строку выше, чтобы начать",
-        "hint_folder": "Перед загрузкой выберите папку назначения в Настройки → Загрузка"
+        "hint_folder": "Перед загрузкой выберите папку назначения в Настройки → Загрузка",
+        "kicker": "Добро пожаловать в FeedDownloader Pro",
+        "title": "Добавьте первую подписку, чтобы начать",
+        "subtitle": "Вставьте URL RSS-канала выше, перетащите его из браузера или импортируйте файл OPML. FeedDownloader загрузит, упорядочит и каталогизирует каждый выпуск.",
+        "step1_title": "Вставьте URL RSS",
+        "step1_body": "Нажмите",
+        "step1_body2": "в поле выше или перетащите ссылку из браузера.",
+        "step2_title": "Выберите папку",
+        "step2_body": "Укажите папку назначения — даже NAS или том SMB.",
+        "step3_title": "Скачивайте и архивируйте",
+        "step3_body": "Выбирайте выпуски с помощью",
+        "step3_body2": "и скачивайте их пакетно."
     },
     "diskspace": {
         "critical": "Критически мало места на диске: менее 200 МБ. Загрузка отменена.",
@@ -244,6 +295,31 @@
         "no_results": "Нет результатов",
         "hint_navigate": "навигация",
         "hint_select": "выбрать",
-        "hint_close": "закрыть"
+        "hint_close": "закрыть",
+        "action_add_feed_desc": "Открыть поле URL для анализа новой ленты",
+        "action_settings_desc": "Параллельность, папка, язык, целостность",
+        "action_sync_all_desc": "Проверить новые выпуски во всех сохранённых лентах",
+        "action_view_archive_desc": "Показать все архивные выпуски"
+    },
+    "banner": {
+        "offline": "Вы не в сети · загрузки приостановлены до восстановления подключения",
+        "retrying_auto": "Автоматическая повторная попытка"
+    },
+    "crumbs": {
+        "all_archived": "Все архивные выпуски",
+        "archive": "Архив",
+        "feeds_active": "Активные подписки",
+        "no_feed": "Подписка не выбрана"
+    },
+    "intro": {
+        "overline": "Runtime · Archive Suite",
+        "status_acquiring": "Получение сигнала",
+        "status_channel": "Канал 01"
+    },
+    "palette": {
+        "open": "Открыть палитру команд"
+    },
+    "topbar": {
+        "search_actions": "Поиск действий"
     }
 }

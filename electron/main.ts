@@ -1,7 +1,7 @@
-import { app, BrowserWindow, Tray, Menu, screen, shell } from 'electron'
+import { app, BrowserWindow, Tray, Menu, screen, shell, dialog } from 'electron'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
-import { registerIpcHandlers, cleanup } from './ipc'
+import { registerIpcHandlers, initServices, cleanup } from './ipc'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -25,6 +25,22 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 
 
 let win: BrowserWindow | null
 let tray: Tray | null = null
+
+// S8: two instances would open the same SQLite file (intermittent "database is
+// locked" errors, duplicate tray icons, timers and downloads). Re-launching the
+// app must focus the existing window instead.
+const hasSingleInstanceLock = app.requestSingleInstanceLock();
+if (!hasSingleInstanceLock) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    if (win) {
+      if (win.isMinimized()) win.restore();
+      win.show();
+      win.focus();
+    }
+  });
+}
 
 const icon = path.join(process.env.VITE_PUBLIC, 'logo.png');
 
@@ -233,8 +249,36 @@ app.on('activate', () => {
 })
 
 app.whenReady().then(() => {
+  if (!hasSingleInstanceLock) return; // quitting — don't open a second DB/window
+
+  // S4: opening the DB can fail (corrupted file survives the built-in recovery
+  // only if userData itself is unwritable). Fail with a message, not a silent
+  // crash before any window exists.
+  let dbRecovered = false;
+  try {
+    dbRecovered = initServices().recovered;
+  } catch (err) {
+    dialog.showErrorBox(
+      'Runtime FeedDownloader Pro',
+      `The application database could not be opened.\n\n${(err as Error).message}\n\nCheck that the folder "${app.getPath('userData')}" is writable, then restart the app.`
+    );
+    app.quit();
+    return;
+  }
+
   createWindow();
   if (process.platform !== 'darwin') {
     createTray();
+  }
+
+  if (dbRecovered) {
+    win?.once('ready-to-show', () => {
+      dialog.showMessageBox(win!, {
+        type: 'warning',
+        title: 'Runtime FeedDownloader Pro',
+        message: 'The application database was damaged and has been reset.',
+        detail: 'Your audio files are untouched. The damaged database was kept next to the new one with a ".corrupt-" suffix. Feeds and download history need to be re-added.',
+      }).catch(() => { });
+    });
   }
 });

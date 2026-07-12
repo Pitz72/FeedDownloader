@@ -21,7 +21,10 @@
         "sync_all": "Synchroniser Tout",
         "syncing_count": "Synchronisation... {{done}}/{{total}}",
         "new_count_one": "1 À TÉLÉCHARGER",
-        "new_count_other": "{{count}} À TÉLÉCHARGER"
+        "new_count_other": "{{count}} À TÉLÉCHARGER",
+        "connected": "Connecté",
+        "offline": "Hors ligne",
+        "subtitle": "Gestionnaire de flux"
     },
     "archive": {
         "title": "Archive",
@@ -45,7 +48,11 @@
         "files_count": "{{count}} fichiers",
         "podcasts_count": "{{count}} podcasts",
         "show_in_folder": "Afficher dans le dossier",
-        "loading": "Chargement de l'archive..."
+        "loading": "Chargement de l'archive...",
+        "episodes_short": "épisodes",
+        "filter_label": "Filtrer",
+        "podcasts_short": "émissions",
+        "sorted_by_date": "Triés par date · plus récents d'abord"
     },
     "input": {
         "placeholder": "Entrez l'URL RSS du podcast...",
@@ -86,7 +93,27 @@
         "detail_source_link": "Lien source",
         "detail_estimated_size": "Taille estimée",
         "detail_downloaded_on": "Téléchargé le",
-        "detail_no_description": "Aucune description disponible."
+        "detail_no_description": "Aucune description disponible.",
+        "archived": "archivés",
+        "count_label": "épisodes",
+        "current_feed_kicker": "Runtime · Flux actuel",
+        "detail_archive_data": "Archive · Données techniques",
+        "detail_archived": "Archivé",
+        "detail_bitrate_sr": "Bitrate · Fréquence d'échantillonnage",
+        "detail_checksum": "Somme de contrôle SHA-256 · vérifiée",
+        "detail_duration": "Durée",
+        "detail_kicker": "Épisode",
+        "detail_links": "Liens",
+        "detail_path": "Chemin du fichier",
+        "detail_size": "Taille",
+        "detail_state": "Statut",
+        "episode_count_one": "{{count}} épisode",
+        "episode_count_other": "{{count}} épisodes",
+        "last_update": "Dernière mise à jour {{date}}",
+        "selected": "sélectionnés",
+        "tag_archived": "ARCHIVÉ",
+        "tag_new": "NOUVEAU",
+        "totals": "au total"
     },
     "progress": {
         "downloading": "Téléchargement en cours...",
@@ -101,7 +128,12 @@
         "error_disk_full": "Disque plein",
         "error_integrity": "Échec de la vérification d'intégrité",
         "error_permission": "Accès refusé",
-        "error_unknown": "Erreur inconnue"
+        "error_unknown": "Erreur inconnue",
+        "active_queued": "{{active}} actifs · {{queued}} en attente",
+        "active_short": "actifs",
+        "completed_summary": "{{done}} sur {{total}}",
+        "episodes_short": "épisodes",
+        "queued": "en attente"
     },
     "toast": {
         "download_started": "Téléchargement démarré...",
@@ -125,7 +157,8 @@
         "m3u_empty": "Aucun épisode téléchargé à exporter",
         "title_copied": "Titre copié",
         "copied": "Copié dans le presse-papiers",
-        "copy_failed": "Échec de la copie"
+        "copy_failed": "Échec de la copie",
+        "sync_complete": "Synchronisation terminée"
     },
     "confirm": {
         "mass_download": "Voulez-vous vraiment télécharger les {{count}} épisodes ?",
@@ -137,7 +170,11 @@
     "common": {
         "cancel": "Annuler",
         "confirm": "Confirmer",
-        "clear": "Effacer"
+        "clear": "Effacer",
+        "close": "Fermer",
+        "error": "Erreur",
+        "hide": "Masquer",
+        "show": "Afficher"
     },
     "settings": {
         "title": "Paramètres",
@@ -215,11 +252,23 @@
         "auto_refresh_off": "Désactivé",
         "auto_refresh_6h": "6 heures",
         "auto_refresh_12h": "12 heures",
-        "auto_refresh_24h": "24 heures"
+        "auto_refresh_24h": "24 heures",
+        "reset_success": "Historique des téléchargements effacé."
     },
     "onboarding": {
         "hint_url": "Collez l'URL d'un flux RSS dans la barre ci-dessus pour commencer",
-        "hint_folder": "Avant de télécharger, choisissez le dossier de destination dans Paramètres → Téléchargement"
+        "hint_folder": "Avant de télécharger, choisissez le dossier de destination dans Paramètres → Téléchargement",
+        "kicker": "Bienvenue dans FeedDownloader Pro",
+        "title": "Ajoutez votre premier flux pour commencer",
+        "subtitle": "Collez l'URL d'un flux RSS ci-dessus, faites-la glisser depuis votre navigateur, ou importez un fichier OPML. FeedDownloader téléchargera, organisera et cataloguera chaque épisode.",
+        "step1_title": "Collez une URL RSS",
+        "step1_body": "Appuyez sur",
+        "step1_body2": "dans le champ ci-dessus ou faites glisser un lien depuis votre navigateur.",
+        "step2_title": "Choisissez le dossier",
+        "step2_body": "Définissez la destination — même un NAS ou un volume SMB.",
+        "step3_title": "Téléchargez et archivez",
+        "step3_body": "Sélectionnez les épisodes avec",
+        "step3_body2": "et téléchargez-les par lot."
     },
     "diskspace": {
         "critical": "Espace disque critique : moins de 200 Mo disponibles. Téléchargement annulé.",
@@ -244,6 +293,31 @@
         "no_results": "Aucun résultat",
         "hint_navigate": "naviguer",
         "hint_select": "sélectionner",
-        "hint_close": "fermer"
+        "hint_close": "fermer",
+        "action_add_feed_desc": "Ouvrir le champ URL pour analyser un nouveau flux",
+        "action_settings_desc": "Concurrence, dossier, langue, intégrité",
+        "action_sync_all_desc": "Vérifier les nouveaux épisodes dans tous les flux enregistrés",
+        "action_view_archive_desc": "Afficher tous les épisodes archivés"
+    },
+    "banner": {
+        "offline": "Vous êtes hors ligne · les téléchargements sont en pause jusqu'au rétablissement de la connexion",
+        "retrying_auto": "Nouvelle tentative automatique"
+    },
+    "crumbs": {
+        "all_archived": "Tous les épisodes archivés",
+        "archive": "Archive",
+        "feeds_active": "Flux actifs",
+        "no_feed": "Aucun flux sélectionné"
+    },
+    "intro": {
+        "overline": "Runtime · Archive Suite",
+        "status_acquiring": "Acquisition du signal",
+        "status_channel": "Canal 01"
+    },
+    "palette": {
+        "open": "Ouvrir la palette de commandes"
+    },
+    "topbar": {
+        "search_actions": "Rechercher des actions"
     }
 }
