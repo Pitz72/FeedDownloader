@@ -1,10 +1,16 @@
 # Roadmap FeedDownloader Pro — Fonte di Verità
 
-**Versione di riferimento:** 1.2.4
-**Ultimo aggiornamento:** 12 maggio 2026 — v1.2.4
+**Versione di riferimento:** 1.3.14
+**Ultimo aggiornamento:** 12 luglio 2026 — v1.3.14
 
 Questo è l'unico documento autorevole per tutto il lavoro pendente post-v1.0.0.
 I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_2026.md`) sono archiviati in `archivio/`.
+
+> **Audit totale 12 luglio 2026** — vedi [PIANO-REVISIONE-PRE-RELEASE.md](PIANO-REVISIONE-PRE-RELEASE.md):
+> le 14 **gravi** (S1–S14) sono state chiuse in **v1.3.13**; i **medi** e la maggior parte dei
+> **lievi** in **v1.3.14** (dettaglio nei changelog). Rimandati alla release feature v1.4.0:
+> M9 (parsing in worker), M10 (newCount via known_episodes), M18 (chiudi-nel-tray), L3
+> (aggiornamento URL feed su 301) — accoppiati a N1/N2 qui sotto.
 
 ---
 

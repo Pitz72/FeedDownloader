@@ -171,7 +171,7 @@ describe('DownloadService', () => {
         ).rejects.toThrow('PERMISSION_DENIED');
     });
 
-    it('should throw DOWNLOAD_TIMEOUT on ECONNABORTED and NOT retry', async () => {
+    it('should retry on ECONNABORTED timeout (transient) before giving up', async () => {
         (axios as unknown as ReturnType<typeof vi.fn>).mockRejectedValue(
             Object.assign(new Error('timeout exceeded'), { code: 'ECONNABORTED' })
         );
@@ -180,9 +180,9 @@ describe('DownloadService', () => {
             service.downloadFile('https://cdn.com/ep.mp3', '/tmp/ep.mp3', vi.fn())
         ).rejects.toThrow('DOWNLOAD_TIMEOUT');
 
-        // Should not retry on timeout
-        expect(axios).toHaveBeenCalledTimes(1);
-    });
+        // M3: timeouts are transient — all attempts are consumed
+        expect(axios).toHaveBeenCalledTimes(3);
+    }, 10_000);
 
     it('should retry up to 3 times on transient errors', async () => {
         (axios as unknown as ReturnType<typeof vi.fn>)

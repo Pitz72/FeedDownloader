@@ -65,10 +65,18 @@ export const EpisodeDetailPanel: React.FC<EpisodeDetailPanelProps> = ({
     const rawDesc = episode.content || episode.description || episode.contentSnippet || '';
     const description = rawDesc ? stripHtml(rawDesc) : '';
 
-    const pubDate = episode.pubDate
-        ? new Date(episode.pubDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
+    // M20: unparsable dates would render literally "Invalid Date" — show "—" instead
+    const pubDateObj = episode.pubDate ? new Date(episode.pubDate) : null;
+    const pubDate = pubDateObj
+        ? (Number.isNaN(pubDateObj.getTime())
+            ? '—'
+            : pubDateObj.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }))
         : '';
     const dur = formatDuration(episode.itunes?.duration);
+    const downloadedAtObj = archiveEntry ? new Date(archiveEntry.downloadedAt) : null;
+    const downloadedAtStr = downloadedAtObj && !Number.isNaN(downloadedAtObj.getTime())
+        ? downloadedAtObj.toLocaleDateString()
+        : '—';
 
     const enclosureUrl = getEnclosureUrl(episode);
     const enclosureLength = episode.enclosure?.length ? parseInt(episode.enclosure.length, 10) : null;
@@ -152,7 +160,7 @@ export const EpisodeDetailPanel: React.FC<EpisodeDetailPanelProps> = ({
                         <div className="archive-data">
                             <div className="archive-cell">
                                 <p className="label">{t('episodes.detail_state', 'Stato')}</p>
-                                <p className="value" style={{ color: 'var(--ok)' }}>✓ {t('episodes.detail_archived', 'Archiviato')} · {new Date(archiveEntry.downloadedAt).toLocaleDateString()}</p>
+                                <p className="value" style={{ color: 'var(--ok)' }}>✓ {t('episodes.detail_archived', 'Archiviato')} · {downloadedAtStr}</p>
                             </div>
                             {archiveEntry.fileSize != null && archiveEntry.fileSize > 0 && (
                                 <div className="archive-cell">

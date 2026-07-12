@@ -115,6 +115,9 @@ export class DatabaseService {
             'ALTER TABLE archive ADD COLUMN sampleRate INTEGER',
             'ALTER TABLE archive ADD COLUMN feedUrl TEXT',
             'ALTER TABLE feeds ADD COLUMN episodeCount INTEGER',
+            // M6: HTTP validators for conditional feed refresh (304)
+            'ALTER TABLE feeds ADD COLUMN httpEtag TEXT',
+            'ALTER TABLE feeds ADD COLUMN httpLastModified TEXT',
         ]) {
             try {
                 this.db.exec(sql);
@@ -124,6 +127,12 @@ export class DatabaseService {
         }
 
         this.migrateToCompositeKeys();
+
+        // M11: known_episodes was seeded for every parsed URL, even feeds only
+        // "tried" and never added to the library — prune orphans once at boot.
+        this.db.prepare(
+            'DELETE FROM known_episodes WHERE feedUrl NOT IN (SELECT url FROM feeds)'
+        ).run();
 
         // Indexes for the hot queries: per-feed download lookups, per-feed
         // archive counts (run on every getFeeds), archive sorting/filtering,
@@ -242,6 +251,34 @@ export class DatabaseService {
         this.db.prepare('DELETE FROM feeds WHERE url = ?').run(url);
     }
 
+    hasFeed(url: string): boolean {
+        return !!this.db.prepare('SELECT 1 FROM feeds WHERE url = ?').get(url);
+    }
+
+    /** L2: bulk insert for OPML import — one transaction instead of N commits. */
+    addFeedsBulk(feeds: FeedEntry[]): void {
+        const transaction = this.db.transaction((items: FeedEntry[]) => {
+            for (const feed of items) this.addFeed(feed);
+        });
+        transaction(feeds);
+    }
+
+    // ── HTTP validators (M6: conditional refresh) ────────────────
+
+    getFeedValidators(url: string): { etag?: string; lastModified?: string } | null {
+        const row = this.db.prepare(
+            'SELECT httpEtag, httpLastModified FROM feeds WHERE url = ?'
+        ).get(url) as { httpEtag: string | null; httpLastModified: string | null } | undefined;
+        if (!row || (!row.httpEtag && !row.httpLastModified)) return null;
+        return { etag: row.httpEtag ?? undefined, lastModified: row.httpLastModified ?? undefined };
+    }
+
+    setFeedValidators(url: string, etag?: string, lastModified?: string): void {
+        this.db.prepare(
+            'UPDATE feeds SET httpEtag = ?, httpLastModified = ? WHERE url = ?'
+        ).run(etag ?? null, lastModified ?? null, url);
+    }
+
     touchFeed(url: string, lastUpdated: string): void {
         this.db.prepare('UPDATE feeds SET lastUpdated = ? WHERE url = ?').run(lastUpdated, url);
     }
@@ -283,11 +320,19 @@ export class DatabaseService {
     }
 
     removeMissingFiles(guids: string[]): void {
-        if (guids.length === 0) return;
-        const placeholders = guids.map(() => '?').join(',');
+        // M15: validate the renderer-supplied list and chunk it — a single
+        // IN (...) with tens of thousands of placeholders exceeds SQLite's
+        // variable limit and throws.
+        const valid = guids.filter((g): g is string => typeof g === 'string' && g.length > 0);
+        if (valid.length === 0) return;
+        const CHUNK = 500;
         const transaction = this.db.transaction(() => {
-            this.db.prepare(`DELETE FROM downloads WHERE guid IN (${placeholders})`).run(...guids);
-            this.db.prepare(`DELETE FROM archive WHERE guid IN (${placeholders})`).run(...guids);
+            for (let i = 0; i < valid.length; i += CHUNK) {
+                const chunk = valid.slice(i, i + CHUNK);
+                const placeholders = chunk.map(() => '?').join(',');
+                this.db.prepare(`DELETE FROM downloads WHERE guid IN (${placeholders})`).run(...chunk);
+                this.db.prepare(`DELETE FROM archive WHERE guid IN (${placeholders})`).run(...chunk);
+            }
         });
         transaction();
     }
@@ -303,10 +348,22 @@ export class DatabaseService {
     // ── Archive ──────────────────────────────────────────────
 
     addArchiveEntry(entry: ArchiveEntry): void {
+        // M13: a re-download must refresh the file metadata — with INSERT OR
+        // IGNORE, a new filename (changed naming template) left the archive
+        // pointing at the old name and Health Check reported a ghost missing file.
         this.db.prepare(
-            `INSERT OR IGNORE INTO archive
+            `INSERT INTO archive
              (guid, podcastTitle, title, pubDate, downloadedAt, filename, fileSize, checksum, bitrate, sampleRate, feedUrl)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             ON CONFLICT(guid, feedUrl) DO UPDATE SET
+                podcastTitle = excluded.podcastTitle,
+                title        = excluded.title,
+                downloadedAt = excluded.downloadedAt,
+                filename     = excluded.filename,
+                fileSize     = excluded.fileSize,
+                checksum     = excluded.checksum,
+                bitrate      = excluded.bitrate,
+                sampleRate   = excluded.sampleRate`
         ).run(
             entry.guid,
             entry.podcastTitle,
@@ -354,7 +411,10 @@ export class DatabaseService {
 
         rows.forEach(r => {
             const escape = (val: string | number | null | undefined) => {
-                const s = String(val ?? '');
+                let s = String(val ?? '');
+                // M14: feed titles are untrusted input — a value starting with
+                // = + - @ or TAB is executed as a formula by Excel/Calc.
+                if (/^[=+\-@\t]/.test(s)) s = `'${s}`;
                 const escaped = s.replace(/"/g, '""').replace(/[\n\r]+/g, ' ');
                 return `"${escaped}"`;
             };
@@ -421,8 +481,9 @@ export class DatabaseService {
     }
 
     getConcurrency(): number {
-        const val = this.getSetting('concurrency');
-        return val ? parseInt(val, 10) : 3;
+        const parsed = parseInt(this.getSetting('concurrency') ?? '', 10);
+        // L1: a corrupted setting must not propagate NaN into the queue
+        return Number.isFinite(parsed) ? Math.max(1, Math.min(parsed, 10)) : 3;
     }
 
     setConcurrency(n: number): void {
@@ -454,8 +515,9 @@ export class DatabaseService {
     }
 
     getSpeedLimit(): number {
-        const val = this.getSetting('speedLimitKBps');
-        return val ? parseInt(val, 10) : 0; // 0 = unlimited
+        const parsed = parseInt(this.getSetting('speedLimitKBps') ?? '', 10);
+        // L1: NaN here would silently break the throttle stream
+        return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0; // 0 = unlimited
     }
 
     setSpeedLimit(kbps: number): void {

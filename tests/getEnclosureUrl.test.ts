@@ -38,6 +38,17 @@ describe('getEnclosureUrl', () => {
         expect(getEnclosureUrl(ep)).toBeUndefined();
     });
 
+    it('should prefer the audio enclosure on multi-enclosure episodes (L6)', () => {
+        const ep: Episode = {
+            title: 'Test',
+            enclosures: [
+                { url: 'https://cdn.com/ep.mp4', type: 'video/mp4' },
+                { url: 'https://cdn.com/ep.mp3', type: 'audio/mpeg' },
+            ],
+        };
+        expect(getEnclosureUrl(ep)).toBe('https://cdn.com/ep.mp3');
+    });
+
     it('should handle enclosure with empty url', () => {
         const ep: Episode = { title: 'Test', enclosure: { url: '' } };
         // Empty string is falsy — falls through to enclosures. Since enclosures is missing, returns undefined.

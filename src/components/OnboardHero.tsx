@@ -1,4 +1,4 @@
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 
 const isMac = document.documentElement.dataset.platform === 'darwin';
 
@@ -29,9 +29,13 @@ export function OnboardHero() {
           <span className="num">1</span>
           <h4>{t('onboarding.step1_title', 'Incolla un URL RSS')}</h4>
           <p>
-            {t('onboarding.step1_body', 'Premi')}{' '}
-            <kbd>{modKey}V</kbd>{' '}
-            {t('onboarding.step1_body2', 'nel campo qui sopra o trascina un link dal browser.')}
+            {/* L36: single key with embedded <kbd> so word order is free per language */}
+            <Trans
+              i18nKey="onboarding.step1_body_full"
+              defaults="Premi <kbd>{{shortcut}}</kbd> nel campo qui sopra o trascina un link dal browser."
+              values={{ shortcut: `${modKey}V` }}
+              components={{ kbd: <kbd /> }}
+            />
           </p>
         </div>
         <div className="onboard-step">
@@ -43,8 +47,13 @@ export function OnboardHero() {
           <span className="num">3</span>
           <h4>{t('onboarding.step3_title', 'Scarica e archivia')}</h4>
           <p>
-            {t('onboarding.step3_body', 'Seleziona gli episodi con')}{' '}
-            <kbd>Shift</kbd>+click {t('onboarding.step3_body2', 'e scarica in batch.')}
+            {/* L36: single key with embedded <kbd> so word order is free per language */}
+            <Trans
+              i18nKey="onboarding.step3_body_full"
+              defaults="Seleziona gli episodi con <kbd>{{shortcut}}</kbd>+click e scarica in batch."
+              values={{ shortcut: 'Shift' }}
+              components={{ kbd: <kbd /> }}
+            />
           </p>
         </div>
       </div>

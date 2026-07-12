@@ -56,7 +56,7 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
                 <span>{t('intro.status_channel', 'Channel 01')}</span>
             </div>
             <div className="intro-version">
-                v{__APP_VERSION__} · build {new Date().toISOString().slice(2, 7).replace('-', '.')}
+                v{__APP_VERSION__}
             </div>
 
             {/* Mid-animation flash */}

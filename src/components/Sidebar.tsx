@@ -3,6 +3,7 @@ import { useStore, AppState } from '../store/useStore';
 import clsx from 'clsx';
 import { useToast } from '../context/ToastContext';
 import { useTranslation } from 'react-i18next';
+import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { ConfirmModal } from './ConfirmModal';
 import type { FeedEntry } from '../../shared/types';
 
@@ -48,6 +49,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen, width }) => {
   const setViewMode = useStore((state: AppState) => state.setViewMode);
   const toast = useToast();
   const { t, i18n } = useTranslation();
+  // M25: reactive online/offline status (navigator.onLine alone never updates after render)
+  const isOnline = useOnlineStatus();
   const [loadingUrl, setLoadingUrl] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortAlpha, setSortAlpha] = useState(false);
@@ -142,8 +145,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen, width }) => {
         }
       })
     );
-    toast.show(t('toast.sync_complete', 'Sync completato'), 'success');
-    if (errorCount > 0) toast.show(t('toast.feed_error'), 'error');
+    // L25: one coherent summary toast — success only if everything went through,
+    // error if every feed failed, otherwise a single partial recap (error when the
+    // majority failed, success otherwise). Never two contradictory toasts.
+    const okCount = feeds.length - errorCount;
+    if (errorCount === 0) {
+      toast.show(t('toast.sync_complete', 'Sync completato'), 'success');
+    } else if (okCount === 0) {
+      toast.show(t('toast.sync_all_failed', 'Sincronizzazione fallita: nessun feed aggiornato'), 'error');
+    } else {
+      toast.show(
+        t('toast.sync_partial', '{{ok}} feed aggiornati, {{failed}} non aggiornati', { ok: okCount, failed: errorCount }),
+        errorCount > okCount ? 'error' : 'success'
+      );
+    }
     setTimeout(() => setSyncStatuses(new Map()), 2500);
   }, [isSyncingAll, feeds, currentFeed, setCurrentFeed, toast, t]);
 
@@ -153,7 +168,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen, width }) => {
     return () => window.removeEventListener('feeddownloader:syncall', onSyncAll);
   }, [handleSyncAll]);
 
-  const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
   const folderShort = downloadPath
     ? downloadPath.replace(/\\/g, '/').split('/').filter(Boolean).slice(-2).join('/')
     : '';
@@ -347,9 +361,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen, width }) => {
                     <span>{formatRelativeDate(feed.lastUpdated, i18n.language || 'it')}</span>
                     {feed.newCount != null && feed.newCount > 0 && (
                       <span className="feed-badge">
-                        {feed.newCount === 1
-                          ? t('sidebar.new_count_one', '1 DA SCARICARE')
-                          : t('sidebar.new_count_other', '{{count}} DA SCARICARE', { count: feed.newCount })}
+                        {/* L19: native i18next pluralization picks _one/_other (and any
+                            language-specific forms) from sidebar.new_count_* keys */}
+                        {t('sidebar.new_count', '{{count}} DA SCARICARE', { count: feed.newCount })}
                       </span>
                     )}
                   </div>
@@ -358,15 +372,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen, width }) => {
                 <button
                   type="button"
                   onClick={(e) => handleRemoveFeed(e, feed.url)}
-                  className="ep-action"
-                  style={{ opacity: 0 }}
+                  // L26: revealed by hovering the whole feed row (the row carries the
+                  // Tailwind `group` class), same pattern as the archive row actions.
+                  // L3: also revealed on keyboard focus so the button is reachable via Tab.
+                  className="ep-action opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
                   title={t('sidebar.remove', 'Rimuovi')}
                   aria-label={t('sidebar.remove', 'Rimuovi')}
-                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '1'; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '0'; }}
-                  // L3: also reveal on keyboard focus so the button is reachable via Tab
-                  onFocus={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '1'; }}
-                  onBlur={e => { (e.currentTarget as HTMLButtonElement).style.opacity = '0'; }}
                 >
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <polyline points="3 6 5 6 21 6"/>

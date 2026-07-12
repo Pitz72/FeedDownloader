@@ -63,9 +63,10 @@ describe('getSafePath', () => {
         expect(result).toBe(path.join('/dl', 'Episode.mp3'));
     });
 
-    it('should handle empty episode title', () => {
-        const result = getSafePath('/dl', 'Podcast', '');
-        expect(result).toBe(path.join('/dl', 'Podcast', '.mp3'));
+    it('should fall back to "episode" for empty or reserved episode titles (L8)', () => {
+        // empty title and Windows-reserved names (CON, PRN…) sanitize to ''
+        expect(getSafePath('/dl', 'Podcast', '')).toBe(path.join('/dl', 'Podcast', 'episode.mp3'));
+        expect(getSafePath('/dl', 'Podcast', 'CON')).toBe(path.join('/dl', 'Podcast', 'episode.mp3'));
     });
 
     it('should handle unicode characters in titles', () => {

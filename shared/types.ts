@@ -43,6 +43,9 @@ export interface DownloadProgress {
     total: number;
     completed?: boolean;
     error?: boolean;
+    // M32: user-cancelled — advances the batch counter but must NOT render the
+    // episode as downloaded (it previously reused `completed`)
+    cancelled?: boolean;
     notFound?: boolean;
     speed?: number;  // bytes/sec — computed in store
     eta?: number;    // seconds remaining — computed in store

@@ -43,7 +43,11 @@ export const UrlInput: React.FC = () => {
     }
   };
 
-  const handleAnalyze = () => analyzeFeed(url);
+  const handleAnalyze = () => {
+    // M27: Enter in the field is not covered by the button's disabled state
+    if (loading) return;
+    analyzeFeed(url);
+  };
 
   const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); };
   const handleDragLeave = (e: React.DragEvent) => {

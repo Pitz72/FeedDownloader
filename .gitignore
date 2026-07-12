@@ -34,3 +34,11 @@ PORTING/
 
 # Credenziali locali — MAI committare
 .secrets/
+
+# Materiale commerciale/promozionale e dati locali — fuori dal repo codice
+MATERIALE/
+gumroad/
+screenshot/
+brand/
+downloads/
+*handoff.zip

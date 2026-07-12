@@ -15,30 +15,70 @@ export class FeedService {
   }
 
   /**
+   * L4: decode a response body honoring its declared charset — assuming UTF-8
+   * produces mojibake in titles (and therefore filenames) for legacy feeds.
+   * The charset comes from the Content-Type header or the XML prolog.
+   */
+  private decodeBody(data: unknown, contentType: string): string {
+    if (typeof data === 'string') return data;
+    const buf = Buffer.isBuffer(data) ? data : Buffer.from(data as ArrayBuffer);
+    let charset = contentType.match(/charset=["']?([\w-]+)/i)?.[1];
+    if (!charset) {
+      const prolog = buf.subarray(0, 200).toString('latin1');
+      charset = prolog.match(/encoding=["']([\w-]+)["']/i)?.[1];
+    }
+    if (charset && !/^utf-?8$/i.test(charset)) {
+      try {
+        return new TextDecoder(charset).decode(buf);
+      } catch { /* unknown label → fall back to UTF-8 */ }
+    }
+    return buf.toString('utf-8');
+  }
+
+  /**
    * Fetch a single feed page with all security checks applied.
    * Extracted as a reusable helper so every page (first and subsequent)
    * goes through the same SSRF / DOCTYPE / content-type validation.
+   *
+   * M6: when `conditional` validators are provided, the request is sent with
+   * If-None-Match / If-Modified-Since; a 304 returns null (nothing changed).
    */
-  private async fetchPage(url: string): Promise<string> {
-    const response = await axios.get<string>(url, {
+  private async fetchPage(
+    url: string,
+    conditional?: { etag?: string; lastModified?: string },
+  ): Promise<{ xml: string; etag?: string; lastModified?: string } | null> {
+    const conditionalHeaders: Record<string, string> = {};
+    if (conditional?.etag) conditionalHeaders['If-None-Match'] = conditional.etag;
+    if (conditional?.lastModified) conditionalHeaders['If-Modified-Since'] = conditional.lastModified;
+
+    const response = await axios.get(url, {
       timeout: 15000,
-      responseType: 'text',
+      // L4: raw bytes, decoded below with the declared charset
+      responseType: 'arraybuffer',
       // M4: bound the response size — a feed is small; this stops a hostile or
       // misbehaving server from streaming an unbounded body into memory.
       maxContentLength: 15 * 1024 * 1024,
       maxBodyLength: 15 * 1024 * 1024,
+      validateStatus: (s) => (s >= 200 && s < 300) || s === 304,
       ...SAFE_AXIOS_CONFIG, // SSRF: validate resolved IP on every hop
-      headers: { 'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*' }
+      headers: {
+        'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*',
+        ...conditionalHeaders,
+      }
     });
+
+    if (response.status === 304) return null;
+
+    const contentType = String(response.headers['content-type'] || '');
+    const xml = this.decodeBody(response.data, contentType);
 
     // M4: reject XML that declares a DOCTYPE with entity definitions — an XXE /
     // billion-laughs vector. rss-parser's underlying XML layer does not expand
     // external entities, but we refuse such documents explicitly rather than rely on it.
-    if (hasDangerousDoctype(response.data)) {
+    if (hasDangerousDoctype(xml)) {
       throw new Error('INVALID_FEED_TYPE: Feed contains a disallowed DOCTYPE declaration.');
     }
 
-    const contentType = String(response.headers['content-type'] || '');
     const isHtml = contentType.includes('text/html') || contentType.includes('application/html');
     const isXml = ['xml', 'rss', 'atom', 'rdf'].some(t => contentType.includes(t));
 
@@ -46,7 +86,13 @@ export class FeedService {
       throw new Error('INVALID_FEED_TYPE: The URL points to a webpage, not an RSS feed.');
     }
 
-    return response.data;
+    const rawEtag = response.headers['etag'];
+    const rawLastModified = response.headers['last-modified'];
+    return {
+      xml,
+      etag: typeof rawEtag === 'string' ? rawEtag : undefined,
+      lastModified: typeof rawLastModified === 'string' ? rawLastModified : undefined,
+    };
   }
 
   /**
@@ -84,14 +130,26 @@ export class FeedService {
     return absolute;
   }
 
-  async parseFeed(url: string) {
+  /**
+   * Parse a feed (following RFC 5005 pagination).
+   *
+   * M6: pass `conditional` (stored ETag/Last-Modified) to make the first-page
+   * request conditional — returns null when the server answers 304, meaning
+   * nothing changed since the stored validators. The fresh validators are
+   * exposed on the returned feed as `httpEtag` / `httpLastModified`.
+   */
+  async parseFeed(url: string, conditional?: { etag?: string; lastModified?: string }) {
     try {
       // --- Page 1 ---
-      const firstPageXml = await this.fetchPage(url);
+      const firstPage = await this.fetchPage(url, conditional);
+      if (firstPage === null) return null; // 304 Not Modified
+      const firstPageXml = firstPage.xml;
 
       const feed = await this.parser.parseString(firstPageXml) as Record<string, unknown> & {
         image?: unknown; itunes?: { image?: unknown }; items: Record<string, unknown>[];
       };
+      feed.httpEtag = firstPage.etag;
+      feed.httpLastModified = firstPage.lastModified;
 
       // Fix for Anchor.fm / iTunes feeds where image is in 'itunes.image'
       if (!feed.image && feed.itunes && feed.itunes.image) {
@@ -118,14 +176,25 @@ export class FeedService {
         pageCount++;
         console.log(`[FeedService] Fetching paginated feed page ${pageCount}: ${nextUrl}`);
 
-        const pageXml = await this.fetchPage(nextUrl);
-        const pageFeed = await this.parser.parseString(pageXml) as Record<string, unknown> & {
-          items: Record<string, unknown>[];
-        };
+        // M7: a broken later page (malformed XML, timeout) must not throw away
+        // the episodes already collected from the previous pages.
+        let pageXml: string;
+        let pageItems: Record<string, unknown>[];
+        try {
+          const page = await this.fetchPage(nextUrl);
+          pageXml = page!.xml; // non-conditional fetch never returns null
+          const pageFeed = await this.parser.parseString(pageXml) as Record<string, unknown> & {
+            items: Record<string, unknown>[];
+          };
+          pageItems = pageFeed.items ?? [];
+        } catch (pageErr) {
+          console.warn(`[FeedService] Page ${pageCount} failed (${(pageErr as Error).message}) — keeping ${allItems.length} items from previous pages.`);
+          break;
+        }
 
-        if (pageFeed.items && pageFeed.items.length > 0) {
-          allItems.push(...pageFeed.items);
-          console.log(`[FeedService] Page ${pageCount}: +${pageFeed.items.length} items (total: ${allItems.length})`);
+        if (pageItems.length > 0) {
+          allItems.push(...pageItems);
+          console.log(`[FeedService] Page ${pageCount}: +${pageItems.length} items (total: ${allItems.length})`);
         } else {
           console.log(`[FeedService] Page ${pageCount}: no items found, stopping pagination.`);
           break;
@@ -143,8 +212,20 @@ export class FeedService {
         console.log(`[FeedService] Pagination complete: ${pageCount} pages, ${allItems.length} total items.`);
       }
 
+      // M8: overlapping pagination windows repeat episodes across page
+      // boundaries — dedupe by GUID (fallback: enclosure URL), keeping order.
+      const seenKeys = new Set<string>();
+      const dedupedItems = allItems.filter((item) => {
+        const key = (item.guid as string | undefined)
+          || (item.enclosure as { url?: string } | undefined)?.url;
+        if (!key) return true; // no identity — keep rather than drop
+        if (seenKeys.has(key)) return false;
+        seenKeys.add(key);
+        return true;
+      });
+
       // Replace items with the full aggregated list
-      feed.items = allItems;
+      feed.items = dedupedItems;
 
       // Map 'items' to 'episodes' for UI consistency
       feed.episodes = feed.items.map((item) => {

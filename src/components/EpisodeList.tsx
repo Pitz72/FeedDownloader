@@ -24,6 +24,29 @@ function formatSpeed(bytesPerSec: number): string {
     return `${Math.round(bytesPerSec)} B/s`;
 }
 
+// M20: unparsable dates would render literally "Invalid Date" — show "—" instead
+// (same pattern as Sidebar.formatRelativeDate)
+function formatEpisodeDate(value: string | undefined, options: Intl.DateTimeFormatOptions): string {
+    if (!value) return '';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return '—';
+    return d.toLocaleDateString(undefined, options);
+}
+
+// L22: parse the date-filter inputs as LOCAL dates — new Date('YYYY-MM-DD') is
+// midnight UTC, which shifts the day in non-UTC timezones (off-by-one).
+function parseLocalDate(value: string, endOfDay = false): number {
+    const [y = 0, m = 1, d = 1] = value.split('-').map(Number);
+    return endOfDay
+        ? new Date(y, m - 1, d, 23, 59, 59, 999).getTime()
+        : new Date(y, m - 1, d).getTime();
+}
+
+// L41: stable Virtuoso item key — guid, fallback enclosure url, fallback index
+function computeEpisodeKey(index: number, episode: Episode): string | number {
+    return episode.guid || getEnclosureUrl(episode) || index;
+}
+
 function formatEta(seconds: number): string {
     if (seconds >= 3600) {
         const h = Math.floor(seconds / 3600);
@@ -68,9 +91,7 @@ const EpisodeRow = React.memo(function EpisodeRow({
         ? Math.round((status.loaded / status.total) * 100)
         : null;
 
-    const pubDate = episode.pubDate
-        ? new Date(episode.pubDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
-        : '';
+    const pubDate = formatEpisodeDate(episode.pubDate, { year: 'numeric', month: 'short', day: 'numeric' });
     const dur = formatDuration(episode.itunes?.duration)?.short ?? null;
 
     const stateClass = isDownloading ? 'downloading' : isCompleted ? 'downloaded' : isSelected ? 'selected' : '';
@@ -78,13 +99,34 @@ const EpisodeRow = React.memo(function EpisodeRow({
     return (
         <div
             className={`ep-row ${stateClass}`}
+            role="button"
+            tabIndex={0}
             onClick={(e) => onRowClick(episode, index, e)}
+            // M31: keyboard access — Enter/Space act like a simple click (the
+            // modifier keys of the keyboard event carry over, so Shift+Enter
+            // range-selects exactly like Shift+click)
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onRowClick(episode, index, e as unknown as React.MouseEvent);
+                }
+            }}
         >
             <div
                 className="ep-check"
                 onClick={(e) => { e.stopPropagation(); onRowClick(episode, index, { ...e, ctrlKey: true } as unknown as React.MouseEvent); }}
+                onKeyDown={(e) => {
+                    // M31: Enter/Space toggle the selection (same ctrl-click semantics as onClick)
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onRowClick(episode, index, { ...e, ctrlKey: true } as unknown as React.MouseEvent);
+                    }
+                }}
                 role="checkbox"
                 aria-checked={isSelected}
+                tabIndex={0}
+                aria-label={t('episodes.select_episode', 'Seleziona episodio')}
             >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <polyline points="20 6 9 17 4 12"/>
@@ -118,7 +160,8 @@ const EpisodeRow = React.memo(function EpisodeRow({
                     {pubDate && dur && <span className="sep">·</span>}
                     {dur && <span>{dur}</span>}
                     {isCompleted && <span className="tag archived">{t('episodes.tag_archived', 'ARCHIVIATO')}</span>}
-                    {!isDownloading && !isCompleted && isSelected && <span className="tag new">{t('episodes.tag_new', 'NUOVO')}</span>}
+                    {/* L24: the tag reflects the episode STATE, not the selection */}
+                    {!isDownloading && !isCompleted && <span className="tag new">{t('episodes.tag_new', 'NUOVO')}</span>}
                 </div>
             </div>
 
@@ -207,8 +250,12 @@ export const EpisodeList: React.FC = () => {
     const startBatch = useStore((state: AppState) => state.startBatch);
     const incrementBatch = useStore((state: AppState) => state.incrementBatch);
     const setDownloadPath = useStore((state: AppState) => state.setDownloadPath);
+    const setCurrentFeed = useStore((state: AppState) => state.setCurrentFeed);
     const toast = useToast();
     const [downloadedGuids, setDownloadedGuids] = useState<string[]>([]);
+    // M28: Set for O(1) lookups — downloadedGuids.includes() was O(n·m) across
+    // filter, render and counters.
+    const downloadedSet = useMemo(() => new Set(downloadedGuids), [downloadedGuids]);
     const { t } = useTranslation();
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -261,7 +308,7 @@ export const EpisodeList: React.FC = () => {
         if (!detailEpisode) { setDetailArchiveEntry(null); return; }
         const url = getEnclosureUrl(detailEpisode);
         const guid = detailEpisode.guid || url || '';
-        if (!guid || !downloadedGuids.includes(guid)) { setDetailArchiveEntry(null); return; }
+        if (!guid || !downloadedSet.has(guid)) { setDetailArchiveEntry(null); return; }
         window.api.getArchive().then(entries => {
             // S6: same GUID can exist in other feeds — prefer this feed's row
             // (legacy rows have an empty feedUrl and match any feed)
@@ -269,7 +316,7 @@ export const EpisodeList: React.FC = () => {
                 entries.find(e => e.guid === guid && (!e.feedUrl || e.feedUrl === currentFeed?.url)) ?? null
             );
         }).catch(() => setDetailArchiveEntry(null));
-    }, [detailEpisode, downloadedGuids, currentFeed?.url]);
+    }, [detailEpisode, downloadedSet, currentFeed?.url]);
 
     // Virtuoso scroll container — punta al <main id="main-scroll"> in App.tsx
     const [scrollParent, setScrollParent] = useState<HTMLElement | null>(null);
@@ -326,14 +373,14 @@ export const EpisodeList: React.FC = () => {
         }
 
         if (dateFrom) {
-            const from = new Date(dateFrom).getTime();
+            const from = parseLocalDate(dateFrom);
             episodes = episodes.filter((ep: Episode) => {
                 const d = new Date(ep.pubDate || ep.isoDate || '').getTime();
                 return !isNaN(d) && d >= from;
             });
         }
         if (dateTo) {
-            const to = new Date(dateTo).getTime() + 86400000;
+            const to = parseLocalDate(dateTo, true); // end of the local day
             episodes = episodes.filter((ep: Episode) => {
                 const d = new Date(ep.pubDate || ep.isoDate || '').getTime();
                 return !isNaN(d) && d <= to;
@@ -345,7 +392,7 @@ export const EpisodeList: React.FC = () => {
             episodes = episodes.filter((ep: Episode) => {
                 const url = getEnclosureUrl(ep);
                 const guid = ep.guid || url || '';
-                const isDownloaded = guid ? downloadedGuids.includes(guid) : false;
+                const isDownloaded = guid ? downloadedSet.has(guid) : false;
                 const isInProgress = url ? inProgress.has(url) : false;
                 if (statusFilter === 'downloaded') return isDownloaded;
                 return !isDownloaded && !isInProgress;
@@ -376,7 +423,7 @@ export const EpisodeList: React.FC = () => {
         }
 
         return episodes;
-    }, [currentFeed, searchQuery, dateFrom, dateTo, downloadedGuids, downloadingKeys, statusFilter, minDuration, maxDuration, sortOrder]);
+    }, [currentFeed, searchQuery, dateFrom, dateTo, downloadedSet, downloadingKeys, statusFilter, minDuration, maxDuration, sortOrder]);
 
     // Keep ref in sync so handleRowClick can read current list without being recreated
     filteredEpisodesRef.current = filteredEpisodes;
@@ -439,6 +486,9 @@ export const EpisodeList: React.FC = () => {
                         const g = episodes[i]?.guid || getEnclosureUrl(episodes[i]) || '';
                         if (g) next.add(g);
                     }
+                } else {
+                    // L23: no anchor yet — select the clicked row (it becomes the anchor below)
+                    next.add(guid);
                 }
                 return next;
             });
@@ -468,7 +518,7 @@ export const EpisodeList: React.FC = () => {
         const toDownload = filteredEpisodesRef.current.filter(ep => {
             const url = getEnclosureUrl(ep);
             const guid = ep.guid || url || '';
-            return guid && selectedGuids.has(guid) && !downloadedGuids.includes(guid) && !(url && inFlight.has(url));
+            return guid && selectedGuids.has(guid) && !downloadedSet.has(guid) && !(url && inFlight.has(url));
         });
         if (toDownload.length === 0) { toast.show(t('toast.all_downloaded'), 'info'); return; }
         const urls = [...new Set(toDownload.map(ep => getEnclosureUrl(ep)).filter((u): u is string => !!u))];
@@ -477,7 +527,7 @@ export const EpisodeList: React.FC = () => {
         toDownload.forEach(ep => handleDownload(ep, true));
         setSelectedGuids(new Set());
         lastSelectedGuidRef.current = null;
-    }, [selectedGuids, downloadedGuids, startBatch, handleDownload, toast, t]);
+    }, [selectedGuids, downloadedSet, startBatch, handleDownload, toast, t]);
 
     // ── Episode row renderer (thin wrapper around the memoized EpisodeRow, B4) ──
     const handleCopyTitle = useCallback((title: string) => {
@@ -493,7 +543,7 @@ export const EpisodeList: React.FC = () => {
                 episode={episode}
                 index={index}
                 isSelected={selectedGuids.has(guid)}
-                isDownloadedByGuid={downloadedGuids.includes(guid)}
+                isDownloadedByGuid={downloadedSet.has(guid)}
                 currentFeedTitle={currentFeed?.title || ''}
                 isOnline={isOnline}
                 t={t}
@@ -503,7 +553,7 @@ export const EpisodeList: React.FC = () => {
                 onCopyTitle={handleCopyTitle}
             />
         );
-    }, [selectedGuids, downloadedGuids, currentFeed, isOnline, t, handleRowClick, handleDownload, handleResetStatus, handleCopyTitle]);
+    }, [selectedGuids, downloadedSet, currentFeed, isOnline, t, handleRowClick, handleDownload, handleResetStatus, handleCopyTitle]);
 
     if (!currentFeed) return null;
 
@@ -511,12 +561,18 @@ export const EpisodeList: React.FC = () => {
         if (!currentFeed || !isOnline || isSyncing) return;
         setIsSyncing(true);
         try {
-            const freshFeed = await window.api.parseFeed(currentFeed.url);
+            const feedUrl = currentFeed.url;
+            const freshFeed = await window.api.parseFeed(feedUrl);
+            // M26: show the freshly parsed episodes in the list (anti-stale: skip
+            // if the user switched feed while the parse was in flight)
+            if (useStore.getState().currentFeed?.url === feedUrl) {
+                setCurrentFeed({ ...freshFeed, url: feedUrl });
+            }
             const inFlight = new Set(useStore.getState().queueItems.map(q => q.url));
             const newEpisodes = freshFeed.episodes.filter((ep: Episode) => {
                 const url = getEnclosureUrl(ep);
                 const guid = ep.guid || url || '';
-                return guid ? !downloadedGuids.includes(guid) && !(url && inFlight.has(url)) : false;
+                return guid ? !downloadedSet.has(guid) && !(url && inFlight.has(url)) : false;
             });
             if (newEpisodes.length === 0) { toast.show(t('toast.sync_none'), 'info'); return; }
 
@@ -547,7 +603,7 @@ export const EpisodeList: React.FC = () => {
         const episodesToDownload = filteredEpisodes.filter((episode: Episode) => {
             const url = getEnclosureUrl(episode);
             const guid = episode.guid || url;
-            return guid && !downloadedGuids.includes(guid) && !(url && inFlight.has(url));
+            return guid && !downloadedSet.has(guid) && !(url && inFlight.has(url));
         });
         if (episodesToDownload.length === 0) { toast.show(t('toast.all_downloaded'), 'info'); return; }
 
@@ -593,6 +649,16 @@ export const EpisodeList: React.FC = () => {
         else if (result === false) toast.show(t('toast.m3u_empty'), 'info');
     };
 
+    // M22: reset every filter that can hide episodes (sort order doesn't hide anything)
+    const handleClearFilters = () => {
+        setSearchQuery('');
+        setDateFrom('');
+        setDateTo('');
+        setStatusFilter('all');
+        setMinDuration(0);
+        setMaxDuration(0);
+    };
+
     const imageUrl = typeof currentFeed.image === 'string' ? currentFeed.image : currentFeed.image?.url;
 
     // ── Render ────────────────────────────────────────────────────────────────
@@ -600,11 +666,9 @@ export const EpisodeList: React.FC = () => {
     const archivedCount = currentFeed.episodes.reduce((n, ep) => {
         const u = getEnclosureUrl(ep);
         const g = ep.guid || u || '';
-        return g && downloadedGuids.includes(g) ? n + 1 : n;
+        return g && downloadedSet.has(g) ? n + 1 : n;
     }, 0);
-    const lastUpdatedStr = currentFeed.lastUpdated
-        ? new Date(currentFeed.lastUpdated).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })
-        : null;
+    const lastUpdatedStr = formatEpisodeDate(currentFeed.lastUpdated, { day: 'numeric', month: 'long', year: 'numeric' }) || null;
 
     return (
         <div className="space-y-4 pb-8">
@@ -855,14 +919,52 @@ export const EpisodeList: React.FC = () => {
                 )}
             </div>
 
+            {/* M31: focus ring for keyboard navigation on rows/checkboxes
+                (scoped here because only this component was in scope — candidate
+                for a later move into styles/components.css) */}
+            <style>{`
+                .ep-row:focus-visible, .ep-check:focus-visible {
+                    outline: 2px solid var(--azure);
+                    outline-offset: 1px;
+                }
+            `}</style>
+
             {/* ── Episode list ──────────────────────────────────────────── */}
-            <div className="ep-list">
-                <Virtuoso
-                    customScrollParent={scrollParent ?? undefined}
-                    data={filteredEpisodes}
-                    itemContent={renderEpisodeRow}
-                />
-            </div>
+            {filteredEpisodes.length === 0 ? (
+                // M22: empty state — distinguish an empty feed from filters/search
+                // that match nothing (same style as ArchiveView's empty state)
+                <div className="text-center py-16" style={{ color: 'var(--color-on-surface-variant)' }}>
+                    <Icon
+                        name={totalEpisodes === 0 ? 'podcasts' : 'search_off'}
+                        size={40}
+                        style={{ margin: '0 auto 12px', display: 'block', opacity: 0.35 }}
+                    />
+                    <p className="text-sm">
+                        {totalEpisodes === 0
+                            ? t('episodes.empty_feed', 'Questo feed non contiene episodi.')
+                            : t('episodes.empty_filtered', 'Nessun episodio corrisponde ai filtri attivi.')}
+                    </p>
+                    {totalEpisodes > 0 && (
+                        <button
+                            type="button"
+                            className="feed-action"
+                            style={{ margin: '14px auto 0' }}
+                            onClick={handleClearFilters}
+                        >
+                            {t('episodes.clear_filters', 'Azzera filtri')}
+                        </button>
+                    )}
+                </div>
+            ) : (
+                <div className="ep-list">
+                    <Virtuoso
+                        customScrollParent={scrollParent ?? undefined}
+                        data={filteredEpisodes}
+                        itemContent={renderEpisodeRow}
+                        computeItemKey={computeEpisodeKey}
+                    />
+                </div>
+            )}
 
             <ConfirmModal
                 isOpen={confirmState.isOpen}
@@ -879,7 +981,7 @@ export const EpisodeList: React.FC = () => {
                 const guid = detailEpisode.guid || url || '';
                 const status = detailStatus ?? null;
                 const isDownloading = !!(status && !status.completed && !status.error);
-                const isDownloaded = !!(status?.completed || (guid && downloadedGuids.includes(guid)));
+                const isDownloaded = !!(status?.completed || (guid && downloadedSet.has(guid)));
                 return (
                     <EpisodeDetailPanel
                         episode={detailEpisode}

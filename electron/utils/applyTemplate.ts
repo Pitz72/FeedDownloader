@@ -23,13 +23,15 @@ export function applyTemplate(template: string, context: {
     const day   = isValidDate ? String(date!.getDate()).padStart(2, '0') : 'unknown';
     const dateStr = isValidDate ? `${year}-${month}-${day}` : 'unknown';
 
+    // Function replacements: a literal value containing `$&`/`$'`/`$$` must not
+    // be interpreted as a String.replace pattern (title "a$&b" broke filenames).
     return template
-        .replace(/\{title\}/gi, context.title)
-        .replace(/\{podcast\}/gi, context.podcast)
-        .replace(/\{date\}/gi, dateStr)
-        .replace(/\{year\}/gi, year)
-        .replace(/\{month\}/gi, month)
-        .replace(/\{day\}/gi, day);
+        .replace(/\{title\}/gi, () => context.title)
+        .replace(/\{podcast\}/gi, () => context.podcast)
+        .replace(/\{date\}/gi, () => dateStr)
+        .replace(/\{year\}/gi, () => year)
+        .replace(/\{month\}/gi, () => month)
+        .replace(/\{day\}/gi, () => day);
 }
 
 export const DEFAULT_NAMING_TEMPLATE = '{title}';

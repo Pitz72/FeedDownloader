@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from './Icon';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -36,6 +36,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     const [updateStatus, setUpdateStatus] = useState<UpdateStatus>({ type: 'idle' });
     const isBatchDownloading = useStore((state: AppState) => state.isBatchDownloading);
     const setStorePath = useStore((state: AppState) => state.setDownloadPath);
+    const closeButtonRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -45,6 +46,29 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         return unsub;
     }, [isOpen]);
 
+    // M24: close on Escape (same pattern as ConfirmModal/HelpModal).
+    // When the HelpModal is open, Escape is handled there — skip to avoid closing both.
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && !isHelpOpen) onClose();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, isHelpOpen, onClose]);
+
+    // M24: initial focus on the close button when the modal opens
+    useEffect(() => {
+        if (!isOpen) return;
+        const timer = setTimeout(() => closeButtonRef.current?.focus(), 50);
+        return () => clearTimeout(timer);
+    }, [isOpen]);
+
+    // L33: if Settings is closed (backdrop, Escape, ...), close the HelpModal too
+    useEffect(() => {
+        if (!isOpen) setIsHelpOpen(false);
+    }, [isOpen]);
+
     useEffect(() => {
         const unsub = window.api.onUpdateStatus((_e, status: UpdateStatus) => {
             setUpdateStatus(status);
@@ -52,13 +76,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         return unsub;
     }, []);
 
-    useEffect(() => {
-        if (isOpen) {
-            loadSettings();
-        }
-    }, [isOpen]);
-
-    const loadSettings = async () => {
+    const loadSettings = useCallback(async () => {
         setIsLoadingSettings(true);
         try {
             const path = await window.api.getDownloadPath();
@@ -77,10 +95,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             setSpeedLimit(sl);
             const ar = await window.api.getAutoRefreshInterval();
             setAutoRefreshInterval(ar);
+        } catch {
+            // L14: a failed IPC must not become an unhandled rejection
+            toast.show(t('common.error'), 'error');
         } finally {
             setIsLoadingSettings(false);
         }
-    };
+    }, [toast, t]);
+
+    useEffect(() => {
+        if (isOpen) {
+            loadSettings();
+        }
+    }, [isOpen, loadSettings]);
 
     const handleChangeFolder = async () => {
         const path = await window.api.chooseFolder();
@@ -201,8 +228,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                         onClick={(e) => e.stopPropagation()}
                         variants={panelVariants}
                         initial="hidden" animate="visible" exit="exit"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label={t('settings.title', 'Impostazioni')}
                     >
                         <button
+                            ref={closeButtonRef}
                             type="button"
                             className="settings-close"
                             onClick={onClose}
@@ -267,7 +298,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                     <div className="space-y-2">
                                                         <label className="block text-sm" style={{ color: 'var(--color-on-surface-variant)' }}>{t('settings.language')}</label>
                                                         <select
-                                                            value={i18n.language}
+                                                            value={i18n.language.split('-')[0]}
                                                             onChange={(e) => changeLanguage(e.target.value)}
                                                             className="w-full max-w-xs"
                                                             style={{ ...inputStyle, maxWidth: '16rem' }}

@@ -10,15 +10,20 @@ type SortDir = 'asc' | 'desc';
 const COL_TEMPLATE = '1fr 1.5fr 100px 80px 60px 32px';
 const COL_GAP = '12px';
 
-function formatBytes(bytes?: number): string {
+// L29: locale-aware number formatting (decimal separator follows the UI language)
+function formatBytes(bytes: number | undefined, locale: string): string {
     if (!bytes) return '—';
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toLocaleString(locale, { maximumFractionDigits: 0 })} KB`;
+    return `${(bytes / (1024 * 1024)).toLocaleString(locale, { maximumFractionDigits: 1 })} MB`;
 }
 
-function formatDate(iso?: string): string {
+// M20: toLocaleDateString never throws on an Invalid Date — it returns the string
+// "Invalid Date". Guard with Number.isNaN(getTime()) instead of a useless try/catch.
+function formatDate(iso: string | undefined, locale: string): string {
     if (!iso) return '—';
-    try { return new Date(iso).toLocaleDateString(); } catch { return '—'; }
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '—';
+    return d.toLocaleDateString(locale);
 }
 
 interface SortHeaderCellProps {
@@ -53,9 +58,11 @@ const SortHeaderCell: React.FC<SortHeaderCellProps> = ({ label, sortKey, activeS
 };
 
 export const ArchiveView: React.FC = () => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [entries, setEntries] = useState<ArchiveEntry[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    // L31: distinct error state — a failed getArchive() must not look like an empty archive
+    const [loadError, setLoadError] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [podcastFilter, setPodcastFilter] = useState('');
     const [sortKey, setSortKey] = useState<SortKey>('downloadedAt');
@@ -63,8 +70,8 @@ export const ArchiveView: React.FC = () => {
 
     const loadEntries = useCallback(() => {
         window.api.getArchive()
-            .then(data => { setEntries(data); setIsLoading(false); })
-            .catch(() => setIsLoading(false));
+            .then(data => { setEntries(data); setLoadError(false); setIsLoading(false); })
+            .catch(() => { setLoadError(true); setIsLoading(false); });
     }, []);
 
     // M5: during a batch the main process fires downloads-updated after every single
@@ -99,8 +106,21 @@ export const ArchiveView: React.FC = () => {
         if (podcastFilter) result = result.filter(e => e.podcastTitle === podcastFilter);
         if (searchQuery.trim()) {
             const q = searchQuery.toLowerCase();
+            // L30: the placeholder promises date search too — match both the localized
+            // formatted date and the ISO yyyy-mm-dd of pubDate/downloadedAt.
+            const locale = i18n.language;
+            const matchesDate = (iso?: string): boolean => {
+                if (!iso) return false;
+                const d = new Date(iso);
+                if (Number.isNaN(d.getTime())) return false;
+                return d.toLocaleDateString(locale).toLowerCase().includes(q)
+                    || d.toISOString().slice(0, 10).includes(q);
+            };
             result = result.filter(e =>
-                e.title.toLowerCase().includes(q) || e.podcastTitle.toLowerCase().includes(q)
+                e.title.toLowerCase().includes(q)
+                || e.podcastTitle.toLowerCase().includes(q)
+                || matchesDate(e.pubDate)
+                || matchesDate(e.downloadedAt)
             );
         }
         return [...result].sort((a, b) => {
@@ -118,7 +138,7 @@ export const ArchiveView: React.FC = () => {
             }
             return sortDir === 'desc' ? vb - va : va - vb;
         });
-    }, [entries, podcastFilter, searchQuery, sortKey, sortDir]);
+    }, [entries, podcastFilter, searchQuery, sortKey, sortDir, i18n.language]);
 
     const handleSortClick = useCallback((key: SortKey) => {
         setSortKey(prev => {
@@ -157,13 +177,13 @@ export const ArchiveView: React.FC = () => {
                     className="text-xs"
                     style={{ fontFamily: 'var(--font-label)', color: 'var(--color-on-surface-variant)' }}
                 >
-                    {formatDate(entry.downloadedAt)}
+                    {formatDate(entry.downloadedAt, i18n.language)}
                 </span>
                 <span
                     className="text-xs text-right"
                     style={{ fontFamily: 'var(--font-label)', color: 'var(--color-on-surface-variant)' }}
                 >
-                    {formatBytes(entry.fileSize)}
+                    {formatBytes(entry.fileSize, i18n.language)}
                 </span>
                 <span
                     className="text-xs text-right"
@@ -185,13 +205,39 @@ export const ArchiveView: React.FC = () => {
                 </div>
             </div>
         );
-    }, [filtered, t]);
+    }, [filtered, t, i18n.language]);
 
     if (isLoading) {
         return (
             <div className="flex items-center justify-center py-20" style={{ color: 'var(--color-on-surface-variant)' }}>
                 <Icon name="progress_activity" size={24} className="animate-spin mr-3" />
                 <span className="text-sm">{t('archive.loading')}</span>
+            </div>
+        );
+    }
+
+    // L31: dedicated error view with retry — never render a failed load as "empty archive"
+    if (loadError) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20 gap-3" style={{ color: 'var(--color-on-surface-variant)' }}>
+                <Icon name="error" size={40} style={{ opacity: 0.5 }} />
+                <p className="text-sm">{t('archive.load_error', "Impossibile caricare l'archivio.")}</p>
+                <button
+                    onClick={() => { setIsLoading(true); loadEntries(); }}
+                    className="hover-text-primary transition-colors"
+                    style={{
+                        background: 'var(--surf-2)',
+                        color: 'var(--fg)',
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: 10.5,
+                        border: '1px solid var(--border)',
+                        borderRadius: 'var(--r-sm)',
+                        padding: '6px 14px',
+                        cursor: 'pointer',
+                    }}
+                >
+                    {t('archive.retry', 'Riprova')}
+                </button>
             </div>
         );
     }
@@ -208,11 +254,11 @@ export const ArchiveView: React.FC = () => {
                     type="text"
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
-                    placeholder={t('archive.search_placeholder', "Cerca nell'archivio · titolo, show, data, durata…")}
+                    placeholder={t('archive.search_placeholder', "Cerca nell'archivio · titolo, show, data…")}
                 />
                 <div className="archive-stats">
-                    <span><strong>{entries.length.toLocaleString()}</strong> {t('archive.episodes_short', 'episodi')}</span>
-                    <span><strong>{(totalSize / (1024 ** 3)).toFixed(1)}</strong> GB</span>
+                    <span><strong>{entries.length.toLocaleString(i18n.language)}</strong> {t('archive.episodes_short', 'episodi')}</span>
+                    <span><strong>{(totalSize / (1024 ** 3)).toLocaleString(i18n.language, { maximumFractionDigits: 1 })}</strong> GB</span>
                     <span><strong>{podcasts.length}</strong> {t('archive.podcasts_short', 'show')}</span>
                 </div>
             </div>

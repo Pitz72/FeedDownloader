@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useCallback } from 'react';
 import { Icon } from '../components/Icon';
 import clsx from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { useStore, AppState } from '../store/useStore';
 
 type ToastType = 'success' | 'error' | 'info';
@@ -23,6 +24,7 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined);
 let toastSeq = 0;
 
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const { t } = useTranslation();
     const [toasts, setToasts] = useState<Toast[]>([]);
     const downloadPanelOpen = useStore((s: AppState) => s.downloadPanelOpen);
     const isBatchDownloading = useStore((s: AppState) => s.isBatchDownloading);
@@ -35,13 +37,14 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const id = `toast-${++toastSeq}`;
         setToasts((prev) => [...prev, { id, message, type }]);
 
+        // L35: error toasts stay visible longer (6s) so failures are not missed
         setTimeout(() => {
-            setToasts((prev) => prev.filter((t) => t.id !== id));
-        }, 3000);
+            setToasts((prev) => prev.filter((item) => item.id !== id));
+        }, type === 'error' ? 6000 : 3000);
     }, []);
 
     const remove = (id: string) => {
-        setToasts((prev) => prev.filter((t) => t.id !== id));
+        setToasts((prev) => prev.filter((item) => item.id !== id));
     };
 
     return (
@@ -74,7 +77,11 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                             {toast.type === 'error'   && <Icon name="error" size={20} filled />}
                             {toast.type === 'info'    && <Icon name="info" size={20} filled />}
                             <span className="flex-1 text-sm font-medium">{toast.message}</span>
-                            <button onClick={() => remove(toast.id)} className="hover:bg-white/10 p-1 rounded">
+                            <button
+                                onClick={() => remove(toast.id)}
+                                className="hover:bg-white/10 p-1 rounded"
+                                aria-label={t('common.close', 'Chiudi')}
+                            >
                                 <Icon name="close" size={16} />
                             </button>
                         </motion.div>

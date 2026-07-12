@@ -16,12 +16,19 @@ export function getSafePath(
     const sanitizedPodcast = sanitize(podcastTitle);
     let sanitizedTitle = sanitize(episodeTitle);
 
+    // L8: Windows-reserved names (CON, PRN, AUX…) sanitize to an empty string,
+    // which would produce a degenerate hidden filename like ".mp3".
+    if (!sanitizedTitle) sanitizedTitle = 'episode';
+
+    // M5: budget must cover what gets appended to this path at download time:
+    // the ".part.meta" suffix (10 chars) and the collision suffix "_NN".
     const MAX_PATH = 250;
+    const APPENDED_RESERVE = '.part.meta'.length + '_99'.length;
 
     const folderPath = path.join(baseDir, sanitizedPodcast);
     const separators = 1;
 
-    const occupied = folderPath.length + separators + ext.length;
+    const occupied = folderPath.length + separators + ext.length + APPENDED_RESERVE;
     const available = MAX_PATH - occupied;
 
     if (available < 1) {

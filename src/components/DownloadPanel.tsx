@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useStore, AppState } from '../store/useStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import type { QueueItem, FailedDownload, DownloadProgress } from '../types';
+import type { QueueItem, FailedDownload } from '../types';
 
 const ERROR_CODE_MAP: Record<string, string> = {
     EPISODE_NOT_FOUND:      'progress.error_not_found',
@@ -35,12 +35,14 @@ function formatEta(seconds: number): string {
 
 interface QueueRowProps {
     item: QueueItem;
-    progress: DownloadProgress | null;
     onCancel: () => void;
 }
 
-const QueueRow: React.FC<QueueRowProps> = ({ item, progress, onCancel }) => {
+const QueueRow: React.FC<QueueRowProps> = ({ item, onCancel }) => {
     const { t } = useTranslation();
+    // M29: per-slice selector — each row re-renders only on its own progress ticks,
+    // instead of the whole panel subscribing to the entire downloads map.
+    const progress = useStore((s: AppState) => s.downloads[item.url] ?? null);
     const isDownloading = item.status === 'downloading';
     const percent = progress && progress.total > 0
         ? Math.round((progress.loaded / progress.total) * 100)
@@ -125,7 +127,6 @@ export const DownloadPanel: React.FC = () => {
     const isBatchDownloading = useStore((s: AppState) => s.isBatchDownloading);
     const queueItems = useStore((s: AppState) => s.queueItems);
     const batchFailed = useStore((s: AppState) => s.batchFailed);
-    const downloads = useStore((s: AppState) => s.downloads);
     const downloadPanelOpen = useStore((s: AppState) => s.downloadPanelOpen);
     const setDownloadPanelOpen = useStore((s: AppState) => s.setDownloadPanelOpen);
     const { t } = useTranslation();
@@ -217,7 +218,6 @@ export const DownloadPanel: React.FC = () => {
                                     <QueueRow
                                         key={item.taskId}
                                         item={item}
-                                        progress={downloads[item.url] ?? null}
                                         onCancel={() => handleCancelItem(item.taskId)}
                                     />
                                 ))}

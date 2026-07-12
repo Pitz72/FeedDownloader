@@ -54,6 +54,17 @@ export const useStore = create<AppState>((set) => ({
     setCurrentFeed: (feed) => set({ currentFeed: feed }),
     setFeeds: (feeds) => set({ feeds }),
     updateDownload: (progress) => {
+        // M32: a cancelled download disappears immediately — no green check, no
+        // "archived" tag on an episode that was never downloaded.
+        if (progress.cancelled) {
+            speedCache.delete(progress.url);
+            set((state) => {
+                const updated = { ...state.downloads };
+                delete updated[progress.url];
+                return { downloads: updated };
+            });
+            return;
+        }
         const enriched: DownloadProgress = { ...progress };
         if (!progress.completed && !progress.error && progress.loaded > 0 && progress.total > 0) {
             const prev = speedCache.get(progress.url);

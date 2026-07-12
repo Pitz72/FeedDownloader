@@ -105,7 +105,11 @@ function clearAutoRefresh() {
     }
 }
 
+// M17: set on shutdown so a timer tick can't touch a closed database
+let isShuttingDown = false;
+
 async function runBackgroundRefresh(win: BrowserWindow) {
+    if (isShuttingDown) return;
     const feeds = libraryService.getFeeds();
     if (feeds.length === 0) return;
 
@@ -118,12 +122,23 @@ async function runBackgroundRefresh(win: BrowserWindow) {
             feedCache.delete(feedEntry.url);
             parseFeedLastCall.delete(feedEntry.url);
 
-            const feed = await feedService.parseFeed(feedEntry.url);
-            const episodes = ((feed as unknown) as { episodes?: { guid?: string }[] }).episodes ?? [];
+            // M6: conditional request with the stored validators — a 304 means
+            // nothing changed, so the full multi-page refetch is skipped and
+            // podcast hosts aren't hammered on every cycle.
+            const validators = libraryService.getFeedValidators(feedEntry.url) ?? undefined;
+            const feed = await feedService.parseFeed(feedEntry.url, validators);
+            if (isShuttingDown) return;
+            if (feed === null) {
+                libraryService.touchFeed(feedEntry.url, new Date().toISOString());
+                return; // 304 Not Modified
+            }
+            const parsed = (feed as unknown) as { episodes?: { guid?: string }[]; httpEtag?: string; httpLastModified?: string };
+            const episodes = parsed.episodes ?? [];
             const currentGuids = episodes.map(e => e.guid).filter((g): g is string => !!g);
 
             feedCache.set(feedEntry.url, { feed, timestamp: Date.now() });
             libraryService.touchFeed(feedEntry.url, new Date().toISOString());
+            libraryService.setFeedValidators(feedEntry.url, parsed.httpEtag, parsed.httpLastModified);
 
             // F3-fix: GUID-based detection — correctly detects new episodes even when
             // the feed removes old ones (rolling window), which broke the old
@@ -136,9 +151,10 @@ async function runBackgroundRefresh(win: BrowserWindow) {
                 // pre-existing episode as "new" and fire one huge false notification.
                 libraryService.markGuidsAsKnown(feedEntry.url, currentGuids);
             } else {
-                const newGuids = currentGuids.filter(g => !known.has(g));
-                if (newGuids.length > 0) {
-                    totalNew += newGuids.length;
+                // L5: a GUID repeated inside the same feed must count once
+                const newGuids = new Set(currentGuids.filter(g => !known.has(g)));
+                if (newGuids.size > 0) {
+                    totalNew += newGuids.size;
                     feedsWithNew.push(feedEntry.title);
                 }
                 // Record all current GUIDs as known for future comparisons
@@ -149,6 +165,8 @@ async function runBackgroundRefresh(win: BrowserWindow) {
             // silently skip feeds that fail in background
         }
     }));
+
+    if (isShuttingDown) return;
 
     pushEvent(win, CH.FEEDS_UPDATED, libraryService.getFeeds());
 
@@ -178,7 +196,11 @@ function startAutoRefreshTimer(win: BrowserWindow, hours: number) {
     clearAutoRefresh();
     if (hours === 0) return;
     const ms = hours * 60 * 60 * 1000;
-    autoRefreshTimer = setInterval(() => { runBackgroundRefresh(win); }, ms);
+    // M17: an unhandled rejection here (DB closed during shutdown, transient
+    // error) would surface as unhandledRejection on every tick.
+    autoRefreshTimer = setInterval(() => {
+        runBackgroundRefresh(win).catch(err => console.error('[AutoRefresh]', err));
+    }, ms);
 }
 
 /**
@@ -186,6 +208,7 @@ function startAutoRefreshTimer(win: BrowserWindow, hours: number) {
  * and close the SQLite handle so WAL is flushed cleanly.
  */
 export function cleanup() {
+    isShuttingDown = true;
     clearAutoRefresh();
     if (libraryService) libraryService.close();
 }
@@ -216,18 +239,26 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         parseFeedLastCall.set(url, now);
 
         const feed = await feedService.parseFeed(url);
+        if (feed === null) throw new Error('FAILED_TO_PARSE'); // unreachable: no conditional passed
         feedCache.set(url, { feed, timestamp: now });
 
         // Update lastUpdated + episodeCount in DB (fresh network fetch only, not cache hits)
         libraryService.touchFeed(url, new Date().toISOString());
-        const episodes = ((feed as unknown) as { episodes?: { guid?: string }[] }).episodes ?? [];
+        const parsed = (feed as unknown) as { episodes?: { guid?: string }[]; httpEtag?: string; httpLastModified?: string };
+        const episodes = parsed.episodes ?? [];
         libraryService.updateEpisodeCount(url, episodes.length);
+        libraryService.setFeedValidators(url, parsed.httpEtag, parsed.httpLastModified); // M6
 
         // F3-fix: seed known_episodes on first parse so that the background refresh
         // has a baseline — without this, the first auto-refresh would report every
         // existing episode as "new".
-        const guids = episodes.map(e => e.guid).filter((g): g is string => !!g);
-        libraryService.markGuidsAsKnown(url, guids);
+        // M11: only for feeds actually in the library — parsing an URL the user
+        // never saves must not grow known_episodes forever. Feeds added right
+        // after this parse get their baseline from the refresh's silent seeding.
+        if (libraryService.hasFeed(url)) {
+            const guids = episodes.map(e => e.guid).filter((g): g is string => !!g);
+            libraryService.markGuidsAsKnown(url, guids);
+        }
 
         pushEvent(mainWindow, CH.FEEDS_UPDATED, libraryService.getFeeds());
 
@@ -274,7 +305,18 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     });
 
     // ── Download Engine ──────────────────────────────────
-    ipcMain.handle(CH.START_DOWNLOAD, async (_, { url, title, podcastTitle, guid, pubDate, feedImageUrl, episodeImageUrl, feedUrl }: DownloadRequest) => {
+    ipcMain.handle(CH.START_DOWNLOAD, async (_, request: DownloadRequest) => {
+        // L13: the renderer is trusted, but a malformed field must fail with a
+        // clear error instead of a TypeError deep inside sanitize()/template.
+        const url = String(request?.url ?? '');
+        const title = String(request?.title ?? '');
+        const podcastTitle = String(request?.podcastTitle ?? '');
+        const guid = typeof request?.guid === 'string' ? request.guid : '';
+        const pubDate = typeof request?.pubDate === 'string' ? request.pubDate : undefined;
+        const feedImageUrl = typeof request?.feedImageUrl === 'string' ? request.feedImageUrl : undefined;
+        const episodeImageUrl = typeof request?.episodeImageUrl === 'string' ? request.episodeImageUrl : undefined;
+        const feedUrl = typeof request?.feedUrl === 'string' ? request.feedUrl : undefined;
+
         const check = validateUrl(url);
         if (!check.valid) {
             throw new Error(check.error);
@@ -341,8 +383,9 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                 queueItems.delete(taskId);
                 reservedTargets.delete(targetFile); // M1: release the claimed path
                 pushQueueUpdated(mainWindow);
-                // Signal renderer so incrementBatch() fires and the counter stays accurate
-                pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded: 0, total: 0, completed: true });
+                // M32: `cancelled` advances the batch counter in the renderer
+                // without painting the row as completed/archived
+                pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded: 0, total: 0, cancelled: true });
                 return; // finally still runs → batchTracker.complete()
             }
 
@@ -439,7 +482,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                 if (isAborted) {
                     // For individual cancels (not STOP_BATCH) trigger incrementBatch in renderer
                     if (batchTracker.active) {
-                        pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded: 0, total: 0, completed: true });
+                        pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded: 0, total: 0, cancelled: true }); // M32
                     }
                 } else {
                     console.error('Download error:', error);
@@ -672,8 +715,11 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     });
 
     ipcMain.handle(CH.SET_CONCURRENCY, async (_, n: number) => {
-        libraryService.setConcurrency(n);
-        queueService.setConcurrency(n);
+        // M16: clamp ONCE and give the same value to both — the raw value went
+        // straight to PQueue, and concurrency 0 froze the queue for good.
+        const clamped = Math.max(1, Math.min(Math.floor(Number(n) || 3), 10));
+        libraryService.setConcurrency(clamped);
+        queueService.setConcurrency(clamped);
         return true;
     });
 
@@ -810,8 +856,10 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     });
 
     // ── Mark Missing as Not Downloaded ──────────────────────
-    ipcMain.handle(CH.MARK_MISSING_NOT_DOWNLOADED, async (_, guids: string[]): Promise<boolean> => {
-        libraryService.removeMissingFiles(guids);
+    ipcMain.handle(CH.MARK_MISSING_NOT_DOWNLOADED, async (_, guids: unknown): Promise<boolean> => {
+        // M15: never hand an unvalidated payload to a DELETE
+        if (!Array.isArray(guids)) return false;
+        libraryService.removeMissingFiles(guids.filter((g): g is string => typeof g === 'string'));
         pushEvent(mainWindow, CH.DOWNLOADS_UPDATED, libraryService.getDownloadedEpisodes());
         return true;
     });
@@ -912,7 +960,9 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         let content = '#EXTM3U\n';
         for (const entry of entries) {
             const filePath = path.join(baseDir, sanitize(entry.podcastTitle), entry.filename!);
-            content += `#EXTINF:-1,${entry.title}\n${filePath}\n`;
+            // L12: feed titles are untrusted — a newline would inject M3U lines
+            const safeTitle = entry.title.replace(/[\r\n]+/g, ' ');
+            content += `#EXTINF:-1,${safeTitle}\n${filePath}\n`;
         }
 
         await fs.writeFile(result.filePath, content, 'utf-8');
@@ -926,7 +976,9 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
     ipcMain.handle(CH.SET_AUTO_REFRESH_INTERVAL, async (_, hours: number) => {
         libraryService.setAutoRefreshInterval(hours);
-        startAutoRefreshTimer(mainWindow, hours);
+        // L11: use the persisted (whitelisted) value — a raw out-of-set value
+        // would run a timer this session that silently dies on restart
+        startAutoRefreshTimer(mainWindow, libraryService.getAutoRefreshInterval());
         return true;
     });
 

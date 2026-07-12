@@ -1,6 +1,7 @@
 import { XMLParser, XMLBuilder } from 'fast-xml-parser';
 import { DatabaseService } from './DatabaseService';
 import { hasDangerousDoctype } from '../utils/xmlSafety';
+import { validateUrl } from '../utils/validateUrl';
 import type { FeedEntry, ArchiveEntry, ArchiveStats } from '../../shared/types';
 
 /**
@@ -33,6 +34,18 @@ export class LibraryService {
 
     removeFeed(url: string): void {
         this.db.removeFeed(url);
+    }
+
+    hasFeed(url: string): boolean {
+        return this.db.hasFeed(url);
+    }
+
+    getFeedValidators(url: string): { etag?: string; lastModified?: string } | null {
+        return this.db.getFeedValidators(url);
+    }
+
+    setFeedValidators(url: string, etag?: string, lastModified?: string): void {
+        this.db.setFeedValidators(url, etag, lastModified);
     }
 
     /** L4: close the database on app shutdown. */
@@ -165,8 +178,6 @@ export class LibraryService {
         const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: "" });
         const result = parser.parse(xmlContent);
 
-        let count = 0;
-
         interface OPMLNode {
             xmlUrl?: string;
             text?: string;
@@ -174,17 +185,24 @@ export class LibraryService {
             outline?: OPMLNode | OPMLNode[];
         }
 
+        // L2: collect first, then validate + bulk-insert in one transaction.
+        // A cap keeps a hostile OPML from flooding the library.
+        const MAX_OPML_FEEDS = 2000;
+        const collected: FeedEntry[] = [];
+
         const traverse = (node: OPMLNode | OPMLNode[]) => {
+            if (collected.length >= MAX_OPML_FEEDS) return;
             if (Array.isArray(node)) {
                 node.forEach(child => traverse(child));
             } else if (typeof node === 'object') {
-                if (node.xmlUrl) {
-                    this.addFeed({
+                // Only http(s) URLs that pass the same SSRF pre-check as manual
+                // input — file:// or internal hosts must not enter the library.
+                if (node.xmlUrl && validateUrl(node.xmlUrl).valid) {
+                    collected.push({
                         url: node.xmlUrl,
                         title: node.text || node.title || 'Imported Feed',
                         lastUpdated: new Date().toISOString()
                     });
-                    count++;
                 }
 
                 if (node.outline) {
@@ -197,7 +215,8 @@ export class LibraryService {
             traverse(result.opml.body.outline);
         }
 
-        return count;
+        this.db.addFeedsBulk(collected);
+        return collected.length;
     }
 
     exportOPML(): string {

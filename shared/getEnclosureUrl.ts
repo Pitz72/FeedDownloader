@@ -7,14 +7,18 @@ import type { Episode } from './types';
  * - `episode.enclosure.url` (standard RSS 2.0)
  * - `episode.enclosures[0].url` (some parsers normalize to an array)
  *
- * This utility centralizes the extraction logic that was previously
- * duplicated in 3 places in EpisodeList.tsx.
+ * L6: when multiple enclosures exist (e.g. audio + video), prefer the one
+ * declared as audio/* instead of blindly taking the first.
  *
  * @returns The media URL string, or `undefined` if no enclosure found.
  */
 export function getEnclosureUrl(episode: Episode): string | undefined {
-    return episode.enclosure?.url
-        || (episode.enclosures && episode.enclosures.length > 0
-            ? episode.enclosures[0].url
-            : undefined);
+    const candidates = [
+        ...(episode.enclosure ? [episode.enclosure] : []),
+        ...(episode.enclosures ?? []),
+    ].filter(e => e?.url);
+    if (candidates.length === 0) return undefined;
+
+    const audio = candidates.find(e => e.type?.toLowerCase().startsWith('audio/'));
+    return (audio ?? candidates[0]).url;
 }

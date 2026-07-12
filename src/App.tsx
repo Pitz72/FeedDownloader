@@ -37,7 +37,7 @@ function AppContent() {
   useEffect(() => {
     const removeListener = window.api.onDownloadProgress((_event, data) => {
       updateDownload(data);
-      if (data.completed || data.error) {
+      if (data.completed || data.error || data.cancelled) {
         incrementBatch(data.url);
       }
       if (data.error) {
@@ -69,15 +69,48 @@ function AppContent() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      // L20: e.key is case-sensitive ('K' with CapsLock) — normalize letter shortcuts
+      const key = e.key.toLowerCase();
+      if (key === 'k') {
         e.preventDefault();
         setIsCommandPaletteOpen(v => !v);
-      } else if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-        const filterInput = document.getElementById('episode-filter-input');
-        if (filterInput) {
-          e.preventDefault();
-          filterInput.focus();
+      } else if (key === 'f') {
+        if (useStore.getState().viewMode === 'archive') {
+          // L21: focus the archive search field (no id available — first text input in the main area)
+          const searchInput = document.querySelector<HTMLInputElement>(
+            '#main-scroll input[type="text"], #main-scroll input[type="search"]'
+          );
+          if (searchInput) {
+            e.preventDefault();
+            searchInput.focus();
+          }
+        } else {
+          const filterInput = document.getElementById('episode-filter-input');
+          if (filterInput) {
+            e.preventDefault();
+            filterInput.focus();
+          }
         }
+      } else if (key === 's') {
+        // M23: sync all feeds (Sidebar listens to this event)
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('feeddownloader:syncall'));
+      } else if (key === 'a') {
+        // M23: toggle archive view — but keep native select-all inside editable fields
+        const target = e.target as HTMLElement | null;
+        const isEditable = !!target && (
+          target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable
+        );
+        if (!isEditable) {
+          e.preventDefault();
+          const { viewMode: currentView, setViewMode } = useStore.getState();
+          setViewMode(currentView === 'archive' ? 'feeds' : 'archive');
+        }
+      } else if (e.key === ',') {
+        // M23: open settings
+        e.preventDefault();
+        setIsSettingsOpen(true);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -258,7 +291,7 @@ function AppContent() {
         <div
           id="main-scroll"
           className="content custom-scrollbar"
-          style={!isOnline ? { opacity: 0.5, pointerEvents: 'none', filter: 'grayscale(1)' } : undefined}
+          style={!isOnline && viewMode === 'feeds' ? { opacity: 0.5, pointerEvents: 'none', filter: 'grayscale(1)' } : undefined}
         >
           {viewMode === 'feeds' ? (
             <>

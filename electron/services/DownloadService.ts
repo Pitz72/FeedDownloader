@@ -16,16 +16,23 @@ export class DownloadService {
                 await this.attemptDownload(url, outputPath, onProgress, speedLimitKBps, signal);
                 return; // Success
             } catch (error: unknown) {
-                const err = error as { code?: string; message?: string };
+                const err = error as { code?: string; message?: string; retryAfterMs?: number };
 
                 // Critical Errors - Do not retry
-                if (err.message === 'DOWNLOAD_ABORTED') throw error; // abort is permanent
+                if (err.message === 'DOWNLOAD_ABORTED') {
+                    // M2: an explicit user cancel must not leave .part garbage
+                    // behind (the resume of a cancelled download is unwanted).
+                    await fs.remove(`${outputPath}.part`).catch(() => { });
+                    await fs.remove(`${outputPath}.part.meta`).catch(() => { });
+                    throw error;
+                }
                 if (err.code === 'ENOSPC') throw new Error("DISK_FULL: No space left on device.");
                 if (err.code === 'EPERM' || err.code === 'EACCES') throw new Error("PERMISSION_DENIED: Access denied to write file.");
                 if (err.message === 'DISK_FULL') throw error;
-                if (err.message === 'DOWNLOAD_TIMEOUT') throw error;
-                if (err.message === 'DOWNLOAD_STALLED') throw error;
                 if (err.message === 'EPISODE_NOT_FOUND') throw error;
+                // M3: timeouts and stalls are typically transient (a 60s network
+                // gap) — they now go through the retry loop and, since the .part
+                // is kept, the next attempt resumes instead of restarting.
 
                 console.error(`Download attempt ${i + 1} failed:`, error);
 
@@ -39,8 +46,12 @@ export class DownloadService {
 
                 if (i === attempts - 1) throw error; // Throw on last attempt
 
-                // Exponential backoff: 1s, 2s, 4s...
-                await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
+                // L7: honor Retry-After on 429 (capped at 60s); otherwise
+                // exponential backoff: 1s, 2s, 4s...
+                const delay = err.retryAfterMs !== undefined
+                    ? Math.min(err.retryAfterMs, 60_000)
+                    : 1000 * Math.pow(2, i);
+                await new Promise(resolve => setTimeout(resolve, delay));
             }
         }
     }
@@ -114,7 +125,12 @@ export class DownloadService {
             }
             if (status !== undefined && status !== 200 && status !== 206) {
                 response.data?.destroy?.();
-                throw new Error(`HTTP_${status}`); // retryable transient
+                const httpError = new Error(`HTTP_${status}`) as Error & { retryAfterMs?: number };
+                if (status === 429) {
+                    const retryAfter = parseInt(String(response.headers['retry-after'] ?? ''), 10);
+                    if (Number.isFinite(retryAfter) && retryAfter > 0) httpError.retryAfterMs = retryAfter * 1000;
+                }
+                throw httpError; // retryable transient
             }
 
             const isResuming = resumedBytes > 0 && status === 206;
@@ -229,10 +245,11 @@ export class DownloadService {
 
                     // S1: size check applies to resumed transfers too — totalBytes
                     // already accounts for the resumed offset (Content-Range total).
-                    // M3: tightened 1% → 0.1%. A correct transfer matches the expected
-                    // size exactly; the small tolerance only absorbs trailing-byte
-                    // quirks, not a truncated download.
-                    if (totalBytes > 0 && Math.abs(loaded - totalBytes) / totalBytes > 0.001) {
+                    // M4: absolute tolerance. The old 0.1% relative tolerance let
+                    // ~100 KB (seconds of audio) go missing on a 100 MB file; a
+                    // correct transfer matches the expected size to the byte, so
+                    // only trailing-byte quirks are absorbed.
+                    if (totalBytes > 0 && Math.abs(loaded - totalBytes) > 64) {
                         await removeTemp();
                         fail(new Error('INTEGRITY_CHECK_FAILED'));
                         return;

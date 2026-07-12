@@ -65,6 +65,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose, onOpenS
     }, []);
 
     const handleSelectFeed = useCallback(async (feed: FeedEntry) => {
+        // M27: a load is already in flight (Enter path is not covered by the disabled buttons)
+        if (loadingFeedUrl) return;
         latestRequestRef.current = feed.url;
         setLoadingFeedUrl(feed.url);
         try {
@@ -76,7 +78,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose, onOpenS
         } catch {
             if (latestRequestRef.current === feed.url) setLoadingFeedUrl(null);
         }
-    }, [setCurrentFeed, setViewMode, onClose]);
+    }, [loadingFeedUrl, setCurrentFeed, setViewMode, onClose]);
 
     const modKey = isMac ? '⌘' : 'Ctrl';
 
