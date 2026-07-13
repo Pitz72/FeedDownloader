@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- Monochrome tray/glyph variant: F + download arrow only (no orbit, no dot,
+       no background) — the feed dot is dropped as it is invisible at tray sizes.
+       Single white fill so it can be tinted per platform. -->
+  <g fill="#FFFFFF" transform="translate(-43.5 -56) scale(0.58)">
+    <rect x="290" y="238" width="555" height="142" rx="71"/>
+    <rect x="290" y="452" width="372" height="140" rx="70"/>
+    <rect x="290" y="238" width="140" height="430" rx="10"/>
+    <path d="M188 648 H532 L360 838 Z"/>
+  </g>
+</svg>

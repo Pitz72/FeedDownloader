@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Runtime FeedDownloader Pro — app icon.
+       Style standard (see RUNTIME-DESKTOP-DISTRIBUTION-STANDARD.md): dark squircle,
+       flat typographic mark of the software letter (F) whose stem is a download
+       arrow, feed dot, and the Runtime orbit ring. FeedDownloader colour chain (violet).
+       Palette matched to the approved Gemini Flow reference. -->
+  <defs>
+    <mask id="orb"><rect x="0" y="500" width="1024" height="524" fill="#fff"/></mask>
+  </defs>
+
+  <rect x="40" y="40" width="944" height="944" rx="212" fill="#160925"/>
+
+  <g transform="rotate(-27 514 508)"><ellipse cx="514" cy="508" rx="388" ry="150" fill="none" stroke="#D3BAFE" stroke-width="22"/></g>
+
+  <g fill="#9962FC">
+    <rect x="290" y="238" width="555" height="142" rx="71"/>
+    <rect x="290" y="452" width="372" height="140" rx="70"/>
+    <rect x="290" y="238" width="140" height="430" rx="10"/>
+    <path d="M188 648 H532 L360 838 Z"/>
+  </g>
+  <circle cx="360" cy="320" r="42" fill="#D3BAFE"/>
+
+  <g transform="rotate(-27 514 508)" mask="url(#orb)"><ellipse cx="514" cy="508" rx="388" ry="150" fill="none" stroke="#D3BAFE" stroke-width="22"/></g>
+</svg>
