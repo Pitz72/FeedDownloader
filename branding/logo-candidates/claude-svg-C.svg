@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <mask id="mOrbit"><rect x="0" y="516" width="1024" height="508" fill="#fff"/></mask>
+  </defs>
+
+  <rect x="32" y="32" width="960" height="960" rx="228" fill="#170A26"/>
+
+  <g transform="rotate(-22 512 512)">
+    <ellipse cx="512" cy="512" rx="366" ry="150" fill="none" stroke="#7A4FB0" stroke-width="30" opacity="0.75"/>
+  </g>
+
+  <g fill="#A78BFA">
+    <rect x="330" y="300" width="380" height="126" rx="26"/>
+    <rect x="330" y="470" width="268" height="126" rx="26"/>
+    <path d="M300 604 H724 L512 820 Z" stroke="#A78BFA" stroke-width="40" stroke-linejoin="round"/>
+  </g>
+  <circle cx="392" cy="363" r="40" fill="#160A24"/>
+
+  <g transform="rotate(-22 512 512)" mask="url(#mOrbit)">
+    <ellipse cx="512" cy="512" rx="366" ry="150" fill="none" stroke="#C9A8F5" stroke-width="30"/>
+  </g>
+</svg>
