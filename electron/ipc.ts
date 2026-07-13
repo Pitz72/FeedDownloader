@@ -1,7 +1,9 @@
 import { ipcMain, dialog, Notification, BrowserWindow, app, shell } from 'electron';
 import crypto from 'crypto';
 import { FeedService } from './services/FeedService';
+import { FeedParserPool } from './services/FeedParserPool';
 import { LibraryService } from './services/LibraryService';
+import { fileURLToPath } from 'node:url';
 import { DownloadService } from './services/DownloadService';
 import { QueueService } from './services/QueueService';
 import { BatchTracker } from './services/BatchTracker';
@@ -21,6 +23,12 @@ import { parseFile as parseAudioMetadata } from 'music-metadata';
 import sanitize from 'sanitize-filename';
 
 const feedService = new FeedService();
+// M9: feed parsing runs in a utility process (feedWorker.js sits next to the
+// bundled main.js in dist-electron). The pool falls back to in-process parsing
+// if the worker can't spawn, so this is safe even if packaging misses the file.
+const feedParser = new FeedParserPool(
+    path.join(path.dirname(fileURLToPath(import.meta.url)), 'feedWorker.js')
+);
 const downloadService = new DownloadService();
 
 // S4: created in initServices(), NOT at module scope — opening the DB can throw
@@ -72,6 +80,11 @@ function pushQueueUpdated(win: BrowserWindow) {
 const parseFeedLastCall = new Map<string, number>();
 const PARSE_FEED_COOLDOWN_MS = 3000;
 
+// L3: feeds whose canonical URL we've already probed for a permanent redirect
+// this session — bounds the extra request to at most once per feed per run of
+// the app, rather than on every background-refresh cycle.
+const redirectChecked = new Set<string>();
+
 // in-memory feed cache: avoids re-fetching on repeated clicks
 const feedCache = new Map<string, { feed: unknown; timestamp: number }>();
 const FEED_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
@@ -97,6 +110,8 @@ let uiLocale = 'en';
 
 // ── Auto-Refresh (F3) ────────────────────────────────────────
 let autoRefreshTimer: ReturnType<typeof setInterval> | null = null;
+// N2: debounce for the "regained connectivity" refresh trigger
+let onlineRefreshDebounce: ReturnType<typeof setTimeout> | null = null;
 
 function clearAutoRefresh() {
     if (autoRefreshTimer) {
@@ -126,7 +141,7 @@ async function runBackgroundRefresh(win: BrowserWindow) {
             // nothing changed, so the full multi-page refetch is skipped and
             // podcast hosts aren't hammered on every cycle.
             const validators = libraryService.getFeedValidators(feedEntry.url) ?? undefined;
-            const feed = await feedService.parseFeed(feedEntry.url, validators);
+            const feed = await feedParser.parse(feedEntry.url, validators); // M9: off the main thread
             if (isShuttingDown) return;
             if (feed === null) {
                 libraryService.touchFeed(feedEntry.url, new Date().toISOString());
@@ -139,6 +154,7 @@ async function runBackgroundRefresh(win: BrowserWindow) {
             feedCache.set(feedEntry.url, { feed, timestamp: Date.now() });
             libraryService.touchFeed(feedEntry.url, new Date().toISOString());
             libraryService.setFeedValidators(feedEntry.url, parsed.httpEtag, parsed.httpLastModified);
+            libraryService.setCurrentEpisodeGuids(feedEntry.url, currentGuids); // M10: badge source
 
             // F3-fix: GUID-based detection — correctly detects new episodes even when
             // the feed removes old ones (rolling window), which broke the old
@@ -161,6 +177,23 @@ async function runBackgroundRefresh(win: BrowserWindow) {
                 libraryService.markGuidsAsKnown(feedEntry.url, currentGuids);
             }
             libraryService.updateEpisodeCount(feedEntry.url, episodes.length);
+
+            // L3: once per feed per session, check whether the URL has permanently
+            // moved (301/308) and, if so, re-point the feed and carry its history
+            // to the new URL so future fetches go direct instead of redirecting
+            // on every poll. Runs last, after this feed's DB writes, so the
+            // migration moves the freshly-written rows too.
+            if (!redirectChecked.has(feedEntry.url)) {
+                redirectChecked.add(feedEntry.url);
+                const movedTo = await feedService.checkPermanentRedirect(feedEntry.url);
+                if (!isShuttingDown && movedTo && !libraryService.hasFeed(movedTo)) {
+                    if (libraryService.updateFeedUrl(feedEntry.url, movedTo)) {
+                        feedCache.delete(feedEntry.url);
+                        parseFeedLastCall.delete(feedEntry.url);
+                        redirectChecked.add(movedTo); // don't immediately re-probe the new URL
+                    }
+                }
+            }
         } catch {
             // silently skip feeds that fail in background
         }
@@ -192,6 +225,51 @@ async function runBackgroundRefresh(win: BrowserWindow) {
     }
 }
 
+/**
+ * v1.4.0: lightweight archive ↔ filesystem reconciliation at startup. Non-blocking
+ * (deferred, async stat loop). If archived files have disappeared from disk since
+ * last run, notify the user once — pointing them at Settings → Health Check —
+ * instead of silently reporting them as still downloaded. Extends M15.
+ */
+async function reconcileArchive() {
+    if (isShuttingDown) return;
+    try {
+        const entries = libraryService.getArchive();
+        if (entries.length === 0) return;
+        let baseDir = libraryService.getDownloadPath();
+        if (!baseDir) baseDir = path.join(app.getPath('documents'), 'FeedDownloader', 'downloads');
+
+        let missing = 0;
+        for (const entry of entries) {
+            if (isShuttingDown) return;
+            if (!entry.filename) { missing++; continue; }
+            const full = path.join(baseDir, sanitize(entry.podcastTitle), entry.filename);
+            try { await fs.access(full); } catch { missing++; }
+        }
+        if (missing > 0 && Notification.isSupported()) {
+            const bodies: Record<string, string> = {
+                en: `${missing} archived file${missing !== 1 ? 's are' : ' is'} missing from disk. Open Settings → Health Check to review.`,
+                it: missing === 1
+                    ? '1 file archiviato risulta mancante su disco. Apri Impostazioni → Verifica Integrità per controllare.'
+                    : `${missing} file archiviati risultano mancanti su disco. Apri Impostazioni → Verifica Integrità per controllare.`,
+                fr: `${missing} fichier${missing !== 1 ? 's' : ''} archivé${missing !== 1 ? 's' : ''} manquant${missing !== 1 ? 's' : ''} sur le disque. Ouvrez Réglages → Vérification.`,
+                de: `${missing} archivierte Datei${missing !== 1 ? 'en fehlen' : ' fehlt'} auf der Festplatte. Einstellungen → Integritätsprüfung öffnen.`,
+                es: `${missing} archivo${missing !== 1 ? 's' : ''} archivado${missing !== 1 ? 's' : ''} no está${missing !== 1 ? 'n' : ''} en el disco. Abre Ajustes → Verificación.`,
+                pt: `${missing} ficheiro${missing !== 1 ? 's' : ''} arquivado${missing !== 1 ? 's' : ''} em falta no disco. Abra Definições → Verificação.`,
+                ru: `Отсутствует файлов на диске: ${missing}. Откройте Настройки → Проверка целостности.`,
+                zh: `磁盘上缺少 ${missing} 个已归档文件。请打开 设置 → 完整性检查。`,
+            };
+            new Notification({
+                title: 'Runtime FeedDownloader Pro',
+                body: bodies[uiLocale] ?? bodies['en'],
+                icon: path.join(process.env.VITE_PUBLIC || '', 'logo.png'),
+            }).show();
+        }
+    } catch (err) {
+        console.error('[Reconcile]', err);
+    }
+}
+
 function startAutoRefreshTimer(win: BrowserWindow, hours: number) {
     clearAutoRefresh();
     if (hours === 0) return;
@@ -210,10 +288,18 @@ function startAutoRefreshTimer(win: BrowserWindow, hours: number) {
 export function cleanup() {
     isShuttingDown = true;
     clearAutoRefresh();
+    if (onlineRefreshDebounce) { clearTimeout(onlineRefreshDebounce); onlineRefreshDebounce = null; }
+    feedParser.dispose(); // M9: terminate the feed-parsing utility process
     if (libraryService) libraryService.close();
 }
 
 export function registerIpcHandlers(mainWindow: BrowserWindow) {
+
+    // N1: assigned by the auto-update block below; invoked when the renderer
+    // first reports its UI locale, so the boot update check (and any OS
+    // notification it produces) is localized rather than racing on the 'en'
+    // default. Safe no-op until then.
+    let triggerInitialUpdateCheck = () => {};
 
     // ── Feed Parsing ──────────────────────────────────────
     ipcMain.handle(CH.PARSE_FEED, async (_, url: string) => {
@@ -238,7 +324,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         }
         parseFeedLastCall.set(url, now);
 
-        const feed = await feedService.parseFeed(url);
+        const feed = await feedParser.parse(url); // M9: off the main thread
         if (feed === null) throw new Error('FAILED_TO_PARSE'); // unreachable: no conditional passed
         feedCache.set(url, { feed, timestamp: now });
 
@@ -258,6 +344,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         if (libraryService.hasFeed(url)) {
             const guids = episodes.map(e => e.guid).filter((g): g is string => !!g);
             libraryService.markGuidsAsKnown(url, guids);
+            libraryService.setCurrentEpisodeGuids(url, guids); // M10: badge source
         }
 
         pushEvent(mainWindow, CH.FEEDS_UPDATED, libraryService.getFeeds());
@@ -709,6 +796,94 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         }
     });
 
+    // ── Changelog (in-app, v1.4.0) ────────────────────────
+    ipcMain.handle(CH.GET_CHANGELOG, async (_, version?: string) => {
+        // Only ever read a versioned changelog file by its exact name — never an
+        // arbitrary path from the renderer. Default to the running version.
+        const requested = (typeof version === 'string' && /^\d+\.\d+\.\d+$/.test(version))
+            ? version
+            : app.getVersion();
+        const fileName = `${requested}.md`;
+        const candidate = app.isPackaged
+            ? path.join(process.resourcesPath, 'changelog', fileName)
+            : path.join(app.getAppPath(), 'docs', 'changelog', fileName);
+        try {
+            if (await fs.pathExists(candidate)) {
+                return await fs.readFile(candidate, 'utf-8');
+            }
+            return '';
+        } catch (err) {
+            console.error('[Changelog] read failed', err);
+            return '';
+        }
+    });
+
+    // ── Open bundled PDF manual (B1) ──────────────────────
+    ipcMain.handle(CH.OPEN_MANUAL_PDF, async (_, lang: string): Promise<boolean> => {
+        // Packaged builds ship one flattened PDF per language under resources/manuals.
+        const langMap: Record<string, { dir: string; file: string }> = {
+            it: { dir: 'manual-it', file: 'Manuale_FeedDownloader_Pro_Box.pdf' },
+            en: { dir: 'en-GB', file: 'FeedDownloader_Pro_Manual_en-GB.pdf' },
+            fr: { dir: 'fr-FR', file: 'FeedDownloader_Pro_Manual_fr-FR.pdf' },
+            de: { dir: 'de-DE', file: 'FeedDownloader_Pro_Manual_de-DE.pdf' },
+            es: { dir: 'es-ES', file: 'FeedDownloader_Pro_Manual_es-ES.pdf' },
+            pt: { dir: 'pt-PT', file: 'FeedDownloader_Pro_Manual_pt-PT.pdf' },
+            ru: { dir: 'ru-RU', file: 'FeedDownloader_Pro_Manual_ru-RU.pdf' },
+            zh: { dir: 'zh-CN', file: 'FeedDownloader_Pro_Manual_zh-CN.pdf' },
+        };
+        const entry = langMap[lang] || langMap['en'];
+        const candidate = app.isPackaged
+            ? path.join(process.resourcesPath, 'manuals', `${lang in langMap ? lang : 'en'}.pdf`)
+            : path.join(app.getAppPath(), 'docs', 'user', entry.dir, entry.file);
+        try {
+            if (!(await fs.pathExists(candidate))) {
+                // fall back to English if the requested language PDF is absent
+                const en = app.isPackaged
+                    ? path.join(process.resourcesPath, 'manuals', 'en.pdf')
+                    : path.join(app.getAppPath(), 'docs', 'user', langMap['en'].dir, langMap['en'].file);
+                if (!(await fs.pathExists(en))) return false;
+                const err = await shell.openPath(en);
+                return err === '';
+            }
+            const err = await shell.openPath(candidate);
+            return err === '';
+        } catch (e) {
+            console.error('[Manual] open failed', e);
+            return false;
+        }
+    });
+
+    // ── Maintenance: clean orphaned .part temp files ──────
+    ipcMain.handle(CH.CLEAN_PART_FILES, async (): Promise<number> => {
+        // Refuse while downloads are in flight — a live .part would be deleted
+        // out from under the writer. -1 signals "busy" to the renderer.
+        if (activeDownloads.size > 0 || queueItems.size > 0) return -1;
+        let baseDir = libraryService.getDownloadPath();
+        if (!baseDir) baseDir = path.join(app.getPath('documents'), 'FeedDownloader', 'downloads');
+        if (!(await fs.pathExists(baseDir))) return 0;
+
+        let removed = 0;
+        const MAX_DEPTH = 4;
+        const walk = async (dir: string, depth: number): Promise<void> => {
+            let entries: import('fs').Dirent[];
+            try {
+                entries = await fs.readdir(dir, { withFileTypes: true });
+            } catch {
+                return;
+            }
+            for (const e of entries) {
+                const full = path.join(dir, e.name);
+                if (e.isDirectory()) {
+                    if (depth < MAX_DEPTH) await walk(full, depth + 1);
+                } else if (e.isFile() && (e.name.endsWith('.part') || e.name.endsWith('.part.meta'))) {
+                    try { await fs.remove(full); removed++; } catch { /* skip locked/inaccessible */ }
+                }
+            }
+        };
+        await walk(baseDir, 0);
+        return removed;
+    });
+
     // ── Concurrency ───────────────────────────────────────
     ipcMain.handle(CH.GET_CONCURRENCY, async () => {
         return libraryService.getConcurrency();
@@ -751,6 +926,8 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     // ── Locale Sync ──────────────────────────────────────
     ipcMain.handle(CH.SET_LOCALE, async (_, locale: string) => {
         uiLocale = locale;
+        // N1: the UI locale is now known — safe to fire the boot update check.
+        triggerInitialUpdateCheck();
         return true;
     });
 
@@ -920,12 +1097,26 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         });
         autoUpdater.on('error', (err: Error) => pushUpdateStatus({ type: 'error', message: err.message }));
 
-        // Auto-check on startup (packaged only), with 3-second delay
-        if (app.isPackaged) {
-            setTimeout(() => {
-                autoUpdater.checkForUpdates().catch(console.error);
-            }, 3000);
-        }
+        // N1: the boot check used to fire on a blind 3s timer — before the
+        // renderer had synced its locale (so notifications could come out in
+        // English) and with no retry if the network wasn't up yet. Now it's
+        // triggered when SET_LOCALE arrives (localized), retries a few times on
+        // failure, and still runs on a fallback timer if the locale never syncs.
+        let initialCheckDone = false;
+        const doInitialCheck = () => {
+            if (initialCheckDone || !app.isPackaged) return;
+            initialCheckDone = true;
+            const attempt = (remaining: number) => {
+                autoUpdater.checkForUpdates().catch((err) => {
+                    console.error('[AutoUpdate] boot check failed:', err);
+                    if (remaining > 0) setTimeout(() => attempt(remaining - 1), 15000);
+                });
+            };
+            attempt(2); // up to 3 tries, 15s apart
+        };
+        triggerInitialUpdateCheck = doInitialCheck;
+        // Fallback: if the renderer never sends SET_LOCALE (unexpected), still check.
+        if (app.isPackaged) setTimeout(doInitialCheck, 12000);
 
         ipcMain.handle(CH.CHECK_FOR_UPDATE, async () => {
             if (!app.isPackaged) {
@@ -940,8 +1131,38 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         });
     }
 
-    // Start auto-refresh timer using the persisted interval (0 = off)
+    // ── N2: startup + periodic new-episode check ──────────────
+    // Seed a sensible default the first time only: new installs poll every 6h
+    // without the user having to enable it. An explicit "Off" (0) the user chose
+    // in Settings is preserved (the key then exists).
+    if (!libraryService.isAutoRefreshConfigured()) {
+        libraryService.setAutoRefreshInterval(6);
+    }
+
+    // Check every feed once shortly after launch, then on the recurring interval.
+    // Deferred so the window, network stack and DB have settled first; the first
+    // refresh seeds known_episodes silently, so no false "new episode" flood.
+    setTimeout(() => {
+        runBackgroundRefresh(mainWindow).catch(err => console.error('[StartupRefresh]', err));
+    }, 8000);
+
+    // Reconcile the archive against the filesystem a bit later, off the refresh path.
+    setTimeout(() => {
+        reconcileArchive().catch(err => console.error('[Reconcile]', err));
+    }, 15000);
+
     startAutoRefreshTimer(mainWindow, libraryService.getAutoRefreshInterval());
+
+    // Re-check when the renderer reports it regained connectivity (debounced so a
+    // flapping connection can't trigger a storm of refreshes).
+    ipcMain.handle(CH.NOTIFY_ONLINE, async () => {
+        if (onlineRefreshDebounce) clearTimeout(onlineRefreshDebounce);
+        onlineRefreshDebounce = setTimeout(() => {
+            onlineRefreshDebounce = null;
+            runBackgroundRefresh(mainWindow).catch(err => console.error('[OnlineRefresh]', err));
+        }, 5000);
+        return true;
+    });
 
     // ── M3U Playlist Export ──────────────────────────────────
     ipcMain.handle(CH.EXPORT_M3U, async (_, podcastTitle: string): Promise<boolean | null> => {

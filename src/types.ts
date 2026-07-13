@@ -15,6 +15,7 @@ export type {
     DownloadResult,
     QueueItem,
     FailedDownload,
+    UpdateStatus,
 } from '../shared/types';
 
 export { IPC_CHANNELS } from '../shared/types';

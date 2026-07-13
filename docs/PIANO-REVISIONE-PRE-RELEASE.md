@@ -6,45 +6,20 @@
 Lo stato di partenza e tutto il lavoro **già completato** è documentato nei log di
 sviluppo: le 14 **gravi** (S1–S14) sono state chiuse in **v1.3.13**
 ([changelog](changelog/1.3.13.md)), i **medi** e ~30 lievi in **v1.3.14**
-([changelog](changelog/1.3.14.md)). Questo documento elenca **solo ciò che resta da
-fare**.
+([changelog](changelog/1.3.14.md)), e l'intera sezione **v1.4.0** (N1, N2, M18, M10,
+M9, L3 + feature documentali) in **v1.4.0** ([changelog](changelog/1.4.0.md)). Questo
+documento elenca **solo ciò che resta da fare**.
 
 ---
 
-## 🔵 v1.4.0 — Notifiche e background (prossima release feature)
+## ✅ v1.4.0 — chiusa (13 lug 2026)
 
-### N1 — Notifica aggiornamento sempre visibile all'avvio
-
-Cause concrete individuate dall'audit nel codice attuale (`electron/ipc.ts`, blocco auto-update):
-
-1. Race sulla lingua: `uiLocale` parte `'en'` e arriva via `SET_LOCALE` dopo; col check a `setTimeout(3000)` la notifica può uscire in inglese.
-2. Timing: il check non è agganciato a `ready-to-show`; Windows/Focus Assist sopprime le toast nei primissimi secondi.
-3. Nessun retry se `checkForUpdates()` fallisce al boot (rete lenta).
-4. Icona toast: `VITE_PUBLIC/logo.png` potrebbe non esistere in `dist/` a runtime → toast scartata in silenzio.
-
-**Implementazione:** banner/indicatore in-app **persistente** in topbar con azione "Riavvia e installa" (non affidarsi alla Notification OS) + check spostato dopo `ready-to-show`+`SET_LOCALE` con retry.
-
-### N2 — Check automatico nuovi episodi all'avvio + ciclico
-
-`runBackgroundRefresh` esiste (F3) e ora usa le richieste condizionali ETag/304 (M6, v1.3.14). Serve: run all'avvio post-init, default 6h per le nuove installazioni, check al ritorno online.
-**Prerequisito rimasto:** M18 (sotto) — senza chiudi-nel-tray il ciclo muore alla X.
-
-### Medi/lievi deferiti perché accoppiati a N1/N2
-
-| ID | Cosa | Dove |
-|----|------|------|
-| **M18** | La X chiude l'app nonostante il tray: `close` → `hide()` salvo `app.isQuitting` | `electron/main.ts` |
-| **M10** | Badge `newCount = episodeCount − downloaded` sbagliato con rolling window: derivarlo dai guid correnti del feed NOT IN downloads | `DatabaseService.getFeeds` |
-| **M9** | Parsing sincrono fino a 15 MB × 20 pagine sul main thread → freeze UI su feed enormi: worker/utility process | `FeedService` |
-| **L3** | 301 permanente non aggiorna l'URL del feed in DB (redirect a ogni fetch; attenzione: cambia l'identità/PK del feed) | `FeedService`/`DatabaseService` |
-
-### Altre feature previste (memoria di progetto / roadmap)
-
-* **Changelog in-app** — i file esistono in `docs/changelog/`: modal o sezione nel HelpModal via react-markdown già in deps.
-* **B1 — Manuali in-app**: upgrade HelpModal con QUICKSTART + apertura PDF della lingua corrente.
-* **B3 — ARCHITECTURE.md** e **B4 — CONTRIBUTING.md** (se il rilascio prevede visibilità del codice); B2 (scientific paper) opzionale.
-* **Riconciliazione archivio↔filesystem all'avvio**: check leggero non bloccante che segnala i file mancanti senza aprire manualmente l'Health Check (estende M15).
-* **Pulizia `.part` orfani pre-esistenti**: azione in Impostazioni → Manutenzione (i nuovi annulli già si ripuliscono da soli, v1.3.14).
+N1 (banner update persistente + fix race lingua/timing/retry), N2 (refresh all'avvio +
+default 6h + check al ritorno online), M18 (X→tray), M10 (badge via
+`currentEpisodeGuids`), M9 (parsing in utility process con fallback in-process), L3
+(redirect 301/308 con migrazione identità feed), changelog in-app, manuali PDF in-app
+(B1), ARCHITECTURE.md/CONTRIBUTING.md (B3/B4), riconciliazione archivio↔disco all'avvio,
+pulizia `.part` orfani. Dettaglio nel [changelog 1.4.0](changelog/1.4.0.md). Suite 312/312.
 
 ---
 

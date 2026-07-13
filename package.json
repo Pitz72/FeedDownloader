@@ -1,7 +1,7 @@
 {
   "name": "runtime-feeddownloader-pro",
   "private": true,
-  "version": "1.3.14",
+  "version": "1.4.0",
   "description": "Professional podcast archiving tool — batch download, network resilience, SHA-256 integrity",
   "author": {
     "name": "Simone Pizzi",
@@ -107,7 +107,22 @@
         "filter": [
           "README_*.md"
         ]
-      }
+      },
+      {
+        "from": "docs/changelog",
+        "to": "changelog",
+        "filter": [
+          "*.md"
+        ]
+      },
+      { "from": "docs/user/manual-it/Manuale_FeedDownloader_Pro_Box.pdf", "to": "manuals/it.pdf" },
+      { "from": "docs/user/en-GB/FeedDownloader_Pro_Manual_en-GB.pdf", "to": "manuals/en.pdf" },
+      { "from": "docs/user/fr-FR/FeedDownloader_Pro_Manual_fr-FR.pdf", "to": "manuals/fr.pdf" },
+      { "from": "docs/user/de-DE/FeedDownloader_Pro_Manual_de-DE.pdf", "to": "manuals/de.pdf" },
+      { "from": "docs/user/es-ES/FeedDownloader_Pro_Manual_es-ES.pdf", "to": "manuals/es.pdf" },
+      { "from": "docs/user/pt-PT/FeedDownloader_Pro_Manual_pt-PT.pdf", "to": "manuals/pt.pdf" },
+      { "from": "docs/user/ru-RU/FeedDownloader_Pro_Manual_ru-RU.pdf", "to": "manuals/ru.pdf" },
+      { "from": "docs/user/zh-CN/FeedDownloader_Pro_Manual_zh-CN.pdf", "to": "manuals/zh.pdf" }
     ],
     "win": {
       "target": "nsis",

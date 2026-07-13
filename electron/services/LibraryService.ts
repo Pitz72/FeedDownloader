@@ -36,6 +36,11 @@ export class LibraryService {
         this.db.removeFeed(url);
     }
 
+    /** L3: re-point a permanently-moved feed's URL, migrating its history. */
+    updateFeedUrl(oldUrl: string, newUrl: string): boolean {
+        return this.db.updateFeedUrl(oldUrl, newUrl);
+    }
+
     hasFeed(url: string): boolean {
         return this.db.hasFeed(url);
     }
@@ -59,6 +64,11 @@ export class LibraryService {
 
     updateEpisodeCount(url: string, count: number): void {
         this.db.updateEpisodeCount(url, count);
+    }
+
+    /** M10: persist the current-window GUIDs for accurate badge counts. */
+    setCurrentEpisodeGuids(url: string, guids: string[]): void {
+        this.db.setCurrentEpisodeGuids(url, guids);
     }
 
     // ── Downloads ────────────────────────────────────────────
@@ -160,6 +170,8 @@ export class LibraryService {
 
     getAutoRefreshInterval(): number { return this.db.getAutoRefreshInterval(); }
     setAutoRefreshInterval(hours: number): void { this.db.setAutoRefreshInterval(hours); }
+    /** N2: false when the user has never chosen an interval → seed a default. */
+    isAutoRefreshConfigured(): boolean { return this.db.getSetting('autoRefreshInterval') !== null; }
     getEpisodeCount(url: string): number | null { return this.db.getEpisodeCount(url); }
 
     // ── Known Episodes (F3-fix) ──────────────────────────────

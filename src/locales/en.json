@@ -261,7 +261,12 @@
           "auto_refresh_6h": "6 hours",
           "auto_refresh_12h": "12 hours",
           "auto_refresh_24h": "24 hours",
-          "reset_success": "Download history cleared."
+          "reset_success": "Download history cleared.",
+          "maintenance": "Maintenance",
+          "clean_parts": "Clean temporary files",
+          "clean_parts_desc": "Removes leftover .part temporary files from past interrupted downloads.",
+          "clean_parts_busy": "Wait for the current downloads to finish.",
+          "clean_parts_done": "Temporary files removed: {{n}}"
      },
      "onboarding": {
           "hint_url": "Paste an RSS feed URL in the bar above to get started",
@@ -285,7 +290,8 @@
           "read_manual": "READ MANUAL",
           "loading": "Loading documentation...",
           "error_loading": "Could not load documentation",
-          "footer_love": "Created with love by Runtime"
+          "footer_love": "Created with love by Runtime",
+          "open_pdf": "Open the full PDF manual"
      },
      "cmd": {
           "placeholder": "Search actions and feeds...",
@@ -307,7 +313,11 @@
      },
      "banner": {
           "offline": "You are offline · downloads are paused until the connection is restored",
-          "retrying_auto": "Retrying automatically"
+          "retrying_auto": "Retrying automatically",
+          "update_available": "Update available",
+          "update_downloading": "Downloading update… {{percent}}%",
+          "update_ready": "Update ready",
+          "update_install": "Restart & install"
      },
      "crumbs": {
           "all_archived": "All archived episodes",
@@ -325,5 +335,10 @@
      },
      "topbar": {
           "search_actions": "Search actions"
+     },
+     "changelog": {
+          "title": "What's new in this version",
+          "empty": "No release notes available for this version.",
+          "footer": "Runtime FeedDownloader · release notes"
      }
 }

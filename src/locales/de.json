@@ -261,7 +261,12 @@
           "auto_refresh_6h": "6 Stunden",
           "auto_refresh_12h": "12 Stunden",
           "auto_refresh_24h": "24 Stunden",
-          "reset_success": "Download-Verlauf gelöscht."
+          "reset_success": "Download-Verlauf gelöscht.",
+          "maintenance": "Wartung",
+          "clean_parts": "Temporäre Dateien bereinigen",
+          "clean_parts_desc": "Entfernt übrig gebliebene .part-Dateien aus früheren abgebrochenen Downloads.",
+          "clean_parts_busy": "Warten Sie, bis die laufenden Downloads abgeschlossen sind.",
+          "clean_parts_done": "Entfernte temporäre Dateien: {{n}}"
      },
      "onboarding": {
           "hint_url": "Fügen Sie die URL eines RSS-Feeds in die Leiste oben ein, um zu beginnen",
@@ -285,7 +290,8 @@
           "read_manual": "HANDBUCH LESEN",
           "loading": "Dokumentation wird geladen...",
           "error_loading": "Dokumentation konnte nicht geladen werden",
-          "footer_love": "Mit Liebe erstellt von Runtime"
+          "footer_love": "Mit Liebe erstellt von Runtime",
+          "open_pdf": "Vollständiges PDF-Handbuch öffnen"
      },
      "cmd": {
           "placeholder": "Aktionen und Feeds suchen...",
@@ -307,7 +313,11 @@
      },
      "banner": {
           "offline": "Sie sind offline · Downloads sind pausiert, bis die Verbindung wiederhergestellt ist",
-          "retrying_auto": "Automatischer Neuversuch"
+          "retrying_auto": "Automatischer Neuversuch",
+          "update_available": "Update verfügbar",
+          "update_downloading": "Update wird heruntergeladen… {{percent}} %",
+          "update_ready": "Update bereit",
+          "update_install": "Neu starten & installieren"
      },
      "crumbs": {
           "all_archived": "Alle archivierten Episoden",
@@ -325,5 +335,10 @@
      },
      "topbar": {
           "search_actions": "Aktionen suchen"
+     },
+     "changelog": {
+          "title": "Neuerungen in dieser Version",
+          "empty": "Keine Versionshinweise für diese Version verfügbar.",
+          "footer": "Runtime FeedDownloader · Versionshinweise"
      }
 }

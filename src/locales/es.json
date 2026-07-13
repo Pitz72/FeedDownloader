@@ -261,7 +261,12 @@
           "auto_refresh_6h": "6 horas",
           "auto_refresh_12h": "12 horas",
           "auto_refresh_24h": "24 horas",
-          "reset_success": "Historial de descargas borrado."
+          "reset_success": "Historial de descargas borrado.",
+          "maintenance": "Mantenimiento",
+          "clean_parts": "Limpiar archivos temporales",
+          "clean_parts_desc": "Elimina los archivos temporales .part de descargas interrumpidas anteriores.",
+          "clean_parts_busy": "Espera a que terminen las descargas en curso.",
+          "clean_parts_done": "Archivos temporales eliminados: {{n}}"
      },
      "onboarding": {
           "hint_url": "Pega la URL de un feed RSS en la barra de arriba para comenzar",
@@ -285,7 +290,8 @@
           "read_manual": "LEER MANUAL",
           "loading": "Cargando documentación...",
           "error_loading": "No se pudo cargar la documentación",
-          "footer_love": "Creado con amor por Runtime"
+          "footer_love": "Creado con amor por Runtime",
+          "open_pdf": "Abrir el manual completo en PDF"
      },
      "cmd": {
           "placeholder": "Buscar acciones y feeds...",
@@ -307,7 +313,11 @@
      },
      "banner": {
           "offline": "Estás sin conexión · las descargas están en pausa hasta que se restablezca la conexión",
-          "retrying_auto": "Reintentando automáticamente"
+          "retrying_auto": "Reintentando automáticamente",
+          "update_available": "Actualización disponible",
+          "update_downloading": "Descargando actualización… {{percent}} %",
+          "update_ready": "Actualización lista",
+          "update_install": "Reiniciar e instalar"
      },
      "crumbs": {
           "all_archived": "Todos los episodios archivados",
@@ -325,5 +335,10 @@
      },
      "topbar": {
           "search_actions": "Buscar acciones"
+     },
+     "changelog": {
+          "title": "Novedades de esta versión",
+          "empty": "No hay notas de la versión disponibles para esta versión.",
+          "footer": "Runtime FeedDownloader · notas de la versión"
      }
 }

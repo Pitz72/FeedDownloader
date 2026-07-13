@@ -15,8 +15,13 @@ export default defineConfig({
     react(),
     electron({
       main: {
-        // Shortcut of `build.lib.entry`.
-        entry: 'electron/main.ts',
+        // Shortcut of `build.lib.entry`. M9: a second entry (feedWorker) is
+        // emitted alongside main.js into dist-electron so it can be forked as a
+        // utility process for off-main-thread feed parsing.
+        entry: {
+          main: 'electron/main.ts',
+          feedWorker: 'electron/workers/feedWorker.ts',
+        },
         vite: {
           build: {
             rollupOptions: {

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Feed, DownloadProgress, QueueItem, FailedDownload } from '../types';
+import type { Feed, DownloadProgress, QueueItem, FailedDownload, UpdateStatus } from '../types';
 
 const speedCache = new Map<string, { loaded: number; time: number }>();
 
@@ -44,6 +44,13 @@ export interface AppState {
     // G1 — Download panel visibility
     downloadPanelOpen: boolean;
     setDownloadPanelOpen: (open: boolean) => void;
+
+    // N1 — auto-update status (persistent in-app banner + Settings)
+    updateStatus: UpdateStatus;
+    setUpdateStatus: (status: UpdateStatus) => void;
+    // dismissed by the user for the current status episode
+    updateBannerDismissed: boolean;
+    setUpdateBannerDismissed: (dismissed: boolean) => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -165,4 +172,10 @@ export const useStore = create<AppState>((set) => ({
     // G1 — Download panel visibility
     downloadPanelOpen: false,
     setDownloadPanelOpen: (open) => set({ downloadPanelOpen: open }),
+
+    // N1 — auto-update status
+    updateStatus: { type: 'idle' },
+    setUpdateStatus: (status) => set({ updateStatus: status, updateBannerDismissed: false }),
+    updateBannerDismissed: false,
+    setUpdateBannerDismissed: (dismissed) => set({ updateBannerDismissed: dismissed }),
 }));

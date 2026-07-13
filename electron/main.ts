@@ -26,6 +26,12 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 
 let win: BrowserWindow | null
 let tray: Tray | null = null
 
+// M18: distinguish "user closed the window" (→ hide to tray, keep running so the
+// background refresh N2 can keep polling) from "app is really quitting" (tray
+// Quit, app.quit(), OS shutdown). Only a real quit lets the window close.
+let isQuitting = false
+app.on('before-quit', () => { isQuitting = true; })
+
 // S8: two instances would open the same SQLite file (intermittent "database is
 // locked" errors, duplicate tray icons, timers and downloads). Re-launching the
 // app must focus the existing window instead.
@@ -198,6 +204,17 @@ function createWindow() {
     }
     if (template.length > 0) {
       Menu.buildFromTemplate(template).popup({ window: win! });
+    }
+  });
+
+  // M18: the X (or Alt+F4) hides the window into the system tray instead of
+  // quitting — but only when a tray icon actually exists to bring it back.
+  // Without a tray (creation failed, or a headless/edge Linux DE) closing must
+  // still quit, otherwise the app becomes an unreachable ghost process.
+  win.on('close', (event) => {
+    if (!isQuitting && tray && !win?.isDestroyed()) {
+      event.preventDefault();
+      win?.hide();
     }
   });
 

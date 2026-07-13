@@ -75,6 +75,14 @@ declare global {
             // Auto-Refresh (F3)
             getAutoRefreshInterval: () => Promise<number>;
             setAutoRefreshInterval: (hours: number) => Promise<boolean>;
+            // N2 — connectivity regained
+            notifyOnline: () => Promise<boolean>;
+            // Changelog in-app (v1.4.0)
+            getChangelog: (version?: string) => Promise<string>;
+            // B1 — open bundled PDF manual for a language
+            openManualPdf: (lang: string) => Promise<boolean>;
+            // Maintenance — clean orphaned .part files
+            cleanPartFiles: () => Promise<number>;
         };
     }
 }

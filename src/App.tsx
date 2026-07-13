@@ -8,7 +8,10 @@ import { CommandPalette } from './components/CommandPalette';
 import { IntroScreen } from './components/IntroScreen';
 import { SettingsModal } from './components/SettingsModal';
 import { OnboardHero } from './components/OnboardHero';
+import { UpdateBanner } from './components/UpdateBanner';
+import { ChangelogModal } from './components/ChangelogModal';
 import { useStore, AppState } from './store/useStore';
+import type { UpdateStatus } from '../shared/types';
 import { ToastProvider, useToast } from './context/ToastContext';
 import { useTranslation } from 'react-i18next';
 import { AnimatePresence } from 'framer-motion';
@@ -121,6 +124,21 @@ function AppContent() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isChangelogOpen, setIsChangelogOpen] = useState(false);
+
+  // Changelog in-app: auto-show once right after the app updates to a new version,
+  // and on demand via the Settings button (which dispatches this event).
+  useEffect(() => {
+    const KEY = 'lastSeenChangelogVersion';
+    const seen = localStorage.getItem(KEY);
+    if (seen && seen !== __APP_VERSION__) {
+      setIsChangelogOpen(true);
+    }
+    localStorage.setItem(KEY, __APP_VERSION__);
+    const open = () => setIsChangelogOpen(true);
+    window.addEventListener('feeddownloader:changelog', open);
+    return () => window.removeEventListener('feeddownloader:changelog', open);
+  }, []);
 
   // Onboarding (G7 — first run, no feeds)
   useEffect(() => {
@@ -142,7 +160,11 @@ function AppContent() {
   }, [showOnboarding]);
 
   useEffect(() => {
-    const handleOnline  = () => setIsOnline(true);
+    const handleOnline  = () => {
+      setIsOnline(true);
+      // N2: ask main to re-check feeds now that connectivity is back
+      window.api.notifyOnline?.().catch(() => { });
+    };
     const handleOffline = () => setIsOnline(false);
     window.addEventListener('online',  handleOnline);
     window.addEventListener('offline', handleOffline);
@@ -247,6 +269,9 @@ function AppContent() {
       {/* Settings modal — root level */}
       <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
 
+      {/* Changelog modal — root level */}
+      <ChangelogModal isOpen={isChangelogOpen} onClose={() => setIsChangelogOpen(false)} />
+
       {/* Main area */}
       <main className="main" style={!isOnline ? { marginTop: 36 } : undefined}>
 
@@ -261,6 +286,7 @@ function AppContent() {
             </div>
           </div>
           <div className="topbar-actions">
+            <UpdateBanner />
             <button
               type="button"
               className="kbd-pill"
@@ -324,6 +350,16 @@ function AppContent() {
 
 function App() {
   const [appStarted, setAppStarted] = useState(false);
+  const setUpdateStatus = useStore((state: AppState) => state.setUpdateStatus);
+
+  // N1: subscribe at the very top so an "update available" pushed while the
+  // IntroScreen is still showing isn't lost before AppContent mounts.
+  useEffect(() => {
+    const remove = window.api.onUpdateStatus((_e, status: UpdateStatus) => {
+      setUpdateStatus(status);
+    });
+    return () => remove();
+  }, [setUpdateStatus]);
 
   return (
     <ToastProvider>

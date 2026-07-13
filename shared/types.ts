@@ -219,4 +219,12 @@ export const IPC_CHANNELS = {
     // Auto-refresh (F3)
     GET_AUTO_REFRESH_INTERVAL: 'get-auto-refresh-interval',
     SET_AUTO_REFRESH_INTERVAL: 'set-auto-refresh-interval',
+    // N2 — renderer tells main it regained connectivity → trigger a refresh
+    NOTIFY_ONLINE: 'notify-online',
+    // Changelog in-app (v1.4.0)
+    GET_CHANGELOG: 'get-changelog',
+    // B1 — open the bundled PDF manual for the current language
+    OPEN_MANUAL_PDF: 'open-manual-pdf',
+    // Maintenance (v1.4.0) — remove orphaned .part temp files
+    CLEAN_PART_FILES: 'clean-part-files',
 } as const;

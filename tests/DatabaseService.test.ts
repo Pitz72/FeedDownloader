@@ -216,4 +216,83 @@ describe('DatabaseService', () => {
             expect(db.getSetting('nonexistent')).toBeNull();
         });
     });
+
+    // ── M10: rolling-window-safe badge count ─────────────────
+    describe('newCount from currentEpisodeGuids (M10)', () => {
+        const url = 'https://ex.com/feed';
+
+        it('counts current-window guids not yet downloaded', () => {
+            db.addFeed({ url, title: 'Feed' });
+            db.setCurrentEpisodeGuids(url, ['a', 'b', 'c']);
+            db.markAsDownloaded('a', url);
+            expect(db.getFeeds()[0].newCount).toBe(2);
+        });
+
+        it('is 0 when every current episode is downloaded', () => {
+            db.addFeed({ url, title: 'Feed' });
+            db.setCurrentEpisodeGuids(url, ['a', 'b']);
+            db.markAsDownloaded('a', url);
+            db.markAsDownloaded('b', url);
+            expect(db.getFeeds()[0].newCount).toBe(0);
+        });
+
+        it('does not go negative when downloads fell out of the rolling window', () => {
+            // window is [c, d]; a and b were downloaded long ago but rolled off
+            db.addFeed({ url, title: 'Feed' });
+            db.setCurrentEpisodeGuids(url, ['c', 'd']);
+            db.markAsDownloaded('a', url);
+            db.markAsDownloaded('b', url);
+            db.markAsDownloaded('c', url);
+            // only d is new (c downloaded); the stale a/b must not distort it
+            expect(db.getFeeds()[0].newCount).toBe(1);
+        });
+
+        it('treats legacy feedUrl="" downloads as matching any feed', () => {
+            db.addFeed({ url, title: 'Feed' });
+            db.setCurrentEpisodeGuids(url, ['a', 'b']);
+            db.markAsDownloaded('a', ''); // legacy row
+            expect(db.getFeeds()[0].newCount).toBe(1);
+        });
+
+        it('falls back to episodeCount − downloaded when no current guids stored', () => {
+            db.addFeed({ url, title: 'Feed' });
+            db.updateEpisodeCount(url, 5);
+            // no setCurrentEpisodeGuids → legacy path
+            expect(db.getFeeds()[0].newCount).toBe(5);
+        });
+    });
+
+    // ── L3: permanent-redirect feed URL migration ────────────
+    describe('updateFeedUrl (L3)', () => {
+        const oldUrl = 'https://old.com/feed';
+        const newUrl = 'https://new.com/feed';
+
+        it('re-points the feed and carries downloads/archive/known across', () => {
+            db.addFeed({ url: oldUrl, title: 'Feed' });
+            db.markAsDownloaded('g1', oldUrl);
+            db.recordDownload({ guid: 'g1', feedUrl: oldUrl, podcastTitle: 'Feed', title: 'E1', pubDate: '', downloadedAt: '' });
+            db.markGuidsAsKnown(oldUrl, ['g1', 'g2']);
+
+            expect(db.updateFeedUrl(oldUrl, newUrl)).toBe(true);
+
+            expect(db.hasFeed(oldUrl)).toBe(false);
+            expect(db.hasFeed(newUrl)).toBe(true);
+            expect(db.isDownloaded('g1', newUrl)).toBe(true);
+            expect(db.getKnownGuids(newUrl).has('g2')).toBe(true);
+            expect(db.getKnownGuids(oldUrl).size).toBe(0);
+        });
+
+        it('refuses to migrate onto an already-existing feed', () => {
+            db.addFeed({ url: oldUrl, title: 'A' });
+            db.addFeed({ url: newUrl, title: 'B' });
+            expect(db.updateFeedUrl(oldUrl, newUrl)).toBe(false);
+            expect(db.hasFeed(oldUrl)).toBe(true);
+        });
+
+        it('is a no-op for unknown or identical URLs', () => {
+            expect(db.updateFeedUrl('https://missing.com/f', newUrl)).toBe(false);
+            db.addFeed({ url: oldUrl, title: 'A' });
+            expect(db.updateFeedUrl(oldUrl, oldUrl)).toBe(false);
+        });
+    });
 });

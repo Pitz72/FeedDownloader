@@ -131,6 +131,49 @@ export class FeedService {
   }
 
   /**
+   * L3: detect a PERMANENT redirect (HTTP 301 / 308) on the feed's own URL.
+   *
+   * Returns the validated absolute target when the URL has permanently moved, or
+   * null otherwise (temporary 302/303/307 redirects, no redirect, unsafe target,
+   * or any network error — in all of which the stored URL must be left untouched).
+   *
+   * A single hop is probed with `maxRedirects: 0` so we can read the status code
+   * directly; the SSRF-safe agents still validate the resolved IP, and the
+   * Location is run through `validateUrl` before it can replace a feed's identity.
+   */
+  async checkPermanentRedirect(url: string): Promise<string | null> {
+    try {
+      const res = await axios.get(url, {
+        ...SAFE_AXIOS_CONFIG,
+        maxRedirects: 0,
+        timeout: 8000,
+        responseType: 'arraybuffer',
+        maxContentLength: 1024 * 1024,
+        maxBodyLength: 1024 * 1024,
+        // accept 2xx and 3xx so a 301/308 doesn't throw
+        validateStatus: (s) => s >= 200 && s < 400,
+      });
+      if (res.status !== 301 && res.status !== 308) return null;
+      const loc = res.headers['location'];
+      if (typeof loc !== 'string' || !loc) return null;
+      let absolute: string;
+      try {
+        absolute = new URL(loc, url).toString();
+      } catch {
+        return null;
+      }
+      if (absolute === url) return null;
+      if (!validateUrl(absolute).valid) {
+        console.warn(`[FeedService] Ignoring unsafe permanent-redirect target: ${absolute}`);
+        return null;
+      }
+      return absolute;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
    * Parse a feed (following RFC 5005 pagination).
    *
    * M6: pass `conditional` (stored ETag/Last-Modified) to make the first-page

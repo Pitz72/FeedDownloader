@@ -260,7 +260,12 @@
           "auto_refresh_6h": "6 小时",
           "auto_refresh_12h": "12 小时",
           "auto_refresh_24h": "24 小时",
-          "reset_success": "下载历史已清除。"
+          "reset_success": "下载历史已清除。",
+          "maintenance": "维护",
+          "clean_parts": "清理临时文件",
+          "clean_parts_desc": "删除以往中断下载遗留的 .part 临时文件。",
+          "clean_parts_busy": "请等待当前下载完成。",
+          "clean_parts_done": "已删除临时文件：{{n}}"
      },
      "onboarding": {
           "hint_url": "在上方栏中粘贴 RSS 订阅源链接以开始使用",
@@ -284,7 +289,8 @@
           "read_manual": "阅读手册",
           "loading": "正在加载文档...",
           "error_loading": "无法加载文档",
-          "footer_love": "由 Runtime 用心创建"
+          "footer_love": "由 Runtime 用心创建",
+          "open_pdf": "打开完整的 PDF 手册"
      },
      "cmd": {
           "placeholder": "搜索操作和订阅...",
@@ -306,7 +312,11 @@
      },
      "banner": {
           "offline": "您已离线 · 下载已暂停，恢复连接后将继续",
-          "retrying_auto": "自动重试中"
+          "retrying_auto": "自动重试中",
+          "update_available": "有可用更新",
+          "update_downloading": "正在下载更新… {{percent}}%",
+          "update_ready": "更新已就绪",
+          "update_install": "重启并安装"
      },
      "crumbs": {
           "all_archived": "所有已归档剧集",
@@ -324,5 +334,10 @@
      },
      "topbar": {
           "search_actions": "搜索操作"
+     },
+     "changelog": {
+          "title": "此版本的新功能",
+          "empty": "此版本没有可用的发行说明。",
+          "footer": "Runtime FeedDownloader · 发行说明"
      }
 }

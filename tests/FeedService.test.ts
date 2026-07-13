@@ -200,4 +200,41 @@ describe('FeedService', () => {
         // Second call must use the absolute, resolved URL.
         expect(get.mock.calls[1][0]).toBe('https://example.com/feed?page=2');
     });
+
+    // ── L3: permanent-redirect detection ─────────────────────
+    describe('checkPermanentRedirect', () => {
+        const get = () => axios.get as ReturnType<typeof vi.fn>;
+
+        it('returns the resolved target on a 301', async () => {
+            get().mockResolvedValue({ status: 301, headers: { location: 'https://new.example.com/feed.xml' } });
+            const moved = await service.checkPermanentRedirect('https://old.example.com/feed.xml');
+            expect(moved).toBe('https://new.example.com/feed.xml');
+        });
+
+        it('resolves a relative Location against the original URL', async () => {
+            get().mockResolvedValue({ status: 308, headers: { location: '/v2/feed.xml' } });
+            const moved = await service.checkPermanentRedirect('https://ex.com/feed.xml');
+            expect(moved).toBe('https://ex.com/v2/feed.xml');
+        });
+
+        it('returns null for a temporary (302) redirect', async () => {
+            get().mockResolvedValue({ status: 302, headers: { location: 'https://new.example.com/feed.xml' } });
+            expect(await service.checkPermanentRedirect('https://old.example.com/feed.xml')).toBeNull();
+        });
+
+        it('returns null when a 301 has no Location header', async () => {
+            get().mockResolvedValue({ status: 301, headers: {} });
+            expect(await service.checkPermanentRedirect('https://old.example.com/feed.xml')).toBeNull();
+        });
+
+        it('rejects an unsafe (private-host) redirect target', async () => {
+            get().mockResolvedValue({ status: 301, headers: { location: 'http://127.0.0.1/feed.xml' } });
+            expect(await service.checkPermanentRedirect('https://old.example.com/feed.xml')).toBeNull();
+        });
+
+        it('returns null on a network error', async () => {
+            get().mockRejectedValue(new Error('ECONNREFUSED'));
+            expect(await service.checkPermanentRedirect('https://old.example.com/feed.xml')).toBeNull();
+        });
+    });
 });

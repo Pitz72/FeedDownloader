@@ -261,7 +261,12 @@
           "auto_refresh_6h": "6 horas",
           "auto_refresh_12h": "12 horas",
           "auto_refresh_24h": "24 horas",
-          "reset_success": "Histórico de descargas limpo."
+          "reset_success": "Histórico de descargas limpo.",
+          "maintenance": "Manutenção",
+          "clean_parts": "Limpar ficheiros temporários",
+          "clean_parts_desc": "Remove os ficheiros temporários .part deixados por descargas interrompidas.",
+          "clean_parts_busy": "Aguarde o fim das descargas em curso.",
+          "clean_parts_done": "Ficheiros temporários removidos: {{n}}"
      },
      "onboarding": {
           "hint_url": "Cole o URL de um feed RSS na barra acima para começar",
@@ -285,7 +290,8 @@
           "read_manual": "LER MANUAL",
           "loading": "A carregar documentação...",
           "error_loading": "Não foi possível carregar a documentação",
-          "footer_love": "Criado com amor pela Runtime"
+          "footer_love": "Criado com amor pela Runtime",
+          "open_pdf": "Abrir o manual completo em PDF"
      },
      "cmd": {
           "placeholder": "Pesquisar ações e feeds...",
@@ -307,7 +313,11 @@
      },
      "banner": {
           "offline": "Está offline · as descargas estão em pausa até a ligação ser restabelecida",
-          "retrying_auto": "A tentar novamente automaticamente"
+          "retrying_auto": "A tentar novamente automaticamente",
+          "update_available": "Atualização disponível",
+          "update_downloading": "A descarregar atualização… {{percent}} %",
+          "update_ready": "Atualização pronta",
+          "update_install": "Reiniciar e instalar"
      },
      "crumbs": {
           "all_archived": "Todos os episódios arquivados",
@@ -325,5 +335,10 @@
      },
      "topbar": {
           "search_actions": "Pesquisar ações"
+     },
+     "changelog": {
+          "title": "Novidades desta versão",
+          "empty": "Não há notas de versão disponíveis para esta versão.",
+          "footer": "Runtime FeedDownloader · notas de versão"
      }
 }

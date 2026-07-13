@@ -118,6 +118,10 @@ export class DatabaseService {
             // M6: HTTP validators for conditional feed refresh (304)
             'ALTER TABLE feeds ADD COLUMN httpEtag TEXT',
             'ALTER TABLE feeds ADD COLUMN httpLastModified TEXT',
+            // M10: JSON array of the GUIDs in the feed's CURRENT window — the badge
+            // is derived from these (minus what's downloaded), not from
+            // episodeCount − downloaded, which mis-counts rolling-window feeds.
+            'ALTER TABLE feeds ADD COLUMN currentEpisodeGuids TEXT',
         ]) {
             try {
                 this.db.exec(sql);
@@ -201,39 +205,81 @@ export class DatabaseService {
 
     getFeeds(): FeedEntry[] {
         const feeds = this.db.prepare(
-            'SELECT url, title, image, lastUpdated, episodeCount FROM feeds ORDER BY rowid'
-        ).all() as (FeedEntry & { episodeCount: number | null })[];
+            'SELECT url, title, image, lastUpdated, episodeCount, currentEpisodeGuids FROM feeds ORDER BY rowid'
+        ).all() as (FeedEntry & { episodeCount: number | null; currentEpisodeGuids: string | null })[];
 
-        // Downloaded-count correlation (B6): prefer feedUrl (exact), fall back to
-        // podcastTitle for legacy rows written before feedUrl existed. Title-only
-        // correlation mis-attributed counts across feeds sharing a title or after
-        // a feed was renamed.
+        // M10: badge = episodes in the CURRENT feed window that aren't downloaded.
+        // The old "episodeCount − downloaded" formula broke for rolling-window
+        // feeds: once old downloaded episodes drop out of the window, `downloaded`
+        // exceeds `episodeCount` and the badge sticks at 0 even when genuinely new
+        // episodes appear. We now diff the persisted current-window GUIDs against
+        // the downloads table directly. `downloadedByFeed` maps feedUrl → its GUIDs;
+        // legacy rows (feedUrl = '') match any feed, so they're a shared fallback.
+        const dlRows = this.db.prepare('SELECT guid, feedUrl FROM downloads').all() as { guid: string; feedUrl: string }[];
+        const downloadedByFeed = new Map<string, Set<string>>();
+        const legacyDownloaded = new Set<string>();
+        for (const r of dlRows) {
+            if (r.feedUrl === '') { legacyDownloaded.add(r.guid); continue; }
+            let set = downloadedByFeed.get(r.feedUrl);
+            if (!set) { set = new Set(); downloadedByFeed.set(r.feedUrl, set); }
+            set.add(r.guid);
+        }
+
+        // Fallback maps for feeds that haven't been re-parsed since the M10 upgrade
+        // (currentEpisodeGuids still null): keep the previous count-based estimate.
         const byUrl = this.db.prepare(
             "SELECT feedUrl, COUNT(*) AS cnt FROM archive WHERE feedUrl IS NOT NULL AND feedUrl != '' GROUP BY feedUrl"
         ).all() as { feedUrl: string; cnt: number }[];
         const urlMap = new Map(byUrl.map(r => [r.feedUrl, r.cnt]));
-
         const byTitle = this.db.prepare(
             "SELECT podcastTitle, COUNT(*) AS cnt FROM archive WHERE feedUrl IS NULL OR feedUrl = '' GROUP BY podcastTitle"
         ).all() as { podcastTitle: string; cnt: number }[];
         const titleMap = new Map(byTitle.map(r => [r.podcastTitle, r.cnt]));
 
         return feeds.map(f => {
-            const downloaded = (urlMap.get(f.url) ?? 0) + (titleMap.get(f.title) ?? 0);
+            let newCount: number | null;
+            const currentGuids = this.parseGuidList(f.currentEpisodeGuids);
+            if (currentGuids) {
+                const feedDl = downloadedByFeed.get(f.url);
+                newCount = currentGuids.reduce((acc, g) =>
+                    acc + ((feedDl?.has(g) || legacyDownloaded.has(g)) ? 0 : 1), 0);
+            } else {
+                const downloaded = (urlMap.get(f.url) ?? 0) + (titleMap.get(f.title) ?? 0);
+                newCount = f.episodeCount != null ? Math.max(0, f.episodeCount - downloaded) : null;
+            }
             return {
                 url: f.url,
                 title: f.title,
                 image: f.image,
                 lastUpdated: f.lastUpdated,
-                newCount: f.episodeCount != null
-                    ? Math.max(0, f.episodeCount - downloaded)
-                    : null,
+                newCount,
             };
         });
     }
 
+    /** M10: parse a stored JSON GUID array; null/corrupt → null (use fallback). */
+    private parseGuidList(raw: string | null): string[] | null {
+        if (!raw) return null;
+        try {
+            const parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed.filter((g): g is string => typeof g === 'string') : null;
+        } catch {
+            return null;
+        }
+    }
+
     updateEpisodeCount(url: string, count: number): void {
         this.db.prepare('UPDATE feeds SET episodeCount = ? WHERE url = ?').run(count, url);
+    }
+
+    /**
+     * M10: persist the GUIDs in the feed's current window so the sidebar badge
+     * can be computed as "current episodes not yet downloaded". Called after every
+     * successful parse / background refresh, where the current window is known.
+     */
+    setCurrentEpisodeGuids(url: string, guids: string[]): void {
+        const unique = Array.from(new Set(guids.filter(g => typeof g === 'string' && g.length > 0)));
+        this.db.prepare('UPDATE feeds SET currentEpisodeGuids = ? WHERE url = ?').run(JSON.stringify(unique), url);
     }
 
     addFeed(feed: FeedEntry): void {
@@ -249,6 +295,29 @@ export class DatabaseService {
 
     removeFeed(url: string): void {
         this.db.prepare('DELETE FROM feeds WHERE url = ?').run(url);
+    }
+
+    /**
+     * L3: a feed permanently moved (301/308) — re-point its identity to the new
+     * URL, carrying every dependent row across (the feed URL is a foreign key in
+     * downloads / archive / known_episodes). Skipped when the target URL is
+     * already a known feed, to avoid PRIMARY KEY collisions. The child updates
+     * use OR IGNORE + a cleanup DELETE so a rare pre-existing (guid, newUrl) row
+     * doesn't abort the whole migration. Returns true when the move happened.
+     */
+    updateFeedUrl(oldUrl: string, newUrl: string): boolean {
+        if (!oldUrl || !newUrl || oldUrl === newUrl) return false;
+        if (!this.hasFeed(oldUrl) || this.hasFeed(newUrl)) return false;
+        const tx = this.db.transaction(() => {
+            this.db.prepare('UPDATE feeds SET url = ? WHERE url = ?').run(newUrl, oldUrl);
+            for (const table of ['downloads', 'archive', 'known_episodes']) {
+                this.db.prepare(`UPDATE OR IGNORE ${table} SET feedUrl = ? WHERE feedUrl = ?`).run(newUrl, oldUrl);
+                this.db.prepare(`DELETE FROM ${table} WHERE feedUrl = ?`).run(oldUrl);
+            }
+        });
+        tx();
+        console.log(`[DB] Feed permanently moved: ${oldUrl} → ${newUrl}`);
+        return true;
     }
 
     hasFeed(url: string): boolean {

@@ -42,4 +42,11 @@ i18n.on('languageChanged', (lng: string) => {
     }
 });
 
+// N1: push the resolved locale to main once at startup (languageChanged doesn't
+// fire for the initially-detected language). This both localizes OS
+// notifications and, in main, releases the boot update check (SET_LOCALE gate).
+if (typeof window !== 'undefined' && window.api?.setLocale) {
+    window.api.setLocale(i18n.language);
+}
+
 export default i18n;

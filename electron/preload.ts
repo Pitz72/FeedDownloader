@@ -129,4 +129,16 @@ contextBridge.exposeInMainWorld('api', {
   // Auto-Refresh (F3)
   getAutoRefreshInterval: (): Promise<number> => ipcRenderer.invoke(CH.GET_AUTO_REFRESH_INTERVAL),
   setAutoRefreshInterval: (hours: number): Promise<boolean> => ipcRenderer.invoke(CH.SET_AUTO_REFRESH_INTERVAL, hours),
+
+  // N2 — notify main the app regained connectivity
+  notifyOnline: (): Promise<boolean> => ipcRenderer.invoke(CH.NOTIFY_ONLINE),
+
+  // Changelog in-app (v1.4.0)
+  getChangelog: (version?: string): Promise<string> => ipcRenderer.invoke(CH.GET_CHANGELOG, version),
+
+  // B1 — open the bundled PDF manual for a language
+  openManualPdf: (lang: string): Promise<boolean> => ipcRenderer.invoke(CH.OPEN_MANUAL_PDF, lang),
+
+  // Maintenance — delete orphaned .part temp files, returns how many were removed
+  cleanPartFiles: (): Promise<number> => ipcRenderer.invoke(CH.CLEAN_PART_FILES),
 })

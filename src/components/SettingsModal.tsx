@@ -29,6 +29,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     const [healthResult, setHealthResult] = useState<import('../../shared/types').HealthCheckResult | null>(null);
     const [isHealthChecking, setIsHealthChecking] = useState(false);
     const [isMarkingMissing, setIsMarkingMissing] = useState(false);
+    const [isCleaningParts, setIsCleaningParts] = useState(false);
     const [isLoadingSettings, setIsLoadingSettings] = useState(false);
     const [activeCategory, setActiveCategory] = useState<NavCategory>('general');
     const [autoRefreshInterval, setAutoRefreshInterval] = useState<number>(0);
@@ -355,7 +356,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                 </div>
 
                                                 {/* Help Section */}
-                                                <div className="space-y-3 pt-4" style={{ borderTop: '1px solid rgba(65,71,85,0.15)' }}>
+                                                <div className="space-y-2 pt-4" style={{ borderTop: '1px solid rgba(65,71,85,0.15)' }}>
                                                     <button
                                                         onClick={() => setIsHelpOpen(true)}
                                                         className="hover-bg-container w-full flex items-center justify-between p-3 rounded-lg transition-all"
@@ -367,6 +368,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                         </span>
                                                         <span className="text-xs px-2 py-1 rounded" style={{ background: 'var(--color-surface-container-high)', color: 'var(--color-on-surface-variant)' }}>
                                                             README
+                                                        </span>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => window.dispatchEvent(new CustomEvent('feeddownloader:changelog'))}
+                                                        className="hover-bg-container w-full flex items-center justify-between p-3 rounded-lg transition-all"
+                                                        style={{ ...rowCardStyle, display: 'flex' }}
+                                                    >
+                                                        <span className="flex items-center gap-2" style={{ color: 'var(--color-on-surface-variant)' }}>
+                                                            <Icon name="auto_awesome" size={18} style={{ color: 'var(--color-primary)' }} />
+                                                            {t('changelog.title', "Novità di questa versione")}
+                                                        </span>
+                                                        <span className="text-xs px-2 py-1 rounded" style={{ background: 'var(--color-surface-container-high)', color: 'var(--color-on-surface-variant)' }}>
+                                                            v{__APP_VERSION__}
                                                         </span>
                                                     </button>
                                                 </div>
@@ -740,6 +754,36 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                             {t('settings.update_check')}
                                                         </button>
                                                     )}
+                                                </div>
+
+                                                {/* Maintenance */}
+                                                <div className="space-y-3" style={{ borderTop: '1px solid rgba(65,71,85,0.15)', paddingTop: '1.5rem' }}>
+                                                    <h3 style={sectionHeading('var(--color-primary)')}>
+                                                        <Icon name="cleaning_services" size={14} />
+                                                        {t('settings.maintenance', 'Manutenzione')}
+                                                    </h3>
+                                                    <p className="text-xs" style={{ color: 'var(--color-on-surface-variant)', opacity: 0.65 }}>{t('settings.clean_parts_desc', 'Rimuove i file temporanei .part rimasti da download interrotti in passato.')}</p>
+                                                    <button
+                                                        onClick={async () => {
+                                                            setIsCleaningParts(true);
+                                                            try {
+                                                                const removed = await window.api.cleanPartFiles();
+                                                                if (removed < 0) {
+                                                                    toast.show(t('settings.clean_parts_busy', 'Attendi la fine dei download in corso.'), 'error');
+                                                                } else {
+                                                                    toast.show(t('settings.clean_parts_done', { n: removed }), 'success');
+                                                                }
+                                                            } finally {
+                                                                setIsCleaningParts(false);
+                                                            }
+                                                        }}
+                                                        disabled={isCleaningParts || isBatchDownloading}
+                                                        className="hover-bg-container w-full flex items-center justify-center gap-2 p-2 rounded-lg text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        style={{ ...rowCardStyle, display: 'flex', justifyContent: 'center', color: 'var(--color-on-surface-variant)' }}
+                                                    >
+                                                        <Icon name={isCleaningParts ? 'refresh' : 'cleaning_services'} size={16} className={isCleaningParts ? 'animate-spin' : ''} style={{ color: 'var(--color-primary)' }} />
+                                                        {t('settings.clean_parts', 'Pulisci file temporanei')}
+                                                    </button>
                                                 </div>
 
                                                 {/* Danger Zone */}

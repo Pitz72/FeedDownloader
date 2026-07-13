@@ -261,7 +261,12 @@
           "auto_refresh_6h": "6 ore",
           "auto_refresh_12h": "12 ore",
           "auto_refresh_24h": "24 ore",
-          "reset_success": "Storico download cancellato."
+          "reset_success": "Storico download cancellato.",
+          "maintenance": "Manutenzione",
+          "clean_parts": "Pulisci file temporanei",
+          "clean_parts_desc": "Rimuove i file temporanei .part rimasti da download interrotti in passato.",
+          "clean_parts_busy": "Attendi la fine dei download in corso.",
+          "clean_parts_done": "File temporanei rimossi: {{n}}"
      },
      "onboarding": {
           "hint_url": "Incolla l'URL di un feed RSS nella barra qui sopra per iniziare",
@@ -285,7 +290,8 @@
           "read_manual": "LEGGI LA GUIDA",
           "loading": "Caricamento documentazione...",
           "error_loading": "Impossibile caricare la documentazione",
-          "footer_love": "Creato con amore da Runtime"
+          "footer_love": "Creato con amore da Runtime",
+          "open_pdf": "Apri il manuale completo in PDF"
      },
      "cmd": {
           "placeholder": "Cerca azioni e feed...",
@@ -307,7 +313,11 @@
      },
      "banner": {
           "offline": "Sei offline · i download sono in pausa fino al ripristino della connessione",
-          "retrying_auto": "Riprovo automaticamente"
+          "retrying_auto": "Riprovo automaticamente",
+          "update_available": "Aggiornamento disponibile",
+          "update_downloading": "Scaricamento aggiornamento… {{percent}}%",
+          "update_ready": "Aggiornamento pronto",
+          "update_install": "Riavvia e installa"
      },
      "crumbs": {
           "all_archived": "Tutti gli episodi archiviati",
@@ -325,5 +335,10 @@
      },
      "topbar": {
           "search_actions": "Cerca azioni"
+     },
+     "changelog": {
+          "title": "Novità di questa versione",
+          "empty": "Nessuna nota di rilascio disponibile per questa versione.",
+          "footer": "Runtime FeedDownloader · note di rilascio"
      }
 }
