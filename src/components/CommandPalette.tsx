@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useStore, AppState } from '../store/useStore';
 import type { FeedEntry } from '../../shared/types';
+import { CoverImage } from './CoverImage';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 const isMac = document.documentElement.dataset.platform === 'darwin';
 
@@ -53,6 +55,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose, onOpenS
     const [activeIdx, setActiveIdx] = useState(0);
     const inputRef = useRef<HTMLInputElement>(null);
     const listRef = useRef<HTMLDivElement>(null);
+    // Mounted only while open, so the trap is always active here.
+    const trapRef = useFocusTrap<HTMLDivElement>(true);
     // S9: only the latest parseFeed request may update state (stale responses are dropped)
     const latestRequestRef = useRef<string | null>(null);
 
@@ -211,12 +215,17 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose, onOpenS
     return (
         <div className="palette-bg" onClick={onClose}>
             <motion.div
+                ref={trapRef}
                 className="palette"
                 initial={{ opacity: 0, scale: 0.96, y: -8 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.96, y: -8 }}
                 transition={{ type: 'spring', damping: 28, stiffness: 300 }}
                 onClick={e => e.stopPropagation()}
+                role="dialog"
+                aria-modal="true"
+                aria-label={t('cmd.placeholder', 'Cerca azione, feed, episodio…')}
+                tabIndex={-1}
             >
                 <div className="palette-search">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -297,10 +306,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose, onOpenS
                                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ animation: 'feedSyncSpin 1s linear infinite' }}>
                                                     <path d="M21 12a9 9 0 1 1-6.2-8.5"/>
                                                 </svg>
-                                            ) : item.image ? (
-                                                <img src={item.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                             ) : (
-                                                <span>{initialsFor(item.title)}</span>
+                                                <CoverImage src={item.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} fallback={<span>{initialsFor(item.title)}</span>} />
                                             )}
                                         </span>
                                         <div className="text">{item.title}</div>

@@ -45,8 +45,11 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.on(CH.FEEDS_UPDATED, subscription);
     return () => ipcRenderer.removeListener(CH.FEEDS_UPDATED, subscription);
   },
-  onDownloadsUpdated: (callback: (event: Electron.IpcRendererEvent, guids: string[]) => void) => {
-    const subscription = (_event: Electron.IpcRendererEvent, guids: string[]) => callback(_event, guids);
+  // L14: a bare notification — the renderer re-fetches the current feed's guids
+  // itself. Previously carried the entire downloaded-guid set (a full-table scan
+  // into memory on every push) that no listener ever read.
+  onDownloadsUpdated: (callback: (event: Electron.IpcRendererEvent) => void) => {
+    const subscription = (_event: Electron.IpcRendererEvent) => callback(_event);
     ipcRenderer.on(CH.DOWNLOADS_UPDATED, subscription);
     return () => ipcRenderer.removeListener(CH.DOWNLOADS_UPDATED, subscription);
   },

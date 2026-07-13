@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import Markdown from 'react-markdown';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 interface ChangelogModalProps {
     isOpen: boolean;
@@ -16,6 +17,7 @@ export const ChangelogModal: React.FC<ChangelogModalProps> = ({ isOpen, onClose 
     const { t } = useTranslation();
     const [content, setContent] = useState('');
     const [loading, setLoading] = useState(false);
+    const trapRef = useFocusTrap<HTMLDivElement>(isOpen);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -40,6 +42,7 @@ export const ChangelogModal: React.FC<ChangelogModalProps> = ({ isOpen, onClose 
             {isOpen && (
                 <div className="help-bg" onClick={onClose}>
                     <motion.div
+                        ref={trapRef}
                         className="help-modal"
                         onClick={(e) => e.stopPropagation()}
                         initial={{ opacity: 0, y: 40, scale: 0.96 }}
@@ -48,6 +51,7 @@ export const ChangelogModal: React.FC<ChangelogModalProps> = ({ isOpen, onClose 
                         transition={{ duration: 0.2 }}
                         role="dialog"
                         aria-modal="true"
+                        tabIndex={-1}
                     >
                         <header className="help-header">
                             <h2>

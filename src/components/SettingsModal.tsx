@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { HelpModal } from './HelpModal';
 import { useStore, AppState } from '../store/useStore';
 import { useToast } from '../context/ToastContext';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 import type { ArchiveStats, MigrationProgress, UpdateStatus } from '../../shared/types';
 
 interface SettingsModalProps {
@@ -38,6 +39,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     const isBatchDownloading = useStore((state: AppState) => state.isBatchDownloading);
     const setStorePath = useStore((state: AppState) => state.setDownloadPath);
     const closeButtonRef = useRef<HTMLButtonElement>(null);
+    // Disable the outer trap while the nested Help modal is open — it runs its own.
+    const trapRef = useFocusTrap<HTMLDivElement>(isOpen && !isHelpOpen);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -225,6 +228,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             {isOpen && (
                 <div className="settings-bg" onClick={onClose}>
                     <motion.div
+                        ref={trapRef}
                         className="settings-modal"
                         onClick={(e) => e.stopPropagation()}
                         variants={panelVariants}
@@ -232,6 +236,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                         role="dialog"
                         aria-modal="true"
                         aria-label={t('settings.title', 'Impostazioni')}
+                        tabIndex={-1}
                     >
                         <button
                             ref={closeButtonRef}
@@ -628,6 +633,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                                         {t('settings.health_mark_not_downloaded')}
                                                                     </button>
                                                                 </div>
+                                                            )}
+                                                            {healthResult.corrupted > 0 && (
+                                                                <div className="mt-2 space-y-1">
+                                                                    <p className="text-xs font-medium" style={{ color: 'var(--color-warning)' }}>
+                                                                        {t('settings.health_corrupted_files', { count: healthResult.corrupted })}:
+                                                                    </p>
+                                                                    {healthResult.corruptedFiles.slice(0, 5).map((f, i) => (
+                                                                        <p key={i} className="text-xs font-mono truncate" style={{ color: 'var(--color-on-surface-variant)', opacity: 0.6 }}>{f.podcast} / {f.filename}</p>
+                                                                    ))}
+                                                                    {healthResult.corruptedFiles.length > 5 && (
+                                                                        <p className="text-xs" style={{ color: 'var(--color-on-surface-variant)', opacity: 0.4 }}>... {t('settings.health_and_more', { count: healthResult.corruptedFiles.length - 5 })}</p>
+                                                                    )}
+                                                                    <p className="text-xs" style={{ color: 'var(--color-on-surface-variant)', opacity: 0.55 }}>{t('settings.health_corrupted_hint')}</p>
+                                                                </div>
+                                                            )}
+                                                            {healthResult.missing === 0 && healthResult.corrupted === 0 && (
+                                                                <p className="text-xs text-center font-medium" style={{ color: 'var(--color-primary)' }}>{t('settings.health_all_ok')}</p>
                                                             )}
                                                         </div>
                                                     )}

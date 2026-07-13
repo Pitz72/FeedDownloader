@@ -28,7 +28,7 @@ declare global {
             exportArchiveCSV: () => Promise<boolean>;
             // Push events
             onFeedsUpdated: (callback: (event: Electron.IpcRendererEvent, feeds: FeedEntry[]) => void) => () => void;
-            onDownloadsUpdated: (callback: (event: Electron.IpcRendererEvent, guids: string[]) => void) => () => void;
+            onDownloadsUpdated: (callback: (event: Electron.IpcRendererEvent) => void) => () => void;
             onBatchCompleted: (callback: (event: Electron.IpcRendererEvent, data: { total: number; failed: FailedDownload[] }) => void) => () => void;
             onQueueUpdated: (callback: (event: Electron.IpcRendererEvent, items: QueueItem[]) => void) => () => void;
             // Concurrency

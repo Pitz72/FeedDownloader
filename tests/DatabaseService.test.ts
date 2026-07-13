@@ -295,4 +295,206 @@ describe('DatabaseService', () => {
             expect(db.updateFeedUrl(oldUrl, oldUrl)).toBe(false);
         });
     });
+
+    // ── Known Episodes (F3-fix) ──────────────────────────────
+    describe('Known Episodes', () => {
+        const feed = 'https://a.com/f';
+
+        it('starts with no known guids for a feed', () => {
+            expect(db.getKnownGuids(feed).size).toBe(0);
+        });
+
+        it('marks and retrieves known guids', () => {
+            db.markGuidsAsKnown(feed, ['a', 'b', 'c']);
+            const known = db.getKnownGuids(feed);
+            expect(known.has('a')).toBe(true);
+            expect(known.has('c')).toBe(true);
+            expect(known.size).toBe(3);
+        });
+
+        it('markGuidsAsKnown is idempotent (INSERT OR IGNORE)', () => {
+            db.markGuidsAsKnown(feed, ['a', 'b']);
+            db.markGuidsAsKnown(feed, ['b', 'c']);
+            expect(db.getKnownGuids(feed).size).toBe(3);
+        });
+
+        it('no-ops on an empty guid list', () => {
+            db.markGuidsAsKnown(feed, []);
+            expect(db.getKnownGuids(feed).size).toBe(0);
+        });
+
+        it('findNewGuids returns only guids not yet known', () => {
+            db.markGuidsAsKnown(feed, ['a', 'b']);
+            expect(db.findNewGuids(feed, ['a', 'b', 'c', 'd'])).toEqual(['c', 'd']);
+        });
+
+        it('findNewGuids returns [] for an empty input', () => {
+            expect(db.findNewGuids(feed, [])).toEqual([]);
+        });
+
+        it('findNewGuids ignores falsy guids', () => {
+            db.markGuidsAsKnown(feed, ['a']);
+            expect(db.findNewGuids(feed, ['', 'a', 'b'])).toEqual(['b']);
+        });
+
+        it('scopes known guids per feed', () => {
+            db.markGuidsAsKnown('https://a.com/1', ['x']);
+            db.markGuidsAsKnown('https://a.com/2', ['y']);
+            expect(db.getKnownGuids('https://a.com/1').has('y')).toBe(false);
+            expect(db.findNewGuids('https://a.com/2', ['x', 'y'])).toEqual(['x']);
+        });
+
+        it('removeKnownEpisodes clears only the given feed', () => {
+            db.markGuidsAsKnown('https://a.com/1', ['x']);
+            db.markGuidsAsKnown('https://a.com/2', ['y']);
+            db.removeKnownEpisodes('https://a.com/1');
+            expect(db.getKnownGuids('https://a.com/1').size).toBe(0);
+            expect(db.getKnownGuids('https://a.com/2').size).toBe(1);
+        });
+    });
+
+    // ── getArchiveByPodcast ──────────────────────────────────
+    describe('getArchiveByPodcast', () => {
+        it('returns only entries for the given podcast, newest pubDate first', () => {
+            db.addArchiveEntry({ guid: 'g1', podcastTitle: 'Pod A', title: 'Old', pubDate: '2024-01-01', downloadedAt: '2024-02' });
+            db.addArchiveEntry({ guid: 'g2', podcastTitle: 'Pod A', title: 'New', pubDate: '2024-06-01', downloadedAt: '2024-02' });
+            db.addArchiveEntry({ guid: 'g3', podcastTitle: 'Pod B', title: 'Other', pubDate: '2024-03-01', downloadedAt: '2024-02' });
+            const rows = db.getArchiveByPodcast('Pod A');
+            expect(rows.map(r => r.title)).toEqual(['New', 'Old']);
+        });
+
+        it('returns [] for an unknown podcast', () => {
+            expect(db.getArchiveByPodcast('Nope')).toEqual([]);
+        });
+    });
+
+    // ── removeMissingFiles ───────────────────────────────────
+    describe('removeMissingFiles', () => {
+        it('removes downloads and archive rows for the given guids', () => {
+            db.recordDownload({ guid: 'g1', podcastTitle: 'P', title: 'E1', pubDate: '', downloadedAt: '', feedUrl: 'f' });
+            db.recordDownload({ guid: 'g2', podcastTitle: 'P', title: 'E2', pubDate: '', downloadedAt: '', feedUrl: 'f' });
+            db.removeMissingFiles(['g1']);
+            expect(db.isDownloaded('g1', 'f')).toBe(false);
+            expect(db.isDownloaded('g2', 'f')).toBe(true);
+            expect(db.getArchive().map(r => r.guid)).toEqual(['g2']);
+        });
+
+        it('ignores non-string entries and no-ops on an empty list', () => {
+            db.recordDownload({ guid: 'g1', podcastTitle: 'P', title: 'E1', pubDate: '', downloadedAt: '', feedUrl: 'f' });
+            // @ts-expect-error — exercising the runtime guard against bad payloads
+            db.removeMissingFiles([null, 123, '', undefined]);
+            expect(db.isDownloaded('g1', 'f')).toBe(true);
+        });
+
+        it('handles more than one chunk (>500 guids) in a single call', () => {
+            const guids = Array.from({ length: 1200 }, (_, i) => `g${i}`);
+            for (const g of guids) db.recordDownload({ guid: g, podcastTitle: 'P', title: g, pubDate: '', downloadedAt: '', feedUrl: 'f' });
+            expect(db.getArchive()).toHaveLength(1200);
+            db.removeMissingFiles(guids);
+            expect(db.getArchive()).toHaveLength(0);
+            expect(db.getDownloadedEpisodes('f')).toEqual([]);
+        });
+    });
+
+    // ── touchFeed ────────────────────────────────────────────
+    describe('touchFeed', () => {
+        it('updates lastUpdated for an existing feed', () => {
+            db.addFeed({ url: 'https://a.com/f', title: 'A', lastUpdated: '2024-01-01' });
+            db.touchFeed('https://a.com/f', '2024-09-09');
+            expect(db.getFeeds()[0].lastUpdated).toBe('2024-09-09');
+        });
+
+        it('is a no-op for an unknown feed', () => {
+            db.touchFeed('https://missing.com/f', '2024-09-09');
+            expect(db.getFeeds()).toEqual([]);
+        });
+    });
+
+    // ── Settings guards (L1) ─────────────────────────────────
+    describe('Settings guards', () => {
+        it('getSpeedLimit falls back to 0 on a corrupted value', () => {
+            db.setSetting('speedLimitKBps', 'not-a-number');
+            expect(db.getSpeedLimit()).toBe(0);
+        });
+
+        it('getSpeedLimit rejects negatives', () => {
+            db.setSetting('speedLimitKBps', '-50');
+            expect(db.getSpeedLimit()).toBe(0);
+        });
+
+        it('getSpeedLimit round-trips a valid value', () => {
+            db.setSpeedLimit(512);
+            expect(db.getSpeedLimit()).toBe(512);
+        });
+
+        it('getAutoRefreshInterval only accepts 0/6/12/24', () => {
+            db.setSetting('autoRefreshInterval', '999');
+            expect(db.getAutoRefreshInterval()).toBe(0);
+            db.setAutoRefreshInterval(6);
+            expect(db.getAutoRefreshInterval()).toBe(6);
+        });
+    });
+
+    // ── CSV formula injection (M14) + validation status ──────
+    describe('exportArchiveCSV safety', () => {
+        it('neutralizes formula-injection payloads in untrusted fields', () => {
+            db.addArchiveEntry({ guid: 'g1', podcastTitle: '=SUM(A1:A9)', title: '@cmd', pubDate: '2024', downloadedAt: '2024' });
+            const csv = db.exportArchiveCSV();
+            expect(csv).toContain(`"'=SUM(A1:A9)"`);
+            expect(csv).toContain(`"'@cmd"`);
+        });
+
+        it('marks entries with a checksum OK and legacy ones LEGACY', () => {
+            db.addArchiveEntry({ guid: 'g1', podcastTitle: 'P', title: 'withck', pubDate: '2024', downloadedAt: '2024', filename: 'a.mp3', checksum: 'abc' });
+            db.addArchiveEntry({ guid: 'g2', podcastTitle: 'P', title: 'legacy', pubDate: '2024', downloadedAt: '2024', filename: 'b.mp3' });
+            const csv = db.exportArchiveCSV();
+            expect(csv).toContain('"OK"');
+            expect(csv).toContain('"LEGACY"');
+        });
+    });
+
+    // ── addArchiveEntry upsert refresh (M13) ─────────────────
+    describe('addArchiveEntry upsert', () => {
+        it('refreshes metadata on conflict instead of ignoring it', () => {
+            db.addArchiveEntry({ guid: 'g1', feedUrl: 'f', podcastTitle: 'P', title: 'E', pubDate: '2024', downloadedAt: '2024-01', filename: 'old.mp3', fileSize: 100 });
+            db.addArchiveEntry({ guid: 'g1', feedUrl: 'f', podcastTitle: 'P', title: 'E', pubDate: '2024', downloadedAt: '2024-02', filename: 'new.mp3', fileSize: 200 });
+            const rows = db.getArchive();
+            expect(rows).toHaveLength(1);
+            expect(rows[0].filename).toBe('new.mp3');
+            expect(rows[0].fileSize).toBe(200);
+        });
+    });
+
+    // ── getArchive null → undefined (L16) ────────────────────
+    describe('getArchive shape', () => {
+        it('maps absent nullable columns to undefined, not null', () => {
+            db.addArchiveEntry({ guid: 'g1', podcastTitle: 'P', title: 'E', pubDate: '2024', downloadedAt: '2024' });
+            const row = db.getArchive()[0];
+            expect(row.fileSize).toBeUndefined();
+            expect(row.checksum).toBeUndefined();
+            expect(row.bitrate).toBeUndefined();
+            expect(row.sampleRate).toBeUndefined();
+            // present columns unaffected
+            expect(row.guid).toBe('g1');
+        });
+    });
+
+    // ── getFeeds legacy-title dedup (L15) ────────────────────
+    describe('getFeeds legacy-title attribution (L15)', () => {
+        it('credits legacy archive rows to only the first feed sharing a title', () => {
+            db.addFeed({ url: 'https://a.com/1', title: 'Same' });
+            db.addFeed({ url: 'https://a.com/2', title: 'Same' });
+            db.updateEpisodeCount('https://a.com/1', 5);
+            db.updateEpisodeCount('https://a.com/2', 5);
+            // two legacy archive rows (feedUrl = '') under the shared title
+            db.addArchiveEntry({ guid: 'x1', feedUrl: '', podcastTitle: 'Same', title: 'a', pubDate: '', downloadedAt: '' });
+            db.addArchiveEntry({ guid: 'x2', feedUrl: '', podcastTitle: 'Same', title: 'b', pubDate: '', downloadedAt: '' });
+
+            const feeds = db.getFeeds();
+            const first = feeds.find(f => f.url === 'https://a.com/1')!;
+            const second = feeds.find(f => f.url === 'https://a.com/2')!;
+            expect(first.newCount).toBe(3);  // 5 − 2 legacy
+            expect(second.newCount).toBe(5); // legacy already consumed → not double-counted
+        });
+    });
 });

@@ -4,6 +4,21 @@ import path from 'path';
 import fs from 'node:fs';
 import type { FeedEntry, ArchiveEntry, ArchiveStats } from '../../shared/types';
 
+/** Raw archive row as stored in SQLite — nullable columns, before mapping to ArchiveEntry. */
+interface ArchiveRow {
+    guid: string;
+    feedUrl: string | null;
+    podcastTitle: string;
+    title: string;
+    pubDate: string;
+    downloadedAt: string;
+    filename: string | null;
+    fileSize: number | null;
+    checksum: string | null;
+    bitrate: number | null;
+    sampleRate: number | null;
+}
+
 /**
  * DatabaseService — SQLite persistence layer via better-sqlite3.
  *
@@ -235,6 +250,10 @@ export class DatabaseService {
             "SELECT podcastTitle, COUNT(*) AS cnt FROM archive WHERE feedUrl IS NULL OR feedUrl = '' GROUP BY podcastTitle"
         ).all() as { podcastTitle: string; cnt: number }[];
         const titleMap = new Map(byTitle.map(r => [r.podcastTitle, r.cnt]));
+        // L15: legacy archive rows (feedUrl = '') are attributed by title. If two
+        // feeds share a title, the same legacy rows must not be counted for both —
+        // credit them to the first feed with that title only.
+        const legacyTitlesConsumed = new Set<string>();
 
         return feeds.map(f => {
             let newCount: number | null;
@@ -244,7 +263,12 @@ export class DatabaseService {
                 newCount = currentGuids.reduce((acc, g) =>
                     acc + ((feedDl?.has(g) || legacyDownloaded.has(g)) ? 0 : 1), 0);
             } else {
-                const downloaded = (urlMap.get(f.url) ?? 0) + (titleMap.get(f.title) ?? 0);
+                let legacy = 0;
+                if (!legacyTitlesConsumed.has(f.title)) {
+                    legacy = titleMap.get(f.title) ?? 0;
+                    legacyTitlesConsumed.add(f.title);
+                }
+                const downloaded = (urlMap.get(f.url) ?? 0) + legacy;
                 newCount = f.episodeCount != null ? Math.max(0, f.episodeCount - downloaded) : null;
             }
             return {
@@ -461,18 +485,45 @@ export class DatabaseService {
         transaction();
     }
 
+    // L16: explicit column list instead of `SELECT *` — the order and set of
+    // columns are pinned (not dependent on ALTER ordering), and every nullable
+    // column is mapped to `undefined` so the renderer sees the optional-field
+    // shape declared in ArchiveEntry, never a raw SQL `null`.
+    private static readonly ARCHIVE_COLUMNS =
+        'guid, feedUrl, podcastTitle, title, pubDate, downloadedAt, filename, fileSize, checksum, bitrate, sampleRate';
+
+    private rowToArchiveEntry(r: ArchiveRow): ArchiveEntry {
+        return {
+            guid: r.guid,
+            podcastTitle: r.podcastTitle,
+            title: r.title,
+            pubDate: r.pubDate,
+            downloadedAt: r.downloadedAt,
+            feedUrl: r.feedUrl ?? undefined,
+            filename: r.filename ?? undefined,
+            fileSize: r.fileSize ?? undefined,
+            checksum: r.checksum ?? undefined,
+            bitrate: r.bitrate ?? undefined,
+            sampleRate: r.sampleRate ?? undefined,
+        };
+    }
+
     getArchive(): ArchiveEntry[] {
-        return this.db.prepare('SELECT * FROM archive ORDER BY downloadedAt DESC').all() as ArchiveEntry[];
+        return (this.db.prepare(
+            `SELECT ${DatabaseService.ARCHIVE_COLUMNS} FROM archive ORDER BY downloadedAt DESC`
+        ).all() as ArchiveRow[]).map(r => this.rowToArchiveEntry(r));
     }
 
     getArchiveByPodcast(podcastTitle: string): ArchiveEntry[] {
-        return this.db.prepare(
-            'SELECT * FROM archive WHERE podcastTitle = ? ORDER BY pubDate DESC'
-        ).all(podcastTitle) as ArchiveEntry[];
+        return (this.db.prepare(
+            `SELECT ${DatabaseService.ARCHIVE_COLUMNS} FROM archive WHERE podcastTitle = ? ORDER BY pubDate DESC`
+        ).all(podcastTitle) as ArchiveRow[]).map(r => this.rowToArchiveEntry(r));
     }
 
     exportArchiveCSV(): string {
-        const rows = this.db.prepare('SELECT * FROM archive ORDER BY downloadedAt DESC').all() as ArchiveEntry[];
+        const rows = (this.db.prepare(
+            `SELECT ${DatabaseService.ARCHIVE_COLUMNS} FROM archive ORDER BY downloadedAt DESC`
+        ).all() as ArchiveRow[]).map(r => this.rowToArchiveEntry(r));
 
         
         // UTF-8 BOM for Excel compatibility

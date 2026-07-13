@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import Markdown from 'react-markdown';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 interface HelpModalProps {
     isOpen: boolean;
@@ -12,6 +13,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
     const { t, i18n } = useTranslation();
     const [content, setContent] = useState('');
     const [loading, setLoading] = useState(false);
+    const trapRef = useFocusTrap<HTMLDivElement>(isOpen);
 
     const loadHelp = useCallback(async () => {
         setLoading(true);
@@ -41,6 +43,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
             {isOpen && (
                 <div className="help-bg" onClick={onClose}>
                     <motion.div
+                        ref={trapRef}
                         className="help-modal"
                         onClick={(e) => e.stopPropagation()}
                         initial={{ opacity: 0, y: 40, scale: 0.96 }}
@@ -49,6 +52,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
                         transition={{ duration: 0.2 }}
                         role="dialog"
                         aria-modal="true"
+                        tabIndex={-1}
                     >
                         <header className="help-header">
                             <h2>

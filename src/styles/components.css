@@ -755,6 +755,16 @@
   box-shadow: 0 0 6px var(--azure-glow-sm);
   transition: width .25s ease;
 }
+/* L9: no Content-Length — animate a sliding sliver instead of a fixed width. */
+.dl-item-progress-bar.indeterminate > i {
+  width: 35%;
+  transition: none;
+  animation: dlIndeterminate 1.1s ease-in-out infinite;
+}
+@keyframes dlIndeterminate {
+  0%   { margin-left: -35%; }
+  100% { margin-left: 100%; }
+}
 .dl-item-meta {
   display: flex; gap: 10px; margin-top: 5px;
   font-family: var(--font-mono); font-size: 9.5px;

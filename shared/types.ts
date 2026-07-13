@@ -90,8 +90,12 @@ export interface HealthCheckResult {
     total: number;
     present: number;
     missing: number;
+    /** L10: present files whose stored SHA-256 no longer matches the file on disk. */
+    corrupted: number;
     totalSizeBytes: number;
     missingFiles: { guid: string; title: string; podcast: string; filename: string }[];
+    /** L10: files that exist but fail the SHA-256 re-check (silent corruption / tampering). */
+    corruptedFiles: { guid: string; title: string; podcast: string; filename: string }[];
 }
 
 export interface DownloadRequest {

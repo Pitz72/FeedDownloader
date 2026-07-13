@@ -137,6 +137,30 @@ describe('DownloadService', () => {
         expect(progressCalls[progressCalls.length - 1][1]).toBe(100);
     });
 
+    it('L9: still reports progress (total 0) when the server sends no Content-Length', async () => {
+        const dataStream = createMockDataStream([Buffer.alloc(40), Buffer.alloc(60)]);
+        (axios as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+            status: 200,
+            headers: {}, // no content-length
+            data: dataStream,
+        });
+
+        const progressCalls: [number, number][] = [];
+        const downloadPromise = service.downloadFile(
+            'https://cdn.com/ep.mp3', '/tmp/ep.mp3',
+            (loaded, total) => progressCalls.push([loaded, total]),
+        );
+
+        await new Promise(r => setTimeout(r, 20));
+        mockWriter.emit('finish');
+        await downloadPromise;
+
+        // loaded keeps climbing; total stays 0 (unknown) so the UI shows an indeterminate bar
+        expect(progressCalls.length).toBeGreaterThanOrEqual(2);
+        expect(progressCalls[progressCalls.length - 1][0]).toBe(100);
+        expect(progressCalls.every(([, total]) => total === 0)).toBe(true);
+    });
+
     it('should throw DISK_FULL on ENOSPC and NOT retry', async () => {
         (axios as unknown as ReturnType<typeof vi.fn>).mockRejectedValue(
             Object.assign(new Error('No space'), { code: 'ENOSPC' })

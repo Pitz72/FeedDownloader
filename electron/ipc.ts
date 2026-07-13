@@ -48,6 +48,18 @@ export function initServices(): { recovered: boolean } {
     return { recovered: libraryService.wasRecovered };
 }
 
+// Stream a file through SHA-256 (constant memory) and return the hex digest.
+// Shared by the download-time integrity capture and the Health Check re-check (L10).
+function sha256File(filePath: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const hash = crypto.createHash('sha256');
+        const stream = fs.createReadStream(filePath);
+        stream.on('data', (chunk) => hash.update(chunk as Buffer));
+        stream.on('end', () => resolve(hash.digest('hex')));
+        stream.on('error', reject);
+    });
+}
+
 // Helper: send push event to renderer safely
 function pushEvent(win: BrowserWindow, channel: string, data?: unknown) {
     if (win && !win.isDestroyed()) {
@@ -75,6 +87,12 @@ const reservedTargets = new Set<string>();
 function pushQueueUpdated(win: BrowserWindow) {
     pushEvent(win, CH.QUEUE_UPDATED, Array.from(queueItems.values()));
 }
+
+// L17: the autoUpdater emitter is a process-global singleton. Binding its
+// listeners lives inside registerIpcHandlers, so if the window were ever
+// recreated (a lifecycle M18's tray behaviour makes more plausible) they would
+// stack up — duplicate notifications and a leak. Bind them at most once.
+let autoUpdaterListenersBound = false;
 
 // max 1 parse request per URL every 3 seconds
 const parseFeedLastCall = new Map<string, number>();
@@ -381,13 +399,13 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
     ipcMain.handle(CH.REMOVE_HISTORY_ITEM, async (_, guid: string) => {
         libraryService.removeDownloadedEpisode(guid);
-        pushEvent(mainWindow, CH.DOWNLOADS_UPDATED, libraryService.getDownloadedEpisodes());
+        pushEvent(mainWindow, CH.DOWNLOADS_UPDATED);
         return true;
     });
 
     ipcMain.handle(CH.RESET_HISTORY, async () => {
         libraryService.resetDownloadHistory();
-        pushEvent(mainWindow, CH.DOWNLOADS_UPDATED, []);
+        pushEvent(mainWindow, CH.DOWNLOADS_UPDATED);
         return true;
     });
 
@@ -497,14 +515,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                     const stat = await fs.stat(targetFile);
                     fileSize = stat.size;
 
-                    const hash = crypto.createHash('sha256');
-                    const fileStream = fs.createReadStream(targetFile);
-                    await new Promise<void>((resolve, reject) => {
-                        fileStream.on('data', (chunk) => hash.update(chunk as Buffer));
-                        fileStream.on('end', resolve);
-                        fileStream.on('error', reject);
-                    });
-                    checksum = hash.digest('hex');
+                    checksum = await sha256File(targetFile);
 
                     const meta = await parseAudioMetadata(targetFile, { duration: false });
                     bitrate = meta.format.bitrate ? Math.round(meta.format.bitrate / 1000) : undefined;
@@ -560,7 +571,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                 queueItems.delete(taskId);
                 pushQueueUpdated(mainWindow);
                 pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded: 100, total: 100, completed: true });
-                pushEvent(mainWindow, CH.DOWNLOADS_UPDATED, libraryService.getDownloadedEpisodes());
+                pushEvent(mainWindow, CH.DOWNLOADS_UPDATED);
                 pushEvent(mainWindow, CH.FEEDS_UPDATED, libraryService.getFeeds());
             } catch (error) {
                 const errMsg = (error as Error).message || 'UNKNOWN';
@@ -736,6 +747,19 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         // path handed in from the renderer.
         if (!dirPath || typeof dirPath !== 'string') return;
         const resolved = path.resolve(dirPath);
+
+        // L18: constrain to the configured download folder (its only legitimate
+        // argument). A compromised renderer can't coax the shell into opening an
+        // arbitrary directory on disk.
+        let baseDir = libraryService.getDownloadPath();
+        if (!baseDir) {
+            baseDir = path.join(app.getPath('documents'), 'FeedDownloader', 'downloads');
+        }
+        const base = path.resolve(baseDir);
+        const rel = path.relative(base, resolved);
+        const withinBase = resolved === base || (!rel.startsWith('..') && !path.isAbsolute(rel));
+        if (!withinBase) return;
+
         const stat = await fs.stat(resolved).catch(() => null);
         if (!stat || !stat.isDirectory()) return;
         await shell.openPath(resolved);
@@ -993,8 +1017,10 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
         let present = 0;
         let missing = 0;
+        let corrupted = 0;
         let totalSizeBytes = 0;
         const missingFiles: { guid: string; title: string; podcast: string; filename: string }[] = [];
+        const corruptedFiles: { guid: string; title: string; podcast: string; filename: string }[] = [];
 
         for (const entry of entries) {
             if (!entry.filename) {
@@ -1007,6 +1033,17 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                 const stat = await fs.stat(fullPath);
                 present++;
                 totalSizeBytes += stat.size;
+
+                // L10: the SHA-256 stored at download time is finally put to use.
+                // Re-hash the file on disk and compare — surfacing silent bit-rot
+                // or tampering. Legacy entries without a stored checksum are skipped.
+                if (entry.checksum) {
+                    const actual = await sha256File(fullPath).catch(() => null);
+                    if (actual && actual !== entry.checksum) {
+                        corrupted++;
+                        corruptedFiles.push({ guid: entry.guid, title: entry.title, podcast: entry.podcastTitle, filename: entry.filename });
+                    }
+                }
             } catch {
                 missing++;
                 missingFiles.push({ guid: entry.guid, title: entry.title, podcast: entry.podcastTitle, filename: entry.filename });
@@ -1017,8 +1054,10 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
             total: entries.length,
             present,
             missing,
+            corrupted,
             totalSizeBytes,
             missingFiles,
+            corruptedFiles,
         };
         return result;
     });
@@ -1028,7 +1067,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         // M15: never hand an unvalidated payload to a DELETE
         if (!Array.isArray(guids)) return false;
         libraryService.removeMissingFiles(guids.filter((g): g is string => typeof g === 'string'));
-        pushEvent(mainWindow, CH.DOWNLOADS_UPDATED, libraryService.getDownloadedEpisodes());
+        pushEvent(mainWindow, CH.DOWNLOADS_UPDATED);
         return true;
     });
 
@@ -1075,18 +1114,21 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
             }).show();
         };
 
-        autoUpdater.on('checking-for-update', () => pushUpdateStatus({ type: 'checking' }));
-        autoUpdater.on('update-available', (info: { version: string }) => {
-            pushUpdateStatus({ type: 'available', version: info.version });
-            notifyUpdate('available', info.version);
-        });
-        autoUpdater.on('update-not-available', () => pushUpdateStatus({ type: 'not-available' }));
-        autoUpdater.on('download-progress', (progress: { percent: number }) => pushUpdateStatus({ type: 'downloading', percent: Math.round(progress.percent) }));
-        autoUpdater.on('update-downloaded', () => {
-            pushUpdateStatus({ type: 'ready' });
-            notifyUpdate('ready');
-        });
-        autoUpdater.on('error', (err: Error) => pushUpdateStatus({ type: 'error', message: err.message }));
+        if (!autoUpdaterListenersBound) {
+            autoUpdaterListenersBound = true;
+            autoUpdater.on('checking-for-update', () => pushUpdateStatus({ type: 'checking' }));
+            autoUpdater.on('update-available', (info: { version: string }) => {
+                pushUpdateStatus({ type: 'available', version: info.version });
+                notifyUpdate('available', info.version);
+            });
+            autoUpdater.on('update-not-available', () => pushUpdateStatus({ type: 'not-available' }));
+            autoUpdater.on('download-progress', (progress: { percent: number }) => pushUpdateStatus({ type: 'downloading', percent: Math.round(progress.percent) }));
+            autoUpdater.on('update-downloaded', () => {
+                pushUpdateStatus({ type: 'ready' });
+                notifyUpdate('ready');
+            });
+            autoUpdater.on('error', (err: Error) => pushUpdateStatus({ type: 'error', message: err.message }));
+        }
 
         // N1: the boot check used to fire on a blind 3s timer — before the
         // renderer had synced its locale (so notifications could come out in

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useStore, AppState } from '../store/useStore';
 import { Icon } from './Icon';
+import { CoverImage } from './CoverImage';
 import { useToast } from '../context/ToastContext';
 import { useTranslation } from 'react-i18next';
 import { Virtuoso } from 'react-virtuoso';
@@ -11,12 +12,7 @@ import { getEnclosureUrl } from '../../shared/getEnclosureUrl';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import type { TFunction } from 'i18next';
 import { parseDurationMinutes, formatDuration } from '../utils/duration';
-
-function formatBytes(bytes: number): string {
-    if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
-    if (bytes >= 1024 ** 2) return `${Math.round(bytes / 1024 ** 2)} MB`;
-    return `${Math.round(bytes / 1024)} KB`;
-}
+import { formatBytes } from '../utils/format';
 
 function formatSpeed(bytesPerSec: number): string {
     if (bytesPerSec >= 1024 ** 2) return `${(bytesPerSec / 1024 ** 2).toFixed(1)} MB/s`;
@@ -256,7 +252,7 @@ export const EpisodeList: React.FC = () => {
     // M28: Set for O(1) lookups — downloadedGuids.includes() was O(n·m) across
     // filter, render and counters.
     const downloadedSet = useMemo(() => new Set(downloadedGuids), [downloadedGuids]);
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [searchQuery, setSearchQuery] = useState('');
 
     const [dateFrom, setDateFrom] = useState('');
@@ -583,7 +579,7 @@ export const EpisodeList: React.FC = () => {
             if (diskInfo) {
                 const estimatedBytes = estimateDownloadBytes(newEpisodes);
                 if (diskInfo.freeBytes < estimatedBytes * 1.2) {
-                    toast.show(t('diskspace.low_warning', { free: formatBytes(diskInfo.freeBytes), needed: formatBytes(estimatedBytes) }), 'error');
+                    toast.show(t('diskspace.low_warning', { free: formatBytes(diskInfo.freeBytes, i18n.language), needed: formatBytes(estimatedBytes, i18n.language) }), 'error');
                 }
             }
 
@@ -615,7 +611,7 @@ export const EpisodeList: React.FC = () => {
         if (diskInfo) {
             const estimatedBytes = estimateDownloadBytes(episodesToDownload);
             if (diskInfo.freeBytes < estimatedBytes * 1.2) {
-                diskWarning = ' ' + t('diskspace.low_warning', { free: formatBytes(diskInfo.freeBytes), needed: formatBytes(estimatedBytes) });
+                diskWarning = ' ' + t('diskspace.low_warning', { free: formatBytes(diskInfo.freeBytes, i18n.language), needed: formatBytes(estimatedBytes, i18n.language) });
             }
         }
 
@@ -676,7 +672,7 @@ export const EpisodeList: React.FC = () => {
             {/* ── Feed header ───────────────────────────────────────── */}
             <section className="feed-header">
                 <div className="feed-header-thumb" aria-hidden="true">
-                    {imageUrl ? <img src={imageUrl} alt={currentFeed.title} /> : <span>{(currentFeed.title || '?').slice(0, 2).toUpperCase()}</span>}
+                    <CoverImage src={imageUrl} alt={currentFeed.title} fallback={<span>{(currentFeed.title || '?').slice(0, 2).toUpperCase()}</span>} />
                 </div>
                 <div className="feed-header-info">
                     <p className="feed-header-kicker">{t('episodes.current_feed_kicker', 'Runtime · Feed corrente')}</p>

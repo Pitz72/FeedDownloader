@@ -3,6 +3,15 @@ import type { Feed, DownloadProgress, QueueItem, FailedDownload, UpdateStatus } 
 
 const speedCache = new Map<string, { loaded: number; time: number }>();
 
+// L27: post-completion cleanup timers, keyed by URL. Tracked (not fire-and-forget)
+// so that clicking "Re-download" within the 2s window cancels the pending deletion
+// — otherwise the stale timer wipes the freshly started download and the row flickers.
+const cleanupTimers = new Map<string, ReturnType<typeof setTimeout>>();
+function cancelCleanup(url: string): void {
+    const t = cleanupTimers.get(url);
+    if (t) { clearTimeout(t); cleanupTimers.delete(url); }
+}
+
 // URLs that belong to the CURRENT batch. Module-level (not in state) to avoid
 // re-renders. When set, only completions of these URLs count toward the batch —
 // so a single, non-batch download finishing mid-batch can't inflate the counter.
@@ -11,6 +20,10 @@ let batchUrls: Set<string> | null = null;
 export interface AppState {
     currentFeed: Feed | null;
     feeds: Feed[];
+    // Download progress keyed by enclosure URL. L28 (by design): two episodes that
+    // share the exact same enclosure URL therefore share one progress entry — the
+    // download itself is deduplicated by URL upstream, so this correctly mirrors
+    // that a single transfer is in flight for both rows.
     downloads: Record<string, DownloadProgress>;
 
     setCurrentFeed: (feed: Feed | null) => void;
@@ -65,6 +78,7 @@ export const useStore = create<AppState>((set) => ({
         // "archived" tag on an episode that was never downloaded.
         if (progress.cancelled) {
             speedCache.delete(progress.url);
+            cancelCleanup(progress.url);
             set((state) => {
                 const updated = { ...state.downloads };
                 delete updated[progress.url];
@@ -72,8 +86,14 @@ export const useStore = create<AppState>((set) => ({
             });
             return;
         }
+        // L27: a fresh in-flight tick means a (re-)download is active — cancel any
+        // pending post-completion cleanup so it doesn't erase the new run.
+        if (!progress.completed && !progress.error) {
+            cancelCleanup(progress.url);
+        }
         const enriched: DownloadProgress = { ...progress };
-        if (!progress.completed && !progress.error && progress.loaded > 0 && progress.total > 0) {
+        // L9: speed is computable from loaded bytes alone; only ETA needs a total.
+        if (!progress.completed && !progress.error && progress.loaded > 0) {
             const prev = speedCache.get(progress.url);
             const now = Date.now();
             if (prev && now > prev.time) {
@@ -81,7 +101,7 @@ export const useStore = create<AppState>((set) => ({
                 const db = progress.loaded - prev.loaded;
                 if (db >= 0 && dt > 0) {
                     enriched.speed = db / dt;
-                    enriched.eta = enriched.speed > 0
+                    enriched.eta = enriched.speed > 0 && progress.total > 0
                         ? Math.round((progress.total - progress.loaded) / enriched.speed)
                         : undefined;
                 }
@@ -99,11 +119,16 @@ export const useStore = create<AppState>((set) => ({
         }));
         // Schedule cleanup after 2s to let the UI render the final state
         if (progress.completed || progress.error) {
-            setTimeout(() => set((state) => {
-                const updated = { ...state.downloads };
-                delete updated[progress.url];
-                return { downloads: updated };
-            }), 2000);
+            cancelCleanup(progress.url); // avoid stacking duplicate timers
+            const timer = setTimeout(() => {
+                cleanupTimers.delete(progress.url);
+                set((state) => {
+                    const updated = { ...state.downloads };
+                    delete updated[progress.url];
+                    return { downloads: updated };
+                });
+            }, 2000);
+            cleanupTimers.set(progress.url, timer);
         }
     },
 
@@ -146,6 +171,8 @@ export const useStore = create<AppState>((set) => ({
     stopBatch: async () => {
         batchUrls = null;
         speedCache.clear();
+        cleanupTimers.forEach(clearTimeout);
+        cleanupTimers.clear();
         // S11: also drop the per-episode progress entries — aborted in-flight
         // downloads never send a final progress event, so without this their
         // rows stay stuck on a frozen spinner until app restart.
@@ -179,3 +206,10 @@ export const useStore = create<AppState>((set) => ({
     updateBannerDismissed: false,
     setUpdateBannerDismissed: (dismissed) => set({ updateBannerDismissed: dismissed }),
 }));
+
+// L40: the download panel counts as "visible" while a batch runs, or briefly
+// after it finishes (to show the completion summary). This derived flag lived,
+// copy-pasted, in DownloadPanel, EpisodeDetailPanel and ToastContext — now a
+// single selector: `useStore(selectPanelVisible)`.
+export const selectPanelVisible = (s: AppState): boolean =>
+    s.isBatchDownloading || (s.batchCompleted > 0 && s.batchCompleted >= s.batchTotal);

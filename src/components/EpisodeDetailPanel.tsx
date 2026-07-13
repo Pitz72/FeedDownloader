@@ -2,9 +2,10 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Episode, ArchiveEntry } from '../../shared/types';
 import { getEnclosureUrl } from '../../shared/getEnclosureUrl';
-import { useStore, AppState } from '../store/useStore';
+import { useStore, AppState, selectPanelVisible } from '../store/useStore';
 import { useToast } from '../context/ToastContext';
 import { formatDuration } from '../utils/duration';
+import { formatBytes } from '../utils/format';
 
 function stripHtml(html: string): string {
     return html
@@ -22,11 +23,6 @@ function stripHtml(html: string): string {
         .trim();
 }
 
-function formatBytes(bytes: number): string {
-    if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
-    if (bytes >= 1024 ** 2) return `${Math.round(bytes / 1024 ** 2)} MB`;
-    return `${Math.round(bytes / 1024)} KB`;
-}
 
 interface EpisodeDetailPanelProps {
     episode: Episode;
@@ -44,7 +40,7 @@ export const EpisodeDetailPanel: React.FC<EpisodeDetailPanelProps> = ({
     episode, archiveEntry, isDownloaded, isDownloading, isOnline,
     onClose, onDownload, onResetStatus, onShowInFolder,
 }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const toast = useToast();
     // L8: give the copy-link actions explicit feedback instead of silently writing
     // to the clipboard from a bare `<a href="#">`.
@@ -54,12 +50,8 @@ export const EpisodeDetailPanel: React.FC<EpisodeDetailPanelProps> = ({
             .catch(() => toast.show(t('toast.copy_failed', 'Copia non riuscita'), 'error'));
     };
     const downloadPanelOpen = useStore((s: AppState) => s.downloadPanelOpen);
-    const isBatchDownloading = useStore((s: AppState) => s.isBatchDownloading);
-    const batchCompleted = useStore((s: AppState) => s.batchCompleted);
-    const batchTotal = useStore((s: AppState) => s.batchTotal);
     const currentFeed = useStore((s: AppState) => s.currentFeed);
-    const downloadPanelVisible = isBatchDownloading ||
-        (!isBatchDownloading && batchCompleted > 0 && batchCompleted >= batchTotal);
+    const downloadPanelVisible = useStore(selectPanelVisible);
     const rightOffset = downloadPanelOpen && downloadPanelVisible ? '380px' : '0px';
 
     const rawDesc = episode.content || episode.description || episode.contentSnippet || '';
@@ -108,7 +100,7 @@ export const EpisodeDetailPanel: React.FC<EpisodeDetailPanelProps> = ({
                     {dur && (<><span className="sep">·</span><span>{dur.long}</span></>)}
                     {archiveEntry?.bitrate && (<><span className="sep">·</span><span>{archiveEntry.bitrate} kbps</span></>)}
                     {archiveEntry?.sampleRate && (<><span className="sep">·</span><span>{(archiveEntry.sampleRate / 1000).toFixed(1)} kHz</span></>)}
-                    {enclosureLength != null && enclosureLength > 0 && (<><span className="sep">·</span><span>{formatBytes(enclosureLength)}</span></>)}
+                    {enclosureLength != null && enclosureLength > 0 && (<><span className="sep">·</span><span>{formatBytes(enclosureLength, i18n.language)}</span></>)}
                 </div>
 
                 <div className="detail-cta-row">
@@ -165,7 +157,7 @@ export const EpisodeDetailPanel: React.FC<EpisodeDetailPanelProps> = ({
                             {archiveEntry.fileSize != null && archiveEntry.fileSize > 0 && (
                                 <div className="archive-cell">
                                     <p className="label">{t('episodes.detail_size', 'Dimensione')}</p>
-                                    <p className="value">{archiveEntry.fileSize.toLocaleString()} byte · {formatBytes(archiveEntry.fileSize)}</p>
+                                    <p className="value">{archiveEntry.fileSize.toLocaleString(i18n.language)} byte · {formatBytes(archiveEntry.fileSize, i18n.language)}</p>
                                 </div>
                             )}
                             {(archiveEntry.bitrate || archiveEntry.sampleRate) && (

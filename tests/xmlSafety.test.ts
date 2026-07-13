@@ -143,29 +143,32 @@ describe('hasDangerousDoctype', () => {
             expect(hasDangerousDoctype(xml)).toBe(false);
         });
 
-        it('should flag DOCTYPE + ENTITY when both fall inside the 8192-char window', () => {
+        it('should flag DOCTYPE + ENTITY when preceded by a large whitespace prolog', () => {
             const xml = '<?xml version="1.0"?>' + ' '.repeat(4000) + '<!DOCTYPE r [<!ENTITY x "y">]><r/>';
             expect(hasDangerousDoctype(xml)).toBe(true);
         });
 
-        it('documents current behavior: ENTITY pushed past the 8192-char window by padding inside the subset is NOT flagged', () => {
-            // The guard slices the first 8192 chars. Padding the internal subset
-            // (e.g. with comments) can push <!ENTITY past the window. Downstream
-            // parsers do not expand entities anyway (defense in depth), but this
-            // test documents that the up-front guard alone does not catch it.
+        it('should flag ENTITY even when padded far into the internal subset (no fixed window)', () => {
+            // The guard now inspects the whole DOCTYPE declaration up to the root
+            // element, so padding the internal subset (e.g. with a huge comment)
+            // can no longer push <!ENTITY out of range.
             const xml = '<!DOCTYPE r [<!--' + 'x'.repeat(9000) + '--><!ENTITY x "y">]><r/>';
-            expect(hasDangerousDoctype(xml)).toBe(false);
+            expect(hasDangerousDoctype(xml)).toBe(true);
         });
     });
 
-    // ── Documented limits (behavior as-is) ────────────────────
-    describe('documents known limits of the guard', () => {
-        it('documents current behavior: external DTD reference without inline ENTITY is NOT flagged', () => {
+    // ── External subset (SYSTEM/PUBLIC) — now flagged ─────────
+    describe('should flag external DTD references', () => {
+        it('should flag an external DTD reference even without an inline ENTITY', () => {
             // <!DOCTYPE foo SYSTEM "..."> pulls an external DTD that could define
-            // entities remotely. The guard only matches inline <!ENTITY, so this
-            // shape passes; safety relies on the parsers not fetching/expanding DTDs.
+            // entities remotely — refused up front as defense in depth.
             const xml = '<!DOCTYPE foo SYSTEM "http://evil.example/evil.dtd"><foo/>';
-            expect(hasDangerousDoctype(xml)).toBe(false);
+            expect(hasDangerousDoctype(xml)).toBe(true);
+        });
+
+        it('should flag a PUBLIC external DTD reference without an inline ENTITY', () => {
+            const xml = '<!DOCTYPE foo PUBLIC "-//X//DTD//EN" "http://evil.example/x.dtd"><foo/>';
+            expect(hasDangerousDoctype(xml)).toBe(true);
         });
     });
 });

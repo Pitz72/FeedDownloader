@@ -1,8 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import { useStore, AppState } from '../store/useStore';
+import { useStore, AppState, selectPanelVisible } from '../store/useStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import type { QueueItem, FailedDownload } from '../types';
+import { formatBytes, formatSpeed } from '../utils/format';
 
 const ERROR_CODE_MAP: Record<string, string> = {
     EPISODE_NOT_FOUND:      'progress.error_not_found',
@@ -12,12 +13,6 @@ const ERROR_CODE_MAP: Record<string, string> = {
     INTEGRITY_CHECK_FAILED: 'progress.error_integrity',
     PERMISSION_DENIED:      'progress.error_permission',
 };
-
-function formatSpeed(bytesPerSec: number): string {
-    if (bytesPerSec >= 1024 ** 2) return `${(bytesPerSec / 1024 ** 2).toFixed(1)} MB/s`;
-    if (bytesPerSec >= 1024) return `${Math.round(bytesPerSec / 1024)} KB/s`;
-    return `${Math.round(bytesPerSec)} B/s`;
-}
 
 function formatEta(seconds: number): string {
     if (seconds >= 3600) {
@@ -39,7 +34,7 @@ interface QueueRowProps {
 }
 
 const QueueRow: React.FC<QueueRowProps> = ({ item, onCancel }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     // M29: per-slice selector — each row re-renders only on its own progress ticks,
     // instead of the whole panel subscribing to the entire downloads map.
     const progress = useStore((s: AppState) => s.downloads[item.url] ?? null);
@@ -47,6 +42,9 @@ const QueueRow: React.FC<QueueRowProps> = ({ item, onCancel }) => {
     const percent = progress && progress.total > 0
         ? Math.round((progress.loaded / progress.total) * 100)
         : null;
+    // L9: server sent no Content-Length — we can't compute a percentage, but the
+    // download is running. Show an indeterminate bar with the bytes received so far.
+    const indeterminate = isDownloading && percent === null && !!progress && progress.loaded > 0;
 
     return (
         <div className={`dl-item ${isDownloading ? 'active' : 'queued'}`}>
@@ -75,9 +73,20 @@ const QueueRow: React.FC<QueueRowProps> = ({ item, onCancel }) => {
                             <span className="pct">{percent}%</span>
                             {progress?.speed != null && progress.speed > 0 && (
                                 <span>
-                                    {formatSpeed(progress.speed)}
+                                    {formatSpeed(progress.speed, i18n.language)}
                                     {progress.eta != null && progress.eta > 0 ? ` · ${formatEta(progress.eta)}` : ''}
                                 </span>
+                            )}
+                        </div>
+                    </div>
+                )}
+                {indeterminate && (
+                    <div className="dl-item-progress">
+                        <div className="dl-item-progress-bar indeterminate"><i /></div>
+                        <div className="dl-item-meta">
+                            <span className="pct">{formatBytes(progress!.loaded, i18n.language)}</span>
+                            {progress?.speed != null && progress.speed > 0 && (
+                                <span>{formatSpeed(progress.speed, i18n.language)}</span>
                             )}
                         </div>
                     </div>
@@ -136,8 +145,7 @@ export const DownloadPanel: React.FC = () => {
         await window.api.cancelDownload(taskId);
     }, []);
 
-    const isVisible = isBatchDownloading ||
-        (!isBatchDownloading && batchCompleted > 0 && batchCompleted >= batchTotal);
+    const isVisible = useStore(selectPanelVisible);
     const isComplete = !isBatchDownloading && batchCompleted > 0 && batchCompleted >= batchTotal;
     const progress = batchTotal > 0 ? Math.min((batchCompleted / batchTotal) * 100, 100) : 0;
 

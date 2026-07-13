@@ -3,7 +3,7 @@ import { Icon } from '../components/Icon';
 import clsx from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { useStore, AppState } from '../store/useStore';
+import { useStore, AppState, selectPanelVisible } from '../store/useStore';
 
 type ToastType = 'success' | 'error' | 'info';
 
@@ -27,11 +27,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const { t } = useTranslation();
     const [toasts, setToasts] = useState<Toast[]>([]);
     const downloadPanelOpen = useStore((s: AppState) => s.downloadPanelOpen);
-    const isBatchDownloading = useStore((s: AppState) => s.isBatchDownloading);
-    const batchCompleted    = useStore((s: AppState) => s.batchCompleted);
-    const batchTotal        = useStore((s: AppState) => s.batchTotal);
-    const panelVisible = isBatchDownloading ||
-        (!isBatchDownloading && batchCompleted > 0 && batchCompleted >= batchTotal);
+    const panelVisible = useStore(selectPanelVisible);
 
     const show = useCallback((message: string, type: ToastType = 'info') => {
         const id = `toast-${++toastSeq}`;

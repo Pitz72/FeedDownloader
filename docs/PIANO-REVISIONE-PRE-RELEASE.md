@@ -3,85 +3,70 @@
 **Audit originale:** 12 luglio 2026 su v1.3.12 (5 audit paralleli, escluso player audio)
 **Ultimo aggiornamento:** 13 luglio 2026
 
-Lo stato di partenza e tutto il lavoro **già completato** è documentato nei log di
-sviluppo: le 14 **gravi** (S1–S14) sono state chiuse in **v1.3.13**
-([changelog](changelog/1.3.13.md)), i **medi** e ~30 lievi in **v1.3.14**
-([changelog](changelog/1.3.14.md)), e l'intera sezione **v1.4.0** (N1, N2, M18, M10,
-M9, L3 + feature documentali) in **v1.4.0** ([changelog](changelog/1.4.0.md)). Questo
-documento elenca **solo ciò che resta da fare**.
+Lo stato di partenza e tutto il lavoro **già completato** è documentato nei changelog:
+le 14 **gravi** (S1–S14) in **v1.3.13**, i **medi** e ~30 lievi in **v1.3.14**, l'intera
+sezione funzionale **v1.4.0** (N1, N2, M18, M10, M9, L3 + feature documentali), e infine
+**tutti i lievi residui di codice + i buchi di test unit-testabili in v1.4.1**
+([changelog 1.4.1](changelog/1.4.1.md)). Questo documento elenca **solo ciò che resta**.
 
 ---
 
-## ✅ v1.4.0 — chiusa (13 lug 2026)
+## ✅ v1.4.1 — chiusa (13 lug 2026)
 
-N1 (banner update persistente + fix race lingua/timing/retry), N2 (refresh all'avvio +
-default 6h + check al ritorno online), M18 (X→tray), M10 (badge via
-`currentEpisodeGuids`), M9 (parsing in utility process con fallback in-process), L3
-(redirect 301/308 con migrazione identità feed), changelog in-app, manuali PDF in-app
-(B1), ARCHITECTURE.md/CONTRIBUTING.md (B3/B4), riconciliazione archivio↔disco all'avvio,
-pulizia `.part` orfani. Dettaglio nel [changelog 1.4.0](changelog/1.4.0.md). Suite 312/312.
-
----
-
-## 🟢 Lievi residui (rifiniture, nessuno bloccante)
-
-### Correttezza minore
-
-* **L9** — Content-Length assente: nessun progresso né check integrità (il download completa comunque, solo UX) — `DownloadService`
-* **L10** — "SHA-256 integrity" è solo storage, mai confronto: riformulare la dicitura in doc/marketing o aggiungere verifica reale nel Health Check
-* **L14** — La tabella `downloads` cresce per sempre (guid orfani di feed rimossi); `getDownloadedEpisodes` carica tutto in memoria
-* **L15** — Double-counting righe archive legacy senza feedUrl condivise per titolo — `DatabaseService.getFeeds:100-106` (area M10)
-* **L16** — `SELECT *` in getArchive/exportCSV: NULL passati al renderer come null non undefined
-* **L17** — Handler IPC/listener autoUpdater ri-registrabili se la finestra venisse ricreata (percorso oggi morto; rilevante se M18 cambia il lifecycle)
-* **L18** — `OPEN_FOLDER` non vincolato a baseDir (impatto minimo)
-* **L19** — Con speed-limit il progresso conta byte di rete, non di disco → barra al 100% prima del completamento reale
-* **NUOVO (dai test M37)** — `xmlSafety`: la finestra di ispezione di 8192 caratteri è aggirabile con padding prima dell'ENTITY; DTD esterna (`SYSTEM "http://..."`) senza ENTITY inline non flaggata. Mitigato a valle (i parser non espandono entità), ma il guard da solo è bypassabile.
-
-### UI/UX
-
-* **L27** — Cleanup progressi a 2s keyed per URL: "Riscarica" immediato flikkera — `useStore.ts`
-* **L28** — Due episodi con lo stesso enclosure URL condividono la entry `downloads` → stesso progresso su entrambe le righe (by design, valutare)
-* **L29 (parziale)** — `formatBytes` in EpisodeList ancora con punto decimale fisso (ArchiveView già locale-aware)
-* **L37 (parziale)** — Forme `_one` mancanti per `progress.n_failed`, `toast.sync_queued`, `settings.health_and_more` ("1 download falliti")
-* **L38** — Immagini remote senza `loading="lazy"`, `onError` fallback iniziali, `referrerPolicy="no-referrer"` (Sidebar/EpisodeList/Palette)
-* **L39 (parziale)** — Chiavi orfane storiche nei JSON (`sidebar.invalid_date`, `archive.files_count/podcasts_count`, `onboarding.hint_url/hint_folder`, `episodes.detail_source_link/detail_estimated_size/detail_downloaded_on`, `episodes.count`, `app.language`)
-* **L40** — `panelVisible` duplicato in 3 punti con la stessa formula → selettore condiviso nello store
-* Focus management completo dei modali (focus trap + ritorno focus all'invocatore) — in v1.3.14 fatto solo il minimo (ESC/aria/autofocus)
-
-### Repo / distribuzione
-
-* **L43** — Build Linux non riproducibile in locale (`build/icons/` PNG generati solo in CI): committare i PNG o script `icons:linux`
-* **L44** — `DISTRIBUZIONE/` e `gumroad/` fermi a v1.3.0 (che ha l'auto-update rotto!): **ricaricare gli ZIP aggiornati su Gumroad dopo la prossima release**
-* **L45** — Code signing assente: SmartScreen "Unknown publisher" a ogni install/update — citarlo nella pagina di vendita; lungo termine: certificato OV/EV o Azure Trusted Signing
-* **L46** — Documenti d'epoca in root (`articolo_annuncio_feeddownloader.md`) → spostare in archivio/MATERIALE
-* **L47** — `scripts/` (Vivliostyle PDF) non documentato: una riga in docs su come rigenerare i PDF
-* **L48 (residuo)** — Toolchain dev EOL: ESLint 8 + typescript-eslint 7 (flat config), Vite 5 → 7 (electron-builder già portato a 26 in v1.3.14, obbligato da Electron 43)
+Rifinitura completa dei 🟢 lievi di codice: L9 (progresso indeterminato), L10 (verifica
+SHA-256 reale nell'Health Check), L14 (`DOWNLOADS_UPDATED` senza payload), L15
+(double-counting legacy per titolo), L16 (colonne esplicite + null→undefined), L17
+(listener autoUpdater idempotenti), L18 (`OPEN_FOLDER` vincolato a baseDir), L19 (progresso
+post-throttle), L27 (flicker Riscarica), L28 (documentato by-design), L29 (`formatBytes`
+locale-aware unificato), L37 (`_one`), L38 (immagini remote lazy/no-referrer/fallback), L39
+(chiavi orfane), L40 (selettore `panelVisible` condiviso), guard XML (padding + DTD esterno),
+focus-trap completo dei modali, L43/L46/L47 (icone Linux + archivio + doc `scripts/`).
+Buchi di test colmati: `known_episodes`, `throttleStream`, `validateNetworkPath`,
+`writeId3Tags`, `format`, `getArchiveByPodcast`, `removeMissingFiles` (chunking), `touchFeed`,
+guardie settings, M14/M13, L9/L15/L16. Suite **356/356**. Dettaglio nel changelog.
 
 ---
 
-## 🧪 Buchi di test residui
+## 🧪 Buchi di test residui (richiedono infrastruttura / refactor)
 
-1. **`known_episodes`**: zero test unit sul layer dati (getKnownGuids/markGuidsAsKnown/findNewGuids/removeKnownEpisodes) — la feature v1.3.12 resta scoperta.
-2. Utils non testati: `throttleStream`, `validateNetworkPath`, `writeId3Tags`.
-3. DatabaseService: `getArchiveByPodcast`, `removeMissingFiles` con array enorme (>32k, ora chunked ma non testato), `touchFeed`, settings corrotti (guardie L1), CSV con valori `=...` (M14), upsert archive con metadati diversi (M13). *(rolling window M10, `updateFeedUrl` L3 e `checkPermanentRedirect` ora coperti in v1.4.0.)*
-4. Zero test UI (vitest è `environment: node`, niente jsdom/testing-library) e zero test su `ipc.ts` (>1000 righe) / `main.ts` — estrarre gli handler IPC in funzioni testabili.
-5. Nuove superfici v1.3.13/14 senza test dedicati: If-Range/resume (S1), dedup coda (S3), richieste condizionali 304 (M6), dedup pagine (M8), decodifica charset (L4).
+1. **Handler IPC / `main.ts`**: `ipc.ts` (>1000 righe) e `main.ts` non hanno test —
+   servirebbe estrarre gli handler in funzioni pure testabili (include L10 verifica
+   Health Check e L18 containment, oggi inline negli handler).
+2. **Zero test UI**: vitest è `environment: node` (niente jsdom/testing-library) — coprire
+   i componenti richiede aggiungere l'ambiente jsdom.
+3. **Superfici di servizio non ancora coperte**: If-Range/resume (S1), dedup coda (S3),
+   richieste condizionali 304 (M6), dedup pagine (M8), decodifica charset (L4),
+   `FeedParserPool` fallback in-process, riconciliazione archivio, `CLEAN_PART_FILES`.
+
+*(→ candidati per una sessione di test dedicata, insieme all'ambiente jsdom.)*
 
 ---
 
 ## 📅 v1.5.0 — Fondamenta residue
 
-* Migrazione ESLint 9 flat config + typescript-eslint 8; Vite 7 (L48)
-* Valutazione ritorno macOS (config rimossa in v1.3.14 perché mai buildata/testata) e code signing (L45)
+* Migrazione **ESLint 9** flat config + typescript-eslint 8; **Vite 7** (L48) — RISCHIOSO,
+  validare il gate `--max-warnings 0` e l'emissione multi-entry `feedWorker.js`/`main.js`.
+* Valutazione ritorno **macOS** (config rimossa in v1.3.14 perché mai buildata/testata) e
+  **code signing** (L45: SmartScreen "Unknown publisher").
+
+---
+
+## 🔧 Operativo (fuori codice)
+
+* **L44** — `DISTRIBUZIONE/` e `gumroad/` fermi a v1.3.0 (auto-update rotto!): **ricaricare
+  gli ZIP aggiornati su Gumroad dopo la release** (build via `workflow_dispatch` sul bridge).
+* Caricare gli 8 PDF manuali su `FeedDownloader-Releases/manuals/` (feature B1 di v1.4.0).
 
 ---
 
 ## ✅ Verificato solido (invariato — non toccare)
 
-* SSRF a doppio livello (lessicale + DNS per hop) su feed, paginazione, download, cover ID3 — ora coperto anche da ~50 test.
-* XXE/DOCTYPE guard su feed e OPML (con i due limiti noti sopra), cap dimensioni body.
+* SSRF a doppio livello (lessicale + DNS per hop) su feed, paginazione, download, cover ID3.
+* XXE/DOCTYPE guard su feed e OPML (ora senza la finestra 8192 e con blocco DTD esterni),
+  cap dimensioni body.
 * Preload/CSP/permessi/navigation hardening; AbortController single-settle; rename atomico.
-* DB: statement preparati ovunque, WAL, transazioni, migrazione composita (guid, feedUrl) testata, recovery da corruzione testata.
+* DB: statement preparati ovunque, WAL, transazioni, migrazione composita (guid, feedUrl),
+  recovery da corruzione — tutti testati.
 * Renderer: zero XSS, listener IPC StrictMode-safe, Zustand con selettori granulari.
 * CI: gate bloccante, artifactName senza spazi (auto-update funzionante), latest.yml Win+Linux.
-* TypeScript strict, zero `any`, suite 312/312.
+* TypeScript strict, zero `any`, suite 356/356.

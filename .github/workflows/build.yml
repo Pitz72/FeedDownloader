@@ -84,12 +84,11 @@ jobs:
       - name: Install npm dependencies
         run: npm ci
 
+      # L43: icons are committed to build/icons/ and reproducible locally via
+      # `npm run icons:linux`. Regenerate here too so a logo change is picked up
+      # without a stale committed set (same script, single source of truth).
       - name: Generate Linux icons (PNG set)
-        run: |
-          mkdir -p build/icons
-          for size in 16 24 32 48 64 96 128 256 512; do
-            convert public/logo.png -resize ${size}x${size} build/icons/${size}x${size}.png
-          done
+        run: npm run icons:linux
 
       - name: Build (Linux, no publish)
         run: npx tsc && npx tsc -p tsconfig.electron.json && npx vite build && npx electron-builder --linux --publish never

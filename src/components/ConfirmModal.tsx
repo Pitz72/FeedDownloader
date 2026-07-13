@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 interface ConfirmModalProps {
     isOpen: boolean;
@@ -24,6 +25,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
 }) => {
     const { t } = useTranslation();
     const iconColor = variantIconColor[variant];
+    const trapRef = useFocusTrap<HTMLDivElement>(isOpen);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -37,6 +39,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             {isOpen && (
                 <div className="confirm-bg" onClick={onCancel}>
                     <motion.div
+                        ref={trapRef}
                         className="confirm-dialog"
                         onClick={(e) => e.stopPropagation()}
                         initial={{ opacity: 0, scale: 0.92, y: 16 }}
@@ -46,6 +49,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                         role="dialog"
                         aria-modal="true"
                         aria-labelledby="confirm-title"
+                        tabIndex={-1}
                     >
                         <div className="confirm-body">
                             <div className="confirm-icon" style={{ color: iconColor }} aria-hidden="true">

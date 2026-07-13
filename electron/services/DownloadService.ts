@@ -215,13 +215,21 @@ export class DownloadService {
                 };
                 resetStallTimer();
 
-                // Progress + stall reset: listen on the raw (network) stream
-                response.data.on('data', (chunk: Buffer) => {
+                // Stall watchdog: any activity on the raw network stream keeps the
+                // download alive, independent of how progress is measured below.
+                response.data.on('data', resetStallTimer);
+
+                // L19: with a speed limit, progress must count bytes leaving the
+                // throttle (i.e. reaching disk), not the faster network arrival —
+                // otherwise the bar hits 100% while the throttle is still draining.
+                // Without a throttle the two streams are the same.
+                // L9: when the server sends no Content-Length (totalBytes === 0) we
+                // still report loaded bytes so the UI can show an indeterminate,
+                // moving indicator instead of a frozen 0%.
+                const progressSource: NodeJS.EventEmitter = throttle ?? response.data;
+                progressSource.on('data', (chunk: Buffer) => {
                     loaded += chunk.length;
-                    resetStallTimer();
-                    if (totalBytes > 0) {
-                        onProgress(loaded, totalBytes);
-                    }
+                    onProgress(loaded, totalBytes);
                 });
 
                 // Network/source errors (ECONNRESET etc.) — previously unhandled, which

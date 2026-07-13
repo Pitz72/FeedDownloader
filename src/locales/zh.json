@@ -3,12 +3,10 @@
           "title": "Runtime FeedDownloader Pro",
           "slogan": "存档播客的最强大方式。",
           "start": "启动应用",
-          "language": "语言",
           "skip": "跳过"
      },
      "sidebar": {
           "my_feeds": "我的订阅",
-          "invalid_date": "未知日期",
           "no_feeds": "没有保存的订阅。添加一个开始使用。",
           "untitled": "无标题",
           "remove": "删除",
@@ -45,8 +43,6 @@
           "col_bitrate": "比特率",
           "empty": "归档中没有剧集",
           "no_results": "所选筛选条件无结果",
-          "files_count": "{{count}} 个文件",
-          "podcasts_count": "{{count}} 个播客",
           "show_in_folder": "在文件夹中显示",
           "loading": "正在加载归档...",
           "episodes_short": "集",
@@ -62,7 +58,6 @@
           "drop_url": "将 RSS URL 拖放到此处进行分析"
      },
      "episodes": {
-          "count": "{{count}} 集",
           "download_all": "全部下载",
           "change_folder": "更改文件夹",
           "download": "下载",
@@ -92,9 +87,6 @@
           "copy_title": "复制标题",
           "copy_link": "复制链接",
           "detail_description": "描述",
-          "detail_source_link": "来源链接",
-          "detail_estimated_size": "估计大小",
-          "detail_downloaded_on": "下载于",
           "detail_no_description": "暂无描述。",
           "archived": "已归档",
           "count_label": "集",
@@ -102,7 +94,7 @@
           "detail_archive_data": "归档 · 技术数据",
           "detail_archived": "已归档",
           "detail_bitrate_sr": "比特率 · 采样率",
-          "detail_checksum": "SHA-256 校验和 · 已验证",
+          "detail_checksum": "SHA-256 校验和 · 下载时记录",
           "detail_duration": "时长",
           "detail_kicker": "剧集",
           "detail_links": "链接",
@@ -220,6 +212,9 @@
           "health_size": "占用空间",
           "health_missing_files": "缺失文件",
           "health_and_more": "... 还有 {{count}} 个",
+          "health_corrupted_files": "{{count}} 个损坏的文件（校验和不匹配）",
+          "health_corrupted_hint": "重新下载这些单集以恢复完整性。",
+          "health_all_ok": "所有文件已验证：没有问题。",
           "id3_tagging": "ID3 标签",
           "id3_tagging_desc": "将元数据（标题、艺术家、年份、封面）写入已下载的 .mp3 文件",
           "id3_enabled": "ID3 标签已启用",
@@ -268,8 +263,6 @@
           "clean_parts_done": "已删除临时文件：{{n}}"
      },
      "onboarding": {
-          "hint_url": "在上方栏中粘贴 RSS 订阅源链接以开始使用",
-          "hint_folder": "下载前，请在设置 → 下载中选择目标文件夹",
           "kicker": "欢迎使用 FeedDownloader Pro",
           "title": "添加您的第一个订阅以开始使用",
           "subtitle": "在上方粘贴 RSS 订阅源链接、从浏览器拖入，或导入 OPML 文件。FeedDownloader 将下载、整理并编目每一集。",

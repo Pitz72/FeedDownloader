@@ -3,19 +3,13 @@ import { Virtuoso } from 'react-virtuoso';
 import { Icon } from './Icon';
 import { useTranslation } from 'react-i18next';
 import type { ArchiveEntry } from '../../shared/types';
+import { formatBytes } from '../utils/format';
 
 type SortKey = 'downloadedAt' | 'pubDate' | 'fileSize' | 'bitrate';
 type SortDir = 'asc' | 'desc';
 
 const COL_TEMPLATE = '1fr 1.5fr 100px 80px 60px 32px';
 const COL_GAP = '12px';
-
-// L29: locale-aware number formatting (decimal separator follows the UI language)
-function formatBytes(bytes: number | undefined, locale: string): string {
-    if (!bytes) return '—';
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toLocaleString(locale, { maximumFractionDigits: 0 })} KB`;
-    return `${(bytes / (1024 * 1024)).toLocaleString(locale, { maximumFractionDigits: 1 })} MB`;
-}
 
 // M20: toLocaleDateString never throws on an Invalid Date — it returns the string
 // "Invalid Date". Guard with Number.isNaN(getTime()) instead of a useless try/catch.

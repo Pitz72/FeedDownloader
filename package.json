@@ -1,7 +1,7 @@
 {
   "name": "runtime-feeddownloader-pro",
   "private": true,
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Professional podcast archiving tool — batch download, network resilience, SHA-256 integrity",
   "author": {
     "name": "Simone Pizzi",
@@ -23,7 +23,8 @@
     "test:coverage": "vitest run --coverage",
     "pretest:coverage": "npm run rebuild:node",
     "rebuild:node": "npm rebuild better-sqlite3",
-    "rebuild:electron": "electron-rebuild -f -w better-sqlite3"
+    "rebuild:electron": "electron-rebuild -f -w better-sqlite3",
+    "icons:linux": "node scripts/generate-linux-icons.cjs"
   },
   "engines": {
     "node": ">=18.15.0"
