@@ -818,35 +818,26 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         }
     });
 
-    // ── Open bundled PDF manual (B1) ──────────────────────
+    // ── Open PDF manual (B1) ──────────────────────────────
+    // The full PDF manuals are hosted on the public releases repo (not bundled in
+    // the installer) and opened in the system browser — same scheme as Titan. The
+    // GitHub URL stays hidden behind the in-app button ("link occultato").
     ipcMain.handle(CH.OPEN_MANUAL_PDF, async (_, lang: string): Promise<boolean> => {
-        // Packaged builds ship one flattened PDF per language under resources/manuals.
-        const langMap: Record<string, { dir: string; file: string }> = {
-            it: { dir: 'manual-it', file: 'Manuale_FeedDownloader_Pro_Box.pdf' },
-            en: { dir: 'en-GB', file: 'FeedDownloader_Pro_Manual_en-GB.pdf' },
-            fr: { dir: 'fr-FR', file: 'FeedDownloader_Pro_Manual_fr-FR.pdf' },
-            de: { dir: 'de-DE', file: 'FeedDownloader_Pro_Manual_de-DE.pdf' },
-            es: { dir: 'es-ES', file: 'FeedDownloader_Pro_Manual_es-ES.pdf' },
-            pt: { dir: 'pt-PT', file: 'FeedDownloader_Pro_Manual_pt-PT.pdf' },
-            ru: { dir: 'ru-RU', file: 'FeedDownloader_Pro_Manual_ru-RU.pdf' },
-            zh: { dir: 'zh-CN', file: 'FeedDownloader_Pro_Manual_zh-CN.pdf' },
+        const base = 'https://github.com/Ecosystem-Runtime/FeedDownloader-Releases/raw/main/manuals/';
+        const files: Record<string, string> = {
+            it: 'Manuale_FeedDownloader_Pro_Box.pdf',
+            en: 'FeedDownloader_Pro_Manual_en-GB.pdf',
+            fr: 'FeedDownloader_Pro_Manual_fr-FR.pdf',
+            de: 'FeedDownloader_Pro_Manual_de-DE.pdf',
+            es: 'FeedDownloader_Pro_Manual_es-ES.pdf',
+            pt: 'FeedDownloader_Pro_Manual_pt-PT.pdf',
+            ru: 'FeedDownloader_Pro_Manual_ru-RU.pdf',
+            zh: 'FeedDownloader_Pro_Manual_zh-CN.pdf',
         };
-        const entry = langMap[lang] || langMap['en'];
-        const candidate = app.isPackaged
-            ? path.join(process.resourcesPath, 'manuals', `${lang in langMap ? lang : 'en'}.pdf`)
-            : path.join(app.getAppPath(), 'docs', 'user', entry.dir, entry.file);
+        const file = files[lang] || files['en'];
         try {
-            if (!(await fs.pathExists(candidate))) {
-                // fall back to English if the requested language PDF is absent
-                const en = app.isPackaged
-                    ? path.join(process.resourcesPath, 'manuals', 'en.pdf')
-                    : path.join(app.getAppPath(), 'docs', 'user', langMap['en'].dir, langMap['en'].file);
-                if (!(await fs.pathExists(en))) return false;
-                const err = await shell.openPath(en);
-                return err === '';
-            }
-            const err = await shell.openPath(candidate);
-            return err === '';
+            await shell.openExternal(base + encodeURIComponent(file));
+            return true;
         } catch (e) {
             console.error('[Manual] open failed', e);
             return false;

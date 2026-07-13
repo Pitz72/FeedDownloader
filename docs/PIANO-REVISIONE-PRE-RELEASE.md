@@ -63,7 +63,7 @@ pulizia `.part` orfani. Dettaglio nel [changelog 1.4.0](changelog/1.4.0.md). Sui
 
 1. **`known_episodes`**: zero test unit sul layer dati (getKnownGuids/markGuidsAsKnown/findNewGuids/removeKnownEpisodes) — la feature v1.3.12 resta scoperta.
 2. Utils non testati: `throttleStream`, `validateNetworkPath`, `writeId3Tags`.
-3. DatabaseService: `getArchiveByPodcast`, `removeMissingFiles` con array enorme (>32k, ora chunked ma non testato), `touchFeed`, settings corrotti (guardie L1), CSV con valori `=...` (M14), upsert archive con metadati diversi (M13), rolling window `downloaded > episodeCount`.
+3. DatabaseService: `getArchiveByPodcast`, `removeMissingFiles` con array enorme (>32k, ora chunked ma non testato), `touchFeed`, settings corrotti (guardie L1), CSV con valori `=...` (M14), upsert archive con metadati diversi (M13). *(rolling window M10, `updateFeedUrl` L3 e `checkPermanentRedirect` ora coperti in v1.4.0.)*
 4. Zero test UI (vitest è `environment: node`, niente jsdom/testing-library) e zero test su `ipc.ts` (>1000 righe) / `main.ts` — estrarre gli handler IPC in funzioni testabili.
 5. Nuove superfici v1.3.13/14 senza test dedicati: If-Range/resume (S1), dedup coda (S3), richieste condizionali 304 (M6), dedup pagine (M8), decodifica charset (L4).
 
@@ -72,7 +72,6 @@ pulizia `.part` orfani. Dettaglio nel [changelog 1.4.0](changelog/1.4.0.md). Sui
 ## 📅 v1.5.0 — Fondamenta residue
 
 * Migrazione ESLint 9 flat config + typescript-eslint 8; Vite 7 (L48)
-* M9 parsing in worker (se i feed grandi risultano un problema reale)
 * Valutazione ritorno macOS (config rimossa in v1.3.14 perché mai buildata/testata) e code signing (L45)
 
 ---
@@ -85,4 +84,4 @@ pulizia `.part` orfani. Dettaglio nel [changelog 1.4.0](changelog/1.4.0.md). Sui
 * DB: statement preparati ovunque, WAL, transazioni, migrazione composita (guid, feedUrl) testata, recovery da corruzione testata.
 * Renderer: zero XSS, listener IPC StrictMode-safe, Zustand con selettori granulari.
 * CI: gate bloccante, artifactName senza spazi (auto-update funzionante), latest.yml Win+Linux.
-* TypeScript strict, zero `any`, suite 298/298.
+* TypeScript strict, zero `any`, suite 312/312.
