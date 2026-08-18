@@ -1,5 +1,8 @@
 # Report di Verifica: Multilingua & Localizzazione (v0.7.6)
 
+> ⚠️ **Archiviato il 18 agosto 2026.** Il rapporto verifica le otto lingue di allora: dalla
+> v1.4.2 il programma ne parla due, italiano e inglese.
+
 **Data della verifica:** 29 marzo 2026
 **Responsabile:** Gemini CLI (Audit AI)
 **Stato finale:** ✅ CERTIFICATO (100% Copertura)

@@ -19,11 +19,18 @@ async function buildBookForLanguage(langFolder) {
     fs.mkdirSync(bookDir, { recursive: true });
   }
 
-  // 1. Leggi Logo e converti in Base64
-  const logoPath = path.join(__dirname, '../brand/RFDP_trasp.png');
+  // 1. Marchio di copertina: stesso criterio di build-book.cjs (sorgente
+  // vettoriale dell'icona dell'applicazione).
+  const svgLogoPath = path.join(__dirname, '../branding/feeddownloader-cover.svg');
+  const pngLogoPath = path.join(__dirname, '../resources/icon.png');
   let logoBase64 = '';
-  if (fs.existsSync(logoPath)) {
-    logoBase64 = 'data:image/png;base64,' + fs.readFileSync(logoPath).toString('base64');
+  if (fs.existsSync(svgLogoPath)) {
+    // SVG: vettoriale (nitido in stampa) e con la trasparenza attorno allo
+    // squircle, che il PNG del packaging ha perso — è RGB senza canale alfa, e
+    // sul blu notte della copertina si vedeva un riquadro bianco.
+    logoBase64 = 'data:image/svg+xml;base64,' + fs.readFileSync(svgLogoPath).toString('base64');
+  } else if (fs.existsSync(pngLogoPath)) {
+    logoBase64 = 'data:image/png;base64,' + fs.readFileSync(pngLogoPath).toString('base64');
   }
 
   // 2. Extract localized text from 00-copertina.md
@@ -31,6 +38,8 @@ async function buildBookForLanguage(langFolder) {
   let subtitle = 'Manuale d\'Uso Avanzato';
   let quote = '"I contenuti digitali sono fragili. Un dominio scade, un CDN si spegne, una piattaforma chiude.<br>L\'unica copia che non scomparirà mai è quella che hai salvato tu."';
   let edition = 'Edizione 2026';
+  let license = '';
+  let version = '';
 
   if (fs.existsSync(copertinaPath)) {
     const copertinaContent = fs.readFileSync(copertinaPath, 'utf8');
@@ -44,9 +53,18 @@ async function buildBookForLanguage(langFolder) {
     const preciseQuoteMatch = copertinaContent.match(quoteRegex);
     if (preciseQuoteMatch) {
        let rawQuote = preciseQuoteMatch[1];
-       rawQuote = rawQuote.replace(/\n>\s*/g, '<br>'); // Keep line breaks
+       // Gli a capo del Markdown non sono a capo tipografici: il testo scorre.
+       rawQuote = rawQuote.replace(/^>\s?/gm, '').replace(/\s+/g, ' ').trim();
        quote = `"${rawQuote}"`;
     }
+
+    // Extract Version (### Version 1.5.0) — the Italian cover already showed it
+    const versionMatch = copertinaContent.match(/^###\s+(?:Versione|Version)\s+(.+)$/im);
+    if (versionMatch) version = versionMatch[0].replace(/^###\s+/, '').trim();
+
+    // Extract Licence (the label is kept as written, so each cover reads in its own language)
+    const licenseMatch = copertinaContent.match(/^\*\*(Licenza|Licence|License):?\*\*\s*(.+)$/im);
+    if (licenseMatch) license = `${licenseMatch[1]} ${licenseMatch[2].trim()}`;
 
     // Extract Edition
     const editionLines = copertinaContent.split('\n');
@@ -69,11 +87,12 @@ async function buildBookForLanguage(langFolder) {
   <section class="cover" id="copertina">
     <div class="cover-content">
       <img src="${logoBase64}" class="cover-logo" alt="Logo">
-      <h1>Runtime FeedDownloader Pro</h1>
+      <h1>Runtime<br>FeedDownloader<br>Pro</h1>
       <h2>${subtitle}</h2>
       <div class="cover-meta">
-        <p class="edition">${edition}</p>
+        <p class="edition">${[version, edition].filter(Boolean).join(' · ')}</p>
         <p class="company">Ecosystem Runtime | Digital Core</p>
+        ${license ? `<p class="license">${license}</p>` : ''}
       </div>
     </div>
     <div class="cover-footer">
@@ -138,8 +157,10 @@ body {
   font-size: 9.5pt;
   line-height: 1.6;
   color: var(--text-main);
-  text-align: justify;
-  hyphens: auto;
+  /* Bandiera a destra. Il giustificato, su una colonna A5 stretta, apriva
+     fiumi bianchi fra le parole e obbligava a sillabare. */
+  text-align: left;
+  hyphens: manual;
 }
 
 section.cover {
@@ -152,12 +173,13 @@ section.cover {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 40mm 20mm 20mm 20mm;
+  padding: 14mm 20mm 20mm 20mm;
   text-align: center;
 }
 
 .cover-content { flex-grow: 1; }
-.cover-logo { width: 110px; margin-bottom: 30mm; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5)); }
+/* Marchio grande, spazi stretti: vedi la nota in build-book.cjs. */
+.cover-logo { width: 220px; margin-bottom: 8mm; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5)); }
 
 section.cover h1 {
   font-family: var(--font-cover);
@@ -170,6 +192,10 @@ section.cover h1 {
   letter-spacing: 2px;
   border-bottom: none;
   break-before: avoid;
+  /* Spegne l'hyphens: auto ereditato dal body, che sulla copertina spezzava il
+     nome del prodotto (FeedDown-loader). */
+  hyphens: none;
+  text-align: center;
 }
 
 section.cover h2 {
@@ -183,13 +209,16 @@ section.cover h2 {
 }
 
 .cover-meta {
-  margin-top: 25mm;
+  margin-top: 12mm;
   font-family: var(--font-headings);
   font-size: 9pt;
   color: #AAB7B8;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
+
+.cover-meta p { margin: 0 0 2mm 0; }
+.cover-meta .license { margin-top: 4mm; }
 
 .cover-footer { padding-bottom: 10mm; }
 

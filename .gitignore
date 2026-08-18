@@ -25,20 +25,13 @@ dist-ssr
 *.sw?
 
 builds/
-distribuzione-windows/
-distribuzione-macos/
-distribuzione-linux/
-DISTRIBUZIONE/
-PORTING/
 .claude/
 
 # Credenziali locali — MAI committare
 .secrets/
 
-# Materiale commerciale/promozionale e dati locali — fuori dal repo codice
+# Materiale promozionale e dati locali — fuori dal repo codice
 MATERIALE/
-gumroad/
 screenshot/
-brand/
 downloads/
 *handoff.zip

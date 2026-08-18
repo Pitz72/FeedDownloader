@@ -9,7 +9,8 @@ in modo ordinato e verificabile. Non è un lettore, è un archiviatore. Sa cosa 
 scarica due volte la stessa cosa, riprende i trasferimenti interrotti e registra l'impronta
 crittografica di ogni file.
 
-Il programma è gratuito e può essere ridistribuito liberamente.
+Il programma è software libero, rilasciato sotto **licenza MIT**: si può usare, studiare,
+modificare e ridistribuire liberamente.
 
 ## Cosa sa fare
 
@@ -123,4 +124,8 @@ prodotti automaticamente dalla pipeline di build.
 perché il programma non ha una firma commerciale. Si prosegue con **Ulteriori informazioni** →
 **Esegui comunque**.
 
-*Costruito con Electron e React.*
+*Costruito con Electron e React. Licenza MIT — © 2026 Simone Pizzi, Runtime Radio.*
+
+*Il codice e questa documentazione sono stati scritti con un uso massiccio di modelli linguistici —
+Google Gemini e Anthropic Claude — sotto la direzione progettuale di Simone Pizzi, che ha preso e
+verificato ogni decisione.*

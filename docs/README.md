@@ -4,6 +4,36 @@ Indice di tutta la documentazione del progetto.
 
 ---
 
+## Il progetto
+
+| File | Cosa contiene |
+|------|---------------|
+| [../README.md](../README.md) | Panoramica, caratteristiche, download, privacy, licenza |
+| [../LICENSE](../LICENSE) | Licenza **MIT** — © 2026 Simone Pizzi (Runtime Radio) |
+| [../SECURITY.md](../SECURITY.md) | Modello di sicurezza, difese anti-SSRF, come segnalare una vulnerabilità |
+| [../CONTRIBUTING.md](../CONTRIBUTING.md) | Come contribuire: ambiente, stile, gate di qualità, pull request |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Architettura: processi, IPC, database, motore di download |
+| [PIANO-APERTURA.md](PIANO-APERTURA.md) | Piano di apertura del sorgente e ritiro dal commercio (in corso) |
+| [academic/paper-it.md](academic/paper-it.md) · [academic/paper-en.md](academic/paper-en.md) | Articolo tecnico sulla progettazione del programma, 🇮🇹 e 🇬🇧 |
+
+---
+
+## Documentazione per chi usa il programma
+
+| File | Lingua | Cosa contiene |
+|------|--------|---------------|
+| [../README_MASTER.md](../README_MASTER.md) | 🇮🇹 | Guida in-app: tutto quello che il programma sa fare |
+| [../README_EN.md](../README_EN.md) | 🇬🇧 | La stessa guida, in inglese |
+| [user/QUICKSTART_it.md](user/QUICKSTART_it.md) | 🇮🇹 | Guida rapida: dal primo avvio al primo archivio |
+| [user/QUICKSTART_en.md](user/QUICKSTART_en.md) | 🇬🇧 | Quick start |
+| [user/manual-it/](user/manual-it/) | 🇮🇹 | Manuale completo in 11 capitoli, sorgente del PDF |
+| [user/en-GB/](user/en-GB/) | 🇬🇧 | Manuale completo in inglese, sorgente del PDF |
+
+I due PDF si generano con `node scripts/build-book.cjs` (italiano) e
+`node scripts/build-all-books.cjs` (inglese) — vedi [scripts/README.md](../scripts/README.md).
+
+---
+
 ## Changelog
 
 Cronologia completa delle versioni in [`changelog/`](changelog/).
@@ -52,6 +82,17 @@ Cronologia completa delle versioni in [`changelog/`](changelog/).
 - [archivio/roadmap_documentation_2026.md](archivio/roadmap_documentation_2026.md) — ⚠️ Archiviato (contenuto integrato in ROADMAP.md)
 - [archivio/indicazioni.md](archivio/indicazioni.md) — ⚠️ Archivio storico (tutto completato in v0.7.4)
 - [archivio/lungotermine.md](archivio/lungotermine.md) — ⚠️ Archivio storico (tutto completato/abortito in v0.7.5)
+
+---
+
+## Piani chiusi
+
+| File | Chiuso con | Note |
+|------|-----------|------|
+| [archivio/PIANO-REVISIONE-PRE-RELEASE.md](archivio/PIANO-REVISIONE-PRE-RELEASE.md) | v1.5.0 | Audit del 12 luglio 2026 e lavoro residuo |
+| [archivio/PIANO-STANDARD-DISTRIBUZIONE-TITAN.md](archivio/PIANO-STANDARD-DISTRIBUZIONE-TITAN.md) | v1.5.0 | Allineamento allo standard di distribuzione Titan |
+| [archivio/aggiornamento-documentazione-roadmap.md](archivio/aggiornamento-documentazione-roadmap.md) | v1.2.4 e seguenti | Aggiornamento della documentazione; il Tier 4 è decaduto |
+| [archivio/report_multilingual_verification_2026-03-28.md](archivio/report_multilingual_verification_2026-03-28.md) | v1.4.2 | Verifica delle otto lingue di allora, oggi due |
 
 ---
 

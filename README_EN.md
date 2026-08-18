@@ -9,7 +9,8 @@ in order, with proof of what was stored. It is not a player, it is an archiver. 
 already have, never downloads the same file twice, resumes interrupted transfers and records a
 cryptographic fingerprint of every file.
 
-The program is free and may be redistributed freely.
+The program is free software, released under the **MIT licence**: use it, study it, modify it and
+redistribute it freely.
 
 ## What it does
 
@@ -118,4 +119,8 @@ produced automatically by the build pipeline.
 **SmartScreen warning (Windows).** On first run Windows may show "Windows protected your PC",
 because the program carries no commercial signature. Continue with **More info** → **Run anyway**.
 
-*Built with Electron and React.*
+*Built with Electron and React. MIT licence — © 2026 Simone Pizzi, Runtime Radio.*
+
+*The code and this documentation were written with heavy use of large language models — Google
+Gemini and Anthropic Claude — under the design direction of Simone Pizzi, who made and checked
+every decision.*

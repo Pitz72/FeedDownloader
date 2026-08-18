@@ -22,6 +22,7 @@
 ---
 
 **Edizione:** agosto 2026
+**Licenza:** MIT
 **Compatibilità:** Windows 10/11 · Linux (Ubuntu 22.04+)
 **Lingua:** italiano
 
@@ -47,5 +48,10 @@
 
 ---
 
-*Runtime FeedDownloader Pro è software gratuito. Questo manuale, distribuito in Markdown e in PDF,
-accompagna il programma e può essere copiato e ridistribuito liberamente.*
+*Runtime FeedDownloader Pro è software libero, rilasciato sotto **licenza MIT**: chiunque può
+usarlo, studiarne il codice, modificarlo e ridistribuirlo. Questo manuale, distribuito in Markdown e
+in PDF, accompagna il programma alle stesse condizioni.*
+
+*Programma e documentazione sono stati scritti con un uso massiccio di modelli linguistici — Google
+Gemini, dalla 2.5 alla 3.1, e Anthropic Claude, da Sonnet 4.6 a Opus 5 — sotto la direzione
+progettuale di Simone Pizzi, che ha preso, verificato e corretto ogni decisione.*

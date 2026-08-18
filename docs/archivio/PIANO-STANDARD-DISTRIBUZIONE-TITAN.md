@@ -1,5 +1,10 @@
 # Piano — Allineamento allo standard di distribuzione Titan
 
+> ⚠️ **Archiviato il 18 agosto 2026.** L'allineamento allo standard Titan è stato applicato
+> (icona singola, `electron-builder.yml`, installer leggero, changelog in-app, manuali IT+EN).
+> Lo standard vive ora in `Documents/GitHub/RUNTIME-DESKTOP-DISTRIBUTION-STANDARD.md`; il
+> piano in corso è [PIANO-APERTURA.md](../PIANO-APERTURA.md).
+
 **Stato:** PIANIFICAZIONE (da approvare prima di applicare). 13 luglio 2026.
 **Obiettivo:** portare FeedDownloader allo stesso standard di *Runtime TelegramBot Desktop
 Titan Edition* (v2.1.7) per auto-update, packaging, changelog, logo/icona e manuali, così da

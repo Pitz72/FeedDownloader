@@ -14,7 +14,13 @@ invoke them explicitly when regenerating the manuals.
 
 These render the Markdown manuals under `docs/user/**` into print-ready PDFs. They shell
 out to `npx vivliostyle build`, so [Vivliostyle CLI](https://vivliostyle.org/) (a devDependency,
-`@vivliostyle/cli`) must be installed (`npm ci`). Brand assets are read from `brand/`.
+`@vivliostyle/cli`) must be installed (`npm ci`).
+
+The cover mark is `branding/feeddownloader-cover.svg`, embedded as a data URI: it is the app icon
+without its background squircle, which on the night-blue cover read as a stamp. It is deliberately
+vector — sharp in print, and with the transparency `resources/icon.png` lost (that file is RGB with
+no alpha channel: fine as an icon, wrong on a coloured ground). Until August 2026 both scripts still
+pointed at `brand/RFDP_trasp.png`, the February mark the app had stopped using in July.
 
 | Script | What it does |
 | --- | --- |
@@ -28,8 +34,11 @@ node scripts/build-book.cjs
 node scripts/build-all-books.cjs
 ```
 
-Cover metadata (subtitle, version, edition, epigraph) is parsed from each manual's
-`00-copertina.md`, so a version bump only has to be made there. The output filenames are the ones
+Cover metadata (subtitle, version, edition, licence, epigraph) is parsed from each manual's
+`00-copertina.md`, so a version bump only has to be made there. The cover title is broken by hand
+(`Runtime<br>FeedDownloader<br>Pro`) and `section.cover h1` sets `hyphens: none`, because the
+inherited `hyphens: auto` used to split the product name across lines. Body text is set ragged
+right: justified copy on a narrow A5 column opened rivers and forced hyphenation. The output filenames are the ones
 `OPEN_MANUAL_PDF` (`electron/ipc.ts`) fetches from `manuals/` on the public releases repo: renaming
 a PDF means updating the script, the IPC handler and the bridge together.
 

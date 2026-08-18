@@ -41,9 +41,18 @@ A background timer (6/12/24 hours) synchronises every feed without manual interv
 
 ## System Requirements
 - **Windows**: 10/11 (64-bit)
-- **macOS**: 11.0 (Big Sur) or higher
 - **Linux**: Modern distributions (Ubuntu, Debian, Fedora)
+- **macOS**: not supported — no official packages; the source builds on a Mac, but building it is
+  your own responsibility
 - Active Internet connection for feed analysis.
+
+---
+## Licence
+
+Runtime FeedDownloader Pro is free software, released under the **MIT licence**: use it, study it,
+modify it and redistribute it freely. The program and its documentation were written with heavy use
+of large language models — Google Gemini and Anthropic Claude — under the design direction of
+Simone Pizzi.
 
 ---
 *Part of the Runtime Ecosystem | Digital Core — Tools built to last.*

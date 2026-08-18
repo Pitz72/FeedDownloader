@@ -103,3 +103,6 @@ already downloaded is not fetched twice.
 ---
 
 *Every address goes through the anti-SSRF checks described in the manual before it is contacted.*
+
+*Runtime FeedDownloader Pro is free software under the MIT licence. Written with Google Gemini and
+Anthropic Claude, under the design direction of Simone Pizzi.*

@@ -3,9 +3,10 @@
 **Aperto:** 18 agosto 2026
 **Obiettivo:** ritirare FeedDownloader Pro dal mercato, spostarlo su `Pitz72` come repository pubblico
 sotto licenza MIT, con build automatiche per Windows e Linux.
-**Stato:** **FASE 1 CHIUSA** (18/08). **Gumroad chiuso** dall'utente il 18/08 (voce della Fase 5 già spuntata,
-verificata: HTTP 404). ▶️ **Prossima: FASE 2**, ampliata su richiesta dell'utente con il titolo
-spezzato in copertina, il marchio vecchio nei PDF e il riordino del repository.
+**Stato:** **FASI 1 e 2 CHIUSE** (18/08). **Gumroad chiuso** dall'utente il 18/08 (voce della Fase 5
+già spuntata, verificata: HTTP 404). ▶️ **Prossima: FASE 3**, la prima release da progetto aperto,
+che però va fatta **dopo** la Fase 4.1–4.2: `app-update.yml` deve già puntare alla destinazione
+definitiva.
 
 > **Il modello è Titan.** Questa procedura ricalca `docs/PIANO-APERTURA.md` di *Runtime TelegramBot
 > Desktop Titan Edition*, che ha fatto la stessa transizione il 12–13 agosto 2026. Dove il contesto
@@ -84,84 +85,76 @@ non campionaria.
 
 ---
 
-## FASE 2 — Documentazione, marchio e riordino del repository ◀️ PROSSIMA SESSIONE
+## FASE 2 — Documentazione, marchio e riordino del repository ✅ CHIUSA (18/08)
 
-La revisione integrale dei manuali IT+EN è stata eseguita il 18/08 (commit `7481280`): 12 capitoli
-riscritti contro il codice, tre feature inesistenti rimosse, help in-app rifatto, riferimenti
-commerciali bonificati. Restano quattro blocchi, aggiunti su richiesta dell'utente il 18/08 a fine
-sessione.
+La revisione integrale dei manuali IT+EN era già stata eseguita il 18/08 (commit `7481280`). Questa
+fase ha chiuso i quattro blocchi aggiunti a fine sessione, più due difetti tipografici emersi
+guardando i PDF.
 
-### 2.1 — La licenza, ora che esiste
+### 2.1 — La licenza, ora che esiste ✅
 
-- [ ] **Colophon dei manuali** — le copertine IT ed EN dicono oggi «software gratuito, ridistribuibile
-      liberamente», formula scelta di proposito finché `LICENSE` non esisteva. Ora esiste: va scritto
-      **MIT**, con il credito ai modelli come nel README.
-- [ ] **Guide rapide e file di benvenuto** — stessa riga di licenza.
-- [ ] `docs/README.md` — indice aggiornato con `LICENSE`, `SECURITY.md`, `CONTRIBUTING.md` e questo
-      piano.
+- [x] **Colophon dei manuali** — le copertine IT ed EN dicevano «software gratuito, ridistribuibile
+      liberamente»: ora dicono **MIT**, con il credito ai modelli come nel README. Aggiunta anche la
+      voce `**Licenza:** MIT` fra i metadati di copertina, da cui gli script la leggono.
+- [x] **Guide rapide e file di benvenuto** — riga di licenza in `QUICKSTART_it/en.md` e in
+      `README_USER_it/en.md`; in questi ultimi corretto anche il requisito macOS, che dichiarava
+      ancora «11.0 Big Sur o superiore» contro la decisione presa.
+- [x] **Guide in-app** — `README_MASTER.md` e `README_EN.md` (i file che apre la guida
+      dell'applicazione) dicevano «gratuito e ridistribuibile»: ora MIT, con il credito ai modelli
+      in chiusura.
+- [x] `docs/README.md` — indice rifatto con `LICENSE`, `SECURITY.md`, `CONTRIBUTING.md`,
+      `ARCHITECTURE.md`, questo piano, la documentazione per gli utenti e i piani chiusi.
 
-### 2.2 — Il titolo spezzato in copertina ⛔
+### 2.2 — Il titolo spezzato in copertina ✅
 
-**Il difetto, e la sua causa.** Sulla copertina dei PDF il nome del prodotto va a capo con la
-sillabazione (`FeedDown-loader`). Non è un caso: `body { hyphens: auto; }` — riga 126 di
-`scripts/build-book.cjs`, riga 142 di `scripts/build-all-books.cjs` — viene **ereditato**
-dall'`h1` della copertina, che a 26pt non ci sta in larghezza.
+- [x] `section.cover h1 { hyphens: none; }` in entrambi gli script.
+- [x] Titolo con interruzioni esplicite: `<h1>Runtime<br>FeedDownloader<br>Pro</h1>`, identico nelle
+      due lingue perché il nome del prodotto non si traduce.
+- [x] Verificato **a video**, pagina per pagina, su entrambi i PDF.
 
-**Come lo vuole l'utente:** una parola per riga, tre righe.
+### 2.3 — Il marchio ✅
 
-```
-RUNTIME
-FEEDDOWNLOADER
-PRO
-```
+- [x] `logoPath` non punta più a `brand/RFDP_trasp.png`, di febbraio. Guardando il risultato è però
+      emerso che `resources/icon.png` **è RGB senza canale alfa**: sul blu notte usciva un
+      francobollo bianco. La copertina usa quindi **`branding/feeddownloader-cover.svg`**, nuovo:
+      è l'icona dell'applicazione senza lo squircle di fondo, vettoriale e trasparente.
+- [x] `brand/` e `branding/logo-candidates/` non sono stati eliminati — **decisione dell'utente:
+      «è storia, racconta il progetto»**. Sono stati raccolti in **`branding/storico/`** con un
+      `branding/README.md` che spiega marchio in uso, file derivati e cronologia. Ci è finito anche
+      `public/logo_source.png`, il vecchio marchio che nessuna riga di codice usava più.
+- [x] Altro marchio vecchio: `public/logo.png` e `public/icon.ico` erano già stati rigenerati il
+      18/08; `brand/banner.png` (maggio) si è rivelato materiale promozionale con un terzo marchio
+      ancora, mai usato dal programma — spostato in `MATERIALE/` come `banner-2026-05.png`. La
+      cartella `brand/` non esiste più.
 
-- [ ] `section.cover h1 { hyphens: none; }` in **entrambi** gli script, perché la regola del `body`
-      arriva per ereditarietà e va spenta dove serve.
-- [ ] Titolo con interruzioni esplicite nel markup della copertina:
-      `<h1>Runtime<br>FeedDownloader<br>Pro</h1>`. È più robusto che sperare nella larghezza del
-      contenitore, e vale identico per l'inglese, perché il nome del prodotto non si traduce.
-- [ ] Verificare **a video** la copertina di entrambi i PDF: è un difetto tipografico, e i difetti
-      tipografici si vedono, non si deducono dal codice.
+### 2.4 — Riordino del repository ✅
 
-### 2.3 — Il marchio: i PDF hanno ancora il logo vecchio 🔴
+- [x] **Eliminate `DISTRIBUZIONE/` e `gumroad/`** (1,25 GB).
+- [x] Su decisione dell'utente sono state eliminate anche **`PORTING/`** (881 MB, pacchetti 0.7.6),
+      **`builds/`** (483 MB, output rigenerabile) e `downloads/` (vuota). In tutto **2,56 GB**.
+      Restano `MATERIALE/` e `screenshot/`, entrambe ignorate da git.
+- [x] Verificato che nessuno script o documento citi le cartelle sparite: l'unico riferimento vivo
+      era in `scripts/README.md` («brand assets are read from `brand/`»), riscritto.
+- [x] `.gitignore` ripulito delle regole ormai senza oggetto (`DISTRIBUZIONE/`, `gumroad/`,
+      `PORTING/`, `brand/`, `distribuzione-*/`).
+- [x] `docs/` — i piani eseguiti sono in **`docs/archivio/`**, non in `docs/storico/` come Titan:
+      questa repo aveva già `archivio/`, e due cartelle con lo stesso mestiere sono peggio di una.
+      Archiviati con un riquadro che dice quando e perché: `PIANO-REVISIONE-PRE-RELEASE.md`,
+      `PIANO-STANDARD-DISTRIBUZIONE-TITAN.md`, e in più `aggiornamento-documentazione-roadmap.md`
+      e `report_multilingual_verification_2026-03-28.md`, entrambi superati.
 
-**Misurato, non supposto.** Il logo di copertina dei manuali è `brand/RFDP_trasp.png`, **12 febbraio
-2026**, 1,5 MB. Il logo definitivo del progetto è `branding/feeddownloader-icon.svg` → 
-`resources/icon.png`, **13 luglio 2026**, 35 KB, ed è quello che l'applicazione usa da quando è stato
-cablato nel build (v1.5.0, commit `f86afc8`). **I due manuali PDF portano quindi un marchio che
-l'applicazione non usa più.**
+### 2.5 — Rigenerazione ✅
 
-- [ ] Puntare `logoPath` dei due script (riga 16 di `build-book.cjs`, riga 23 di
-      `build-all-books.cjs`) al logo attuale, e verificare come rende su fondo blu notte: il PNG
-      dell'app è pensato per un'icona, non per una copertina, quindi va guardato prima di darlo per
-      buono.
-- [ ] Decidere che fare di `brand/` (3 PNG, ~3,3 MB, febbraio) e di
-      `branding/logo-candidates/` (gli scarti della selezione del logo: 2 JPEG, 1 PNG, 1 SVG). Sono
-      **tracciati** e finirebbero nel repository pubblico. Gli scarti non servono a nessuno; i sorgenti
-      del marchio buono (`branding/*.svg`) hanno senso restino.
-- [ ] Verificare che non sia rimasto **altro** marchio vecchio in giro: `public/logo.png` e
-      `public/icon.ico` sono già stati rigenerati dal logo nuovo il 18/08, ma `brand/banner.png`
-      (maggio) non è stato controllato.
+- [x] I due PDF rigenerati dopo 2.1, 2.2 e 2.3, e verificati a video.
+- [ ] Ricaricarli dove serve: **rimandato alla Fase 3**, perché la destinazione cambia con lo
+      spostamento della repo.
 
-### 2.4 — Riordino del repository
+### In più: due difetti tipografici visti guardando i PDF
 
-- [ ] **Eliminare `DISTRIBUZIONE/` e `gumroad/`.** Sono cartelle locali (già in `.gitignore`, quindi
-      mai finite in git) che servivano a impacchettare i pacchetti commerciali. Con Gumroad chiuso e
-      la distribuzione affidata alle release di GitHub non hanno più ragione di esistere. Dentro ci
-      sono ~700 MB fra installer 1.4.2, ZIP e PDF: tutto ricostruibile o già altrove.
-- [ ] Verificare che nessuno script o documento le citi ancora dopo l'eliminazione.
-- [ ] Passare in rassegna la radice del repository con l'occhio di chi ci arriva per la prima volta:
-      `PORTING/`, `MATERIALE/`, `screenshot/`, `downloads/` sono ignorati ma esistono sul disco, e
-      vanno tenuti solo se servono davvero a qualcosa.
-- [ ] `docs/` — chiudere i piani ormai eseguiti (`PIANO-REVISIONE-PRE-RELEASE.md`,
-      `PIANO-STANDARD-DISTRIBUZIONE-TITAN.md`) spostandoli in `docs/storico/`, come fa Titan.
-
-### 2.5 — Rigenerazione
-
-- [ ] Rigenerare i 2 PDF **dopo** 2.1, 2.2 e 2.3, non prima: sono tre modifiche alla stessa copertina.
-- [ ] Ricaricarli dove serve (vedi Fase 3: la destinazione cambia con lo spostamento della repo).
-
----
+- [x] **Testo giustificato** su colonna A5 stretta: fiumi bianchi e sillabazione forzata. Ora è a
+      bandiera (`text-align: left`, `hyphens: manual`), su segnalazione dell'utente.
+- [x] **Copertina inglese disallineata dall'italiana**: non mostrava il numero di versione e
+      spezzava la citazione dove andava a capo il Markdown. Ora le due copertine sono gemelle.
 
 ## FASE 3 — La prima release da progetto aperto (v1.5.0)
 
@@ -173,6 +166,12 @@ publish e deve già puntare alla destinazione definitiva. È lo stesso vincolo c
 - [ ] 🔴 **`OPEN_MANUAL_PDF` (`electron/ipc.ts`) punta ancora a `manuals/` sulla ponte.** Va spostato
       sulla repo pubblica **prima** di cancellare la ponte, altrimenti il pulsante «Apri manuale»
       restituisce 404. Verificare HTTP 200 sui due nomi file prima di toccare il codice.
+- [ ] 🔴 **`resources/icon.png` è RGB senza canale alfa** (scoperto nella Fase 2 mettendo il marchio
+      sulla copertina): gli angoli attorno allo squircle sono bianchi, non trasparenti. Da lì
+      derivano `public/logo.png` e `public/icon.ico`, quindi finestra, notifiche e area di notifica
+      mostrano un contorno bianco sui fondi scuri. Si rigenera da `branding/feeddownloader-icon.svg`
+      conservando l'alfa, e si rifà `public/icon.ico`.
+- [ ] Ricaricare i due PDF dei manuali sulla destinazione definitiva (voce che arriva dalla Fase 2.5).
 - [ ] Bump a **1.5.0** in `package.json`, tag, changelog già pronto (`docs/changelog/1.5.0.md`).
 - [ ] Lanciare la build e verificare che l'auto-update dalla 1.4.2 installata funzioni davvero.
 

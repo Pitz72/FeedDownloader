@@ -49,8 +49,10 @@ body {
   font-size: 9.5pt;
   line-height: 1.6;
   color: var(--text-main);
-  text-align: justify;
-  hyphens: auto;
+  /* Bandiera a destra. Il giustificato, su una colonna A5 stretta, apriva
+     fiumi bianchi fra le parole e obbligava a sillabare. */
+  text-align: left;
+  hyphens: manual;
 }
 
 section.cover {
@@ -63,12 +65,13 @@ section.cover {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 40mm 20mm 20mm 20mm;
+  padding: 14mm 20mm 20mm 20mm;
   text-align: center;
 }
 
 .cover-content { flex-grow: 1; }
-.cover-logo { width: 110px; margin-bottom: 30mm; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5)); }
+/* Marchio grande, spazi stretti: vedi la nota in build-book.cjs. */
+.cover-logo { width: 220px; margin-bottom: 8mm; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5)); }
 
 section.cover h1 {
   font-family: var(--font-cover);
@@ -81,6 +84,10 @@ section.cover h1 {
   letter-spacing: 2px;
   border-bottom: none;
   break-before: avoid;
+  /* Spegne l'hyphens: auto ereditato dal body, che sulla copertina spezzava il
+     nome del prodotto (FeedDown-loader). */
+  hyphens: none;
+  text-align: center;
 }
 
 section.cover h2 {
@@ -94,13 +101,16 @@ section.cover h2 {
 }
 
 .cover-meta {
-  margin-top: 25mm;
+  margin-top: 12mm;
   font-family: var(--font-headings);
   font-size: 9pt;
   color: #AAB7B8;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
+
+.cover-meta p { margin: 0 0 2mm 0; }
+.cover-meta .license { margin-top: 4mm; }
 
 .cover-footer { padding-bottom: 10mm; }
 

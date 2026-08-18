@@ -12,11 +12,19 @@ async function main() {
     fs.mkdirSync(bookDir, { recursive: true });
   }
 
-  // 1. Leggi Logo e converti in Base64
-  const logoPath = path.join(__dirname, '../brand/RFDP_trasp.png');
+  // 1. Il marchio di copertina è il marchio attuale del progetto: il sorgente
+  // vettoriale dell'icona dell'applicazione. Fino ad agosto 2026 il manuale
+  // portava ancora brand/RFDP_trasp.png, di febbraio, che il programma non usa più.
+  const svgLogoPath = path.join(__dirname, '../branding/feeddownloader-cover.svg');
+  const pngLogoPath = path.join(__dirname, '../resources/icon.png');
   let logoBase64 = '';
-  if (fs.existsSync(logoPath)) {
-    logoBase64 = 'data:image/png;base64,' + fs.readFileSync(logoPath).toString('base64');
+  if (fs.existsSync(svgLogoPath)) {
+    // SVG: vettoriale (nitido in stampa) e con la trasparenza attorno allo
+    // squircle, che il PNG del packaging ha perso — è RGB senza canale alfa, e
+    // sul blu notte della copertina si vedeva un riquadro bianco.
+    logoBase64 = 'data:image/svg+xml;base64,' + fs.readFileSync(svgLogoPath).toString('base64');
+  } else if (fs.existsSync(pngLogoPath)) {
+    logoBase64 = 'data:image/png;base64,' + fs.readFileSync(pngLogoPath).toString('base64');
   }
 
   // 1-bis. Metadati di copertina letti da 00-copertina.md, che resta la fonte
@@ -30,6 +38,7 @@ async function main() {
   const mdSubtitle = pick(/^##\s+(.+)$/m, "Manuale d'uso avanzato");
   const mdVersion = pick(/^###\s+Versione\s+(.+)$/m, '');
   const mdEdition = pick(/^\*\*Edizione:\*\*\s*(.+)$/m, '');
+  const mdLicense = pick(/^\*\*Licenza:\*\*\s*(.+)$/m, '');
   const mdQuote = pick(/^>\s*\*«([\s\S]*?)»\*/m, '')
     .replace(/^>\s?/gm, '')
     .replace(/\s+/g, ' ')
@@ -49,11 +58,12 @@ async function main() {
   <section class="cover" id="copertina">
     <div class="cover-content">
       <img src="${logoBase64}" class="cover-logo" alt="Logo">
-      <h1>Runtime FeedDownloader Pro</h1>
+      <h1>Runtime<br>FeedDownloader<br>Pro</h1>
       <h2>${mdSubtitle}</h2>
       <div class="cover-meta">
         <p class="edition">${coverEdition}</p>
         <p class="company">Ecosystem Runtime | Digital Core</p>
+        ${mdLicense ? `<p class="license">Licenza ${mdLicense}</p>` : ''}
       </div>
     </div>
     <div class="cover-footer">
@@ -122,8 +132,10 @@ body {
   font-size: 9.5pt;
   line-height: 1.6;
   color: var(--text-main);
-  text-align: justify;
-  hyphens: auto;
+  /* Bandiera a destra. Il giustificato, su una colonna A5 stretta, apriva
+     fiumi bianchi fra le parole e obbligava a sillabare. */
+  text-align: left;
+  hyphens: manual;
 }
 
 /* COPERTINA - BLU NOTTE */
@@ -137,7 +149,7 @@ section.cover {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 40mm 20mm 20mm 20mm;
+  padding: 14mm 20mm 20mm 20mm;
   text-align: center;
 }
 
@@ -146,8 +158,11 @@ section.cover {
 }
 
 .cover-logo {
-  width: 110px;
-  margin-bottom: 30mm;
+  /* Il marchio è l'elemento forte della copertina: gli spazi attorno sono
+     stretti perché titolo su tre righe, riga di licenza e citazione a fondo
+     pagina devono starci tutti dentro l'altezza dell'A5. */
+  width: 220px;
+  margin-bottom: 8mm;
   filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
 }
 
@@ -162,6 +177,10 @@ section.cover h1 {
   letter-spacing: 2px;
   border-bottom: none;
   break-before: avoid;
+  /* Il body ha hyphens: auto e il titolo lo ereditava: a 26pt il nome del
+     prodotto non ci stava in larghezza e usciva spezzato (FeedDown-loader). */
+  hyphens: none;
+  text-align: center;
 }
 
 section.cover h2 {
@@ -175,13 +194,16 @@ section.cover h2 {
 }
 
 .cover-meta {
-  margin-top: 25mm;
+  margin-top: 12mm;
   font-family: var(--font-headings);
   font-size: 9pt;
   color: #AAB7B8;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
+
+.cover-meta p { margin: 0 0 2mm 0; }
+.cover-meta .license { margin-top: 4mm; }
 
 .cover-footer {
   padding-bottom: 10mm;

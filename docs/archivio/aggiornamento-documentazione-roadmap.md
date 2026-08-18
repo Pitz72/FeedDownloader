@@ -1,5 +1,9 @@
 # Roadmap: Aggiornamento Documentazione v1.2.4
 
+> ⚠️ **Archiviato il 18 agosto 2026.** Tier 1, 2, 3 e 5 sono stati completati; il Tier 4
+> riguardava la cartella `DISTRIBUZIONE/`, eliminata con la chiusura della fase commerciale.
+> I manuali sono stati poi rivisti integralmente contro il codice il 18 agosto 2026.
+
 **Data:** 12 maggio 2026
 **Versione di riferimento del software:** 1.2.4
 **Versione alla quale la documentazione esistente fa riferimento:** 0.7.6 / 1.0.0

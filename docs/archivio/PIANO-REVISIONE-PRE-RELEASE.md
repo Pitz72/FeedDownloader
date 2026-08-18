@@ -1,5 +1,9 @@
 # Piano di Revisione Pre-Rilascio — Lavoro Residuo
 
+> ⚠️ **Archiviato il 18 agosto 2026.** Il lavoro residuo qui elencato è stato chiuso con la
+> v1.5.0, e le voci operative (ZIP su Gumroad, PDF sulla repo ponte) sono decadute con
+> l'apertura del sorgente. Il piano in corso è [PIANO-APERTURA.md](../PIANO-APERTURA.md).
+
 **Audit originale:** 12 luglio 2026 su v1.3.12 (5 audit paralleli, escluso player audio)
 **Ultimo aggiornamento:** 13 luglio 2026
 

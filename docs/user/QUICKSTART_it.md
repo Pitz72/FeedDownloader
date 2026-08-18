@@ -104,3 +104,6 @@ scaricato non viene ripreso una seconda volta.
 ---
 
 *Ogni indirizzo, prima di essere contattato, passa dai controlli anti-SSRF descritti nel manuale.*
+
+*Runtime FeedDownloader Pro è software libero sotto licenza MIT. Scritto con Google Gemini e
+Anthropic Claude, sotto la direzione progettuale di Simone Pizzi.*
