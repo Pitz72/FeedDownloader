@@ -107,8 +107,9 @@ and preload (DOM libs, via `tsconfig.json`) and once with
 `tsc -p tsconfig.electron.json` for the main process (no DOM libs, so
 `window`/`document` are errors there) — then runs `vite build` and packages with
 electron-builder into `builds/${version}`. `npm run release` is the same pipeline
-with `--publish always` (used only by CI, which pushes assets to the public
-release bridge repo `Ecosystem-Runtime/FeedDownloader-Releases`).
+with `--publish always` (used only by CI, which since v1.5.0 attaches the assets
+to a release on this very repository, `Pitz72/FeedDownloader`, with the built-in
+`GITHUB_TOKEN`).
 
 Releases themselves are produced by the manual `workflow_dispatch` GitHub Action,
 not from a local machine.

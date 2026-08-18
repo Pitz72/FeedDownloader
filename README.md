@@ -3,7 +3,7 @@
 > **Il modo più potente per archiviare i tuoi podcast.**
 
 ![Version](https://img.shields.io/badge/version-1.5.0-blue)
-![Build](https://github.com/Ecosystem-Runtime/FeedDownloader/actions/workflows/build.yml/badge.svg)
+![Build](https://github.com/Pitz72/FeedDownloader/actions/workflows/build.yml/badge.svg)
 ![Electron](https://img.shields.io/badge/Electron-43-47848F?logo=electron)
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)
@@ -59,7 +59,7 @@ Nasce nel 2026 come strumento interno di [Runtime Radio](https://runtimeradio.co
 | 🇮🇹 Italiano | [README_MASTER.md](README_MASTER.md) | [docs/user/manual-it](docs/user/manual-it/) |
 | 🇬🇧 English | [README_EN.md](README_EN.md) | [docs/user/en-GB](docs/user/en-GB/) |
 
-I PDF dei manuali sono pubblicati nella cartella `manuals/` della [repo delle release](https://github.com/Ecosystem-Runtime/FeedDownloader-Releases) e si aprono anche dall'app.
+I PDF dei manuali sono versionati qui accanto ai sorgenti Markdown — [italiano](docs/user/manual-it/Manuale_FeedDownloader_Pro_Box.pdf), [inglese](docs/user/en-GB/FeedDownloader_Pro_Manual_en-GB.pdf) — e si aprono anche dall'app.
 
 ### 📋 Changelog
 
@@ -69,8 +69,8 @@ La cronologia completa delle versioni si trova in [`docs/changelog/`](docs/chang
 
 | Piattaforma | Formato | Link |
 |---|---|---|
-| Windows 10/11 | NSIS Installer (`.exe`) | [GitHub Releases](https://github.com/Ecosystem-Runtime/FeedDownloader-Releases/releases) |
-| Linux | AppImage / `.deb` | [GitHub Releases](https://github.com/Ecosystem-Runtime/FeedDownloader-Releases/releases) |
+| Windows 10/11 | NSIS Installer (`.exe`) | [GitHub Releases](https://github.com/Pitz72/FeedDownloader/releases) |
+| Linux | AppImage / `.deb` | [GitHub Releases](https://github.com/Pitz72/FeedDownloader/releases) |
 
 I build sono prodotti da GitHub Actions con trigger manuale (workflow dispatch).
 

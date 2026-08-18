@@ -12,6 +12,7 @@ export type ReleaseNotesLang = 'it' | 'en';
 export const RELEASE_NOTES: Record<string, Record<ReleaseNotesLang, string[]>> = {
     '1.5.0': {
         it: [
+            'Il programma è libero: licenza MIT, sorgente pubblico su GitHub, nessun acquisto.',
             'I download si mettono in pausa e riprendono da dove erano: singolarmente o tutta la coda insieme.',
             'I download falliti si riprovano con un solo pulsante, senza rifare la selezione.',
             'L’Health Check ora ripara: ritrova i file rinominati a mano tramite l’impronta SHA-256 e li riaggancia.',
@@ -21,9 +22,10 @@ export const RELEASE_NOTES: Record<string, Record<ReleaseNotesLang, string[]>> =
             'La notifica sui nuovi episodi è cliccabile e apre il podcast interessato.',
             'Ctrl+K cerca anche tra gli episodi del feed aperto.',
             'Gli aggiornamenti chiedono il permesso: prima «Scarica», poi «Riavvia e installa». Niente download automatici.',
-            'Icona nuova ovunque: finestra, tray, installer.',
+            'Icona nuova ovunque: finestra, tray, installer — ora senza il bordo bianco attorno agli angoli.',
         ],
         en: [
+            'The program is free software: MIT licence, public source on GitHub, nothing to buy.',
             'Downloads can pause and resume right where they left off — one at a time or the whole queue.',
             'Failed downloads retry with a single button, no need to reselect anything.',
             'Health Check now repairs: manually renamed files are found again via their SHA-256 fingerprint and re-linked.',
@@ -33,7 +35,7 @@ export const RELEASE_NOTES: Record<string, Record<ReleaseNotesLang, string[]>> =
             'The new-episodes notification is clickable and opens the podcast in question.',
             'Ctrl+K also searches the open feed’s episodes.',
             'Updates ask permission: first “Download”, then “Restart & install”. No silent downloads.',
-            'New icon everywhere: window, tray, installer.',
+            'New icon everywhere: window, tray, installer — now without the white fringe around its corners.',
         ],
     },
     '1.4.2': {

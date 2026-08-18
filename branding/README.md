@@ -14,8 +14,14 @@ viola assegnata a FeedDownloader.
 | `feeddownloader-cover.svg` | Copertina dei manuali: è l'icona senza lo squircle di fondo, perché sul blu notte della copertina il riquadro scuro faceva da francobollo |
 
 I due script in `scripts/` incorporano `feeddownloader-cover.svg` nella copertina dei PDF. È
-vettoriale di proposito: resta nitido in stampa e conserva la trasparenza, che `resources/icon.png`
-non ha (è RGB senza canale alfa, va bene come icona ma non su un fondo colorato).
+vettoriale di proposito: resta nitido in stampa a qualsiasi dimensione.
+
+> **Nota sull'alfa (v1.5.0).** Fino alla v1.4.2 `resources/icon.png` era RGB **senza canale alfa**:
+> gli angoli attorno allo squircle erano bianchi, e si vedevano nella finestra, nelle notifiche e
+> nell'area di notifica sui fondi scuri. Nella v1.5.0 il file è stato rigenerato dall'SVG
+> conservando la trasparenza, e con lui `public/logo.png` e `public/icon.ico`. La rasterizzazione
+> va fatta con un motore di browser: il renderer SVG interno di ImageMagick sbaglia gli angoli
+> dello squircle e la maschera dell'anello.
 
 ## `storico/` — i marchi precedenti
 

@@ -312,9 +312,10 @@ mutates the world only through `window.api.*`.
   run only after it passes. `npm ci` produces a `better-sqlite3` binary for the
   CI Node ABI, so Vitest runs directly with no electron-rebuild.
 * **Auto-update** — `electron-updater` (`ipc.ts`) checks for updates on startup
-  (packaged builds only, after a 3 s delay), downloads in the background, and
-  installs on `quitAndInstall`. It publishes to and pulls from a **public release
-  bridge repo**, `Ecosystem-Runtime/FeedDownloader-Releases`; the private code
-  repo builds and pushes signed release assets there. The renderer reflects the
-  lifecycle through `UPDATE_STATUS` and the main process also fires proactive OS
-  notifications when an update is available and when it is ready.
+  (packaged builds only, after a 3 s delay) but **downloads nothing on its own**:
+  `autoDownload` is off, the transfer starts from the in-app button and the
+  install from `quitAndInstall`. Since v1.5.0 it publishes to and pulls from the
+  project's own public repository, `Pitz72/FeedDownloader` — the release bridge
+  repo it used before is being retired (`docs/PIANO-APERTURA.md`). The renderer
+  reflects the lifecycle through `UPDATE_STATUS` and the main process also fires
+  proactive OS notifications when an update is available and when it is ready.

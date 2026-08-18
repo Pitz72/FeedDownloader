@@ -117,8 +117,8 @@ Interfaccia, notifiche e manuali sono disponibili in **italiano** e **inglese**.
 ## Dove si scarica
 
 I pacchetti stanno su
-[GitHub Releases](https://github.com/Ecosystem-Runtime/FeedDownloader-Releases/releases) e sono
-prodotti automaticamente dalla pipeline di build.
+[GitHub Releases](https://github.com/Pitz72/FeedDownloader/releases) e sono
+prodotti dalla pipeline di build della repo pubblica del progetto.
 
 **Avviso SmartScreen (Windows).** Al primo avvio Windows può mostrare «Windows ha protetto il PC»
 perché il programma non ha una firma commerciale. Si prosegue con **Ulteriori informazioni** →

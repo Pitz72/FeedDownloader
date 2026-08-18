@@ -1253,18 +1253,22 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     });
 
     // ── Open PDF manual (B1) ──────────────────────────────
-    // The full PDF manuals are hosted on the public releases repo (not bundled in
-    // the installer) and opened in the system browser — same scheme as Titan. The
+    // The full PDF manuals are versioned in the public repository next to their
+    // Markdown sources (so PDF and source can't drift) and opened in the system
+    // browser rather than bundled in the installer — same scheme as Titan. The
     // GitHub URL stays hidden behind the in-app button ("link occultato").
+    // Until v1.5.0 these were served from `manuals/` on the release bridge repo,
+    // which is being retired: see docs/PIANO-APERTURA.md.
     ipcMain.handle(CH.OPEN_MANUAL_PDF, async (_, lang: string): Promise<boolean> => {
-        const base = 'https://github.com/Ecosystem-Runtime/FeedDownloader-Releases/raw/main/manuals/';
-        const files: Record<string, string> = {
-            it: 'Manuale_FeedDownloader_Pro_Box.pdf',
-            en: 'FeedDownloader_Pro_Manual_en-GB.pdf',
+        const base = 'https://github.com/Pitz72/FeedDownloader/raw/master/docs/user/';
+        const paths: Record<string, string> = {
+            it: 'manual-it/Manuale_FeedDownloader_Pro_Box.pdf',
+            en: 'en-GB/FeedDownloader_Pro_Manual_en-GB.pdf',
         };
-        const file = files[lang] || files['en'];
+        const relative = paths[lang] || paths['en'];
+        const encoded = relative.split('/').map(encodeURIComponent).join('/');
         try {
-            await shell.openExternal(base + encodeURIComponent(file));
+            await shell.openExternal(base + encoded);
             return true;
         } catch (e) {
             console.error('[Manual] open failed', e);

@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       publish_release:
-        description: 'Publish release to bridge repo after build'
+        description: 'Publish release on this repository after build'
         required: false
         default: 'true'
         type: choice
@@ -20,9 +20,11 @@ on:
 # con workflow_dispatch. Su pull request gira soltanto il job `verify`, che
 # controlla lint, tipi e test ma non produce installer e non pubblica nulla.
 
-# Least privilege: no job here needs write access to THIS repo. The build jobs
-# only checkout + build, and the release job publishes to the separate bridge
-# repo using the RELEASE_TOKEN PAT (not GITHUB_TOKEN). Read is enough for all.
+# Least privilege by default: `verify` and the two build jobs only checkout and
+# build, so read is enough. Since v1.5.0 the release is published on THIS
+# repository (the bridge repo is being retired, see docs/PIANO-APERTURA.md), so
+# the `release` job — and only that job — raises itself to `contents: write` and
+# uses the built-in GITHUB_TOKEN. No PAT is involved any more.
 permissions:
   contents: read
 
@@ -148,6 +150,8 @@ jobs:
     needs: [build-linux, build-windows]
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.publish_release == 'true' }}
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -167,14 +171,13 @@ jobs:
           name: windows-artifacts
           path: artifacts/windows
 
-      - name: Publish release to bridge repo
+      - name: Publish release
         # Pinned to a full commit SHA (v2 → 2.6.2) rather than the mutable v2 tag:
-        # this step receives the RELEASE_TOKEN PAT, so a hijacked tag of this
-        # action could otherwise exfiltrate it. Bump deliberately when updating.
+        # this step receives a write-scoped token, so a hijacked tag of this
+        # action could otherwise abuse it. Bump deliberately when updating.
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
-          repository: Ecosystem-Runtime/FeedDownloader-Releases
-          token: ${{ secrets.RELEASE_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           tag_name: ${{ steps.version.outputs.tag }}
           name: "FeedDownloader Pro ${{ steps.version.outputs.tag }}"
           body: |
@@ -188,8 +191,11 @@ jobs:
             | **Linux (AppImage)** | `*.AppImage` |
             | **Linux (deb)** | `*.deb` |
 
-            > macOS builds not currently supported.
-            > The app updates automatically — existing users will be notified in-app.
+            > macOS is not supported: build from source if you need it.
+            > The app checks for updates and tells you in-app; the download starts
+            > when you press the button, never on its own.
+
+            Free software under the **MIT licence** — sources in this repository.
           files: |
             artifacts/linux/**/*.AppImage
             artifacts/linux/**/*.deb

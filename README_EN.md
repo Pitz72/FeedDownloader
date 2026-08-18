@@ -113,8 +113,8 @@ Interface, notifications and manuals are available in **Italian** and **English*
 ## Where to get it
 
 Packages live on
-[GitHub Releases](https://github.com/Ecosystem-Runtime/FeedDownloader-Releases/releases) and are
-produced automatically by the build pipeline.
+[GitHub Releases](https://github.com/Pitz72/FeedDownloader/releases) and are
+produced by the build pipeline of the project's public repository.
 
 **SmartScreen warning (Windows).** On first run Windows may show "Windows protected your PC",
 because the program carries no commercial signature. Continue with **More info** → **Run anyway**.
