@@ -715,6 +715,17 @@ export class DatabaseService {
         this.setSetting('speedLimitKBps', String(Math.max(0, Math.floor(kbps))));
     }
 
+    // v1.5.0 — "What's new" tracking (Titan pattern): the version whose in-app
+    // changelog the user has already been shown. Lives in the main DB, not in
+    // renderer localStorage, so it survives and predates the renderer.
+    getLastSeenVersion(): string | null {
+        return this.getSetting('lastSeenVersion');
+    }
+
+    setLastSeenVersion(version: string): void {
+        this.setSetting('lastSeenVersion', version);
+    }
+
     // v1.5.0 — per-file size cap in MB (0 = unlimited), same shape as the speed limit
     getFileSizeLimitMB(): number {
         const parsed = parseInt(this.getSetting('fileSizeLimitMB') ?? '', 10);

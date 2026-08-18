@@ -12,6 +12,7 @@ import { writeId3Tags } from './utils/writeId3Tags';
 import { extractExtension } from './utils/extractExtension';
 import { applyTemplate } from './utils/applyTemplate';
 import { validateUrl } from './utils/validateUrl';
+import { evaluateWhatsNew } from './utils/whatsNew';
 import { validateNetworkPath } from './utils/validateNetworkPath';
 import { autoUpdater } from 'electron-updater';
 import { IPC_CHANNELS as CH } from '../shared/types';
@@ -1238,6 +1239,19 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         }
     });
 
+    // ── "What's new" decision (v1.5.0, Titan pattern) ─────
+    // Called once by the renderer after mount. Decides in the MAIN process
+    // whether the changelog should auto-open (existing user, version changed),
+    // then records the current version. Fixes the 1.3.x→1.4.x gap where the
+    // renderer's localStorage had no previous version and stayed silent.
+    ipcMain.handle(CH.CONSUME_WHATS_NEW, async () => {
+        const current = app.getVersion();
+        const previous = libraryService.getLastSeenVersion();
+        const shouldShow = evaluateWhatsNew(previous, current, libraryService.isEmpty());
+        libraryService.setLastSeenVersion(current);
+        return { shouldShow, previousVersion: previous, currentVersion: current };
+    });
+
     // ── Open PDF manual (B1) ──────────────────────────────
     // The full PDF manuals are hosted on the public releases repo (not bundled in
     // the installer) and opened in the system browser — same scheme as Titan. The
@@ -1588,8 +1602,9 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
             if (!Notification.isSupported()) return;
             const bodies: Record<'available' | 'ready', Record<string, string>> = {
                 available: {
-                    en: `Version ${version} is available — it's downloading in the background.`,
-                    it: `La versione ${version} è disponibile — il download è in corso in background.`,
+                    // v1.5.0: nothing downloads without consent — point at the in-app banner
+                    en: `Version ${version} is available — open the app and press Download to get it.`,
+                    it: `La versione ${version} è disponibile — apri l'app e premi Scarica per ottenerla.`,
                 },
                 ready: {
                     en: 'Update ready. Restart the app from Settings to install it.',
@@ -1608,6 +1623,14 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         // relaunch into a half-downloaded (or absent) package if the renderer asks
         // out of turn.
         let updateDownloaded = false;
+
+        // v1.5.0 (standard Titan): l'aggiornamento si scarica SOLO col consenso
+        // dell'utente. Il check segnala la disponibilità; il download parte dal
+        // pulsante "Scarica" del banner N1 (DOWNLOAD_UPDATE), l'installazione da
+        // "Riavvia e installa" (INSTALL_UPDATE). Niente download né install
+        // impliciti alla chiusura.
+        autoUpdater.autoDownload = false;
+        autoUpdater.autoInstallOnAppQuit = false;
 
         if (!autoUpdaterListenersBound) {
             autoUpdaterListenersBound = true;
@@ -1653,6 +1676,18 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                 return;
             }
             await autoUpdater.checkForUpdates();
+        });
+
+        // v1.5.0 — consent step: the user explicitly asks to download the update
+        ipcMain.handle(CH.DOWNLOAD_UPDATE, async () => {
+            if (!app.isPackaged) return false;
+            try {
+                await autoUpdater.downloadUpdate();
+                return true;
+            } catch (err) {
+                pushUpdateStatus({ type: 'error', message: (err as Error).message });
+                return false;
+            }
         });
 
         ipcMain.handle(CH.INSTALL_UPDATE, () => {

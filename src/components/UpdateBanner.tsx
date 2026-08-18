@@ -51,6 +51,22 @@ export const UpdateBanner: React.FC = () => {
                 style={{ color: 'var(--azure, #4b8eff)' }}
             />
             <span>{label}</span>
+            {type === 'available' && (
+                <button
+                    type="button"
+                    onClick={() => window.api.downloadUpdate()}
+                    style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                        padding: '0.2rem 0.55rem', borderRadius: 'var(--radius-pill, 999px)',
+                        background: 'var(--azure, #4b8eff)', color: '#fff',
+                        fontFamily: 'var(--font-label)', fontSize: '0.72rem', fontWeight: 600,
+                        border: 'none', cursor: 'pointer',
+                    }}
+                >
+                    <Icon name="download" size={14} />
+                    {t('banner.update_download', 'Scarica')}
+                </button>
+            )}
             {ready && (
                 <button
                     type="button"

@@ -250,6 +250,8 @@ export const IPC_CHANNELS = {
     // Auto-Update (v0.7.5)
     CHECK_FOR_UPDATE: 'check-for-update',
     INSTALL_UPDATE: 'install-update',
+    // v1.5.0 — consent step (Titan): download starts only on explicit request
+    DOWNLOAD_UPDATE: 'download-update',
     UPDATE_STATUS: 'update-status',
     // Open a directory in the system file manager
     OPEN_FOLDER: 'open-folder',
@@ -265,6 +267,8 @@ export const IPC_CHANNELS = {
     NOTIFY_ONLINE: 'notify-online',
     // Changelog in-app (v1.4.0)
     GET_CHANGELOG: 'get-changelog',
+    // v1.5.0 — Titan pattern: decide-once whether to auto-open the changelog
+    CONSUME_WHATS_NEW: 'consume-whats-new',
     // B1 — open the bundled PDF manual for the current language
     OPEN_MANUAL_PDF: 'open-manual-pdf',
     // Maintenance (v1.4.0) — remove orphaned .part temp files

@@ -270,6 +270,7 @@
           "update_downloading": "Download aggiornamento... {{percent}}%",
           "update_ready": "Aggiornamento scaricato — riavvia per installare",
           "update_install": "Riavvia e Installa",
+          "update_download": "Scarica aggiornamento",
           "update_error": "Verifica aggiornamenti fallita",
           "auto_refresh": "Aggiornamento Automatico Feed",
           "auto_refresh_hint": "Controlla nuovi episodi in background e invia una notifica del sistema",
@@ -335,7 +336,8 @@
           "update_available": "Aggiornamento disponibile",
           "update_downloading": "Scaricamento aggiornamento… {{percent}}%",
           "update_ready": "Aggiornamento pronto",
-          "update_install": "Riavvia e installa"
+          "update_install": "Riavvia e installa",
+          "update_download": "Scarica"
      },
      "crumbs": {
           "all_archived": "Tutti gli episodi archiviati",

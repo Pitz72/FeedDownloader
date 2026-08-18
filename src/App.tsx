@@ -152,15 +152,16 @@ function AppContent() {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isChangelogOpen, setIsChangelogOpen] = useState(false);
 
-  // Changelog in-app: auto-show once right after the app updates to a new version,
-  // and on demand via the Settings button (which dispatches this event).
+  // Changelog in-app: auto-show once right after the app updates to a new
+  // version, and on demand via the Settings button (which dispatches this
+  // event). v1.5.0 (Titan pattern): the decision lives in the MAIN process
+  // (settings + library check), so a user upgrading from a version that
+  // predates the stored marker still gets the changelog — the old
+  // localStorage check stayed silent across 1.3.x→1.4.x.
   useEffect(() => {
-    const KEY = 'lastSeenChangelogVersion';
-    const seen = localStorage.getItem(KEY);
-    if (seen && seen !== __APP_VERSION__) {
-      setIsChangelogOpen(true);
-    }
-    localStorage.setItem(KEY, __APP_VERSION__);
+    window.api.consumeWhatsNew()
+      .then(({ shouldShow }) => { if (shouldShow) setIsChangelogOpen(true); })
+      .catch(() => { /* non-blocking nicety */ });
     const open = () => setIsChangelogOpen(true);
     window.addEventListener('feeddownloader:changelog', open);
     return () => window.removeEventListener('feeddownloader:changelog', open);

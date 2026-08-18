@@ -24,8 +24,7 @@
     "test:coverage": "vitest run --coverage",
     "pretest:coverage": "npm run rebuild:node",
     "rebuild:node": "npm rebuild better-sqlite3",
-    "rebuild:electron": "electron-rebuild -f -w better-sqlite3",
-    "icons:linux": "node scripts/generate-linux-icons.cjs"
+    "rebuild:electron": "electron-rebuild -f -w better-sqlite3"
   },
   "engines": {
     "node": ">=18.15.0"
@@ -81,68 +80,5 @@
     "vitest": "^4.1.0",
     "zustand": "^5.0.11"
   },
-  "main": "dist-electron/main.js",
-  "build": {
-    "appId": "com.runtime.feeddownloader.pro",
-    "productName": "Runtime FeedDownloader Pro",
-    "directories": {
-      "output": "builds/${version}"
-    },
-    "artifactName": "Runtime-FeedDownloader-Pro-${version}.${ext}",
-    "files": [
-      "dist",
-      "dist-electron",
-      "node_modules",
-      "package.json",
-      "!node_modules/better-sqlite3/deps/**",
-      "!node_modules/better-sqlite3/build/deps/**",
-      "!node_modules/better-sqlite3/build/**/obj/**",
-      "!node_modules/better-sqlite3/src/**"
-    ],
-    "asarUnpack": [
-      "**/*.node"
-    ],
-    "extraResources": [
-      {
-        "from": "./",
-        "to": "./",
-        "filter": [
-          "README_*.md"
-        ]
-      },
-      {
-        "from": "docs/changelog",
-        "to": "changelog",
-        "filter": [
-          "*.md"
-        ]
-      }
-    ],
-    "win": {
-      "target": "nsis",
-      "icon": "public/icon.ico"
-    },
-    "linux": {
-      "target": [
-        "AppImage",
-        "deb"
-      ],
-      "icon": "build/icons",
-      "category": "Utility"
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "installerIcon": "public/icon.ico",
-      "uninstallerIcon": "public/icon.ico",
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
-    },
-    "publish": {
-      "provider": "github",
-      "owner": "Ecosystem-Runtime",
-      "repo": "FeedDownloader-Releases",
-      "releaseType": "release"
-    }
-  }
+  "main": "dist-electron/main.js"
 }

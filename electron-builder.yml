@@ -1,0 +1,63 @@
+appId: com.runtime.feeddownloader.pro
+productName: Runtime FeedDownloader Pro
+directories:
+  output: builds/${version}
+artifactName: Runtime-FeedDownloader-Pro-${version}.${ext}
+
+# Escludi TUTTO node_modules tranne la catena nativa di better-sqlite3:
+# ogni altra dipendenza JS del main è già bundlata inline da Vite
+# (vite-plugin-electron bundla le devDependencies; l'unica "dependency"
+# dichiarata è better-sqlite3). Modello Titan.
+files:
+  - dist/**/*
+  - dist-electron/**/*
+  - package.json
+  - "!node_modules/**/*"
+  - node_modules/better-sqlite3/**/*
+  - node_modules/bindings/**/*
+  - node_modules/file-uri-to-path/**/*
+  - "!node_modules/better-sqlite3/deps/**"
+  - "!node_modules/better-sqlite3/build/deps/**"
+  - "!node_modules/better-sqlite3/build/**/obj/**"
+  - "!node_modules/better-sqlite3/src/**"
+asarUnpack:
+  - "**/*.node"
+extraResources:
+  - from: ./
+    to: ./
+    filter:
+      - README_*.md
+  - from: docs/changelog
+    to: changelog
+    filter:
+      - "*.md"
+
+# === Windows ===
+# Un solo PNG quadrato (1024²): electron-builder genera da sé l'ICO multi-size
+# per exe e installer. Standard Titan — niente set di icone committato.
+win:
+  target: nsis
+  icon: resources/icon.png
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+
+# macOS non è supportato: distribuzione Windows + Linux (modello Titan).
+
+# === Linux ===
+linux:
+  maintainer: Runtime Radio <info@runtimeradio.it>
+  icon: resources/icon.png
+  target:
+    - AppImage
+    - deb
+  category: Utility
+
+# === Auto-Update (release sulla repo bridge pubblica) ===
+publish:
+  provider: github
+  owner: Ecosystem-Runtime
+  repo: FeedDownloader-Releases
+  releaseType: release

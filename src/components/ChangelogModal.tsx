@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import Markdown from 'react-markdown';
 import { useFocusTrap } from '../hooks/useFocusTrap';
+import { getReleaseNotes } from '../lib/releaseNotes';
 
 interface ChangelogModalProps {
     isOpen: boolean;
@@ -14,13 +15,17 @@ interface ChangelogModalProps {
  * version, so users see what changed without leaving the app or opening GitHub.
  */
 export const ChangelogModal: React.FC<ChangelogModalProps> = ({ isOpen, onClose }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [content, setContent] = useState('');
     const [loading, setLoading] = useState(false);
     const trapRef = useFocusTrap<HTMLDivElement>(isOpen);
 
+    // v1.5.0 (Titan): in-code localized highlights take precedence; the IT-only
+    // Markdown file remains the fallback for versions not listed in-code.
+    const inCodeNotes = getReleaseNotes(__APP_VERSION__, i18n.language);
+
     useEffect(() => {
-        if (!isOpen) return;
+        if (!isOpen || inCodeNotes) return;
         let cancelled = false;
         setLoading(true);
         window.api.getChangelog()
@@ -28,7 +33,7 @@ export const ChangelogModal: React.FC<ChangelogModalProps> = ({ isOpen, onClose 
             .catch(() => { if (!cancelled) setContent(''); })
             .finally(() => { if (!cancelled) setLoading(false); });
         return () => { cancelled = true; };
-    }, [isOpen]);
+    }, [isOpen, inCodeNotes]);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -78,7 +83,13 @@ export const ChangelogModal: React.FC<ChangelogModalProps> = ({ isOpen, onClose 
 
                         <div className="help-body">
                             <div className="help-content custom-scrollbar">
-                                {loading ? (
+                                {inCodeNotes ? (
+                                    <ul style={{ margin: '8px 0 0', paddingLeft: 20, display: 'grid', gap: 10 }}>
+                                        {inCodeNotes.map((note, i) => (
+                                            <li key={i} style={{ lineHeight: 1.5 }}>{note}</li>
+                                        ))}
+                                    </ul>
+                                ) : loading ? (
                                     <p style={{ textAlign: 'center', padding: '40px 0', color: 'var(--fg-3)' }}>
                                         {t('help.loading', 'Caricamento…')}
                                     </p>

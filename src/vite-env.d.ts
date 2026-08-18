@@ -83,6 +83,7 @@ declare global {
             openArchiveFile: (podcastTitle: string, filename: string) => Promise<boolean>;
             // Auto-Update
             checkForUpdate: () => Promise<void>;
+            downloadUpdate: () => Promise<boolean>;
             installUpdate: () => Promise<void>;
             onUpdateStatus: (callback: (event: Electron.IpcRendererEvent, status: UpdateStatus) => void) => () => void;
             // Auto-Refresh (F3)
@@ -92,6 +93,8 @@ declare global {
             notifyOnline: () => Promise<boolean>;
             // Changelog in-app (v1.4.0)
             getChangelog: (version?: string) => Promise<string>;
+            // v1.5.0 — Titan pattern: main decides once whether to auto-open the changelog
+            consumeWhatsNew: () => Promise<{ shouldShow: boolean; previousVersion: string | null; currentVersion: string }>;
             // B1 — open bundled PDF manual for a language
             openManualPdf: (lang: string) => Promise<boolean>;
             // Maintenance — clean orphaned .part files

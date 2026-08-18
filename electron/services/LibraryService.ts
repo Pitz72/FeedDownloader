@@ -191,6 +191,10 @@ export class LibraryService {
     getFileSizeLimitMB(): number { return this.db.getFileSizeLimitMB(); }
     setFileSizeLimitMB(mb: number): void { this.db.setFileSizeLimitMB(mb); }
 
+    // v1.5.0 — "What's new" tracking (Titan pattern)
+    getLastSeenVersion(): string | null { return this.db.getLastSeenVersion(); }
+    setLastSeenVersion(version: string): void { this.db.setLastSeenVersion(version); }
+
     getAutoRefreshInterval(): number { return this.db.getAutoRefreshInterval(); }
     setAutoRefreshInterval(hours: number): void { this.db.setAutoRefreshInterval(hours); }
     /** N2: false when the user has never chosen an interval → seed a default. */

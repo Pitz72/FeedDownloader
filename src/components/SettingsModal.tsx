@@ -831,7 +831,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, s
                                                         </div>
                                                     )}
 
-                                                    {/* Action buttons */}
+                                                    {/* Action buttons — v1.5.0 (Titan): il download parte solo col consenso */}
                                                     {updateStatus.type === 'ready' ? (
                                                         <button
                                                             onClick={() => window.api.installUpdate()}
@@ -840,6 +840,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, s
                                                         >
                                                             <Icon name="restart_alt" size={16} />
                                                             {t('settings.update_install')}
+                                                        </button>
+                                                    ) : updateStatus.type === 'available' ? (
+                                                        <button
+                                                            onClick={() => window.api.downloadUpdate()}
+                                                            className="hover-primary-tinted-strong w-full flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm transition-all"
+                                                            style={{ background: 'rgba(173,198,255,0.12)', border: '1px solid rgba(173,198,255,0.25)', color: 'var(--color-primary)', fontFamily: 'var(--font-label)' }}
+                                                        >
+                                                            <Icon name="download" size={16} />
+                                                            {t('settings.update_download', 'Scarica aggiornamento')}
                                                         </button>
                                                     ) : (
                                                         <button

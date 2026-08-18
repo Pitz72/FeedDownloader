@@ -265,6 +265,7 @@
           "update_downloading": "Downloading update... {{percent}}%",
           "update_ready": "Update downloaded — restart to install",
           "update_install": "Restart & Install",
+          "update_download": "Download update",
           "update_error": "Update check failed",
           "health_mark_not_downloaded": "Mark as not downloaded",
           "health_mark_success": "Missing files removed from the registry. They can now be re-downloaded.",
@@ -335,7 +336,8 @@
           "update_available": "Update available",
           "update_downloading": "Downloading update… {{percent}}%",
           "update_ready": "Update ready",
-          "update_install": "Restart & install"
+          "update_install": "Restart & install",
+          "update_download": "Download"
      },
      "crumbs": {
           "all_archived": "All archived episodes",

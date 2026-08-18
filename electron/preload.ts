@@ -145,6 +145,7 @@ contextBridge.exposeInMainWorld('api', {
 
   // Auto-Update
   checkForUpdate: (): Promise<void> => ipcRenderer.invoke(CH.CHECK_FOR_UPDATE),
+  downloadUpdate: (): Promise<boolean> => ipcRenderer.invoke(CH.DOWNLOAD_UPDATE),
   installUpdate: (): Promise<void> => ipcRenderer.invoke(CH.INSTALL_UPDATE),
   onUpdateStatus: (callback: (event: Electron.IpcRendererEvent, status: UpdateStatus) => void) => {
     const subscription = (_event: Electron.IpcRendererEvent, status: UpdateStatus) => callback(_event, status);
@@ -161,6 +162,9 @@ contextBridge.exposeInMainWorld('api', {
 
   // Changelog in-app (v1.4.0)
   getChangelog: (version?: string): Promise<string> => ipcRenderer.invoke(CH.GET_CHANGELOG, version),
+  // v1.5.0 — Titan pattern: main decides once whether to auto-open the changelog
+  consumeWhatsNew: (): Promise<{ shouldShow: boolean; previousVersion: string | null; currentVersion: string }> =>
+    ipcRenderer.invoke(CH.CONSUME_WHATS_NEW),
 
   // B1 — open the bundled PDF manual for a language
   openManualPdf: (lang: string): Promise<boolean> => ipcRenderer.invoke(CH.OPEN_MANUAL_PDF, lang),

@@ -77,21 +77,16 @@ jobs:
           key: electron-linux-${{ hashFiles('package-lock.json') }}
 
       # build-essential + python3 servono per compilare better-sqlite3
-      # imagemagick produce il set di icone PNG richiesto da electron-builder
       # libfuse2 serve per impacchettare/eseguire AppImage
+      # Le icone: un solo PNG (resources/icon.png), electron-builder genera i
+      # formati piattaforma da sé — niente ImageMagick, niente set committato.
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential python3 imagemagick libfuse2
+          sudo apt-get install -y build-essential python3 libfuse2
 
       - name: Install npm dependencies
         run: npm ci
-
-      # L43: icons are committed to build/icons/ and reproducible locally via
-      # `npm run icons:linux`. Regenerate here too so a logo change is picked up
-      # without a stale committed set (same script, single source of truth).
-      - name: Generate Linux icons (PNG set)
-        run: npm run icons:linux
 
       - name: Build (Linux, no publish)
         run: npx tsc && npx tsc -p tsconfig.electron.json && npx vite build && npx electron-builder --linux --publish never

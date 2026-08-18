@@ -1,13 +1,14 @@
 # `scripts/`
 
 Build-time helper scripts. None of these run automatically as part of `npm run build`;
-invoke them explicitly when regenerating the manuals or the Linux icon set.
+invoke them explicitly when regenerating the manuals.
 
-## Linux icon set
-
-| Script | npm alias | What it does |
-| --- | --- | --- |
-| `generate-linux-icons.cjs` | `npm run icons:linux` | Regenerates the PNG set under `build/icons/` (16→512 px) from `public/logo.png`, using ImageMagick (`magick` on v7, `convert` on v6). electron-builder's `build.linux.icon` points at that directory. The PNGs are committed, so a local Linux build works out of the box; rerun this only when the logo changes. CI runs the same script. |
+> **Icons (v1.5.0, Titan standard):** the app icon is a single square PNG,
+> `resources/icon.png` (1024²). electron-builder generates the platform formats
+> (ICO for Windows, PNG set for Linux) by itself — no ImageMagick, no committed
+> icon set. The runtime assets `public/logo.png` (window/notifications) and
+> `public/icon.ico` (Windows tray) are derived from the same source
+> (`npx png-to-ico resources/icon.png > public/icon.ico`).
 
 ## User-manual PDFs (Vivliostyle)
 
