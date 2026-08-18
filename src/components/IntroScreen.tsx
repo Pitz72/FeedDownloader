@@ -37,12 +37,9 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
             <div className="intro-corners" aria-hidden="true">
                 <i /><i /><i /><i />
             </div>
-            <div className="intro-status">
-                <span className="dot" />
-                <span>{t('intro.status_acquiring', 'Acquiring signal')}</span>
-                <span style={{ opacity: 0.4 }}>·</span>
-                <span>{t('intro.status_channel', 'Channel 01')}</span>
-            </div>
+            {/* La riga di stato in alto a sinistra ("Acquisizione segnale · Canale 01")
+                era finto strumentario: non diceva niente di vero e rubava spazio.
+                Rimossa dopo la v1.5.0; resta il numero di versione, che invece serve. */}
             <div className="intro-version">
                 v{__APP_VERSION__}
             </div>

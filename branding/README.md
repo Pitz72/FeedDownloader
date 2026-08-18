@@ -12,6 +12,7 @@ viola assegnata a FeedDownloader.
 | `feeddownloader-icon.svg` | Sorgente dell'icona dell'applicazione → `resources/icon.png`, da cui electron-builder ricava le icone di Windows e Linux |
 | `feeddownloader-tray.svg` | Icona monocromatica per l'area di notifica |
 | `feeddownloader-cover.svg` | Copertina dei manuali: è l'icona senza lo squircle di fondo, perché sul blu notte della copertina il riquadro scuro faceva da francobollo |
+| `banner-feeddownloader.png` | Testata del `README.md` e della scheda prodotto sul sito. 1920×823, composto in HTML+CSS attorno all'icona e catturato con un motore di browser; stesso impianto del banner di Titan |
 
 I due script in `scripts/` incorporano `feeddownloader-cover.svg` nella copertina dei PDF. È
 vettoriale di proposito: resta nitido in stampa a qualsiasi dimensione.

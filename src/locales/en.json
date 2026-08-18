@@ -349,9 +349,7 @@
           "no_feed": "No feed selected"
      },
      "intro": {
-          "overline": "Runtime · Archive Suite",
-          "status_acquiring": "Acquiring signal",
-          "status_channel": "Channel 01"
+          "overline": "Runtime · Archive Suite"
      },
      "palette": {
           "open": "Open command palette"

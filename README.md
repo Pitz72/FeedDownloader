@@ -1,14 +1,20 @@
-# 🎙️ Runtime FeedDownloader Pro
+<div align="center">
+  <img src="branding/banner-feeddownloader.png" alt="Runtime FeedDownloader Pro — software libero, licenza MIT, per Windows e Linux" width="100%" />
 
-> **Il modo più potente per archiviare i tuoi podcast.**
+  # Runtime FeedDownloader Pro
 
-![Version](https://img.shields.io/badge/version-1.5.0-blue)
-![Build](https://github.com/Pitz72/FeedDownloader/actions/workflows/build.yml/badge.svg)
-![Electron](https://img.shields.io/badge/Electron-43-47848F?logo=electron)
-![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)
-![Windows](https://img.shields.io/badge/Windows-0078D6?logo=windows&logoColor=white)
-![Linux](https://img.shields.io/badge/Linux-FCC624?logo=linux&logoColor=black)
+  **Il modo più potente per archiviare i tuoi podcast.**
+
+  ![Version](https://img.shields.io/badge/Version-1.5.0-38bdf8?style=for-the-badge)
+  ![License](https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge)
+  ![Platform](https://img.shields.io/badge/Platform-Win%20%7C%20Linux-emerald?style=for-the-badge)
+  ![Stack](https://img.shields.io/badge/Stack-Electron%20%7C%20React%20%7C%20SQLite-475569?style=for-the-badge)
+  ![Lang](https://img.shields.io/badge/Languages-IT%20%7C%20EN-purple?style=for-the-badge)
+
+  [![Build](https://github.com/Pitz72/FeedDownloader/actions/workflows/build.yml/badge.svg)](https://github.com/Pitz72/FeedDownloader/actions/workflows/build.yml)
+</div>
+
+---
 
 ## Panoramica
 

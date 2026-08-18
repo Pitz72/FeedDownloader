@@ -349,9 +349,7 @@
           "no_feed": "Nessun feed selezionato"
      },
      "intro": {
-          "overline": "Runtime · Archive Suite",
-          "status_acquiring": "Acquisizione segnale",
-          "status_channel": "Canale 01"
+          "overline": "Runtime · Archive Suite"
      },
      "palette": {
           "open": "Apri command palette"
