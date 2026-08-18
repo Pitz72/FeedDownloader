@@ -15,11 +15,10 @@ FeedDownloader Pro addresses this problem with two complementary mechanisms: **s
 For each downloaded file, FeedDownloader Pro:
 1.  Calculates the SHA-256 hash of the file at the end of the download.
 2.  Saves the hash in the database, together with the file path and the date of calculation.
-3.  If the RSS feed includes a reference hash (some modern feeds include the `<podcast:integrity>` field), it compares it with the calculated one. In the event of a discrepancy, the file is marked as **"Corrupted"** and re-queued for a new download.
 
 **Practical uses:**
-*   It is possible to verify at any future point that a file has not been modified, corrupted, or replaced: simply recalculate the hash and compare it with the one recorded in the database.
-*   After moving files to a new drive or following a migration, the **Health Check** (see section 9.4) allows you to verify that all files are still present.
+*   The **Health Check** (see section 9.4) recalculates the hash of every present file and compares it with the recorded one: any modification, corruption or replacement after the download is detected.
+*   The **"Repair archive (checksum search)"** function uses the same hash to find files that have been renamed by hand (see section 9.4).
 *   In professional contexts, the SHA-256 hash constitutes a verifiable reference of content integrity at the time of download.
 
 ---
@@ -42,22 +41,29 @@ These values are recorded in the database and are included in the CSV export (se
 
 ## 9.4 Health Check: Archive Integrity Verification
 
-Over time, an archive may undergo external modifications outside the software: files moved or deleted directly from the filesystem. The **Health Check** verifies the state of the archive against what is recorded in the database.
+Over time, an archive may undergo external modifications outside the software: files moved, renamed, deleted or corrupted directly on the filesystem. The **Health Check** verifies the state of the archive against what is recorded in the database.
 
 **How to run the Health Check:**
-Go to **Settings → Archive → Health Check** and click **"Start Check"**.
+Go to **Settings → Archive → Archive Health Check** and click **"Run Check"**.
 
-The process analyses each file recorded in the database and verifies that the file still exists at the recorded path. Upon completion, a summary is shown with three indicators:
+The process performs two checks on each file recorded in the database:
+
+1.  **Presence:** verifies that the file still exists at the recorded path.
+2.  **Real integrity:** for present files, it recalculates the SHA-256 hash and compares it with the one recorded at download time. A modified or damaged file is reported as **corrupted** ("checksum mismatch"), with the suggestion to re-download the affected episodes.
+
+Upon completion, a summary is shown with four indicators:
 
 | Indicator | Meaning |
 |-----------|---------|
-| **Total** | Total number of episodes in the database |
-| **Present** | Files that exist at the recorded path |
+| **In DB** | Total number of episodes in the database |
+| **On Disk** | Files that exist at the recorded path |
 | **Missing** | Files not found at the recorded path |
+| **Disk Usage** | Total disk space of the present files |
 
-The screen also shows the **total disk space** occupied by the present files.
+If missing files are found, the software lists the first 5 with the podcast name and file name, and offers two actions:
 
-If missing files are found, the software lists the first 5 with the podcast name and file name. To recover a missing file, use the **"Force Re-Download"** function available from the episode context menu in the main list.
+*   **"Repair archive (checksum search)":** Searches the podcast folders for files that have been **renamed by hand**: each candidate file is identified via its recorded SHA-256 hash and, on a match, is re-linked to the database under its new name — without re-downloading anything. A summary is then shown: *"N files re-linked, M not found"*.
+*   **"Mark as not downloaded":** Removes the genuinely missing files from the registry; they return to the episode list with the **"NEW"** tag and can be re-downloaded with the normal controls (**"Download"** or **"Download All"**).
 
 ---
 
@@ -111,7 +117,7 @@ To move the archive to a new drive or a new folder, use the built-in migration f
 
 *Caution:* The migration moves files from the current folder to the new one. Files are removed from the original location. Verify that the destination drive has sufficient space before starting the operation.
 
-*Moving to a new computer:* Copy both the audio files folder and the `feeddownloader.db` file (from the user data folder described in Chapter 2). On the new computer, install FeedDownloader Pro, copy the database to the user data folder, and use the migration function if the archive path has changed.
+*Moving to a new computer:* Copy both the audio files folder and the `feeddownloader.sqlite` file (from the user data folder described in Chapter 2). On the new computer, install FeedDownloader Pro, copy the database to the user data folder, and use the migration function if the archive path has changed.
 
 ---
 

@@ -86,7 +86,7 @@ FeedDownloader Pro automatically applies **normalisation** to the name produced 
 
 ## 8.6 Configuring the Template
 
-The rename template is configured in **Settings → Metadata**.
+The rename template is configured in **Settings → Metadata**, in the **"File Naming Template"** field.
 
 The text field accepts any combination of text and tokens. Beneath the field, a real-time preview is available showing the result of the template applied to a sample episode, to verify the format before saving.
 

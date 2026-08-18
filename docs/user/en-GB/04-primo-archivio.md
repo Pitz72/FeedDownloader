@@ -78,7 +78,7 @@ After the analysis, the list shows all episodes of the podcast.
 Two download modes are available.
 
 **Mode A — Full download:**
-Click **"Download All"**. The software adds all episodes in **"To Download"** status to the queue and starts the downloads in parallel. The number of simultaneous downloads depends on the thread setting (see Chapter 10; the default value is 3).
+Click **"Download All"**. The software adds all episodes with the **"NEW"** tag to the queue and starts the downloads in parallel. The number of simultaneous downloads depends on the **"Parallel Downloads"** setting (see Chapter 10; the default value is 3).
 
 **Mode B — Selective download:**
 To download only certain episodes:
@@ -110,7 +110,7 @@ When the Download Panel shows the batch as completed and all episodes appear in 
 
 2.  **Export a CSV summary:** Go to **Settings → Archive → Export CSV**. The generated file lists all downloaded episodes with SHA-256 hashes, sizes, and metadata (see Chapter 9).
 
-3.  **Verify files on disk:** Open the destination folder in the file manager. Audio files are organised according to the configured rename template (see Chapter 8). The presence of `.part` files indicates interrupted downloads, which will be completed the next time the batch is started.
+3.  **Verify files on disk:** Open the destination folder in the file manager. Audio files are organised according to the configured rename template (see Chapter 8). The presence of `.part` files indicates interrupted or paused downloads: re-queueing the same episodes resumes the transfer from where it stopped. Orphaned `.part` files can be removed via **Settings → Advanced → Clean temporary files**.
 
 ---
 
@@ -122,14 +122,14 @@ The Database-First system simplifies archive updates. The procedure depends on w
 
 1.  Click the feed in the sidebar to select it.
 2.  Hover over the entry and click the sync icon, or use the **"Sync All"** button to refresh the whole library in parallel.
-3.  New episodes appear as **"To Download"**; those already present remain as **"Downloaded"**.
+3.  New episodes appear with the **"NEW"** tag (and the feed shows the **"TO DOWNLOAD"** badge in the sidebar); those already present remain **"ARCHIVED"**.
 4.  Click **"Download All"** to download only the new episodes.
 
 **Feed not yet in the library:**
 
 Paste the RSS URL into the URL field at the top of the interface and click **"Analyse"**: the feed is added to the library and the list is populated with the current status.
 
-The system never downloads the same episode twice. Periodic automatic refresh can also be configured (see Chapter 10 and section 5.9).
+The system never downloads the same episode twice. The automatic new-episode check is enabled by default every 6 hours (see Chapter 10 and section 5.9).
 
 ---
 

@@ -28,8 +28,8 @@ The number of simultaneous downloads is one of the most relevant parameters to c
 | Fast fibre connection | 5 |
 | NAS with slow network connection | 1 |
 
-**How to change the number of threads:**
-Go to **Settings → Download → Parallel Threads** and select one of the three available presets: **1**, **3**, or **5**. The change is applied immediately to the current queue.
+**How to change the number of simultaneous downloads:**
+Go to **Settings → Download → Parallel Downloads** and select one of the three available presets: **1**, **3**, or **5**. The change is applied immediately to the current queue.
 
 *Note on servers with connection limits:* Some podcast hosting servers apply limits to the number of simultaneous connections per single IP address. If frequent `429 Too Many Requests` or `503 Service Unavailable` errors occur, reduce the number of threads to 1 or 2. The retry mechanism automatically handles failures, but reducing the load prevents the problem at its root.
 
@@ -43,18 +43,20 @@ In a batch download of hundreds of files, network errors are to be expected. Fee
 
 | Attempt | Wait before retry |
 |---------|-------------------|
-| 1st failure | 2 seconds |
-| 2nd failure | 4 seconds |
-| 3rd failure | 8 seconds |
-| 4th failure | 16 seconds |
-| 5th failure (last) | The episode is marked as a definitive **"Error"** |
+| 1st failure | 1 second |
+| 2nd failure | 2 seconds |
+| 3rd failure (last) | The episode is marked as a definitive **"Error"** |
 
-If a server is temporarily overloaded, the system gives the server time to recover before retrying. Most transient errors are resolved within the second or third attempt.
+If a server is temporarily overloaded, the system gives the server time to recover before retrying. If the server replies `429 Too Many Requests` with a `Retry-After` header, the wait requested by the server is honoured (up to a maximum of 60 seconds). Because the partial `.part` file is kept between attempts, each retry **resumes from where it stopped** instead of starting over.
 
 **Definitive errors (not subject to retry):**
 *   `404 Not Found`: The file does not exist on the server. Further attempts are not useful.
-*   `403 Forbidden`: The server rejected the request due to lack of authorisation.
+*   **Non-audio content:** The server replied with a web page (HTML) instead of the audio file — typical of expired links redirecting to a courtesy page. The download is rejected with the message *"The server sent a web page, not audio"*.
+*   **File over the size cap:** The file exceeds the **"Maximum File Size"** value configured in the Settings (see Chapter 10).
+*   **Disk full or access denied** on the destination folder.
 *   SSRF validation errors: The URL did not pass the internal security checks.
+
+**Retrying failed episodes:** At the end of the batch, the **"Retry failed"** button in the errors section of the Download Panel re-queues all failed episodes in a single click.
 
 ---
 
@@ -68,16 +70,16 @@ This condition occurs frequently with:
 *   Large audio files served from CDN with bandwidth limitations.
 
 **Detection:**
-Each active download is monitored by a watchdog process that records the bytes received every 10 seconds. If for **60 consecutive seconds** no new bytes arrive (or fewer than 1 KB arrive, a threshold that excludes TCP keep-alives), the download is considered stalled and:
+Each active download is monitored by a watchdog. If no new bytes arrive for **60 consecutive seconds**, the download is considered stalled and:
 1.  The connection is terminated.
-2.  The partial `.part` file is deleted.
-3.  The episode is re-queued with the normal retry cycle.
+2.  The partial `.part` file is **kept**.
+3.  The episode re-enters the normal retry cycle and, thanks to the partial file, the new attempt **resumes from where it stopped**.
 
-The process is transparent to the user: a brief reset of the percentage is visible in the individual progress bar, followed by the download resuming. If the stall was caused by a transient condition, the new download starts normally. If the problem persists beyond the maximum attempts, the episode is marked as **"Error"**.
+The process is transparent to the user. If the stall was caused by a transient condition, the download resumes normally. If the problem persists beyond the maximum attempts, the episode is marked as **"Error"**.
 
 ---
 
-## 6.5 `.part` Files: The Anti-Corruption System
+## 6.5 `.part` Files: Anti-Corruption and Resume
 
 Every audio file is downloaded with the temporary `.part` extension during transfer. The file is renamed with the final extension (`.mp3`, `.m4a`, `.ogg`, etc.) **only** after:
 
@@ -85,28 +87,32 @@ Every audio file is downloaded with the temporary `.part` extension during trans
 2.  The file size matches the size declared in the HTTP header (`Content-Length`), if available.
 3.  The SHA-256 hash has been calculated and recorded in the database.
 
-This mechanism guarantees that partial or corrupted audio files with a final extension are never present in the destination folder. In the event of a sudden programme interruption or computer shutdown, residual `.part` files will be found in the folder: the software will delete and re-download them in the next session.
+This mechanism guarantees that partial or corrupted audio files with a final extension are never present in the destination folder.
+
+**Resuming transfers:** In the event of a pause, transient error or interruption, the `.part` file is kept together with a small `.part.meta` file recording the server's "validator" (ETag or Last-Modified). On the next attempt, the software requests only the missing bytes (HTTP `Range` request with `If-Range`): if the remote file has changed in the meantime, the server signals it and the download restarts from scratch, avoiding splicing fragments of different files together.
+
+**Cleaning up leftovers:** `.part` files orphaned by past sessions can be removed via **Settings → Advanced → Maintenance → Clean temporary files** (the function is only available while no downloads are running).
 
 *Location of `.part` files:* In the same destination folder as completed files. These files must not be opened with an audio player: being partial, they would cause read errors.
 
 ---
 
-## 6.6 Interrupting and Resuming Sessions
+## 6.6 Pausing, Resuming and Stopping
 
-**Stopping the Batch:**
-The **"Stop"** button (in the global progress bar) stops all active threads in an orderly fashion, clears the queue, and deletes partial `.part` files. Files already completed remain in the database. The next time the same feed is analysed, interrupted episodes will appear as **"To Download"**.
+**Pausing (non-destructive):**
+From the Download Panel you can suspend **a single download** (the **"Pause"** button on its row) or **the entire queue** (the **"Pause"** button in the header; the panel shows **"Queue paused"**). Pausing keeps the `.part` files: pressing **"Resume"** continues the transfer exactly from where it left off. A paused download keeps its place in the queue and in the batch.
 
-**Closing the programme during a download:**
-If the main window is closed (the programme continues in the system tray) or **"Quit"** is used from the tray menu during an active download, the software displays a warning with the number of downloads in progress and requests confirmation. If the user chooses to quit, active downloads are stopped in a controlled manner and `.part` files are retained.
+**Stopping the Batch (destructive):**
+The **"Stop download"** button in the Download Panel stops all active downloads in an orderly fashion, clears the queue, and deletes partial `.part` files. Files already completed remain in the database. Interrupted episodes will appear again with the **"NEW"** tag.
 
-**Resuming an interrupted session:**
-On startup, if FeedDownloader Pro detects episodes in **"Queued"** or **"In Progress"** status from the previous session in the database, it displays a notification: *"Found X pending downloads from the previous session. Would you like to resume them?"*. Upon confirmation, the batch resumes immediately.
+**Closing the window during a download:**
+Closing the main window with the X keeps the programme running in the system tray, and downloads continue in the background. The tray menu's **"Quit"** entry, instead, closes the programme for good, stopping active downloads; the `.part` files remain on disk, so re-queueing the same episodes in the next session resumes the transfer from where it stopped.
 
 ---
 
 ## 6.7 Download Speed
 
-The speed displayed in the bottom bar is the **aggregate sum** of all active threads. With 3 active threads each downloading at 2 MB/s, the total speed displayed is approximately 6 MB/s.
+The overall batch speed is the **aggregate sum** of all active downloads. With 3 active threads each downloading at 2 MB/s, the total speed displayed is approximately 6 MB/s.
 
 **Factors affecting speed:**
 *   **Connection bandwidth:** The maximum available limit.

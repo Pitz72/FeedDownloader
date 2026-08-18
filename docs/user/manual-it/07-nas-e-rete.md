@@ -40,8 +40,8 @@ Il percorso può essere inserito direttamente nel campo di testo della destinazi
 **Metodo 2 — Unità di rete mappata:**
 Se il NAS è già mappato come unità di rete in Windows (es. `Z:` → `\\MYNAS\Podcast`), è possibile selezionare `Z:\Archivio` come cartella di destinazione. FeedDownloader Pro riconosce automaticamente che si tratta di un percorso di rete e attiva la validazione.
 
-**Metodo 3 — macOS e Linux (mount point):**
-Su macOS e Linux, i percorsi di rete SMB vengono presentati come cartelle normali nel filesystem dopo il montaggio (es. `/Volumes/MYNAS/Podcast` su macOS, `/mnt/nas/podcast` su Linux). Questi percorsi possono essere usati direttamente come cartella di destinazione.
+**Metodo 3 — Linux (mount point):**
+Su Linux, i percorsi di rete SMB vengono presentati come cartelle normali nel filesystem dopo il montaggio (es. `/mnt/nas/podcast`). Questi percorsi possono essere usati direttamente come cartella di destinazione.
 
 ---
 
@@ -54,9 +54,6 @@ Le credenziali di accesso al NAS devono essere configurate a livello di sistema 
 2.  Inserire le credenziali quando richieste e spuntare **"Memorizza credenziali"**.
 3.  Le credenziali vengono salvate nel **Gestore Credenziali di Windows** (`Pannello di Controllo → Gestione credenziali → Credenziali Windows`).
 4.  FeedDownloader Pro, come qualsiasi altra applicazione, accederà al NAS senza richiedere ulteriori credenziali.
-
-**Su macOS:**
-Le credenziali SMB vengono richieste al montaggio della condivisione (dal Finder: **Vai → Connetti al server** → `smb://192.168.1.100/NomeCondivisione`). macOS le memorizza nel Portachiavi.
 
 **Su Linux:**
 Montare la condivisione con le credenziali nel file `fstab` o tramite uno strumento grafico come GNOME Files. In alternativa, usare `smbclient` o `mount -t cifs` da terminale.
@@ -71,7 +68,7 @@ In caso di avviso "Percorso di rete non raggiungibile", verificare i seguenti pu
 Verificare le spie del dispositivo. Molti NAS consumer entrano in modalità sospensione dopo un periodo di inattività. Prima di avviare il download, aprire il pannello di amministrazione del NAS dal browser per verificarne la disponibilità.
 
 **2. Il NAS è raggiungibile dalla rete?**
-Dal Prompt dei comandi (Windows) o dal Terminale (macOS/Linux):
+Dal Prompt dei comandi (Windows) o dal Terminale (Linux):
 ```
 ping 192.168.1.100
 ```
@@ -95,7 +92,7 @@ I download su NAS presentano una complessità aggiuntiva rispetto a quelli su di
 **Indicazioni operative:**
 
 *   **Usare una connessione cablata (Ethernet):** Il Wi-Fi introduce latenza e instabilità nelle operazioni di scrittura su rete. Per archivi di grandi dimensioni, una connessione Gigabit Ethernet cablata offre prestazioni significativamente migliori.
-*   **Ridurre i thread paralleli:** La scrittura simultanea di molti file su un NAS può saturarne l'I/O. Con 2–3 thread paralleli si ottengono spesso risultati migliori rispetto all'utilizzo del numero massimo disponibile.
+*   **Ridurre i download paralleli:** La scrittura simultanea di molti file su un NAS può saturarne l'I/O. Con un valore di 1–3 in "Download Paralleli" si ottengono spesso risultati migliori rispetto all'utilizzo del numero massimo disponibile.
 *   **Evitare sovrapposizioni con i backup del NAS:** Se il NAS esegue backup automatici, evitare di avviare download batch nelle stesse finestre temporali, poiché la competizione sull'I/O del disco rallenta entrambe le operazioni.
 *   **Utilizzare una cache locale:** Per archivi molto grandi, è possibile scaricare prima su un disco locale veloce e spostare i file sul NAS al completamento del download.
 

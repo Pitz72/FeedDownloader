@@ -28,8 +28,8 @@ Il numero di download simultanei è uno dei parametri più rilevanti da configur
 | Connessione in fibra veloce | 5 |
 | NAS con connessione di rete lenta | 1 |
 
-**Come modificare il numero di thread:**
-Andare in **Impostazioni → Download → Thread Paralleli** e selezionare uno dei tre preset disponibili: **1**, **3** o **5**. La modifica viene applicata immediatamente alla coda in corso.
+**Come modificare il numero di download simultanei:**
+Andare in **Impostazioni → Download → Download Paralleli** e selezionare uno dei tre preset disponibili: **1**, **3** o **5**. La modifica viene applicata immediatamente alla coda in corso.
 
 *Nota sui server con limiti di connessione:* Alcuni server di hosting podcast applicano limitazioni al numero di connessioni simultanee per singolo indirizzo IP. In presenza di errori frequenti `429 Too Many Requests` o `503 Service Unavailable`, ridurre il numero di thread a 1 o 2. Il meccanismo di retry gestisce automaticamente i fallimenti, ma ridurre il carico previene il problema alla radice.
 
@@ -43,18 +43,20 @@ In un download batch di centinaia di file, gli errori di rete sono prevedibili. 
 
 | Tentativo | Attesa prima del retry |
 |-----------|------------------------|
-| 1° fallimento | 2 secondi |
-| 2° fallimento | 4 secondi |
-| 3° fallimento | 8 secondi |
-| 4° fallimento | 16 secondi |
-| 5° fallimento (ultimo) | L'episodio viene marcato come **"Errore"** definitivo |
+| 1° fallimento | 1 secondo |
+| 2° fallimento | 2 secondi |
+| 3° fallimento (ultimo) | L'episodio viene marcato come **"Errore"** definitivo |
 
-Se un server è temporaneamente sovraccarico, il sistema dà al server il tempo di recuperare prima di riprovare. La maggior parte degli errori transienti si risolve entro il secondo o il terzo tentativo.
+Se un server è temporaneamente sovraccarico, il sistema dà al server il tempo di recuperare prima di riprovare. In caso di risposta `429 Too Many Requests` con intestazione `Retry-After`, l'attesa indicata dal server viene rispettata (fino a un massimo di 60 secondi). Poiché il file parziale `.part` viene conservato tra un tentativo e l'altro, il retry **riprende dal punto raggiunto** invece di ricominciare da zero.
 
 **Errori definitivi (non soggetti a retry):**
 *   `404 Not Found`: Il file non esiste sul server. Nuovi tentativi non sono utili.
-*   `403 Forbidden`: Il server ha rifiutato la richiesta per mancanza di autorizzazione.
+*   **Contenuto non audio:** Il server ha risposto con una pagina web (HTML) al posto del file audio — tipico di link scaduti che reindirizzano a una pagina di cortesia. Il download viene rifiutato con il messaggio *"Il server ha inviato una pagina web, non audio"*.
+*   **File oltre il limite di dimensione:** Il file supera il valore di **"Dimensione Massima File"** configurato nelle Impostazioni (vedi il Capitolo 10).
+*   **Disco pieno o accesso negato** alla cartella di destinazione.
 *   Errori di validazione SSRF: L'URL non ha superato i controlli di sicurezza interni.
+
+**Riprovare gli episodi falliti:** Al termine del batch, il pulsante **"Riprova falliti"** nella sezione errori del Pannello Download rimette in coda in un solo clic tutti gli episodi in errore.
 
 ---
 
@@ -68,16 +70,16 @@ Questa condizione si verifica frequentemente con:
 *   File audio di grandi dimensioni serviti da CDN con limitazioni di banda.
 
 **Rilevamento:**
-Ogni download attivo è monitorato da un processo watchdog che registra i byte ricevuti ogni 10 secondi. Se per **60 secondi consecutivi** non arrivano nuovi byte (o arrivano meno di 1 KB, soglia che esclude i keep-alive TCP), il download viene considerato bloccato e:
+Ogni download attivo è monitorato da un watchdog. Se per **60 secondi consecutivi** non arrivano nuovi byte, il download viene considerato bloccato e:
 1.  La connessione viene interrotta.
-2.  Il file `.part` parziale viene eliminato.
-3.  L'episodio viene reinserito in coda con il normale ciclo di retry.
+2.  Il file `.part` parziale viene **conservato**.
+3.  L'episodio rientra nel normale ciclo di retry e, grazie al file parziale, il nuovo tentativo **riprende dal punto raggiunto**.
 
-Il processo è trasparente per l'utente: nella barra di avanzamento individuale è visibile un breve reset della percentuale, seguito dalla ripresa del download. Se il blocco era causato da una condizione transitoria, il nuovo download parte normalmente. Se il problema persiste oltre i tentativi massimi, l'episodio viene marcato come **"Errore"**.
+Il processo è trasparente per l'utente. Se il blocco era causato da una condizione transitoria, il download riprende normalmente. Se il problema persiste oltre i tentativi massimi, l'episodio viene marcato come **"Errore"**.
 
 ---
 
-## 6.5 File `.part`: Il Sistema Anti-Corruzione
+## 6.5 File `.part`: Anti-Corruzione e Ripresa
 
 Ogni file audio viene scaricato con l'estensione temporanea `.part` durante il trasferimento. Il file viene rinominato con l'estensione definitiva (`.mp3`, `.m4a`, `.ogg`, ecc.) **solo** dopo che:
 
@@ -85,28 +87,32 @@ Ogni file audio viene scaricato con l'estensione temporanea `.part` durante il t
 2.  La dimensione del file corrisponde a quella dichiarata nell'intestazione HTTP (`Content-Length`), se disponibile.
 3.  L'hash SHA-256 è stato calcolato e registrato nel database.
 
-Questo meccanismo garantisce che nella cartella di destinazione non siano mai presenti file audio parziali o corrotti con estensione definitiva. In caso di interruzione improvvisa del programma o di spegnimento del computer, nella cartella si troveranno file `.part` residui: il software li eliminerà e riscaricherà alla sessione successiva.
+Questo meccanismo garantisce che nella cartella di destinazione non siano mai presenti file audio parziali o corrotti con estensione definitiva.
+
+**Ripresa dei trasferimenti:** In caso di pausa, errore transitorio o interruzione, il file `.part` viene conservato insieme a un piccolo file `.part.meta` che registra il "validatore" del server (ETag o Last-Modified). Al tentativo successivo, il software chiede al server solo i byte mancanti (richiesta HTTP `Range` con `If-Range`): se nel frattempo il file remoto è cambiato, il server lo segnala e il download riparte da zero, evitando di incollare frammenti di file diversi.
+
+**Pulizia dei residui:** I file `.part` rimasti orfani da sessioni passate si eliminano con **Impostazioni → Avanzate → Manutenzione → Pulisci file temporanei** (la funzione è disponibile solo a download fermi).
 
 *Posizione dei file `.part`:* Nella stessa cartella di destinazione dei file completati. Questi file non devono essere aperti con un player audio: essendo parziali, causerebbero errori di lettura.
 
 ---
 
-## 6.6 Interruzione e Ripresa delle Sessioni
+## 6.6 Pausa, Ripresa e Interruzione
 
-**Fermare il Batch:**
-Il pulsante **"Ferma"** (nella barra di avanzamento globale) interrompe tutti i thread attivi in modo ordinato, svuota la coda ed elimina i file `.part` parziali. I file già completati rimangono nel database. Alla successiva analisi dello stesso feed, gli episodi interrotti appariranno come **"Da Scaricare"**.
+**Mettere in pausa (non distruttivo):**
+Dal Pannello Download è possibile sospendere **un singolo download** (pulsante **"Metti in pausa"** sulla riga) oppure **l'intera coda** (pulsante **"Pausa"** nell'intestazione; il pannello mostra **"Coda in pausa"**). La pausa conserva i file `.part`: premendo **"Riprendi"** il trasferimento continua esattamente dal punto in cui era arrivato. Un download in pausa mantiene il proprio posto nella coda e nel batch.
 
-**Chiusura del programma durante un download:**
-Se si chiude la finestra principale (il programma continua nel system tray) oppure si utilizza **"Esci"** dal menu del tray durante un download attivo, il software mostra un avviso con il numero di download in corso e richiede conferma. Scegliendo di uscire, i download attivi vengono interrotti in modo controllato e i file `.part` vengono mantenuti.
+**Fermare il Batch (distruttivo):**
+Il pulsante **"Ferma download"** nel Pannello Download interrompe tutti i download attivi in modo ordinato, svuota la coda ed elimina i file `.part` parziali. I file già completati rimangono nel database. Gli episodi interrotti appariranno nuovamente con il tag **"NUOVO"**.
 
-**Riprendere una sessione interrotta:**
-All'avvio, se FeedDownloader Pro rileva nel database episodi in stato **"In Coda"** o **"In Corso"** dalla sessione precedente, mostra una notifica: *"Trovati X download in sospeso dalla sessione precedente. Vuoi riprenderli?"*. Confermando, il batch riprende immediatamente.
+**Chiusura della finestra durante un download:**
+Chiudendo la finestra principale con la X, il programma continua a operare nel system tray e i download proseguono in background. La voce **"Quit"** del menu del tray chiude invece definitivamente il programma, interrompendo i download attivi; i file `.part` rimangono su disco, quindi rimettendo in coda gli stessi episodi alla sessione successiva il trasferimento riprende dal punto raggiunto.
 
 ---
 
 ## 6.7 Velocità di Download
 
-La velocità visualizzata nella barra inferiore è la **somma aggregata** di tutti i thread attivi. Con 3 thread attivi che scaricano ciascuno a 2 MB/s, la velocità totale visualizzata è di circa 6 MB/s.
+La velocità complessiva del batch è la **somma aggregata** di tutti i download attivi. Con 3 thread attivi che scaricano ciascuno a 2 MB/s, la velocità totale visualizzata è di circa 6 MB/s.
 
 **Fattori che influenzano la velocità:**
 *   **Larghezza di banda della connessione:** Il limite massimo disponibile.

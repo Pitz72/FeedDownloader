@@ -49,15 +49,15 @@ Beyond the Database-First approach, FeedDownloader Pro is built around three tec
 
 Downloading hundreds of audio files sequentially over the internet is not a straightforward operation. Servers can be overloaded, connections can drop and transfers can corrupt files. FeedDownloader Pro handles these scenarios with three mechanisms:
 
-*   **Retry with exponential backoff:** When a download fails, the software does not retry immediately. Instead, it waits for a progressively longer interval: 2 seconds, then 4, then 8, up to the configured maximum. This approach, standard in distributed systems, increases the probability of success without placing additional load on the source server.
+*   **Retry with exponential backoff:** When a download fails, the software does not retry immediately. Instead, it waits for a progressively longer interval: 1 second, then 2, then 4. This approach, standard in distributed systems, increases the probability of success without placing additional load on the source server.
 *   **Stall detection:** A stalled download is more problematic than a failed one. If a server begins sending data and then stops without closing the connection, software without this check would wait indefinitely. FeedDownloader Pro monitors the data flow in real time: if no new bytes arrive for 60 consecutive seconds, the download is terminated and automatically re-queued.
-*   **Anti-corruption `.part` files:** Every file is downloaded with the temporary extension `.part`. Only upon total, verified completion of the transfer is the file renamed with its final extension (`.mp3`, `.m4a`, etc.). In the event of an abrupt interruption, the destination folder will contain no partial or corrupted audio files: only residual `.part` files, which the software will delete and re-download in the next session.
+*   **Anti-corruption `.part` files with resume:** Every file is downloaded with the temporary extension `.part`. Only upon total, verified completion of the transfer is the file renamed with its final extension (`.mp3`, `.m4a`, etc.). In the event of an interruption, the `.part` file is kept: on the next attempt the download **resumes from where it stopped** (HTTP Range request with an If-Range validator) instead of starting over. Orphaned `.part` files can be removed via **Settings → Advanced → Clean temporary files**.
 
 ### Built-in Security
 
 FeedDownloader Pro processes URLs from external sources (RSS feeds). A maliciously constructed URL pointing to internal network resources (a router, a NAS, a local server) could be used to access confidential information — an attack known as **SSRF (Server-Side Request Forgery)**.
 
-To prevent this risk, every URL is subjected to a **5-level validation** process before being processed: protocol verification, DNS resolution with inspection of the resulting IP address, blocking of private address ranges (RFC 1918), blocking of non-HTTP/HTTPS protocols and path normalisation. This procedure is entirely automatic and transparent to the user.
+To prevent this risk, every URL is subjected to a **multi-level validation** process before being processed: syntactic checks, acceptance of HTTP/HTTPS protocols only, blocking of well-known internal hostnames, blocking of private and reserved IP ranges (RFC 1918, loopback, link-local), and re-validation of the DNS-resolved IP address on every connection and every redirect. This procedure is entirely automatic and transparent to the user.
 
 ### NAS and Network Path Support
 

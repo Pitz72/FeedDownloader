@@ -4,7 +4,7 @@
 
 All'apertura di FeedDownloader Pro, la finestra è organizzata in quattro zone funzionali:
 
-*   **Barra di comando (in alto):** La barra fissa contenente il campo URL, il pulsante di analisi e l'icona Impostazioni. Da qui si avviano tutte le operazioni di aggiunta di nuovi feed.
+*   **Barra di comando (in alto):** La barra fissa contenente il campo URL, il pulsante di analisi, il pulsante di accesso alla Palette Comandi e l'icona Impostazioni. Quando è disponibile un aggiornamento del software, in questa barra appare anche l'indicatore persistente di aggiornamento (vedi il Capitolo 2, sezione 2.5). Da qui si avviano tutte le operazioni di aggiunta di nuovi feed.
 *   **Barra laterale dei feed (sinistra):** La colonna che contiene la libreria permanente dei feed salvati, la scheda Archivio, i controlli di sincronizzazione e il footer con il percorso di destinazione. La larghezza è regolabile trascinando il bordo destro.
 *   **Area principale (centro):** L'area dove vengono visualizzati gli episodi del feed selezionato, con la barra filtri, i controlli del batch e la lista degli episodi.
 *   **Pannello Download (destra, sovrapposto):** Il pannello che si apre automaticamente quando è in corso un batch di download. Quando è chiuso, rimane visibile un pulsante flottante in basso a destra per riaprirlo.
@@ -41,7 +41,7 @@ Ogni feed nella lista è rappresentato da una riga che mostra:
 *   **Thumbnail:** L'immagine di copertina del podcast.
 *   **Titolo:** Il nome del podcast come dichiarato nel feed RSS.
 *   **Data:** La data dell'ultima sincronizzazione con il server.
-*   **Badge episodi nuovi:** Un indicatore numerico che segnala quanti episodi sono stati pubblicati dopo l'ultimo download. Il badge scompare dopo aver scaricato tutti i nuovi episodi.
+*   **Badge "DA SCARICARE":** Un indicatore (es. `3 DA SCARICARE`) che segnala quanti episodi nuovi sono stati rilevati rispetto all'ultima sincronizzazione. Il riconoscimento dei nuovi episodi avviene tramite l'identificatore univoco (GUID) di ciascun episodio, registrato nel database: un episodio viene contato come nuovo solo se il suo GUID non è mai stato visto prima. Il badge scompare dopo aver scaricato tutti i nuovi episodi.
 
 Cliccare su un elemento della lista carica la lista degli episodi di quel feed nell'area principale.
 
@@ -57,7 +57,7 @@ Incollare l'URL RSS nel campo URL in cima all'interfaccia e cliccare "Analizza".
 ### Sincronizzazione
 
 *   **Sincronizzazione individuale:** Passando il mouse su un elemento feed, appare l'icona di sincronizzazione. Cliccandola, il software rilegge il feed dal server e aggiorna la lista episodi con eventuali nuovi contenuti.
-*   **Sincronizza tutti:** Il pulsante "Sincronizza tutti" in cima alla barra laterale aggiorna tutti i feed in parallelo. Durante l'operazione, ogni thumbnail mostra il proprio stato: icona rotante (in corso), segno di spunta verde (completato), icona di errore rossa (fallito). Il pulsante riporta il progresso in tempo reale (es. `Sincronizzando... 3/7`). Gli stati rimangono visibili per 2,5 secondi al termine dell'operazione, poi scompaiono.
+*   **Sincronizza Tutti:** Il pulsante **"Sincronizza Tutti"** in cima alla barra laterale aggiorna tutti i feed in parallelo. Durante l'operazione, ogni thumbnail mostra il proprio stato: icona rotante (in corso), segno di spunta verde (completato), icona di errore rossa (fallito). Il pulsante riporta il progresso in tempo reale (es. `Sincronizzando... 3/7`). Gli stati rimangono visibili per 2,5 secondi al termine dell'operazione, poi scompaiono.
 
 ### Footer: percorso di destinazione
 
@@ -65,7 +65,11 @@ In fondo alla barra laterale è visibile il percorso della cartella di destinazi
 
 ### Ridimensionamento
 
-La larghezza della barra laterale è regolabile trascinando il bordo destro (il cursore diventa una doppia freccia orizzontale). La larghezza minima è 240 px, la massima è 640 px, il valore predefinito è 456 px. L'impostazione viene memorizzata tra le sessioni.
+La larghezza della barra laterale è regolabile trascinando il bordo destro (il cursore diventa una doppia freccia orizzontale). La larghezza minima è 240 px, la massima è 640 px, il valore predefinito è 360 px. L'impostazione viene memorizzata tra le sessioni.
+
+### Indicatore di connessione
+
+Nell'intestazione della barra laterale è visibile lo stato della connessione: **"Connesso"** oppure **"Offline"**. Quando la connessione manca, un banner segnala che i download sono in pausa fino al ripristino; al ritorno della connessione il software riprende automaticamente e verifica la presenza di nuovi episodi.
 
 ---
 
@@ -92,7 +96,7 @@ Ogni riga della lista rappresenta un episodio e contiene le seguenti informazion
 Sotto l'intestazione del feed è presente una barra filtri che consente di restringere gli episodi visualizzati:
 
 *   **Ricerca per testo:** Filtra per parole chiave nel titolo (logica AND: tutti i termini inseriti devono essere presenti). Il filtro si azzera automaticamente al cambio feed.
-*   **Filtro per stato:** Pulsanti rapidi per mostrare solo gli episodi in un determinato stato: Tutti, Nuovi (non scaricati), Scaricati, Errori.
+*   **Filtro per stato:** Pulsanti rapidi per mostrare solo gli episodi in un determinato stato: **"Tutti"**, **"Da scaricare"**, **"Scaricati"**.
 *   **Filtro per data:** Campi data "dal" e "al" per limitare la lista a un intervallo di pubblicazione.
 *   **Filtro per durata:** Limita la lista agli episodi con durata compresa tra un minimo e un massimo (in minuti).
 *   **Ordina:** Apre un pannello con cinque opzioni di ordinamento — ordine del feed (predefinito), data più recente, data meno recente, durata più lunga, durata più corta.
@@ -103,7 +107,7 @@ Tutti i filtri vengono azzerati automaticamente quando si seleziona un feed dive
 
 È possibile selezionare più episodi contemporaneamente per avviarne il download in blocco:
 
-*   **Ctrl+click** (o Cmd+click su macOS): aggiunge o rimuove singolarmente l'episodio dalla selezione.
+*   **Ctrl+click:** aggiunge o rimuove singolarmente l'episodio dalla selezione.
 *   **Shift+click:** seleziona l'intervallo tra l'ultimo episodio selezionato e quello cliccato.
 *   Una casella di controllo appare on-hover sugli episodi non selezionati e sempre sugli episodi selezionati.
 
@@ -115,16 +119,16 @@ Quando almeno un episodio è selezionato, nell'intestazione del feed appare il p
 
 Ogni episodio nella lista è contrassegnato da un indicatore di stato. Comprendere questi stati è essenziale per interpretare correttamente la situazione dell'archivio.
 
-| Stato | Colore | Significato |
-|-------|--------|-------------|
-| **Da Scaricare** | Grigio | L'episodio è presente nel feed ma non è mai stato scaricato. |
-| **In Coda** | Blu | L'episodio è stato aggiunto alla coda e attende il proprio turno nel Pannello Download. |
-| **In Corso** | Azzurro animato | Il download è in corso. La riga mostra percentuale, velocità e tempo stimato in tempo reale. |
-| **Completato** | Verde | Il file è stato scaricato, rinominato e verificato correttamente. |
-| **Errore** | Rosso | Il download non è riuscito dopo tutti i tentativi automatici. |
-| **Scaricato** | Verde tenue | Il database registra già questo episodio come scaricato in una sessione precedente. |
+| Stato | Etichetta nella lista | Significato |
+|-------|-----------------------|-------------|
+| **Da scaricare** | Tag **"NUOVO"** | L'episodio è presente nel feed ma non è mai stato scaricato. |
+| **In coda** | Voce "in coda" nel Pannello Download | L'episodio attende il proprio turno nella coda di download. |
+| **In pausa** | Voce "in pausa" nel Pannello Download | Il download è stato sospeso dall'utente e può riprendere dal punto raggiunto. |
+| **In corso** | Barra di avanzamento animata | Il download è attivo. La riga mostra percentuale e velocità in tempo reale. |
+| **Errore** | Riepilogo errori nel Pannello Download | Il download non è riuscito dopo tutti i tentativi automatici. |
+| **Scaricato** | Tag **"ARCHIVIATO"** | Il file è nel database: scaricato e verificato, in questa sessione o in una precedente. |
 
-*Nota sullo stato **"Scaricato"**:* Questo stato è il risultato della filosofia Database-First. Quando si analizza un feed già elaborato, la maggior parte degli episodi risulta in questo stato: il software sa già che sono presenti nell'archivio. Solo gli episodi pubblicati dopo l'ultimo download appariranno come **"Da Scaricare"**.
+*Nota sullo stato **"Scaricato"**:* Questo stato è il risultato della filosofia Database-First. Quando si analizza un feed già elaborato, la maggior parte degli episodi mostra il tag **"ARCHIVIATO"**: il software sa già che sono presenti nell'archivio. Solo gli episodi pubblicati dopo l'ultimo download appariranno con il tag **"NUOVO"**.
 
 ---
 
@@ -139,10 +143,10 @@ A destra di ogni riga nella lista, al passaggio del mouse, compaiono i pulsanti 
 **Per gli episodi Da Scaricare o in Errore:**
 *   **Scarica** (freccia verso il basso): Aggiunge il singolo episodio alla coda di download.
 
-**Per gli episodi Completati o Scaricati:**
+**Per gli episodi Scaricati (tag "ARCHIVIATO"):**
 *   **Riscarica** (freccia verso il basso): Aggiunge nuovamente l'episodio alla coda, sovrascrivendo il file esistente.
-*   **Reimposta stato** (icona aggiorna): Azzera lo stato dell'episodio, riportandolo a "Da Scaricare" senza eliminare il file dal disco. Utile per forzare una nuova analisi.
-*   **Apri cartella** (icona cartella): Apre il file manager di sistema sulla posizione del file scaricato.
+*   **Dimentica download** (icona aggiorna): Azzera lo stato dell'episodio, riportandolo a "Da scaricare" senza eliminare il file dal disco.
+*   **Apri Cartella** (icona cartella): Apre il file manager di sistema sulla posizione del file scaricato.
 
 **Interazione con il Pannello Dettaglio:**
 Un **click semplice** sulla riga dell'episodio apre il Pannello Dettaglio (vedi la sezione 3.9) con i metadati completi e le azioni contestuali. Ctrl+click e Shift+click sono riservati esclusivamente alla selezione multipla e non aprono il pannello.
@@ -157,7 +161,7 @@ I controlli del batch operano sull'intera coda di download, non sui singoli epis
 
 **"Scarica Selezionati (N)":** Appare quando almeno un episodio è selezionato. Avvia il download esclusivamente per gli episodi selezionati.
 
-**"Ferma":** Invia un segnale di cancellazione a tutti i download attivi e svuota la coda. I file già completati rimangono nel database. I file `.part` vengono eliminati. Alla successiva analisi, gli episodi interrotti appariranno nuovamente come **"Da Scaricare"**.
+**"Ferma download":** Invia un segnale di cancellazione a tutti i download attivi e svuota la coda. I file già completati rimangono nel database. I file `.part` vengono eliminati. Gli episodi interrotti appariranno nuovamente con il tag **"NUOVO"**. Per una sospensione temporanea (senza perdere l'avanzamento) usare invece **"Pausa"** nel Pannello Download (vedi la sezione 3.8).
 
 **"Esporta M3U":** Genera una playlist in formato `.m3u` con i percorsi assoluti locali di tutti gli episodi scaricati per quel podcast. Apre una finestra di salvataggio nativa. Il pulsante è disponibile solo quando sono presenti episodi scaricati per il feed corrente.
 
@@ -175,9 +179,10 @@ Il pannello si apre **automaticamente** all'avvio di ogni batch. Quando è chius
 
 ### Struttura del pannello
 
-*   **Intestazione:** Mostra il contatore file completati/totale (es. `47 / 312`), il pulsante Stop per interrompere tutti i download, e il pulsante × per chiudere il pannello.
-*   **Lista coda:** Ogni download in corso o in attesa è rappresentato da una riga con: titolo dell'episodio, nome del podcast, percentuale di avanzamento, velocità corrente (KB/s o MB/s), tempo stimato al completamento (es. `2m 30s`), barra di avanzamento individuale. Passando il mouse sulla riga appare il pulsante × per cancellare quel singolo download.
-*   **Sezione Errori:** Al termine del batch, se uno o più download sono falliti, appare nella parte inferiore del pannello un riepilogo espandibile con l'elenco degli episodi non scaricati e il relativo codice di errore.
+*   **Intestazione:** Mostra il contatore file completati/totale (es. `47 / 312`) e i controlli globali della coda: il pulsante **"Pausa"** (sospende l'intera coda; diventa **"Riprendi"** quando la coda è in pausa e l'intestazione mostra **"Coda in pausa"**), il pulsante **"Ferma download"** per interrompere definitivamente tutti i download, e il pulsante × per chiudere il pannello.
+*   **Lista coda:** Ogni download in corso o in attesa è rappresentato da una riga con: titolo dell'episodio, nome del podcast, percentuale di avanzamento, velocità corrente (KB/s o MB/s), barra di avanzamento individuale. Se il server non dichiara la dimensione del file (intestazione `Content-Length` assente), la barra diventa **indeterminata** (animazione continua) e mostra i byte ricevuti. Passando il mouse sulla riga appaiono i pulsanti **"Metti in pausa"** (o **"Riprendi"** se in pausa) e × (**"Annulla download"**) per quel singolo episodio.
+*   **Pausa non distruttiva:** La pausa — di un singolo download o dell'intera coda — conserva il file parziale `.part`: alla ripresa il trasferimento continua **dal punto in cui era arrivato**, senza ricominciare da zero.
+*   **Sezione Errori:** Al termine del batch, se uno o più download sono falliti, appare nella parte inferiore del pannello un riepilogo espandibile con l'elenco degli episodi non scaricati e il relativo codice di errore, insieme al pulsante **"Riprova falliti"** che rimette in coda in un solo clic tutti gli episodi in errore.
 
 ---
 
@@ -194,7 +199,7 @@ Un **click semplice** su qualsiasi riga della lista episodi apre il pannello, ch
 ### Contenuto del pannello
 
 *   **Metadati base:** Data di pubblicazione, durata dichiarata, dimensione del file indicata nel feed.
-*   **Azioni contestuali:** I pulsanti disponibili variano in base allo stato dell'episodio: Scarica, Riscarica, Reimposta stato, Apri cartella.
+*   **Azioni contestuali:** I pulsanti disponibili variano in base allo stato dell'episodio: Scarica, Riscarica, Dimentica download, Apri Cartella.
 *   **Dati archivio** (visibili solo se l'episodio è già scaricato): Data e ora del download, dimensione reale del file, bitrate, sample rate, nome file sul disco, checksum SHA-256.
 *   **Link sorgente:** L'URL originale del file audio nel feed RSS, con pulsante per copiarlo negli appunti.
 *   **Note dell'episodio:** Il testo descrittivo dell'episodio estratto dal feed (show notes), presentato in formato testo pulito.
@@ -234,19 +239,19 @@ La scorciatoia **Ctrl+K** (da qualsiasi punto dell'app, anche durante un downloa
 
 ### Contenuto
 
-*   **Gruppo Azioni:** Cinque comandi fissi sempre disponibili: *Apri Impostazioni*, *Sincronizza tutti i feed*, *Aggiungi feed* (focalizza il campo URL), *Vai alla scheda Archivio*, *Vai alla scheda Feed*.
-*   **Gruppo Feed:** Quando il campo di ricerca è vuoto, mostra i primi cinque feed della libreria. Digitando, filtra i feed per titolo. Selezionando un feed dalla palette, questo viene caricato direttamente nell'area principale.
+*   **Gruppo "Azioni":** Cinque comandi fissi sempre disponibili: *Apri Impostazioni*, *Sincronizza Tutti*, *Aggiungi Feed* (focalizza il campo URL), *Vai all'Archivio*, *Vai ai Feed*.
+*   **Gruppo "Feed":** Quando il campo di ricerca è vuoto, mostra i primi feed della libreria. Digitando, filtra i feed per titolo. Selezionando un feed dalla palette, questo viene caricato direttamente nell'area principale.
+*   **Gruppo "Episodi (feed corrente)":** Digitando, la palette cerca anche tra i titoli degli episodi del feed attualmente aperto. Selezionando un episodio, la lista viene filtrata su quel titolo.
 
 ---
 
 ## 3.12 L'Icona nel System Tray
 
-Quando si chiude la finestra principale cliccando sulla X, FeedDownloader Pro non termina il processo: si riduce nell'area di notifica di sistema (system tray, vicino all'orologio di Windows o macOS). Questo comportamento è intenzionale: i download proseguono in background mentre la finestra non è visibile.
+Quando si chiude la finestra principale cliccando sulla X, FeedDownloader Pro non termina il processo: si riduce nell'area di notifica di sistema (system tray, vicino all'orologio). Questo comportamento è intenzionale: i download e il controllo automatico dei nuovi episodi proseguono in background mentre la finestra non è visibile.
 
-**Menu contestuale del tray (clic destro sull'icona):**
-*   **Apri FeedDownloader Pro:** Riporta in primo piano la finestra principale.
-*   **Stato Download:** Mostra una riga di riepilogo dell'attività in corso.
-*   **Esci:** Chiude il programma e interrompe tutti i download attivi.
+**Interazione con l'icona del tray:**
+*   **Clic sull'icona:** Mostra o nasconde la finestra principale.
+*   **Menu contestuale (clic destro):** Contiene due voci — **"Show"** (riporta in primo piano la finestra) ed **"Quit"** (chiude il programma e interrompe tutti i download attivi).
 
 *Nota pratica:* Per eseguire un download di grandi dimensioni senza tenere la finestra aperta, avviare il batch, chiudere la finestra e lasciare il computer in esecuzione. L'archivio sarà disponibile al completamento del processo.
 

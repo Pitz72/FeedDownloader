@@ -43,7 +43,7 @@ FeedDownloader Pro mantiene una **libreria permanente dei feed**. Ogni feed anal
 
 ### Visualizzazione
 
-Ogni elemento della libreria mostra: la copertina del podcast (thumbnail), il titolo, la data dell'ultima sincronizzazione con il server e un badge numerico che indica quanti episodi sono stati pubblicati dopo l'ultimo download. Il badge scompare non appena tutti i nuovi episodi vengono scaricati.
+Ogni elemento della libreria mostra: la copertina del podcast (thumbnail), il titolo, la data dell'ultima sincronizzazione con il server e il badge **"DA SCARICARE"** (es. `3 DA SCARICARE`), che indica quanti episodi nuovi sono stati rilevati tramite il loro identificatore univoco (GUID). Il badge scompare non appena tutti i nuovi episodi vengono scaricati.
 
 Cliccando su un feed nella barra laterale, la lista degli episodi si aggiorna immediatamente nell'area principale.
 
@@ -91,7 +91,8 @@ Per rimuovere un feed, passare il mouse sull'elemento nella barra laterale: comp
 
 Alcuni podcast storici o archivi di produzione radiofonica possono avere feed con migliaia di episodi e file RSS di dimensioni considerevoli. In questi casi:
 
-*   **L'analisi iniziale richiede più tempo:** Un feed con 2.000 episodi può richiedere 15–30 secondi per il download e il parsing. Questo comportamento è atteso.
+*   **Paginazione RFC 5005:** Molte piattaforme pubblicano nel feed solo gli episodi più recenti e suddividono l'archivio storico in più pagine collegate tra loro (standard RFC 5005, link `rel="next"`). FeedDownloader Pro segue automaticamente questi collegamenti e ricompone l'intero catalogo in un'unica lista, senza intervento dell'utente. Ogni link di paginazione è sottoposto agli stessi controlli di sicurezza degli URL inseriti manualmente.
+*   **L'analisi iniziale richiede più tempo:** Un feed con 2.000 episodi (o suddiviso in molte pagine) può richiedere 15–30 secondi per il download e il parsing. Questo comportamento è atteso.
 *   **Virtualizzazione della lista:** Con migliaia di voci, la lista carica solo le righe visibili a schermo per mantenere l'interfaccia reattiva.
 *   **Stima dello spazio necessario:** Con 2.000 episodi a circa 50 MB ciascuno, il volume totale è di circa 100 GB. Verificare la disponibilità di spazio sufficiente prima di procedere.
 
@@ -108,7 +109,7 @@ Cliccando su un feed nella barra laterale, la lista degli episodi nell'area prin
 ### Sincronizzare i feed
 
 *   **Sincronizzazione individuale:** Passare il mouse su un elemento feed nella barra laterale per visualizzare l'icona di sincronizzazione. Cliccandola, il software rilegge quel feed dal server e aggiorna la lista con gli eventuali nuovi episodi.
-*   **Sincronizza tutti:** Il pulsante "Sincronizza tutti" aggiorna tutti i feed in parallelo con un'unica operazione. Durante il processo, ogni thumbnail nella barra laterale mostra il proprio stato in tempo reale. Al termine, eventuali nuovi episodi vengono evidenziati con il badge episodi nuovi.
+*   **Sincronizza Tutti:** Il pulsante **"Sincronizza Tutti"** aggiorna tutti i feed in parallelo con un'unica operazione. Durante il processo, ogni thumbnail nella barra laterale mostra il proprio stato in tempo reale. Al termine, eventuali nuovi episodi vengono evidenziati con il badge **"DA SCARICARE"**.
 
 Per l'aggiornamento automatico programmato senza intervento manuale, vedi la sezione 5.9.
 
@@ -116,26 +117,30 @@ Per l'aggiornamento automatico programmato senza intervento manuale, vedi la sez
 
 ## 5.9 Aggiornamento Automatico dei Feed
 
-FeedDownloader Pro può sincronizzare automaticamente tutti i feed a intervalli regolari, in background, senza richiedere alcuna azione da parte dell'utente.
+FeedDownloader Pro sincronizza automaticamente tutti i feed in background, senza richiedere alcuna azione da parte dell'utente. Il controllo avviene:
+
+*   **all'avvio** dell'applicazione (pochi secondi dopo l'apertura);
+*   **a intervalli regolari** (impostazione "Aggiornamento Automatico Feed");
+*   **al ritorno della connessione**, dopo un periodo offline.
 
 ### Configurazione
 
-L'impostazione si trova in **Impostazioni → Generale → Aggiornamento automatico feed**. Sono disponibili quattro opzioni:
+L'impostazione si trova in **Impostazioni → Generale → Aggiornamento Automatico Feed**. Sono disponibili quattro opzioni:
 
 | Opzione | Comportamento |
 |---------|--------------|
-| **Disattivato** (predefinito) | Nessuna sincronizzazione automatica. |
-| **Ogni 6 ore** | Il software sincronizza tutti i feed ogni 6 ore dall'avvio. |
-| **Ogni 12 ore** | Il software sincronizza tutti i feed ogni 12 ore dall'avvio. |
-| **Ogni 24 ore** | Il software sincronizza tutti i feed una volta ogni 24 ore dall'avvio. |
+| **Disattivato** | Nessuna sincronizzazione ciclica (resta il controllo all'avvio). |
+| **6 ore** (predefinito) | Il software sincronizza tutti i feed ogni 6 ore. |
+| **12 ore** | Il software sincronizza tutti i feed ogni 12 ore. |
+| **24 ore** | Il software sincronizza tutti i feed una volta ogni 24 ore. |
 
 Il cambio di impostazione è immediato e non richiede il riavvio del software. Il timer parte dall'avvio dell'applicazione.
 
 ### Comportamento
 
-L'aggiornamento automatico **non avvia download**: si limita a verificare se sono stati pubblicati nuovi episodi. Se durante la sincronizzazione automatica vengono trovati nuovi episodi su uno o più feed, il sistema invia una **notifica del sistema operativo** con il riepilogo dei contenuti trovati (disponibile in tutte e 8 le lingue supportate).
+L'aggiornamento automatico **non avvia download**: si limita a verificare se sono stati pubblicati nuovi episodi. Se vengono trovati nuovi episodi su uno o più feed, il sistema invia una **notifica del sistema operativo** con il riepilogo dei contenuti trovati (in italiano o in inglese, secondo la lingua dell'interfaccia). La notifica è **cliccabile**: porta l'applicazione in primo piano e, se i nuovi episodi riguardano un solo podcast, apre direttamente quel feed.
 
-Per scaricare i nuovi episodi segnalati, aprire il software e usare i normali controlli del batch.
+Per scaricare i nuovi episodi segnalati, usare i normali controlli del batch.
 
 ---
 

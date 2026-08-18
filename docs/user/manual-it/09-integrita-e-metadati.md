@@ -15,11 +15,10 @@ FeedDownloader Pro affronta questo problema con due meccanismi complementari: la
 Per ogni file scaricato, FeedDownloader Pro:
 1.  Calcola l'hash SHA-256 del file al termine del download.
 2.  Salva l'hash nel database, insieme al percorso del file e alla data di calcolo.
-3.  Se il feed RSS include un hash di riferimento (alcuni feed moderni includono il campo `<podcast:integrity>`), lo confronta con quello calcolato. In caso di discrepanza, il file viene marcato come **"Corrotto"** e reinserito in coda per un nuovo download.
 
 **Utilizzi pratici:**
-*   È possibile verificare in qualsiasi momento futuro che un file non sia stato modificato, corrotto o sostituito: basta ricalcolare l'hash e confrontarlo con quello registrato nel database.
-*   Dopo lo spostamento dei file su un nuovo disco o una migrazione, il **Health Check** (vedi la sezione 9.4) consente di verificare che tutti i file siano ancora presenti.
+*   Il **Health Check** (vedi la sezione 9.4) ricalcola l'hash di ogni file presente e lo confronta con quello registrato: qualsiasi modifica, corruzione o sostituzione successiva al download viene rilevata.
+*   La funzione **"Ripara archivio (ricerca per checksum)"** usa lo stesso hash per ritrovare i file rinominati a mano (vedi la sezione 9.4).
 *   In contesti professionali, l'hash SHA-256 costituisce un riferimento verificabile dell'integrità del contenuto al momento del download.
 
 ---
@@ -42,22 +41,29 @@ Questi valori vengono registrati nel database e sono inclusi nell'esportazione C
 
 ## 9.4 Health Check: Verifica dell'Integrità dell'Archivio
 
-Nel tempo, un archivio può subire modifiche esterne al software: file spostati o eliminati direttamente dal filesystem. Il **Health Check** verifica lo stato dell'archivio rispetto a quanto registrato nel database.
+Nel tempo, un archivio può subire modifiche esterne al software: file spostati, rinominati, eliminati o corrotti direttamente dal filesystem. Il **Health Check** verifica lo stato dell'archivio rispetto a quanto registrato nel database.
 
 **Come eseguire il Health Check:**
-Andare in **Impostazioni → Archivio → Health Check** e cliccare su **"Avvia Verifica"**.
+Andare in **Impostazioni → Archivio → Health Check Archivio** e cliccare su **"Avvia Verifica"**.
 
-Il processo analizza ogni file registrato nel database e verifica che il file esista ancora nel percorso registrato. Al termine, viene mostrato un riepilogo con tre indicatori:
+Il processo esegue due controlli su ogni file registrato nel database:
+
+1.  **Presenza:** verifica che il file esista ancora nel percorso registrato.
+2.  **Integrità reale:** per i file presenti, ricalcola l'hash SHA-256 e lo confronta con quello registrato al momento del download. Un file modificato o danneggiato viene segnalato come **corrotto** ("checksum non corrispondente"), con l'invito a riscaricare gli episodi interessati.
+
+Al termine, viene mostrato un riepilogo con quattro indicatori:
 
 | Indicatore | Significato |
 |------------|-------------|
-| **Totale** | Numero totale di episodi nel database |
-| **Presenti** | File che esistono nel percorso registrato |
+| **Nel DB** | Numero totale di episodi nel database |
+| **Su disco** | File che esistono nel percorso registrato |
 | **Mancanti** | File non trovati nel percorso registrato |
+| **Spazio occupato** | Spazio disco totale dei file presenti |
 
-La schermata mostra anche lo **spazio disco totale** occupato dai file presenti.
+In presenza di file mancanti, il software elenca i primi 5 con il nome del podcast e il nome del file, e offre due azioni:
 
-In presenza di file mancanti, il software elenca i primi 5 con il nome del podcast e il nome del file. Per recuperare un file mancante, utilizzare la funzione **"Forza Re-Download"** disponibile dal menu contestuale dell'episodio nella lista principale.
+*   **"Ripara archivio (ricerca per checksum)":** Cerca nelle cartelle dei podcast eventuali file **rinominati a mano**: ogni file candidato viene identificato tramite l'hash SHA-256 registrato e, in caso di corrispondenza, viene riagganciato al database con il nuovo nome — senza riscaricare nulla. Al termine viene mostrato il riepilogo *"N file riagganciati, M non ritrovati"*.
+*   **"Segna come non scaricati":** Rimuove dal registro i file davvero mancanti, che tornano così con il tag **"NUOVO"** nella lista episodi e possono essere riscaricati con i normali controlli (pulsante **"Scarica"** o **"Scarica Tutto"**).
 
 ---
 
@@ -111,7 +117,7 @@ Per spostare l'archivio su un nuovo disco o una nuova cartella, utilizzare la fu
 
 *Attenzione:* La migrazione sposta i file dalla cartella corrente a quella nuova. I file vengono rimossi dalla posizione originale. Verificare che il disco di destinazione disponga di spazio sufficiente prima di avviare l'operazione.
 
-*Spostamento su un nuovo computer:* Copiare sia la cartella dei file audio sia il file `feeddownloader.db` (dalla cartella dati utente descritta nel Capitolo 2). Sul nuovo computer, installare FeedDownloader Pro, copiare il database nella cartella dati utente e utilizzare la funzione di migrazione se il percorso dell'archivio è cambiato.
+*Spostamento su un nuovo computer:* Copiare sia la cartella dei file audio sia il file `feeddownloader.sqlite` (dalla cartella dati utente descritta nel Capitolo 2). Sul nuovo computer, installare FeedDownloader Pro, copiare il database nella cartella dati utente e utilizzare la funzione di migrazione se il percorso dell'archivio è cambiato.
 
 ---
 

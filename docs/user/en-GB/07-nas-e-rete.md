@@ -40,8 +40,8 @@ The path can be entered directly in the destination text field, or via the folde
 **Method 2 — Mapped network drive:**
 If the NAS is already mapped as a network drive in Windows (e.g. `Z:` → `\\MYNAS\Podcast`), it is possible to select `Z:\Archive` as the destination folder. FeedDownloader Pro automatically recognises that this is a network path and activates validation.
 
-**Method 3 — macOS and Linux (mount point):**
-On macOS and Linux, SMB network paths are presented as normal folders in the filesystem after mounting (e.g. `/Volumes/MYNAS/Podcast` on macOS, `/mnt/nas/podcast` on Linux). These paths can be used directly as the destination folder.
+**Method 3 — Linux (mount point):**
+On Linux, SMB network paths are presented as normal folders in the filesystem after mounting (e.g. `/mnt/nas/podcast`). These paths can be used directly as the destination folder.
 
 ---
 
@@ -54,9 +54,6 @@ NAS access credentials must be configured at the operating system level, not wit
 2.  Enter the credentials when prompted and tick **"Remember my credentials"**.
 3.  The credentials are saved in the **Windows Credential Manager** (`Control Panel → Credential Manager → Windows Credentials`).
 4.  FeedDownloader Pro, like any other application, will access the NAS without requiring further credentials.
-
-**On macOS:**
-SMB credentials are requested when mounting the share (from Finder: **Go → Connect to Server** → `smb://192.168.1.100/ShareName`). macOS stores them in the Keychain.
 
 **On Linux:**
 Mount the share with credentials in the `fstab` file or via a graphical tool such as GNOME Files. Alternatively, use `smbclient` or `mount -t cifs` from the terminal.
@@ -71,7 +68,7 @@ In the event of a "Network path not reachable" warning, check the following poin
 Check the device indicator lights. Many consumer NAS devices enter sleep mode after a period of inactivity. Before starting the download, open the NAS administration panel from the browser to verify its availability.
 
 **2. Is the NAS reachable from the network?**
-From the Command Prompt (Windows) or Terminal (macOS/Linux):
+From the Command Prompt (Windows) or Terminal (Linux):
 ```
 ping 192.168.1.100
 ```
@@ -95,7 +92,7 @@ Downloads to NAS present an additional complexity compared to those to a local d
 **Operational guidance:**
 
 *   **Use a wired (Ethernet) connection:** Wi-Fi introduces latency and instability in network write operations. For large archives, a wired Gigabit Ethernet connection offers significantly better performance.
-*   **Reduce parallel threads:** Simultaneously writing many files to a NAS can saturate its I/O. Using 2–3 parallel threads often yields better results than using the maximum available number.
+*   **Reduce parallel downloads:** Simultaneously writing many files to a NAS can saturate its I/O. A "Parallel Downloads" value of 1–3 often yields better results than using the maximum available number.
 *   **Avoid overlapping with NAS backups:** If the NAS runs automatic backups, avoid starting batch downloads during the same time windows, as competition for the disk's I/O slows down both operations.
 *   **Use a local cache:** For very large archives, it is possible to download first to a fast local drive and move the files to the NAS once the download is complete.
 

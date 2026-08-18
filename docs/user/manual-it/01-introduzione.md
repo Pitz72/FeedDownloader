@@ -49,15 +49,15 @@ Oltre all'approccio Database-First, FeedDownloader Pro è costruito attorno a tr
 
 Scaricare centinaia di file audio in sequenza su Internet non è un'operazione priva di complessità. I server possono essere sovraccarichi, le connessioni interrompersi, i trasferimenti corrompere il file. FeedDownloader Pro gestisce questi scenari con tre meccanismi:
 
-*   **Retry con backoff esponenziale:** Quando un download fallisce, il software non ripete il tentativo immediatamente. Attende invece un intervallo crescente: 2 secondi, poi 4, poi 8, fino al limite massimo configurato. Questo approccio, standard nei sistemi distribuiti, aumenta le probabilità di successo senza aggravare il carico sul server sorgente.
+*   **Retry con backoff esponenziale:** Quando un download fallisce, il software non ripete il tentativo immediatamente. Attende invece un intervallo crescente: 1 secondo, poi 2, poi 4. Questo approccio, standard nei sistemi distribuiti, aumenta le probabilità di successo senza aggravare il carico sul server sorgente.
 *   **Stall detection:** Un download bloccato è più problematico di un download fallito. Se un server inizia a inviare dati e poi si interrompe senza chiudere la connessione, un software privo di questo controllo rimarrebbe in attesa indefinita. FeedDownloader Pro monitora il flusso dati in tempo reale: se non arrivano nuovi byte per 60 secondi consecutivi, il download viene interrotto e reinserito in coda automaticamente.
-*   **File `.part` anti-corruzione:** Ogni file viene scaricato con l'estensione temporanea `.part`. Solo al completamento totale e verificato del trasferimento il file viene rinominato con l'estensione definitiva (`.mp3`, `.m4a`, ecc.). In caso di interruzione improvvisa, nella cartella di destinazione non saranno presenti file audio parziali o corrotti: soltanto file `.part` residui, che il software cancellerà e riscaricherà alla sessione successiva.
+*   **File `.part` anti-corruzione con ripresa:** Ogni file viene scaricato con l'estensione temporanea `.part`. Solo al completamento totale e verificato del trasferimento il file viene rinominato con l'estensione definitiva (`.mp3`, `.m4a`, ecc.). In caso di interruzione, il file `.part` viene conservato: al tentativo successivo il download **riprende dal punto in cui si era fermato** (richiesta HTTP Range con validatore If-Range), invece di ricominciare da zero. Eventuali file `.part` orfani si eliminano con **Impostazioni → Avanzate → Pulisci file temporanei**.
 
 ### Sicurezza Integrata
 
 FeedDownloader Pro elabora URL provenienti da fonti esterne (i feed RSS). Un URL costruito in modo malevolo, che punti a risorse interne della rete (un router, un NAS, un server locale), potrebbe essere usato per accedere a informazioni riservate — un attacco noto come **SSRF (Server-Side Request Forgery)**.
 
-Per prevenire questo rischio, ogni URL viene sottoposto a una validazione a **5 livelli** prima dell'elaborazione: verifica del protocollo, risoluzione DNS con ispezione dell'indirizzo IP risultante, blocco degli intervalli di indirizzi privati (RFC 1918), blocco dei protocolli non HTTP/HTTPS e normalizzazione del percorso. Questa procedura è completamente automatica e trasparente per l'utente.
+Per prevenire questo rischio, ogni URL viene sottoposto a una validazione **multilivello** prima dell'elaborazione: verifica sintattica, accettazione dei soli protocolli HTTP/HTTPS, blocco degli hostname interni noti, blocco degli intervalli di indirizzi IP privati e riservati (RFC 1918, loopback, link-local) e ri-validazione dell'indirizzo IP risolto via DNS a ogni connessione e a ogni redirect. Questa procedura è completamente automatica e trasparente per l'utente.
 
 ### Supporto NAS e Percorsi di Rete
 

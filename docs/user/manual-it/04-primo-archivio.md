@@ -78,7 +78,7 @@ Dopo l'analisi, la lista mostra tutti gli episodi del podcast.
 Sono disponibili due modalità di download.
 
 **Modalità A — Download completo:**
-Cliccare su **"Scarica Tutto"**. Il software aggiunge alla coda tutti gli episodi in stato **"Da Scaricare"** e avvia i download in parallelo. Il numero di download simultanei dipende dall'impostazione dei thread (vedi il Capitolo 10; il valore predefinito è 3).
+Cliccare su **"Scarica Tutto"**. Il software aggiunge alla coda tutti gli episodi con tag **"NUOVO"** e avvia i download in parallelo. Il numero di download simultanei dipende dall'impostazione **"Download Paralleli"** (vedi il Capitolo 10; il valore predefinito è 3).
 
 **Modalità B — Download selettivo:**
 Per scaricare solo determinati episodi:
@@ -110,7 +110,7 @@ Quando il Pannello Download mostra il batch completato e tutti gli episodi risul
 
 2.  **Esportare un riepilogo CSV:** Andare in **Impostazioni → Archivio → Esporta CSV**. Il file generato elenca tutti gli episodi scaricati con hash SHA-256, dimensioni e metadati (vedi il Capitolo 9).
 
-3.  **Verificare i file sul disco:** Aprire la cartella di destinazione nel gestore file. I file audio sono organizzati secondo il template di rinomina configurato (vedi il Capitolo 8). La presenza di file `.part` indica download interrotti, che verranno completati all'avvio successivo del batch.
+3.  **Verificare i file sul disco:** Aprire la cartella di destinazione nel gestore file. I file audio sono organizzati secondo il template di rinomina configurato (vedi il Capitolo 8). La presenza di file `.part` indica download interrotti o in pausa: rimettendo in coda gli stessi episodi, il trasferimento riprende dal punto raggiunto. I file `.part` ormai orfani si eliminano con **Impostazioni → Avanzate → Pulisci file temporanei**.
 
 ---
 
@@ -121,15 +121,15 @@ Il sistema Database-First semplifica gli aggiornamenti dell'archivio. Il procedi
 **Feed già nella barra laterale:**
 
 1.  Cliccare sul feed nella barra laterale per selezionarlo.
-2.  Passare il mouse sull'elemento e cliccare l'icona di sincronizzazione, oppure usare il pulsante **"Sincronizza tutti"** per aggiornare l'intera libreria in parallelo.
-3.  Gli episodi nuovi compaiono in stato **"Da Scaricare"**; quelli già presenti restano in **"Scaricato"**.
+2.  Passare il mouse sull'elemento e cliccare l'icona di sincronizzazione, oppure usare il pulsante **"Sincronizza Tutti"** per aggiornare l'intera libreria in parallelo.
+3.  Gli episodi nuovi compaiono con il tag **"NUOVO"** (e il feed mostra il badge **"DA SCARICARE"** nella barra laterale); quelli già presenti restano **"ARCHIVIATO"**.
 4.  Cliccare su **"Scarica Tutto"** per scaricare i soli episodi nuovi.
 
 **Feed non ancora in libreria:**
 
 Incollare l'URL RSS nel campo URL in cima all'interfaccia e cliccare **"Analizza"**: il feed viene aggiunto alla libreria e la lista viene popolata con lo stato corrente.
 
-Il sistema non scarica mai due volte lo stesso episodio. È possibile anche configurare un aggiornamento automatico periodico (vedi il Capitolo 10 e la sezione 5.9).
+Il sistema non scarica mai due volte lo stesso episodio. Il controllo automatico dei nuovi episodi è attivo per impostazione predefinita ogni 6 ore (vedi il Capitolo 10 e la sezione 5.9).
 
 ---
 

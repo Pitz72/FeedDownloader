@@ -43,7 +43,7 @@ FeedDownloader Pro maintains a **permanent feed library**. Each analysed feed is
 
 ### Display
 
-Each item in the library shows: the podcast cover art (thumbnail), the title, the date of the last synchronisation with the server, and a numerical badge indicating how many episodes have been published since the last download. The badge disappears as soon as all the new episodes have been downloaded.
+Each item in the library shows: the podcast cover art (thumbnail), the title, the date of the last synchronisation with the server, and the **"TO DOWNLOAD"** badge (e.g. `3 TO DOWNLOAD`), indicating how many new episodes have been detected via their unique identifier (GUID). The badge disappears as soon as all the new episodes have been downloaded.
 
 Clicking on a feed in the sidebar immediately updates the episode list in the main area.
 
@@ -94,7 +94,8 @@ The feed library can be exported in OPML format to:
 
 Some historical podcasts or radio production archives can have feeds with thousands of episodes and RSS files of considerable size. In these cases:
 
-*   **The initial analysis takes longer:** A feed with 2,000 episodes may require 15–30 seconds for download and parsing. This behaviour is expected.
+*   **RFC 5005 pagination:** Many platforms publish only the most recent episodes in the feed and split the historical archive into multiple linked pages (RFC 5005 standard, `rel="next"` links). FeedDownloader Pro follows these links automatically and reassembles the entire catalogue into a single list, with no user intervention. Every pagination link is subject to the same security checks as manually entered URLs.
+*   **The initial analysis takes longer:** A feed with 2,000 episodes (or split across many pages) may require 15–30 seconds for download and parsing. This behaviour is expected.
 *   **List virtualisation:** With thousands of entries, the list loads only the rows visible on screen to keep the interface responsive.
 *   **Estimating required space:** With 2,000 episodes at approximately 50 MB each, the total volume is approximately 100 GB. Verify that sufficient space is available before proceeding.
 
@@ -111,7 +112,7 @@ Clicking on a feed in the sidebar immediately updates the episode list in the ma
 ### Synchronising feeds
 
 *   **Individual synchronisation:** Hover the mouse over a feed entry in the sidebar to display the sync icon. Clicking it makes the software re-read that feed from the server and update the list with any new episodes.
-*   **Sync All:** The "Sync All" button refreshes all feeds in parallel in a single operation. During the process, each thumbnail in the sidebar shows its own status in real time. On completion, any new episodes are highlighted with the new-episodes badge.
+*   **Sync All:** The **"Sync All"** button refreshes all feeds in parallel in a single operation. During the process, each thumbnail in the sidebar shows its own status in real time. On completion, any new episodes are highlighted with the **"TO DOWNLOAD"** badge.
 
 For scheduled automatic refresh without manual intervention, see section 5.9.
 
@@ -119,26 +120,30 @@ For scheduled automatic refresh without manual intervention, see section 5.9.
 
 ## 5.9 Automatic Feed Refresh
 
-FeedDownloader Pro can automatically synchronise all feeds at regular intervals, in the background, without requiring any action from the user.
+FeedDownloader Pro synchronises all feeds automatically in the background, without requiring any action from the user. The check runs:
+
+*   **at startup** (a few seconds after the application opens);
+*   **at regular intervals** (the "Automatic Feed Refresh" setting);
+*   **when the connection returns** after a period offline.
 
 ### Configuration
 
-The setting is found in **Settings → General → Automatic feed refresh**. Four options are available:
+The setting is found in **Settings → General → Automatic Feed Refresh**. Four options are available:
 
 | Option | Behaviour |
 |--------|-----------|
-| **Disabled** (default) | No automatic synchronisation. |
-| **Every 6 hours** | The software synchronises all feeds every 6 hours from startup. |
-| **Every 12 hours** | The software synchronises all feeds every 12 hours from startup. |
-| **Every 24 hours** | The software synchronises all feeds once every 24 hours from startup. |
+| **Disabled** | No periodic synchronisation (the startup check remains). |
+| **6 hours** (default) | The software synchronises all feeds every 6 hours. |
+| **12 hours** | The software synchronises all feeds every 12 hours. |
+| **24 hours** | The software synchronises all feeds once every 24 hours. |
 
 The setting change is immediate and does not require restarting the software. The timer starts from application startup.
 
 ### Behaviour
 
-Automatic refresh **does not start downloads**: it only checks whether new episodes have been published. If during the automatic synchronisation new episodes are found on one or more feeds, the system sends an **operating system notification** with a summary of the content found (available in all 8 supported languages).
+Automatic refresh **does not start downloads**: it only checks whether new episodes have been published. If new episodes are found on one or more feeds, the system sends an **operating system notification** with a summary of the content found (in Italian or English, following the interface language). The notification is **clickable**: it brings the application to the foreground and, if the new episodes belong to a single podcast, opens that feed directly.
 
-To download the reported new episodes, open the software and use the normal batch controls.
+To download the reported new episodes, use the normal batch controls.
 
 ---
 
