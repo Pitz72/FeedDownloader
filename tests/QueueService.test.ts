@@ -90,6 +90,43 @@ describe('QueueService', () => {
         expect(results).toEqual([1, 2, 3]);
     });
 
+    // ── Pause/Resume (v1.5.0) ────────────────────────────────────
+    it('pause() holds queued tasks until start()', async () => {
+        const q = new QueueService(1);
+        const ran: number[] = [];
+
+        q.pause();
+        expect(q.isPaused).toBe(true);
+
+        const p1 = q.add(async () => { ran.push(1); });
+        const p2 = q.add(async () => { ran.push(2); });
+
+        await new Promise(r => setTimeout(r, 30));
+        expect(ran).toEqual([]); // nothing started while paused
+        expect(q.size).toBe(2);
+
+        q.start();
+        expect(q.isPaused).toBe(false);
+        await Promise.all([p1, p2]);
+        expect(ran).toEqual([1, 2]);
+    });
+
+    it('pause() does not interrupt an already-running task', async () => {
+        const q = new QueueService(1);
+        let finished = false;
+
+        const p = q.add(async () => {
+            await new Promise(r => setTimeout(r, 40));
+            finished = true;
+        });
+        await new Promise(r => setTimeout(r, 10)); // let it start
+        q.pause();
+
+        await p;
+        expect(finished).toBe(true); // the running task completed despite pause
+        q.start();
+    });
+
     it('should handle task errors without stopping the queue', async () => {
         const results: string[] = [];
 

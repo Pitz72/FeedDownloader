@@ -132,7 +132,14 @@
           "active_short": "active",
           "completed_summary": "{{done}} of {{total}}",
           "episodes_short": "episodes",
-          "queued": "queued"
+          "queued": "queued",
+          "paused": "paused",
+          "pause_item": "Pause",
+          "resume_item": "Resume",
+          "pause_all": "Pause",
+          "resume_all": "Resume",
+          "queue_paused": "Queue paused",
+          "retry_failed": "Retry failed"
      },
      "toast": {
           "download_started": "Download started...",

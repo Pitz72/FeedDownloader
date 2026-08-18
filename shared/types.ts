@@ -47,6 +47,9 @@ export interface DownloadProgress {
     // episode as downloaded (it previously reused `completed`)
     cancelled?: boolean;
     notFound?: boolean;
+    // v1.5.0 — download paused by the user: non-terminal, the row stays in the
+    // panel with its progress frozen until resumed or cancelled
+    paused?: boolean;
     speed?: number;  // bytes/sec — computed in store
     eta?: number;    // seconds remaining — computed in store
 }
@@ -56,13 +59,16 @@ export interface QueueItem {
     title: string;
     podcastTitle: string;
     url: string;
-    status: 'pending' | 'downloading';
+    status: 'pending' | 'downloading' | 'paused';
 }
 
 export interface FailedDownload {
     title: string;
     podcastTitle: string;
     errorCode: string;
+    /** v1.5.0 — snapshot of the original request, so the renderer can re-queue
+     *  the exact same download ("Retry failed"). Optional for backward compat. */
+    request?: DownloadRequest;
 }
 
 export interface ArchiveEntry {
@@ -186,6 +192,12 @@ export const IPC_CHANNELS = {
     QUEUE_UPDATED: 'queue-updated',
     // Queue management
     CANCEL_DOWNLOAD: 'cancel-download',
+    // Pause/Resume (v1.5.0) — non-destructive: keeps .part/.part.meta and
+    // resumes via HTTP Range + If-Range
+    PAUSE_DOWNLOAD: 'pause-download',
+    RESUME_DOWNLOAD: 'resume-download',
+    PAUSE_QUEUE: 'pause-queue',
+    RESUME_QUEUE: 'resume-queue',
     // Concurrency & Stats
     GET_CONCURRENCY: 'get-concurrency',
     SET_CONCURRENCY: 'set-concurrency',

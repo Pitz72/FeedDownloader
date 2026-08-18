@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Feed, DownloadProgress, QueueItem, FailedDownload, UpdateStatus } from '../types';
+import type { Feed, DownloadProgress, QueueItem, FailedDownload, UpdateStatus, DownloadRequest } from '../types';
 
 const speedCache = new Map<string, { loaded: number; time: number }>();
 
@@ -38,6 +38,14 @@ export interface AppState {
     resetBatch: () => void;
     stopBatch: () => Promise<void>;
 
+    // v1.5.0 — queue-level pause/resume (non-destructive)
+    isQueuePaused: boolean;
+    pauseQueue: () => Promise<void>;
+    resumeQueue: () => Promise<void>;
+
+    // v1.5.0 — re-queue the failed downloads of the last batch
+    retryFailed: () => Promise<void>;
+
     // E1 — Queue visibility
     queueItems: QueueItem[];
     setQueueItems: (items: QueueItem[]) => void;
@@ -66,7 +74,7 @@ export interface AppState {
     setUpdateBannerDismissed: (dismissed: boolean) => void;
 }
 
-export const useStore = create<AppState>((set) => ({
+export const useStore = create<AppState>((set, get) => ({
     currentFeed: null,
     feeds: [],
     downloads: {},
@@ -86,12 +94,29 @@ export const useStore = create<AppState>((set) => ({
             });
             return;
         }
+        // v1.5.0: pause is non-terminal — freeze the row where it is. Drop the
+        // speed sample so the next resumed tick doesn't compute a bogus rate
+        // across the paused gap, and blank speed/ETA on the frozen row.
+        if (progress.paused) {
+            speedCache.delete(progress.url);
+            cancelCleanup(progress.url);
+            set((state) => ({
+                downloads: {
+                    ...state.downloads,
+                    [progress.url]: { ...state.downloads[progress.url], ...progress, speed: undefined, eta: undefined }
+                }
+            }));
+            return;
+        }
         // L27: a fresh in-flight tick means a (re-)download is active — cancel any
         // pending post-completion cleanup so it doesn't erase the new run.
         if (!progress.completed && !progress.error) {
             cancelCleanup(progress.url);
         }
-        const enriched: DownloadProgress = { ...progress };
+        // `paused: false` is explicit — the row merge below would otherwise keep
+        // a stale `paused: true` from before a resume (the main process omits the
+        // flag on regular progress ticks).
+        const enriched: DownloadProgress = { ...progress, paused: false };
         // L9: speed is computable from loaded bytes alone; only ETA needs a total.
         if (!progress.completed && !progress.error && progress.loaded > 0) {
             const prev = speedCache.get(progress.url);
@@ -176,8 +201,39 @@ export const useStore = create<AppState>((set) => ({
         // S11: also drop the per-episode progress entries — aborted in-flight
         // downloads never send a final progress event, so without this their
         // rows stay stuck on a frozen spinner until app restart.
-        set({ isBatchDownloading: false, batchTotal: 0, batchCompleted: 0, queueItems: [], batchFailed: [], downloads: {} });
+        set({ isBatchDownloading: false, batchTotal: 0, batchCompleted: 0, queueItems: [], batchFailed: [], downloads: {}, isQueuePaused: false });
         await window.api.stopBatch();
+    },
+
+    // v1.5.0 — queue-level pause/resume
+    isQueuePaused: false,
+    pauseQueue: async () => {
+        set({ isQueuePaused: true });
+        await window.api.pauseQueue();
+    },
+    resumeQueue: async () => {
+        set({ isQueuePaused: false });
+        await window.api.resumeQueue();
+    },
+
+    // v1.5.0 — re-queue the failed downloads of the last batch with the exact
+    // original request (same pattern as EpisodeList: startBatch first, then the
+    // individual startDownload calls; duplicates advance the counter).
+    retryFailed: async () => {
+        const requests = get().batchFailed
+            .map((f: FailedDownload) => f.request)
+            .filter((r): r is DownloadRequest => !!r);
+        if (requests.length === 0) return;
+        set({ batchFailed: [] });
+        get().startBatch(requests.length, requests.map(r => r.url));
+        for (const req of requests) {
+            try {
+                const result = await window.api.startDownload(req);
+                if (result.status === 'duplicate') get().incrementBatch(req.url);
+            } catch {
+                get().incrementBatch(req.url);
+            }
+        }
     },
 
     // E1 — Queue visibility

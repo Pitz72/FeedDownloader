@@ -278,6 +278,72 @@ describe('DownloadService', () => {
         expect(fs.rename).toHaveBeenCalled();
     });
 
+    // ── Pause/Resume (v1.5.0) ────────────────────────────────────
+    // Helper: a stream that starts but never finishes, so the abort can land mid-flight.
+    function createHangingDataStream() {
+        const emitter = new EventEmitter();
+        return Object.assign(emitter, {
+            pipe: vi.fn().mockImplementation((w: EventEmitter) => w),
+            destroy: vi.fn(),
+        });
+    }
+
+    it('pause (abort reason PAUSE) throws DOWNLOAD_PAUSED and keeps .part/.part.meta', async () => {
+        const dataStream = createHangingDataStream();
+        (axios as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+            status: 200,
+            headers: { 'content-length': '100' },
+            data: dataStream,
+        });
+
+        const controller = new AbortController();
+        const p = service.downloadFile('https://cdn.com/ep.mp3', '/tmp/ep.mp3', vi.fn(), undefined, 3, controller.signal);
+        await new Promise(r => setTimeout(r, 10));
+        controller.abort('PAUSE');
+
+        await expect(p).rejects.toThrow('DOWNLOAD_PAUSED');
+        // the partial pair must survive for the Range/If-Range resume
+        expect(fs.remove).not.toHaveBeenCalledWith('/tmp/ep.mp3.part');
+        expect(fs.remove).not.toHaveBeenCalledWith('/tmp/ep.mp3.part.meta');
+        expect(axios).toHaveBeenCalledTimes(1); // no retry on pause
+    });
+
+    it('queue-wide pause (reason PAUSE_QUEUE) also preserves the partial', async () => {
+        const dataStream = createHangingDataStream();
+        (axios as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+            status: 200,
+            headers: { 'content-length': '100' },
+            data: dataStream,
+        });
+
+        const controller = new AbortController();
+        const p = service.downloadFile('https://cdn.com/ep.mp3', '/tmp/ep.mp3', vi.fn(), undefined, 3, controller.signal);
+        await new Promise(r => setTimeout(r, 10));
+        controller.abort('PAUSE_QUEUE');
+
+        await expect(p).rejects.toThrow('DOWNLOAD_PAUSED');
+        expect(fs.remove).not.toHaveBeenCalledWith('/tmp/ep.mp3.part');
+    });
+
+    it('a plain cancel (no reason) still throws DOWNLOAD_ABORTED and removes the partial', async () => {
+        const dataStream = createHangingDataStream();
+        (axios as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+            status: 200,
+            headers: { 'content-length': '100' },
+            data: dataStream,
+        });
+
+        const controller = new AbortController();
+        const p = service.downloadFile('https://cdn.com/ep.mp3', '/tmp/ep.mp3', vi.fn(), undefined, 3, controller.signal);
+        await new Promise(r => setTimeout(r, 10));
+        controller.abort();
+
+        await expect(p).rejects.toThrow('DOWNLOAD_ABORTED');
+        // M2: a user cancel must not leave .part garbage behind
+        expect(fs.remove).toHaveBeenCalledWith('/tmp/ep.mp3.part');
+        expect(fs.remove).toHaveBeenCalledWith('/tmp/ep.mp3.part.meta');
+    });
+
     it('should clean up partial files on error', async () => {
         (axios as unknown as ReturnType<typeof vi.fn>)
             .mockRejectedValueOnce(new Error('Fail 1'))

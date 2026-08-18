@@ -35,6 +35,11 @@ contextBridge.exposeInMainWorld('api', {
   },
   stopBatch: (): Promise<boolean> => ipcRenderer.invoke(CH.STOP_BATCH),
   cancelDownload: (taskId: string): Promise<boolean> => ipcRenderer.invoke(CH.CANCEL_DOWNLOAD, taskId),
+  // Pause/Resume (v1.5.0)
+  pauseDownload: (taskId: string): Promise<boolean> => ipcRenderer.invoke(CH.PAUSE_DOWNLOAD, taskId),
+  resumeDownload: (taskId: string): Promise<boolean> => ipcRenderer.invoke(CH.RESUME_DOWNLOAD, taskId),
+  pauseQueue: (): Promise<boolean> => ipcRenderer.invoke(CH.PAUSE_QUEUE),
+  resumeQueue: (): Promise<boolean> => ipcRenderer.invoke(CH.RESUME_QUEUE),
   showInFolder: (podcastTitle: string, title: string, enclosureUrl?: string, pubDate?: string): Promise<void> =>
     ipcRenderer.invoke(CH.SHOW_IN_FOLDER, { podcastTitle, title, enclosureUrl, pubDate }),
   removeDownloadedEpisode: (guid: string, feedUrl?: string): Promise<boolean> => ipcRenderer.invoke(CH.REMOVE_HISTORY_ITEM, { guid, feedUrl }),

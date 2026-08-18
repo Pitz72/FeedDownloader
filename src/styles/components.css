@@ -730,6 +730,14 @@
 .dl-item.queued .dl-item-icon { color: var(--fg-4); }
 .dl-item.done .dl-item-icon { color: var(--ok); }
 .dl-item.error .dl-item-icon { color: var(--danger); }
+/* v1.5.0 — paused: dimmed row, warning-tinted icon, frozen (muted) bar */
+.dl-item.paused .dl-item-icon { color: var(--warn, #d9a53f); }
+.dl-item.paused .dl-item-title { color: var(--fg-3); }
+.dl-item.paused .dl-item-progress-bar > i {
+  background: var(--fg-4);
+  box-shadow: none;
+}
+.dl-item.paused .dl-item-meta .pct { color: var(--fg-3); }
 .dl-item-icon svg { width: 16px; height: 16px; }
 
 .dl-item-info { flex: 1; min-width: 0; }

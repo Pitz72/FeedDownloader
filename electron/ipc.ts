@@ -137,6 +137,28 @@ const inFlightUrls = new Set<string>();
 // re-download has already taken over.
 const taskTargets = new Map<string, { url: string; target: string }>();
 
+// ── Pause/Resume (v1.5.0) ────────────────────────────────────
+// A paused download keeps ALL its claims (URL, target path, batch generation):
+// it is still "owned" work — only its transfer is suspended. The .part/.part.meta
+// pair stays on disk so the resume continues via Range + If-Range.
+//
+// Two flavours:
+//  - pausedTaskIds: tasks paused while still *pending* (their queue slot hasn't
+//    opened yet). When the slot opens, the task parks itself instead of running.
+//  - pausedTasks: tasks parked with a re-runnable closure. RESUME re-queues it
+//    with a fresh AbortController.
+const pausedTaskIds = new Set<string>();
+interface PausedTask { run: () => Promise<void>; url: string; target: string; batchGen: number }
+const pausedTasks = new Map<string, PausedTask>();
+// Queue-level pause flag — also consulted by the task pause path to detect a
+// resume-all that raced with an in-flight PAUSE_QUEUE abort.
+let queueIsPaused = false;
+
+async function removePartials(target: string): Promise<void> {
+    await fs.remove(`${target}.part`).catch(() => { });
+    await fs.remove(`${target}.part.meta`).catch(() => { });
+}
+
 function pushQueueUpdated(win: BrowserWindow) {
     pushEvent(win, CH.QUEUE_UPDATED, Array.from(queueItems.values()));
 }
@@ -580,7 +602,17 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
             throw setupErr;
         }
 
-        queueService.add(async () => {
+        const runTask = async () => {
+            // A paused task is "parked": it returns early but must NOT release its
+            // claims nor settle the batch — the resume re-queues this same closure.
+            let parkedForResume = false;
+            // Last progress seen — echoed in the `paused` push so the renderer can
+            // freeze the bar at the right spot.
+            let lastLoaded = 0;
+            let lastTotal = 0;
+            // Resolve the controller at run time: a RESUME re-queues this closure
+            // with a *fresh* AbortController under the same taskId.
+            const signal = activeDownloads.get(taskId)?.signal;
             try {
                 // Task was cancelled before its queue slot opened. Returning here
                 // still runs the finally below (release claims + settle the batch),
@@ -593,6 +625,17 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                     // M32: `cancelled` advances the batch counter in the renderer
                     // without painting the row as completed/archived
                     pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded: 0, total: 0, cancelled: true });
+                    return;
+                }
+
+                // Paused while still pending: don't run — park for RESUME.
+                if (pausedTaskIds.has(taskId)) {
+                    pausedTaskIds.delete(taskId);
+                    parkedForResume = true;
+                    pausedTasks.set(taskId, { run: runTask, url, target: targetFile, batchGen });
+                    const pausedItem = queueItems.get(taskId);
+                    if (pausedItem) queueItems.set(taskId, { ...pausedItem, status: 'paused' });
+                    pushQueueUpdated(mainWindow);
                     return;
                 }
 
@@ -610,12 +653,14 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                 // sent in full.
                 let lastProgressTs = 0;
                 await downloadService.downloadFile(url, targetFile, (loaded, total) => {
+                    lastLoaded = loaded;
+                    lastTotal = total;
                     const now = Date.now();
                     if (now - lastProgressTs >= 100 || (total > 0 && loaded >= total)) {
                         lastProgressTs = now;
                         pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded, total });
                     }
-                }, speedLimitKBps, 3, controller.signal);
+                }, speedLimitKBps, 3, signal);
 
                 let fileSize: number | undefined;
                 let checksum: string | undefined;
@@ -686,8 +731,27 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
             } catch (error) {
                 const errMsg = (error as Error).message || 'UNKNOWN';
                 const isAborted = errMsg === 'DOWNLOAD_ABORTED';
+                const isPaused = errMsg === 'DOWNLOAD_PAUSED';
 
-                if (isAborted) {
+                if (isPaused) {
+                    parkedForResume = true;
+                    if (signal?.reason === 'PAUSE_QUEUE' && !queueIsPaused) {
+                        // The queue-wide pause aborted this transfer, but a
+                        // RESUME_QUEUE landed before the abort settled — rejoin
+                        // the queue immediately instead of parking.
+                        activeDownloads.set(taskId, new AbortController());
+                        const item = queueItems.get(taskId);
+                        if (item) queueItems.set(taskId, { ...item, status: 'pending' });
+                        pushQueueUpdated(mainWindow);
+                        queueService.add(runTask);
+                    } else {
+                        pausedTasks.set(taskId, { run: runTask, url, target: targetFile, batchGen });
+                        const item = queueItems.get(taskId);
+                        if (item) queueItems.set(taskId, { ...item, status: 'paused' });
+                        pushQueueUpdated(mainWindow);
+                        pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded: lastLoaded, total: lastTotal, paused: true });
+                    }
+                } else if (isAborted) {
                     // Always emit the terminal `cancelled` event — for individual
                     // cancels it advances the batch counter (M32), and for STOP_BATCH
                     // it is what clears the row. The old `if (batchTracker.active)`
@@ -700,7 +764,12 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                 } else {
                     console.error('Download error:', error);
                     queueItems.delete(taskId);
-                    batchTracker.recordFailure(batchGen, { title, podcastTitle, errorCode: errMsg });
+                    // v1.5.0: snapshot the original request so the renderer can
+                    // offer "Retry failed" with the exact same parameters.
+                    batchTracker.recordFailure(batchGen, {
+                        title, podcastTitle, errorCode: errMsg,
+                        request: { url, title, podcastTitle, guid, pubDate, feedImageUrl, episodeImageUrl, feedUrl },
+                    });
                     pushQueueUpdated(mainWindow);
                     const isNotFound = errMsg === 'EPISODE_NOT_FOUND';
                     pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, {
@@ -709,24 +778,112 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                     });
                 }
             } finally {
-                activeDownloads.delete(taskId);
-                // Release the URL/path claims only if this task still owns them — a
-                // CANCEL of a pending task may have already released and handed them
-                // to a re-download (same url/path, different taskId).
-                const owned = taskTargets.get(taskId);
-                if (owned && owned.target === targetFile) {
-                    taskTargets.delete(taskId);
-                    inFlightUrls.delete(url);       // S3: release the URL claim
-                    releaseTarget(targetFile);      // M1: release the claimed path
+                if (!parkedForResume) {
+                    activeDownloads.delete(taskId);
+                    // Release the URL/path claims only if this task still owns them — a
+                    // CANCEL of a pending task may have already released and handed them
+                    // to a re-download (same url/path, different taskId).
+                    const owned = taskTargets.get(taskId);
+                    if (owned && owned.target === targetFile) {
+                        taskTargets.delete(taskId);
+                        inFlightUrls.delete(url);       // S3: release the URL claim
+                        releaseTarget(targetFile);      // M1: release the claimed path
+                    }
+                    const batchResult = batchTracker.complete(batchGen);
+                    if (batchResult !== null) {
+                        emitBatchComplete(batchResult);
+                    }
                 }
-                const batchResult = batchTracker.complete(batchGen);
-                if (batchResult !== null) {
-                    emitBatchComplete(batchResult);
-                }
+                // Parked (paused) tasks keep every claim and their batch slot:
+                // the download is suspended, not finished. RESUME re-queues
+                // runTask; CANCEL of a paused task settles everything instead.
             }
-        });
+        };
+        queueService.add(runTask);
 
         return { status: 'queued' };
+    });
+
+    // ── Pause / Resume (v1.5.0) ───────────────────────────
+    ipcMain.handle(CH.PAUSE_DOWNLOAD, async (_, taskId: string) => {
+        const item = queueItems.get(taskId);
+        if (!item) return false;
+        if (item.status === 'downloading') {
+            const controller = activeDownloads.get(taskId);
+            if (!controller) return false;
+            // The task's catch parks it and pushes the queue/progress updates.
+            controller.abort('PAUSE');
+            return true;
+        }
+        if (item.status === 'pending') {
+            pausedTaskIds.add(taskId);
+            queueItems.set(taskId, { ...item, status: 'paused' });
+            pushQueueUpdated(mainWindow);
+            return true;
+        }
+        return false; // already paused
+    });
+
+    ipcMain.handle(CH.RESUME_DOWNLOAD, async (_, taskId: string) => {
+        // Paused before its queue slot opened: the original task is still in the
+        // queue — just unmark it.
+        if (pausedTaskIds.has(taskId)) {
+            pausedTaskIds.delete(taskId);
+            const item = queueItems.get(taskId);
+            if (item) queueItems.set(taskId, { ...item, status: 'pending' });
+            pushQueueUpdated(mainWindow);
+            return true;
+        }
+        const parked = pausedTasks.get(taskId);
+        if (!parked) return false;
+        pausedTasks.delete(taskId);
+        activeDownloads.set(taskId, new AbortController());
+        const item = queueItems.get(taskId);
+        if (item) queueItems.set(taskId, { ...item, status: 'pending' });
+        pushQueueUpdated(mainWindow);
+        queueService.add(parked.run);
+        return true;
+    });
+
+    ipcMain.handle(CH.PAUSE_QUEUE, async () => {
+        queueIsPaused = true;
+        queueService.pause();
+        // Pending tasks won't start while the queue is paused; mark them so the
+        // UI shows them as paused (and so a queue resume knows to unmark them).
+        for (const [taskId, item] of queueItems) {
+            if (item.status === 'pending' && !cancelledTaskIds.has(taskId)) {
+                pausedTaskIds.add(taskId);
+                queueItems.set(taskId, { ...item, status: 'paused' });
+            }
+        }
+        // Active transfers park themselves via the task's pause path.
+        for (const controller of activeDownloads.values()) {
+            controller.abort('PAUSE_QUEUE');
+        }
+        pushQueueUpdated(mainWindow);
+        return true;
+    });
+
+    ipcMain.handle(CH.RESUME_QUEUE, async () => {
+        queueIsPaused = false;
+        // Unmark items paused while pending — their original tasks are still queued.
+        for (const [taskId, item] of queueItems) {
+            if (item.status === 'paused' && pausedTaskIds.has(taskId)) {
+                pausedTaskIds.delete(taskId);
+                queueItems.set(taskId, { ...item, status: 'pending' });
+            }
+        }
+        // Re-queue parked tasks with fresh controllers.
+        for (const [taskId, parked] of [...pausedTasks]) {
+            pausedTasks.delete(taskId);
+            activeDownloads.set(taskId, new AbortController());
+            const item = queueItems.get(taskId);
+            if (item) queueItems.set(taskId, { ...item, status: 'pending' });
+            queueService.add(parked.run);
+        }
+        queueService.start();
+        pushQueueUpdated(mainWindow);
+        return true;
     });
 
     // ── Cancel Single Download ────────────────────────────
@@ -754,16 +911,58 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         } else if (item.status === 'downloading') {
             const controller = activeDownloads.get(taskId);
             if (controller) controller.abort();
+        } else if (item.status === 'paused') {
+            if (pausedTaskIds.has(taskId)) {
+                // Paused while still pending: same as cancelling a pending task —
+                // the queued closure will see cancelledTaskIds and settle the batch.
+                pausedTaskIds.delete(taskId);
+                cancelledTaskIds.add(taskId);
+                const owned = taskTargets.get(taskId);
+                if (owned) {
+                    taskTargets.delete(taskId);
+                    inFlightUrls.delete(owned.url);
+                    releaseTarget(owned.target);
+                }
+            } else {
+                const parked = pausedTasks.get(taskId);
+                if (parked) {
+                    // Cancelling a parked download is destructive (M2): drop the
+                    // partial, release the claims and settle its batch slot here —
+                    // no task will ever run again for it.
+                    pausedTasks.delete(taskId);
+                    activeDownloads.delete(taskId);
+                    void removePartials(parked.target);
+                    const owned = taskTargets.get(taskId);
+                    if (owned && owned.target === parked.target) {
+                        taskTargets.delete(taskId);
+                        inFlightUrls.delete(parked.url);
+                        releaseTarget(parked.target);
+                    }
+                    pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url: parked.url, loaded: 0, total: 0, cancelled: true });
+                    const batchResult = batchTracker.complete(parked.batchGen);
+                    if (batchResult !== null) emitBatchComplete(batchResult);
+                }
+            }
         }
         return true;
     });
 
     ipcMain.handle(CH.STOP_BATCH, async () => {
         queueService.clear();
+        // A stop while paused must leave the queue runnable for future batches.
+        queueIsPaused = false;
+        queueService.start();
         for (const controller of activeDownloads.values()) {
             controller.abort();
         }
         activeDownloads.clear();
+        // Parked (paused) tasks are dropped: a stop is destructive, so their
+        // partial files go too — otherwise CLEAN_PART_FILES would find orphans.
+        for (const parked of pausedTasks.values()) {
+            void removePartials(parked.target);
+        }
+        pausedTasks.clear();
+        pausedTaskIds.clear();
         batchTracker.reset();
         queueItems.clear();
         cancelledTaskIds.clear();

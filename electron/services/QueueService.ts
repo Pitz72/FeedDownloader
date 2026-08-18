@@ -23,6 +23,20 @@ export class QueueService {
         this.queue.clear();
     }
 
+    // v1.5.0 — queue-level pause: pending tasks stay queued but no new task
+    // starts until start() is called. Running tasks are not touched here.
+    pause() {
+        this.queue.pause();
+    }
+
+    start() {
+        this.queue.start();
+    }
+
+    get isPaused() {
+        return this.queue.isPaused;
+    }
+
     setConcurrency(n: number) {
         this.queue.concurrency = n;
     }

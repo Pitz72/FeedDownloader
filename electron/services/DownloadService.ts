@@ -9,6 +9,13 @@ const CONNECTION_TIMEOUT_MS = 30_000; // 30s
 /** If no data is received for this long, abort the download (ms) */
 const STALL_TIMEOUT_MS = 60_000; // 60s
 
+/** v1.5.0 — abort reasons that mean "pause": the .part/.part.meta pair is kept
+ *  so a later attempt resumes via Range + If-Range instead of restarting.
+ *  Anything else (including the default DOMException) is a destructive cancel. */
+export const PAUSE_REASONS = new Set(['PAUSE', 'PAUSE_QUEUE']);
+const isPauseSignal = (signal?: AbortSignal): boolean =>
+    !!signal?.aborted && PAUSE_REASONS.has(signal.reason as string);
+
 export class DownloadService {
     async downloadFile(url: string, outputPath: string, onProgress: (loaded: number, total: number) => void, speedLimitKBps?: number, attempts = 3, signal?: AbortSignal) {
         for (let i = 0; i < attempts; i++) {
@@ -19,6 +26,11 @@ export class DownloadService {
                 const err = error as { code?: string; message?: string; retryAfterMs?: number };
 
                 // Critical Errors - Do not retry
+                if (err.message === 'DOWNLOAD_PAUSED') {
+                    // v1.5.0: a pause is a non-destructive abort — keep the
+                    // .part/.part.meta pair so RESUME picks up where we stopped.
+                    throw error;
+                }
                 if (err.message === 'DOWNLOAD_ABORTED') {
                     // M2: an explicit user cancel must not leave .part garbage
                     // behind (the resume of a cancelled download is unwanted).
@@ -203,7 +215,9 @@ export class DownloadService {
                     response.data?.destroy?.();
                     writer?.destroy?.();
                     throttle?.destroy?.();
-                    fail(new Error('DOWNLOAD_ABORTED'));
+                    // v1.5.0: an abort whose reason is a pause keeps the partial
+                    // file; only a real cancel is destructive (handled upstream).
+                    fail(new Error(isPauseSignal(signal) ? 'DOWNLOAD_PAUSED' : 'DOWNLOAD_ABORTED'));
                 }
                 if (signal) {
                     if (signal.aborted) { onAbort(); return; }
@@ -296,6 +310,11 @@ export class DownloadService {
 
             const axiosErr = error as { code?: string };
             if (axiosErr.code === 'ERR_CANCELED') {
+                if (isPauseSignal(signal)) {
+                    // v1.5.0: paused before/while the request settled — keep the
+                    // partial for the resume.
+                    throw new Error('DOWNLOAD_PAUSED');
+                }
                 await removeTemp();
                 throw new Error('DOWNLOAD_ABORTED');
             }

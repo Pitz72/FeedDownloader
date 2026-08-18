@@ -20,6 +20,11 @@ declare global {
             setDownloadPath: (path: string) => Promise<boolean>;
             stopBatch: () => Promise<boolean>;
             cancelDownload: (taskId: string) => Promise<boolean>;
+            // Pause/Resume (v1.5.0)
+            pauseDownload: (taskId: string) => Promise<boolean>;
+            resumeDownload: (taskId: string) => Promise<boolean>;
+            pauseQueue: () => Promise<boolean>;
+            resumeQueue: () => Promise<boolean>;
             showInFolder: (podcastTitle: string, title: string, enclosureUrl?: string, pubDate?: string) => Promise<void>;
             removeDownloadedEpisode: (guid: string, feedUrl?: string) => Promise<boolean>;
             resetDownloadHistory: () => Promise<boolean>;

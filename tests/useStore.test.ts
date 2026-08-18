@@ -2,9 +2,15 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // ── Mock window.api ──────────────────────────────────────────────
 const mockStopBatch = vi.fn().mockResolvedValue(true);
+const mockPauseQueue = vi.fn().mockResolvedValue(true);
+const mockResumeQueue = vi.fn().mockResolvedValue(true);
+const mockStartDownload = vi.fn().mockResolvedValue({ status: 'queued' });
 vi.stubGlobal('window', {
     api: {
         stopBatch: mockStopBatch,
+        pauseQueue: mockPauseQueue,
+        resumeQueue: mockResumeQueue,
+        startDownload: mockStartDownload,
     },
 });
 
@@ -22,8 +28,11 @@ describe('useStore (Zustand)', () => {
             batchTotal: 0,
             batchCompleted: 0,
             isBatchDownloading: false,
+            batchFailed: [],
+            isQueuePaused: false,
         });
         vi.clearAllMocks();
+        mockStartDownload.mockResolvedValue({ status: 'queued' });
     });
 
     // ── Feeds ────────────────────────────────────────────────────
@@ -63,7 +72,8 @@ describe('useStore (Zustand)', () => {
         it('should track download progress by URL', () => {
             useStore.getState().updateDownload({ url: 'http://dl.com/ep1.mp3', loaded: 50, total: 100 });
             const state = useStore.getState();
-            expect(state.downloads['http://dl.com/ep1.mp3']).toEqual({ url: 'http://dl.com/ep1.mp3', loaded: 50, total: 100 });
+            // `paused: false` is set explicitly on every regular tick (v1.5.0)
+            expect(state.downloads['http://dl.com/ep1.mp3']).toEqual({ url: 'http://dl.com/ep1.mp3', loaded: 50, total: 100, paused: false });
         });
 
         it('should update existing download progress', () => {
@@ -136,6 +146,78 @@ describe('useStore (Zustand)', () => {
             useStore.getState().startBatch(5);
             await useStore.getState().stopBatch();
             expect(mockStopBatch).toHaveBeenCalledOnce();
+            expect(useStore.getState().isBatchDownloading).toBe(false);
+        });
+    });
+
+    // ── Pause/Resume (v1.5.0) ────────────────────────────────────
+    describe('Queue pause/resume', () => {
+        it('pauseQueue sets the flag and calls the API', async () => {
+            await useStore.getState().pauseQueue();
+            expect(useStore.getState().isQueuePaused).toBe(true);
+            expect(mockPauseQueue).toHaveBeenCalledOnce();
+        });
+
+        it('resumeQueue clears the flag and calls the API', async () => {
+            await useStore.getState().pauseQueue();
+            await useStore.getState().resumeQueue();
+            expect(useStore.getState().isQueuePaused).toBe(false);
+            expect(mockResumeQueue).toHaveBeenCalledOnce();
+        });
+
+        it('stopBatch clears the paused flag', async () => {
+            await useStore.getState().pauseQueue();
+            await useStore.getState().stopBatch();
+            expect(useStore.getState().isQueuePaused).toBe(false);
+        });
+
+        it('a paused progress tick freezes the row (no speed/eta), a later tick unfreezes it', () => {
+            const url = 'http://dl.com/ep1.mp3';
+            useStore.getState().updateDownload({ url, loaded: 50, total: 100 });
+            useStore.getState().updateDownload({ url, loaded: 60, total: 100, paused: true });
+            let dl = useStore.getState().downloads[url];
+            expect(dl.paused).toBe(true);
+            expect(dl.loaded).toBe(60);
+            expect(dl.speed).toBeUndefined();
+            // resume: regular ticks come without the paused flag → row unfreezes
+            useStore.getState().updateDownload({ url, loaded: 70, total: 100 });
+            dl = useStore.getState().downloads[url];
+            expect(dl.paused).toBe(false);
+            expect(dl.loaded).toBe(70);
+        });
+    });
+
+    // ── Retry failed (v1.5.0) ────────────────────────────────────
+    describe('retryFailed', () => {
+        const failedWithRequest = {
+            title: 'Ep 1', podcastTitle: 'Show', errorCode: 'HTTP_503',
+            request: { url: 'http://dl.com/ep1.mp3', title: 'Ep 1', podcastTitle: 'Show', guid: 'g1' },
+        };
+        const failedWithoutRequest = { title: 'Ep 2', podcastTitle: 'Show', errorCode: 'HTTP_500' };
+
+        it('re-queues only failures that carry a request snapshot and clears the list', async () => {
+            useStore.setState({ batchFailed: [failedWithRequest, failedWithoutRequest] });
+            await useStore.getState().retryFailed();
+            expect(mockStartDownload).toHaveBeenCalledTimes(1);
+            expect(mockStartDownload).toHaveBeenCalledWith(failedWithRequest.request);
+            expect(useStore.getState().batchFailed).toEqual([]);
+            expect(useStore.getState().isBatchDownloading).toBe(true);
+            expect(useStore.getState().batchTotal).toBe(1);
+        });
+
+        it('does nothing when no failure has a request snapshot', async () => {
+            useStore.setState({ batchFailed: [failedWithoutRequest] });
+            await useStore.getState().retryFailed();
+            expect(mockStartDownload).not.toHaveBeenCalled();
+            expect(useStore.getState().isBatchDownloading).toBe(false);
+        });
+
+        it('advances the batch counter for duplicates', async () => {
+            mockStartDownload.mockResolvedValue({ status: 'duplicate' });
+            useStore.setState({ batchFailed: [failedWithRequest] });
+            await useStore.getState().retryFailed();
+            // the only request was a duplicate → batch immediately complete
+            expect(useStore.getState().batchCompleted).toBe(1);
             expect(useStore.getState().isBatchDownloading).toBe(false);
         });
     });

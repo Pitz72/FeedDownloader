@@ -31,14 +31,17 @@ function formatEta(seconds: number): string {
 interface QueueRowProps {
     item: QueueItem;
     onCancel: () => void;
+    onPause: () => void;
+    onResume: () => void;
 }
 
-const QueueRow: React.FC<QueueRowProps> = ({ item, onCancel }) => {
+const QueueRow: React.FC<QueueRowProps> = ({ item, onCancel, onPause, onResume }) => {
     const { t, i18n } = useTranslation();
     // M29: per-slice selector — each row re-renders only on its own progress ticks,
     // instead of the whole panel subscribing to the entire downloads map.
     const progress = useStore((s: AppState) => s.downloads[item.url] ?? null);
     const isDownloading = item.status === 'downloading';
+    const isPaused = item.status === 'paused';
     const percent = progress && progress.total > 0
         ? Math.round((progress.loaded / progress.total) * 100)
         : null;
@@ -47,11 +50,17 @@ const QueueRow: React.FC<QueueRowProps> = ({ item, onCancel }) => {
     const indeterminate = isDownloading && percent === null && !!progress && progress.loaded > 0;
 
     return (
-        <div className={`dl-item ${isDownloading ? 'active' : 'queued'}`}>
+        <div className={`dl-item ${isDownloading ? 'active' : isPaused ? 'paused' : 'queued'}`}>
             <div className="dl-item-icon" aria-hidden="true">
                 {isDownloading ? (
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'feedSyncSpin 1s linear infinite' }}>
                         <path d="M21 12a9 9 0 1 1-6.2-8.5"/>
+                    </svg>
+                ) : isPaused ? (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="10" y1="9" x2="10" y2="15"/>
+                        <line x1="14" y1="9" x2="14" y2="15"/>
                     </svg>
                 ) : (
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -64,14 +73,15 @@ const QueueRow: React.FC<QueueRowProps> = ({ item, onCancel }) => {
                 <p className="dl-item-title">{item.title}</p>
                 <p className="dl-item-show">
                     {item.podcastTitle}
-                    {!isDownloading && ` · ${t('progress.queued', 'in coda')}`}
+                    {isPaused && ` · ${t('progress.paused', 'in pausa')}`}
+                    {!isDownloading && !isPaused && ` · ${t('progress.queued', 'in coda')}`}
                 </p>
-                {isDownloading && percent !== null && (
+                {(isDownloading || isPaused) && percent !== null && (
                     <div className="dl-item-progress">
                         <div className="dl-item-progress-bar"><i style={{ width: `${percent}%` }} /></div>
                         <div className="dl-item-meta">
                             <span className="pct">{percent}%</span>
-                            {progress?.speed != null && progress.speed > 0 && (
+                            {!isPaused && progress?.speed != null && progress.speed > 0 && (
                                 <span>
                                     {formatSpeed(progress.speed, i18n.language)}
                                     {progress.eta != null && progress.eta > 0 ? ` · ${formatEta(progress.eta)}` : ''}
@@ -92,6 +102,34 @@ const QueueRow: React.FC<QueueRowProps> = ({ item, onCancel }) => {
                     </div>
                 )}
             </div>
+            {isPaused ? (
+                <button
+                    type="button"
+                    className="ep-action"
+                    onClick={onResume}
+                    title={t('progress.resume_item', 'Riprendi')}
+                    aria-label={t('progress.resume_item', 'Riprendi')}
+                    style={{ alignSelf: 'flex-start' }}
+                >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <polygon points="6 4 20 12 6 20"/>
+                    </svg>
+                </button>
+            ) : (
+                <button
+                    type="button"
+                    className="ep-action"
+                    onClick={onPause}
+                    title={t('progress.pause_item', 'Metti in pausa')}
+                    aria-label={t('progress.pause_item', 'Metti in pausa')}
+                    style={{ alignSelf: 'flex-start' }}
+                >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <rect x="6" y="4" width="4" height="16"/>
+                        <rect x="14" y="4" width="4" height="16"/>
+                    </svg>
+                </button>
+            )}
             <button
                 type="button"
                 className="ep-action"
@@ -138,11 +176,18 @@ export const DownloadPanel: React.FC = () => {
     const batchFailed = useStore((s: AppState) => s.batchFailed);
     const downloadPanelOpen = useStore((s: AppState) => s.downloadPanelOpen);
     const setDownloadPanelOpen = useStore((s: AppState) => s.setDownloadPanelOpen);
+    const isQueuePaused = useStore((s: AppState) => s.isQueuePaused);
     const { t } = useTranslation();
     const [showErrors, setShowErrors] = useState(true);
 
     const handleCancelItem = useCallback(async (taskId: string) => {
         await window.api.cancelDownload(taskId);
+    }, []);
+    const handlePauseItem = useCallback(async (taskId: string) => {
+        await window.api.pauseDownload(taskId);
+    }, []);
+    const handleResumeItem = useCallback(async (taskId: string) => {
+        await window.api.resumeDownload(taskId);
     }, []);
 
     const isVisible = useStore(selectPanelVisible);
@@ -227,6 +272,8 @@ export const DownloadPanel: React.FC = () => {
                                         key={item.taskId}
                                         item={item}
                                         onCancel={() => handleCancelItem(item.taskId)}
+                                        onPause={() => handlePauseItem(item.taskId)}
+                                        onResume={() => handleResumeItem(item.taskId)}
                                     />
                                 ))}
                             </div>
@@ -243,13 +290,24 @@ export const DownloadPanel: React.FC = () => {
                                         </svg>
                                         {t('progress.n_failed', { defaultValue: '{{count}} download falliti', count: batchFailed.length })}
                                     </span>
-                                    <button type="button" className="retry" onClick={() => setShowErrors(v => !v)}>
-                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                                            <path d="M3 12a9 9 0 0 1 15-6.7L21 8"/>
-                                            <path d="M21 3v5h-5"/>
-                                        </svg>
-                                        {showErrors ? t('common.hide', 'Nascondi') : t('common.show', 'Mostra')}
-                                    </button>
+                                    <span style={{ display: 'inline-flex', gap: 8 }}>
+                                        {batchFailed.some(f => f.request) && (
+                                            <button
+                                                type="button"
+                                                className="retry"
+                                                onClick={() => { setShowErrors(true); useStore.getState().retryFailed(); }}
+                                            >
+                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                                    <path d="M3 12a9 9 0 0 1 15-6.7L21 8"/>
+                                                    <path d="M21 3v5h-5"/>
+                                                </svg>
+                                                {t('progress.retry_failed', 'Riprova falliti')}
+                                            </button>
+                                        )}
+                                        <button type="button" className="retry" onClick={() => setShowErrors(v => !v)}>
+                                            {showErrors ? t('common.hide', 'Nascondi') : t('common.show', 'Mostra')}
+                                        </button>
+                                    </span>
                                 </div>
                                 {showErrors && (
                                     <div className="dl-failed-list custom-scrollbar">
@@ -263,15 +321,35 @@ export const DownloadPanel: React.FC = () => {
 
                         <footer className="dl-footer">
                             <span className="hint">
-                                {isBatchDownloading ? t('progress.dont_close', 'Non chiudere fino al termine') : ' '}
+                                {isBatchDownloading
+                                    ? (isQueuePaused ? t('progress.queue_paused', 'Coda in pausa') : t('progress.dont_close', 'Non chiudere fino al termine'))
+                                    : ' '}
                             </span>
                             {isBatchDownloading ? (
-                                <button type="button" className="dl-stop" onClick={() => useStore.getState().stopBatch()}>
-                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                                        <rect x="6" y="6" width="12" height="12"/>
-                                    </svg>
-                                    {t('progress.stop', 'Stop')}
-                                </button>
+                                <span style={{ display: 'inline-flex', gap: 8 }}>
+                                    {isQueuePaused ? (
+                                        <button type="button" className="feed-action" onClick={() => useStore.getState().resumeQueue()}>
+                                            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                                <polygon points="6 4 20 12 6 20"/>
+                                            </svg>
+                                            {t('progress.resume_all', 'Riprendi')}
+                                        </button>
+                                    ) : (
+                                        <button type="button" className="feed-action" onClick={() => useStore.getState().pauseQueue()}>
+                                            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                                <rect x="6" y="4" width="4" height="16"/>
+                                                <rect x="14" y="4" width="4" height="16"/>
+                                            </svg>
+                                            {t('progress.pause_all', 'Pausa')}
+                                        </button>
+                                    )}
+                                    <button type="button" className="dl-stop" onClick={() => useStore.getState().stopBatch()}>
+                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                            <rect x="6" y="6" width="12" height="12"/>
+                                        </svg>
+                                        {t('progress.stop', 'Stop')}
+                                    </button>
+                                </span>
                             ) : isComplete ? (
                                 <button
                                     type="button"
