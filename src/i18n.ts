@@ -4,27 +4,17 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 
 import en from './locales/en.json';
 import it from './locales/it.json';
-import fr from './locales/fr.json';
-import de from './locales/de.json';
-import es from './locales/es.json';
-import pt from './locales/pt.json';
-import ru from './locales/ru.json';
-import zh from './locales/zh.json';
 
 i18n
     .use(LanguageDetector)
     .use(initReactI18next)
     .init({
+        // The app ships two languages only: Italian and English.
         resources: {
             en: { translation: en },
             it: { translation: it },
-            fr: { translation: fr },
-            de: { translation: de },
-            es: { translation: es },
-            pt: { translation: pt },
-            ru: { translation: ru },
-            zh: { translation: zh },
         },
+        supportedLngs: ['en', 'it'],
         fallbackLng: 'en',
         detection: {
             order: ['localStorage', 'navigator'],

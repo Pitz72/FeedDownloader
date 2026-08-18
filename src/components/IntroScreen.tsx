@@ -5,26 +5,14 @@ import clsx from 'clsx';
 import { HelpModal } from './HelpModal';
 import GB from 'country-flag-icons/react/3x2/GB';
 import IT from 'country-flag-icons/react/3x2/IT';
-import FR from 'country-flag-icons/react/3x2/FR';
-import DE from 'country-flag-icons/react/3x2/DE';
-import ES from 'country-flag-icons/react/3x2/ES';
-import PT from 'country-flag-icons/react/3x2/PT';
-import RU from 'country-flag-icons/react/3x2/RU';
-import CN from 'country-flag-icons/react/3x2/CN';
 
 interface IntroScreenProps {
     onComplete: () => void;
 }
 
-const LANGUAGES: { code: 'en' | 'it' | 'fr' | 'de' | 'es' | 'pt' | 'ru' | 'zh'; Flag: React.ComponentType<{ style?: React.CSSProperties; title?: string }> }[] = [
+const LANGUAGES: { code: 'en' | 'it'; Flag: React.ComponentType<{ style?: React.CSSProperties; title?: string }> }[] = [
     { code: 'en', Flag: GB },
     { code: 'it', Flag: IT },
-    { code: 'fr', Flag: FR },
-    { code: 'de', Flag: DE },
-    { code: 'es', Flag: ES },
-    { code: 'pt', Flag: PT },
-    { code: 'ru', Flag: RU },
-    { code: 'zh', Flag: CN },
 ];
 
 export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {

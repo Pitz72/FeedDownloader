@@ -87,12 +87,6 @@ function emitBatchComplete(result: BatchResult): void {
         const notificationBodies: Record<string, string> = {
             en: failedCount > 0 ? `Download complete: ${okCount} downloaded, ${failedCount} failed.` : `Download complete: ${finishedTotal} files downloaded.`,
             it: failedCount > 0 ? `Download completato: ${okCount} scaricati, ${failedCount} errori.` : `Download completato: ${finishedTotal} file scaricati.`,
-            fr: failedCount > 0 ? `Téléchargement terminé : ${okCount} téléchargés, ${failedCount} erreurs.` : `Téléchargement terminé : ${finishedTotal} fichiers téléchargés.`,
-            de: failedCount > 0 ? `Download abgeschlossen: ${okCount} geladen, ${failedCount} Fehler.` : `Download abgeschlossen: ${finishedTotal} Dateien heruntergeladen.`,
-            es: failedCount > 0 ? `Descarga completa: ${okCount} descargados, ${failedCount} errores.` : `Descarga completada: ${finishedTotal} archivos descargados.`,
-            pt: failedCount > 0 ? `Download concluído: ${okCount} descarregados, ${failedCount} erros.` : `Download concluído: ${finishedTotal} ficheiros descarregados.`,
-            ru: failedCount > 0 ? `Загрузка завершена: ${okCount} скачано, ${failedCount} ошибок.` : `Загрузка завершена: ${finishedTotal} файлов скачано.`,
-            zh: failedCount > 0 ? `下载完成：${okCount} 个成功，${failedCount} 个失败。` : `下载完成：已下载 ${finishedTotal} 个文件。`,
         };
         new Notification({
             title: 'Runtime FeedDownloader Pro',
@@ -311,12 +305,6 @@ async function runBackgroundRefresh(win: BrowserWindow) {
             it: totalNew === 1
                 ? `1 nuovo episodio trovato in ${fp} podcast.`
                 : `${totalNew} nuovi episodi trovati in ${fp} podcast.`,
-            fr: `${totalNew} nouvel${totalNew !== 1 ? 'les' : ''} épisode${totalNew !== 1 ? 's' : ''} trouvé${totalNew !== 1 ? 's' : ''} dans ${fp} podcast${fp !== 1 ? 's' : ''}.`,
-            de: `${totalNew} neue Episode${totalNew !== 1 ? 'n' : ''} in ${fp} Feed${fp !== 1 ? 's' : ''} gefunden.`,
-            es: `${totalNew} nuevo${totalNew !== 1 ? 's' : ''} episodio${totalNew !== 1 ? 's' : ''} encontrado${totalNew !== 1 ? 's' : ''} en ${fp} podcast${fp !== 1 ? 's' : ''}.`,
-            pt: `${totalNew} novo${totalNew !== 1 ? 's' : ''} episódio${totalNew !== 1 ? 's' : ''} encontrado${totalNew !== 1 ? 's' : ''} em ${fp} podcast${fp !== 1 ? 's' : ''}.`,
-            ru: `Найдено ${totalNew} нов${totalNew !== 1 ? 'ых эпизодов' : 'ый эпизод'} в ${fp} подкаст${fp !== 1 ? 'ах' : 'е'}.`,
-            zh: `在 ${fp} 个播客中发现 ${totalNew} 个新节目。`,
         };
         new Notification({
             title: 'Runtime FeedDownloader Pro',
@@ -353,12 +341,6 @@ async function reconcileArchive() {
                 it: missing === 1
                     ? '1 file archiviato risulta mancante su disco. Apri Impostazioni → Verifica Integrità per controllare.'
                     : `${missing} file archiviati risultano mancanti su disco. Apri Impostazioni → Verifica Integrità per controllare.`,
-                fr: `${missing} fichier${missing !== 1 ? 's' : ''} archivé${missing !== 1 ? 's' : ''} manquant${missing !== 1 ? 's' : ''} sur le disque. Ouvrez Réglages → Vérification.`,
-                de: `${missing} archivierte Datei${missing !== 1 ? 'en fehlen' : ' fehlt'} auf der Festplatte. Einstellungen → Integritätsprüfung öffnen.`,
-                es: `${missing} archivo${missing !== 1 ? 's' : ''} archivado${missing !== 1 ? 's' : ''} no está${missing !== 1 ? 'n' : ''} en el disco. Abre Ajustes → Verificación.`,
-                pt: `${missing} ficheiro${missing !== 1 ? 's' : ''} arquivado${missing !== 1 ? 's' : ''} em falta no disco. Abra Definições → Verificação.`,
-                ru: `Отсутствует файлов на диске: ${missing}. Откройте Настройки → Проверка целостности.`,
-                zh: `磁盘上缺少 ${missing} 个已归档文件。请打开 设置 → 完整性检查。`,
             };
             new Notification({
                 title: 'Runtime FeedDownloader Pro',
@@ -935,12 +917,6 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         const langMap: { [key: string]: string } = {
             'it': 'README_MASTER.md',
             'en': 'README_EN.md',
-            'fr': 'README_FR.md',
-            'de': 'README_DE.md',
-            'es': 'README_ES.md',
-            'pt': 'README_PT.md',
-            'ru': 'README_RU.md',
-            'zh': 'README_CN.md'
         };
 
         const fileName = langMap[lang] || 'README_EN.md';
@@ -1002,12 +978,6 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         const files: Record<string, string> = {
             it: 'Manuale_FeedDownloader_Pro_Box.pdf',
             en: 'FeedDownloader_Pro_Manual_en-GB.pdf',
-            fr: 'FeedDownloader_Pro_Manual_fr-FR.pdf',
-            de: 'FeedDownloader_Pro_Manual_de-DE.pdf',
-            es: 'FeedDownloader_Pro_Manual_es-ES.pdf',
-            pt: 'FeedDownloader_Pro_Manual_pt-PT.pdf',
-            ru: 'FeedDownloader_Pro_Manual_ru-RU.pdf',
-            zh: 'FeedDownloader_Pro_Manual_zh-CN.pdf',
         };
         const file = files[lang] || files['en'];
         try {
@@ -1242,22 +1212,10 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                 available: {
                     en: `Version ${version} is available — it's downloading in the background.`,
                     it: `La versione ${version} è disponibile — il download è in corso in background.`,
-                    fr: `La version ${version} est disponible — téléchargement en arrière-plan.`,
-                    de: `Version ${version} ist verfügbar — wird im Hintergrund heruntergeladen.`,
-                    es: `La versión ${version} está disponible — se descarga en segundo plano.`,
-                    pt: `A versão ${version} está disponível — a descarregar em segundo plano.`,
-                    ru: `Доступна версия ${version} — загрузка в фоне.`,
-                    zh: `版本 ${version} 可用 — 正在后台下载。`,
                 },
                 ready: {
                     en: 'Update ready. Restart the app from Settings to install it.',
                     it: "Aggiornamento pronto. Riavvia l'app dalle Impostazioni per installarlo.",
-                    fr: "Mise à jour prête. Redémarrez l'app depuis les Réglages pour l'installer.",
-                    de: 'Update bereit. Starten Sie die App in den Einstellungen neu, um es zu installieren.',
-                    es: 'Actualización lista. Reinicia la app desde Ajustes para instalarla.',
-                    pt: 'Atualização pronta. Reinicie a app nas Definições para a instalar.',
-                    ru: 'Обновление готово. Перезапустите приложение в настройках для установки.',
-                    zh: '更新已就绪。请在设置中重启应用以安装。',
                 },
             };
             const body = bodies[kind][uiLocale] ?? bodies[kind]['en'];

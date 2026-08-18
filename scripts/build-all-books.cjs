@@ -305,7 +305,9 @@ ${entriesStr}
 }
 
 async function main() {
-  const languages = ['de-DE', 'en-GB', 'es-ES', 'fr-FR', 'pt-PT', 'ru-RU', 'zh-CN'];
+  // The app ships two languages: the Italian manual is built by build-book.cjs
+  // (manual-it); this script handles the English edition.
+  const languages = ['en-GB'];
   for (const lang of languages) {
     await buildBookForLanguage(lang);
   }
