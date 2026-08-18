@@ -33,6 +33,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, s
     const [healthResult, setHealthResult] = useState<import('../../shared/types').HealthCheckResult | null>(null);
     const [isHealthChecking, setIsHealthChecking] = useState(false);
     const [isMarkingMissing, setIsMarkingMissing] = useState(false);
+    const [isRepairing, setIsRepairing] = useState(false);
     const [isCleaningParts, setIsCleaningParts] = useState(false);
     const [isLoadingSettings, setIsLoadingSettings] = useState(false);
     const [activeCategory, setActiveCategory] = useState<NavCategory>('general');
@@ -631,6 +632,32 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, s
                                                                     {healthResult.missingFiles.length > 5 && (
                                                                         <p className="text-xs" style={{ color: 'var(--color-on-surface-variant)', opacity: 0.4 }}>... {t('settings.health_and_more', { count: healthResult.missingFiles.length - 5 })}</p>
                                                                     )}
+                                                                    <button
+                                                                        onClick={async () => {
+                                                                            setIsRepairing(true);
+                                                                            try {
+                                                                                const res = await window.api.repairArchive();
+                                                                                toast.show(
+                                                                                    t('settings.health_repair_result', {
+                                                                                        repaired: res.repaired,
+                                                                                        unmatched: res.unmatched + res.unrepairable,
+                                                                                    }),
+                                                                                    res.repaired > 0 ? 'success' : 'info'
+                                                                                );
+                                                                                // refresh the report so re-linked files move to "present"
+                                                                                const result = await window.api.runHealthCheck();
+                                                                                setHealthResult(result);
+                                                                            } finally {
+                                                                                setIsRepairing(false);
+                                                                            }
+                                                                        }}
+                                                                        disabled={isRepairing || isMarkingMissing}
+                                                                        className="mt-2 w-full flex items-center justify-center gap-2 p-2 rounded-lg text-xs transition-all disabled:opacity-50"
+                                                                        style={{ background: 'rgba(0,99,147,0.12)', color: 'var(--color-primary)', border: '1px solid rgba(0,99,147,0.25)' }}
+                                                                    >
+                                                                        <Icon name={isRepairing ? 'refresh' : 'build'} size={14} className={isRepairing ? 'animate-spin' : ''} />
+                                                                        {isRepairing ? t('settings.health_repair_running') : t('settings.health_repair')}
+                                                                    </button>
                                                                     <button
                                                                         onClick={async () => {
                                                                             setIsMarkingMissing(true);

@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 // Re-export shared types for use in global declarations
-import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveEntry, ArchiveStats, HealthCheckResult, DiskSpaceInfo, MigrationResult, MigrationProgress, PathValidationResult, UpdateStatus, QueueItem, FailedDownload } from '../shared/types'
+import type { Feed, FeedEntry, DownloadProgress, DownloadRequest, DownloadResult, ArchiveEntry, ArchiveStats, HealthCheckResult, ArchiveRepairResult, DiskSpaceInfo, MigrationResult, MigrationProgress, PathValidationResult, UpdateStatus, QueueItem, FailedDownload } from '../shared/types'
 
 declare global {
     const __APP_VERSION__: string;
@@ -54,6 +54,8 @@ declare global {
             runHealthCheck: () => Promise<HealthCheckResult>;
             // Mark missing as not downloaded (feed-scoped where feedUrl is known)
             markMissingNotDownloaded: (items: Array<string | { guid: string; feedUrl?: string }>) => Promise<boolean>;
+            // v1.5.0 — guided archive repair (re-link missing files by SHA-256)
+            repairArchive: () => Promise<ArchiveRepairResult>;
             // ID3 Tagging
             getId3Enabled: () => Promise<boolean>;
             setId3Enabled: (enabled: boolean) => Promise<boolean>;

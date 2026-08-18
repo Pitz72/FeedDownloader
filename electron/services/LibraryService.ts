@@ -93,6 +93,11 @@ export class LibraryService {
         this.db.removeMissingFiles(items);
     }
 
+    /** v1.5.0 — re-link an archive row to a file re-found on disk by checksum. */
+    updateArchiveFilename(guid: string, feedUrl: string | undefined, filename: string): void {
+        this.db.updateArchiveFilename(guid, feedUrl, filename);
+    }
+
     resetDownloadHistory(): void {
         this.db.resetDownloadHistory();
     }

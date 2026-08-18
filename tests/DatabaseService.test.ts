@@ -168,6 +168,29 @@ describe('DatabaseService', () => {
             expect(csv).toContain('The ""Great"" Show');
             expect(csv).toContain('Ep ""One""');
         });
+
+        // ── Guided archive repair (v1.5.0) ───────────────────
+        describe('updateArchiveFilename', () => {
+            it('re-links the filename of a feed-scoped entry', () => {
+                db.addArchiveEntry({ guid: 'g1', podcastTitle: 'P', title: 'E', pubDate: '2024', downloadedAt: '2024', filename: 'old.mp3', feedUrl: 'https://a.com/feed' });
+                db.updateArchiveFilename('g1', 'https://a.com/feed', 'renamed.mp3');
+                expect(db.getArchive()[0].filename).toBe('renamed.mp3');
+            });
+
+            it('does not touch an entry with the same guid on a different feed', () => {
+                db.addArchiveEntry({ guid: 'g1', podcastTitle: 'A', title: 'E', pubDate: '2024', downloadedAt: '2024', filename: 'a.mp3', feedUrl: 'https://a.com/feed' });
+                db.addArchiveEntry({ guid: 'g1', podcastTitle: 'B', title: 'E', pubDate: '2024', downloadedAt: '2024', filename: 'b.mp3', feedUrl: 'https://b.com/feed' });
+                db.updateArchiveFilename('g1', 'https://a.com/feed', 'renamed.mp3');
+                const files = db.getArchive().map(e => e.filename).sort();
+                expect(files).toEqual(['b.mp3', 'renamed.mp3']);
+            });
+
+            it('falls back to guid-only for legacy entries without feedUrl', () => {
+                db.addArchiveEntry({ guid: 'g1', podcastTitle: 'P', title: 'E', pubDate: '2024', downloadedAt: '2024', filename: 'old.mp3' });
+                db.updateArchiveFilename('g1', undefined, 'renamed.mp3');
+                expect(db.getArchive()[0].filename).toBe('renamed.mp3');
+            });
+        });
     });
 
     // ── Archive Stats ────────────────────────────────────────

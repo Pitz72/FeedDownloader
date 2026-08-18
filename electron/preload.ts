@@ -96,6 +96,8 @@ contextBridge.exposeInMainWorld('api', {
   runHealthCheck: (): Promise<HealthCheckResult> => ipcRenderer.invoke(CH.RUN_HEALTH_CHECK),
   // Mark missing files as not downloaded (feed-scoped where feedUrl is known)
   markMissingNotDownloaded: (items: Array<string | { guid: string; feedUrl?: string }>): Promise<boolean> => ipcRenderer.invoke(CH.MARK_MISSING_NOT_DOWNLOADED, items),
+  // v1.5.0 — guided archive repair (re-link missing files by SHA-256)
+  repairArchive: (): Promise<import('../shared/types').ArchiveRepairResult> => ipcRenderer.invoke(CH.REPAIR_ARCHIVE),
 
   // ID3 Tagging
   getId3Enabled: (): Promise<boolean> => ipcRenderer.invoke(CH.GET_ID3_ENABLED),

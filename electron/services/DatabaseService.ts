@@ -479,6 +479,20 @@ export class DatabaseService {
         transaction();
     }
 
+    /**
+     * v1.5.0 — Guided archive repair: re-point an archive row to a file found on
+     * disk by checksum. Feed-scoped when a feedUrl is known (S6: shared GUIDs
+     * across feeds must not be re-linked together); legacy rows (feedUrl='')
+     * match the empty-string arm of the composite key.
+     */
+    updateArchiveFilename(guid: string, feedUrl: string | undefined, filename: string): void {
+        if (typeof feedUrl === 'string' && feedUrl.length > 0) {
+            this.db.prepare("UPDATE archive SET filename = ? WHERE guid = ? AND feedUrl IN (?, '')").run(filename, guid, feedUrl);
+        } else {
+            this.db.prepare('UPDATE archive SET filename = ? WHERE guid = ?').run(filename, guid);
+        }
+    }
+
     // ── Archive ──────────────────────────────────────────────
 
     addArchiveEntry(entry: ArchiveEntry): void {

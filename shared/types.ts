@@ -104,6 +104,19 @@ export interface HealthCheckResult {
     corruptedFiles: { guid: string; feedUrl?: string; title: string; podcast: string; filename: string }[];
 }
 
+// v1.5.0 — Guided archive repair: re-link "missing" entries to files found by
+// SHA-256 in the podcast folder (manual renames, template changes).
+export interface ArchiveRepairResult {
+    /** Candidate files actually hashed during the scan. */
+    scanned: number;
+    repaired: number;
+    repairedFiles: { guid: string; title: string; podcast: string; oldFilename: string; newFilename: string }[];
+    /** Missing entries with a stored checksum for which no matching file was found. */
+    unmatched: number;
+    /** Missing entries without a stored checksum — impossible to match safely. */
+    unrepairable: number;
+}
+
 export interface DownloadRequest {
     url: string;
     title: string;
@@ -214,6 +227,8 @@ export const IPC_CHANNELS = {
     RUN_HEALTH_CHECK: 'run-health-check',
     // v0.7.6 — Mark missing files as not downloaded
     MARK_MISSING_NOT_DOWNLOADED: 'mark-missing-not-downloaded',
+    // v1.5.0 — Guided archive repair (re-link missing files by checksum)
+    REPAIR_ARCHIVE: 'repair-archive',
     // ID3 Tagging (v0.6.4)
     GET_ID3_ENABLED: 'get-id3-enabled',
     SET_ID3_ENABLED: 'set-id3-enabled',

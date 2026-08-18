@@ -1394,6 +1394,103 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         return true;
     });
 
+    // ── Guided Archive Repair (v1.5.0) ──────────────────────
+    // For archive entries whose file is missing, look for a file with the same
+    // SHA-256 inside the podcast's folder (covers manual renames and naming-
+    // template changes) and re-link the row to the found filename. Disk is only
+    // read — the repair touches nothing but the DB row.
+    ipcMain.handle(CH.REPAIR_ARCHIVE, async (): Promise<import('../shared/types').ArchiveRepairResult> => {
+        const entries = libraryService.getArchive();
+        let baseDir = libraryService.getDownloadPath();
+        if (!baseDir) {
+            baseDir = path.join(app.getPath('documents'), 'FeedDownloader', 'downloads');
+        }
+
+        // Filenames still claimed by entries whose file exists — a repair must
+        // never re-link to a file another entry legitimately points to.
+        const claimed = new Map<string, Set<string>>(); // podcast dir → lowercased names
+        const missingWithChecksum: typeof entries = [];
+        let unrepairable = 0;
+
+        for (const entry of entries) {
+            const dir = path.join(baseDir, sanitize(entry.podcastTitle));
+            if (!entry.filename) { unrepairable++; continue; }
+            const exists = await fs.pathExists(path.join(dir, entry.filename));
+            if (exists) {
+                let set = claimed.get(dir);
+                if (!set) { set = new Set(); claimed.set(dir, set); }
+                set.add(entry.filename.toLowerCase());
+            } else if (entry.checksum) {
+                missingWithChecksum.push(entry);
+            } else {
+                unrepairable++;
+            }
+        }
+
+        // Per-folder listing and per-file hash caches: two missing entries in the
+        // same folder must not re-read the directory or re-hash a candidate.
+        const dirCache = new Map<string, { name: string; size: number }[]>();
+        const hashCache = new Map<string, string | null>();
+        const takenNow = new Set<string>(); // full paths matched in this run
+
+        let scanned = 0;
+        let repaired = 0;
+        let unmatched = 0;
+        const repairedFiles: { guid: string; title: string; podcast: string; oldFilename: string; newFilename: string }[] = [];
+
+        for (const entry of missingWithChecksum) {
+            const dir = path.join(baseDir, sanitize(entry.podcastTitle));
+            let files = dirCache.get(dir);
+            if (!files) {
+                files = [];
+                try {
+                    for (const name of await fs.readdir(dir)) {
+                        // temp/sidecar files can never be the audio we're looking for
+                        if (name.endsWith('.part') || name.endsWith('.part.meta') || name.endsWith('.json')) continue;
+                        try {
+                            const st = await fs.stat(path.join(dir, name));
+                            if (st.isFile()) files.push({ name, size: st.size });
+                        } catch { /* unreadable candidate — skip */ }
+                    }
+                } catch { /* folder itself is gone — no candidates */ }
+                dirCache.set(dir, files);
+            }
+
+            const claimedSet = claimed.get(dir);
+            // Size is a cheap pre-filter: a SHA-256 match implies an identical
+            // byte count, so when the size is known only equal-sized files
+            // need hashing. Legacy entries without fileSize hash everything.
+            const candidates = files.filter(f =>
+                !claimedSet?.has(f.name.toLowerCase()) &&
+                !takenNow.has(path.join(dir, f.name)) &&
+                (entry.fileSize == null || f.size === entry.fileSize));
+
+            let found: string | null = null;
+            for (const cand of candidates) {
+                const full = path.join(dir, cand.name);
+                let hash = hashCache.get(full);
+                if (hash === undefined) {
+                    scanned++;
+                    hash = await sha256File(full).catch(() => null);
+                    hashCache.set(full, hash);
+                }
+                if (hash && hash === entry.checksum) { found = cand.name; break; }
+            }
+
+            if (found) {
+                libraryService.updateArchiveFilename(entry.guid, entry.feedUrl, found);
+                takenNow.add(path.join(dir, found));
+                repaired++;
+                repairedFiles.push({ guid: entry.guid, title: entry.title, podcast: entry.podcastTitle, oldFilename: entry.filename ?? '', newFilename: found });
+            } else {
+                unmatched++;
+            }
+        }
+
+        if (repaired > 0) pushEvent(mainWindow, CH.DOWNLOADS_UPDATED);
+        return { scanned, repaired, repairedFiles, unmatched, unrepairable };
+    });
+
     // ── Network Path Validation ──────────────────────────────
     ipcMain.handle(CH.VALIDATE_PATH, async (_, dirPath: string): Promise<PathValidationResult> => {
         return validateNetworkPath(dirPath);
