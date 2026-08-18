@@ -57,7 +57,7 @@ linux:
 
 # === Auto-Update (release sulla repo pubblica del progetto) ===
 # Dalla v1.5.0 le release escono sulla repo del sorgente: la ponte
-# `FeedDownloader-Releases` è in dismissione (docs/PIANO-APERTURA.md, Fase 5).
+# `FeedDownloader-Releases` è stata cancellata il 18/08 (docs/PIANO-APERTURA.md, Fase 5).
 # Pubblicando sulla repo stessa basta il GITHUB_TOKEN integrato: niente PAT.
 publish:
   provider: github

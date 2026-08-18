@@ -3,11 +3,14 @@
 **Aperto:** 18 agosto 2026
 **Obiettivo:** ritirare FeedDownloader Pro dal mercato, spostarlo su `Pitz72` come repository pubblico
 sotto licenza MIT, con build automatiche per Windows e Linux.
-**Stato:** **FASI 1, 2, 3 e 4 CHIUSE** (18/08). **Gumroad chiuso** dall'utente il 18/08 (verificato:
+**Stato:** **FASI 1, 2, 3, 4 e 5 CHIUSE** (18/08) — restano due code operative, segnate in
+Fase 5: il **deploy del sito in produzione**, che è un'azione dell'utente, e gli **screenshot**
+della landing. **Gumroad chiuso** dall'utente il 18/08 (verificato:
 HTTP 404). **`Pitz72/FeedDownloader` è pubblico dal 18/08**, licenza MIT riconosciuta da GitHub, e
 la **release `v1.5.0` è pubblicata lì**, la prima da progetto aperto.
-▶️ **Resta la FASE 5**: la scheda prodotto sul sito Ecosystem da «acquista» a «scarica», e la
-cancellazione delle repo ponte — che sono **due**, e una serve ancora le installazioni vecchie.
+Il sito è passato da «acquista» a «scarica» (rilascio v0.6.8) e **entrambe le repo ponte sono
+state cancellate**: nessuna installazione di terzi ne dipendeva, perché il programma non è mai
+stato acquistato da nessuno. Il ritiro dal commercio è completo.
 
 > **Eccezione alla regola «una fase per sessione»:** la Fase 4 è stata eseguita nella stessa
 > sessione della Fase 2, su decisione dell'utente.
@@ -263,22 +266,47 @@ dalla configurazione di publish e deve già puntare alla destinazione definitiva
       risponde **HTTP 404**. Controprova di non-regressione: `livemachinepro` risponde ancora **200**,
       quindi la dismissione ha colpito questo prodotto e solo questo. È l'atto che rende vera tutta
       l'operazione, ed è già fatto: da qui in avanti il software non è più in vendita da nessuna parte.
-- [ ] **Sito Ecosystem** — la scheda prodotto va portata da «acquista» a «scarica», come è stato
-      fatto per Titan. Attenzione al vincolo già incontrato lì: le chiavi i18n commerciali sono
-      **condivise** fra i prodotti, e Live Machine Pro resta a pagamento. Esiste già il flag
-      `openSource` su `Product` introdotto per Titan: si riusa.
-- [ ] Verificare **sulla pagina in produzione**, non sul sorgente, che non resti nessun prezzo,
-      nessun link Gumroad, nessuna card bundle che includa questo prodotto.
-- [ ] 🔴 **Attenzione: le repo ponte sono due.** Oltre a `Ecosystem-Runtime/FeedDownloader-Releases`
-      esiste `Pitz72/FeedDownloader-Releases`, **pubblica**, con le release `v1.0.0` (11 asset) e
-      `v1.2.4` (6 asset): è il bridge di prima della migrazione di maggio. In teoria è da lì che si
-      aggiornano le installazioni vecchie — ma **nessuna esiste**: il programma non è mai stato
-      acquistato, e l'unica installazione al mondo è quella dell'autore (Fase 3, 18/08). Il vincolo
-      cade: entrambe le ponti si possono cancellare, con il solito `git clone --mirror` prima.
-- [ ] ⛔ **Cancellare la repo ponte solo dopo** aver spostato `OPEN_MANUAL_PDF` (Fase 3) e dopo la
-      prima release pubblica. Backup `git clone --mirror` prima di procedere: i PDF stanno in git, gli
-      installer delle release no.
-- [ ] La cartella locale `gumroad/` diventa storia: si archivia o si elimina.
+- [x] **Sito Ecosystem** — fatto il 18/08, rilascio **v0.6.8** del sito
+      (`SITI-WEB/ECOSYSTEM`, commit `ff1f2d4`). Il flag `openSource` introdotto per Titan non è
+      stato toccato: acceso su FeedDownloader, `ProductPanel`, `ProductDetailPage` e la card del
+      bundle cambiano da soli. **Le chiavi i18n commerciali sono rimaste intatte** perché Live
+      Machine Pro le usa ancora; le stringhe nuove hanno il prefisso `fdp_`. In dettaglio:
+      `FDP_REPO_URL`/`FDP_RELEASES_URL` nuovi, `FDP_VERSION` da `v1.3.0` a `v1.5.0`, prezzo
+      `€9.99` → «Gratis», via `originalPrice`, riga della licenza nelle specifiche; le **quattro
+      CTA d'acquisto** della landing (eroe, blocco prezzo, piè di pagina, sticky mobile) diventano
+      download da GitHub, affiancate dal pulsante «Codice sorgente»; `products-manifest.json` a
+      prezzo `0` con licenza MIT, che è la fonte del JSON-LD.
+- [x] **Card del bundle** — con Titan e FeedDownloader liberi resta **un solo prodotto a
+      pagamento**, e un bundle da un pezzo non è un bundle. La card ora si mostra solo se i
+      prodotti a pagamento sono almeno due: sparisce da sé, e ricompare da sé se un giorno tornerà
+      a esserci qualcosa da raggruppare.
+- [x] **Fatti scaduti corretti già che c'eravamo** — la landing prometteva **macOS** (non
+      supportato), **otto lingue** (due dalla v1.4.2) ed **Electron 30** (è la 43). La FAQ sulla
+      licenza dice ora che il programma è gratuito; quella su macOS è stata sostituita da quella su
+      SmartScreen, che è il problema che si incontra davvero.
+- [x] **Marchio e banner** — su segnalazione dell'utente: la landing mostrava ancora la vecchia
+      «R» di febbraio 2026, mentre l'applicazione ha cambiato marchio il 13 luglio.
+      `fdp-icon-v2.png` è rasterizzato dall'SVG in uso conservando l'alfa; `hero-banner-v2.webp` è
+      nuovo, sul modello di quello di Titan (marchio a sinistra, nome e pillola `OPEN SOURCE · MIT`
+      a destra, piattaforme in basso). Suffisso `-v2` per cache-busting, vecchi file eliminati.
+- [ ] ⚠️ **Verificare sulla pagina in produzione.** Il sito **non si deploya col push**: si carica
+      via SFTP con `_SEGRETI/deploy.py` (comandi `list`, `upload`, `audit`). Al momento
+      `ecosystem.runtimeradio.com/app/feeddownloader-pro` serve ancora la build vecchia — JSON-LD a
+      `"price":"9.99"`, link Gumroad, banner con la vecchia «R». **Il deploy è un'azione
+      dell'utente**: finché non parte, tutto il lavoro di questa fase è solo in `dist/` e in git.
+- [ ] ⚠️ **Screenshot della landing** — `screen-splash.webp` mostra ancora il vecchio marchio e
+      **otto bandiere di lingua**. Gli altri quattro (feed manager, dettaglio episodio, coda,
+      barra laterale) reggono. Vanno rifatti dalla v1.5.0 in esecuzione.
+- [x] ⛔ **Repo ponte cancellate.** Fatto il 18/08, **dopo** lo spostamento di `OPEN_MANUAL_PDF`
+      (Fase 3) e **dopo** la prima release pubblica, nell'ordine che questa voce imponeva.
+      Cancellate **entrambe**: `Ecosystem-Runtime/FeedDownloader-Releases` e
+      `Pitz72/FeedDownloader-Releases` (verificate: HTTP 404). Prima:
+      `git clone --mirror` di ognuna in `SVILUPPO/UTILITY/` (3,9 MB e 75 KB, `fsck --strict`
+      pulito), più `FeedDownloader-Releases-INVENTARIO-asset-2026-08-18.md` che elenca nome e peso
+      dei 28 asset delle quattro release. **Gli installer non stanno in git e sono andati via con
+      le repo**: restano i tag nella repo del sorgente, da cui si ricostruiscono. Nessuna
+      installazione ne dipendeva.
+- [x] La cartella locale `gumroad/` — già eliminata nella Fase 2.4, insieme a `DISTRIBUZIONE/`.
 
 ---
 
