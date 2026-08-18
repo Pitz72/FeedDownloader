@@ -3,10 +3,13 @@
 **Aperto:** 18 agosto 2026
 **Obiettivo:** ritirare FeedDownloader Pro dal mercato, spostarlo su `Pitz72` come repository pubblico
 sotto licenza MIT, con build automatiche per Windows e Linux.
-**Stato:** **FASI 1 e 2 CHIUSE** (18/08). **Gumroad chiuso** dall'utente il 18/08 (voce della Fase 5
-già spuntata, verificata: HTTP 404). ▶️ **Prossima: FASE 3**, la prima release da progetto aperto,
-che però va fatta **dopo** la Fase 4.1–4.2: `app-update.yml` deve già puntare alla destinazione
-definitiva.
+**Stato:** **FASI 1, 2 e 4 CHIUSE** (18/08). **Gumroad chiuso** dall'utente il 18/08 (verificato:
+HTTP 404). **`Pitz72/FeedDownloader` è pubblico dal 18/08**, licenza MIT riconosciuta da GitHub.
+▶️ **Prossima: FASE 3**, la prima release da progetto aperto, ora sbloccata perché la destinazione
+definitiva esiste. Poi la Fase 5.
+
+> **Eccezione alla regola «una fase per sessione»:** la Fase 4 è stata eseguita nella stessa
+> sessione della Fase 2, su decisione dell'utente.
 
 > **Il modello è Titan.** Questa procedura ricalca `docs/PIANO-APERTURA.md` di *Runtime TelegramBot
 > Desktop Titan Edition*, che ha fatto la stessa transizione il 12–13 agosto 2026. Dove il contesto
@@ -158,8 +161,9 @@ guardando i PDF.
 
 ## FASE 3 — La prima release da progetto aperto (v1.5.0)
 
-⛔ **Va fatta dopo la Fase 4.1–4.2**, perché `app-update.yml` viene generato dalla configurazione di
-publish e deve già puntare alla destinazione definitiva. È lo stesso vincolo che Titan ha rispettato.
+✅ **Vincolo sciolto:** andava fatta dopo la Fase 4.1–4.2, perché `app-update.yml` viene generato
+dalla configurazione di publish e deve già puntare alla destinazione definitiva. La Fase 4 è chiusa
+dal 18/08, quindi questa fase è sbloccata.
 
 - [ ] `electron-builder.yml` → `publish` verso `Pitz72/FeedDownloader`; via il `RELEASE_TOKEN`, basta
       il `GITHUB_TOKEN` integrato quando la release esce sulla repo stessa.
@@ -177,34 +181,45 @@ publish e deve già puntare alla destinazione definitiva. È lo stesso vincolo c
 
 ---
 
-## FASE 4 — GitHub
+## FASE 4 — GitHub ✅ CHIUSA (18/08)
 
-### 4.1 Trasferimento
+> **La sorpresa della fase.** `Pitz72/FeedDownloader` **esisteva già**: privato, fermo al 12 maggio
+> (`c9f85c2`, v1.2.4), è la repo da cui a maggio si era migrati a `Ecosystem-Runtime`. Contiene la
+> **stessa storia**, e il `master` di oggi la conteneva come antenato: 57 commit avanti, tag `v1.0.0`
+> coincidente (`73d1eec`). Niente repo nuova, quindi, e nessuna forzatura: un **push fast-forward**
+> sulla destinazione già dichiarata in `package.json`.
 
-- [ ] ⛔ **Backup prima di toccare qualsiasi cosa**: `git clone --mirror` fuori dalla cartella del
-      progetto. Titan lo ha fatto e lo ha tenuto finché la Fase 5 non è stata chiusa.
-- [ ] Creare `Pitz72/FeedDownloader` e spingerci `master` **con tutti gli 8 tag**.
-- [ ] Verificare con un clone pulito: stessi file, stessi SHA, `git fsck --strict` pulito.
-- [ ] La vecchia repo su `Ecosystem-Runtime` **resta privata e intatta** come seconda rete di
-      sicurezza, finché la Fase 5 non è chiusa.
+### 4.1 Trasferimento ✅
 
-### 4.2 Pubblicazione
+- [x] ⛔ **Backup**: `git clone --mirror` in
+      `SVILUPPO/UTILITY/FeedDownloader-backup-mirror-2026-08-18.git` (38 MB, 165 commit, 8 tag,
+      `master` = `89a00d4`). **Da tenere finché la Fase 5 non è chiusa.**
+- [x] `master` e tutti gli **8 tag** spinti su `Pitz72/FeedDownloader` (7 tag erano nuovi: lassù
+      c'era solo `v1.0.0`).
+- [x] Verificato con un **clone pulito**: SHA identico (`89a00d4…`), 165 commit, 8 tag,
+      `git fsck --strict` senza rilievi.
+- [x] La repo su `Ecosystem-Runtime` resta privata e intatta come seconda rete di sicurezza. In
+      locale è ancora `origin`; la pubblica è il remoto `pubblico`.
 
-- [ ] Repository **pubblico**.
-- [ ] Descrizione, sito e argomenti: `podcast`, `rss`, `electron`, `archiving`, `sqlite`,
-      `typescript`, `react`, `open-source`.
-- [ ] Verificare che GitHub riconosca la licenza **MIT**.
-- [ ] Issue abilitate, i due template al loro posto.
-- [ ] Verificare che **nessun workflow parta da solo** con la pubblicazione (build è
-      `workflow_dispatch`, e i job di build ora hanno la condizione esplicita).
+### 4.2 Pubblicazione ✅
+
+- [x] Repository **pubblico**.
+- [x] Descrizione in inglese, sito `runtimeradio.com`, argomenti: `podcast`, `rss`, `electron`,
+      `archiving`, `sqlite`, `typescript`, `react`, `open-source`.
+- [x] GitHub riconosce la licenza **MIT**.
+- [x] Issue abilitate, `bug_report.yml` e `feature_request.yml` al loro posto sul remoto.
+- [x] **Nessun workflow è partito** con il push: l'ultima esecuzione registrata è del 12 maggio,
+      di quando il trigger su push esisteva ancora. Oggi i job di build hanno la condizione
+      esplicita `github.event_name == 'workflow_dispatch'`.
+- [x] Controllato un'ultima volta prima di pubblicare che nessun file di credenziali sia tracciato.
 
 ### 4.3 CI
 
-- [ ] Valutare la matrice completa come Titan (Windows installer, Linux AppImage/deb, x64) e se
-      aggiungere arm64, che sui repository pubblici è gratuito.
-- [ ] La build resta **manuale**: nessun trigger su push.
-
----
+- [x] La build resta **manuale**: nessun trigger su push, verificato sul workflow pubblicato.
+- [x] Matrice attuale, identica a Titan: `verify` su Ubuntu (lint, tipi, test) più `build-linux`
+      (AppImage + deb) e `build-windows` (NSIS), entrambi solo su `workflow_dispatch`. Nessun macOS.
+- [ ] **Decisione aperta: arm64.** Su repository pubblici i runner `ubuntu-*-arm` sono gratuiti, e un
+      AppImage arm64 costerebbe poco. Non è un blocco per la v1.5.0: si valuta dopo la prima release.
 
 ## FASE 5 — Dismissione della fase commerciale
 
@@ -218,6 +233,10 @@ publish e deve già puntare alla destinazione definitiva. È lo stesso vincolo c
       `openSource` su `Product` introdotto per Titan: si riusa.
 - [ ] Verificare **sulla pagina in produzione**, non sul sorgente, che non resti nessun prezzo,
       nessun link Gumroad, nessuna card bundle che includa questo prodotto.
+- [ ] 🔴 **Attenzione: le repo ponte sono due.** Oltre a `Ecosystem-Runtime/FeedDownloader-Releases`
+      esiste `Pitz72/FeedDownloader-Releases`, **pubblica**, con le release `v1.0.0` (11 asset) e
+      `v1.2.4` (6 asset): è il bridge di prima della migrazione di maggio. È da lì che si aggiornano
+      le installazioni vecchie, quindi va trattata a parte e non cancellata alla leggera.
 - [ ] ⛔ **Cancellare la repo ponte solo dopo** aver spostato `OPEN_MANUAL_PDF` (Fase 3) e dopo la
       prima release pubblica. Backup `git clone --mirror` prima di procedere: i PDF stanno in git, gli
       installer delle release no.
