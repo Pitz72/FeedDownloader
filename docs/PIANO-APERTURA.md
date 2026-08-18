@@ -3,9 +3,8 @@
 **Aperto:** 18 agosto 2026
 **Obiettivo:** ritirare FeedDownloader Pro dal mercato, spostarlo su `Pitz72` come repository pubblico
 sotto licenza MIT, con build automatiche per Windows e Linux.
-**Stato:** **FASI 1, 2, 3, 4 e 5 CHIUSE** (18/08) — restano due code operative, segnate in
-Fase 5: il **deploy del sito in produzione**, che è un'azione dell'utente, e gli **screenshot**
-della landing. **Gumroad chiuso** dall'utente il 18/08 (verificato:
+**Stato:** **FASI 1, 2, 3, 4 e 5 CHIUSE** (18/08). Il sito è **in produzione** e verificato sulla
+pagina live. Resta una sola coda, segnata in Fase 5: gli **screenshot** della landing. **Gumroad chiuso** dall'utente il 18/08 (verificato:
 HTTP 404). **`Pitz72/FeedDownloader` è pubblico dal 18/08**, licenza MIT riconosciuta da GitHub, e
 la **release `v1.5.0` è pubblicata lì**, la prima da progetto aperto.
 Il sito è passato da «acquista» a «scarica» (rilascio v0.6.8) e **entrambe le repo ponte sono
@@ -289,11 +288,20 @@ dalla configurazione di publish e deve già puntare alla destinazione definitiva
       `fdp-icon-v2.png` è rasterizzato dall'SVG in uso conservando l'alfa; `hero-banner-v2.webp` è
       nuovo, sul modello di quello di Titan (marchio a sinistra, nome e pillola `OPEN SOURCE · MIT`
       a destra, piattaforme in basso). Suffisso `-v2` per cache-busting, vecchi file eliminati.
-- [ ] ⚠️ **Verificare sulla pagina in produzione.** Il sito **non si deploya col push**: si carica
-      via SFTP con `_SEGRETI/deploy.py` (comandi `list`, `upload`, `audit`). Al momento
-      `ecosystem.runtimeradio.com/app/feeddownloader-pro` serve ancora la build vecchia — JSON-LD a
-      `"price":"9.99"`, link Gumroad, banner con la vecchia «R». **Il deploy è un'azione
-      dell'utente**: finché non parte, tutto il lavoro di questa fase è solo in `dist/` e in git.
+- [x] ✅ **Sito in produzione, verificato sulla pagina live.** Il sito non si deploya col push: si
+      carica via SFTP con `_SEGRETI/deploy.py` (`list`, `audit`, `upload`, `rm`). Caricato il 18/08
+      su richiesta dell'utente: **58 file, 16 sottocartelle**. Verificato **sulla pagina in
+      produzione**, non sul sorgente: JSON-LD a **`"price":"0"`** con `license` MIT e `buyUrl` sulle
+      release, **zero occorrenze di «gumroad»** nel documento, banner `hero-banner-v2.webp`,
+      `products-manifest.json` live corretto. Il testo della pagina dice «v1.5.0 — MIT»,
+      «Windows · Linux», «Scarica da GitHub», e nell'orbita FeedDownloader Pro è **«Gratis»**
+      accanto a Titan, mentre Live Machine Pro resta a €9.99.
+- [x] **Vecchio marchio rimosso dal server.** L'audit ha trovato 35 file orfani di deploy
+      precedenti; su decisione dell'utente sono stati cancellati **solo i due del marchio ritirato**
+      (`media/fdp-icon.png`, `media/fdp/hero-banner.webp`, ora 404), perché restavano scaricabili ai
+      loro indirizzi e un'anteprima OG in cache avrebbe continuato a servire la vecchia «R». I 33
+      bundle JS di build vecchie restano: non fanno danno, e cancellarli può rompere una pagina
+      aperta da prima del deploy.
 - [ ] ⚠️ **Screenshot della landing** — `screen-splash.webp` mostra ancora il vecchio marchio e
       **otto bandiere di lingua**. Gli altri quattro (feed manager, dettaglio episodio, coda,
       barra laterale) reggono. Vanno rifatti dalla v1.5.0 in esecuzione.
