@@ -1,7 +1,16 @@
 # Roadmap FeedDownloader Pro — Fonte di Verità
 
-**Versione di riferimento:** 1.3.14
-**Ultimo aggiornamento:** 12 luglio 2026 — v1.3.14
+**Versione di riferimento:** 1.5.0-dev
+**Ultimo aggiornamento:** 18 agosto 2026 — sviluppo v1.5.0
+
+> **Stato release:** v1.4.2 pubblicata sul bridge il 18 ago 2026 (audit totale chiuso,
+> lingue ridotte a IT/EN). In `master` è in corso la **v1.5.0**: pausa/riprendi dei
+> download, riprova falliti, riparazione archivio per checksum, ripristino guidato del
+> DB, guardie Content-Type/dimensione, notifica nuovi episodi cliccabile, ricerca
+> episodi nella palette, allineamento allo standard di distribuzione Titan (icona
+> definitiva, whats-new nel main, note di rilascio in-code IT/EN, auto-update col
+> consenso, installer con asar snellito), ESLint 9 + Vite 7. macOS escluso in via
+> definitiva (solo auto-compilazione). N1 e N2 (sotto) sono stati chiusi in v1.4.0.
 
 Questo è l'unico documento autorevole per tutto il lavoro pendente post-v1.0.0.
 I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_2026.md`) sono archiviati in `archivio/`.
@@ -38,10 +47,10 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 | A1 | Fix tecnico | Finestra su monitor secondario (Linux) | — | ✅ v1.0.3 |
 | A2 | Fix tecnico | Menu contestuale — incolla via mouse | — | ✅ v1.0.3 |
 | A3 | Cross-platform | Integrazione nativa Linux (Wayland/tray) | — | ✅ v1.0.4 |
-| B1 | Documentazione | Integrazione manuali in-app | — | 🔲 |
-| B2 | Documentazione | Scientific Paper IT + EN | — | 🔲 |
-| B3 | Documentazione | ARCHITECTURE.md | — | 🔲 |
-| B4 | Documentazione | CONTRIBUTING.md | — | 🔲 |
+| B1 | Documentazione | Integrazione manuali in-app | — | ✅ v1.4.0 |
+| B2 | Documentazione | Scientific Paper IT + EN | — | ✅ v1.5.0 (`docs/academic/`) |
+| B3 | Documentazione | ARCHITECTURE.md | — | ✅ v1.4.0 |
+| B4 | Documentazione | CONTRIBUTING.md | — | ✅ v1.4.0 |
 | C1 | Bug | `showInFolder` ignora naming template + estensione | 🔴 | ✅ v1.0.5 |
 | C2 | Bug | Collisione silenziosa su titoli identici | 🔴 | ✅ v1.0.5 |
 | C3 | Bug | `Sync All` sequenziale — blocco su molti feed | 🟠 | ✅ v1.0.6 |
@@ -383,7 +392,7 @@ I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_202
 
 Raccolto dal feedback d'uso del 29 maggio 2026 (auto-update riparato in v1.3.11).
 
-### N1 ⚪🔵 Notifica aggiornamento sempre visibile all'avvio — 🔲 Non avviato
+### N1 ⚪🔵 Notifica aggiornamento sempre visibile all'avvio — ✅ v1.4.0 (banner topbar persistente; dalla v1.5.0 con consenso esplicito al download)
 
 - **Problema:** l'auto-update ora scarica correttamente, ma la notifica OS aggiunta in
   v1.3.11 **non compare** (probabilmente soppressa da Windows / Assistente notifiche, o non
@@ -396,7 +405,7 @@ Raccolto dal feedback d'uso del 29 maggio 2026 (auto-update riparato in v1.3.11)
   raggiungibile direttamente. Verificare anche perché la Notification OS non appaia
   (permessi/Focus Assist, timing rispetto al `ready-to-show`).
 
-### N2 🔵 Check automatico nuovi episodi all'avvio + ciclico con notifica — 🔲 Non avviato
+### N2 🔵 Check automatico nuovi episodi all'avvio + ciclico con notifica — ✅ v1.4.0 (avvio + ciclo 6h default + ritorno online; dalla v1.5.0 la notifica è cliccabile)
 
 - **Problema:** il conteggio "N nuovi" e l'eventuale notifica si aggiornano **solo** quando
   l'utente clicca sul feed. Esiste già `runBackgroundRefresh` (F3) con notifica OS, ma è legato
