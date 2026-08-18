@@ -1,16 +1,18 @@
 # Roadmap FeedDownloader Pro — Fonte di Verità
 
-**Versione di riferimento:** 1.5.0-dev
-**Ultimo aggiornamento:** 18 agosto 2026 — sviluppo v1.5.0
+**Versione di riferimento:** 1.5.0
+**Ultimo aggiornamento:** 18 agosto 2026 — release v1.5.0
 
-> **Stato release:** v1.4.2 pubblicata sul bridge il 18 ago 2026 (audit totale chiuso,
-> lingue ridotte a IT/EN). In `master` è in corso la **v1.5.0**: pausa/riprendi dei
+> **Stato release:** **v1.5.0 pubblicata il 18 ago 2026 su `Pitz72/FeedDownloader`**, la prima
+> da progetto aperto (licenza MIT, sorgente pubblico). Da questa versione le release escono
+> sulla repo del progetto e non più sulla repo ponte, che va in dismissione
+> ([PIANO-APERTURA.md](PIANO-APERTURA.md), Fase 5). Contenuto della v1.5.0: pausa/riprendi dei
 > download, riprova falliti, riparazione archivio per checksum, ripristino guidato del
 > DB, guardie Content-Type/dimensione, notifica nuovi episodi cliccabile, ricerca
 > episodi nella palette, allineamento allo standard di distribuzione Titan (icona
-> definitiva, whats-new nel main, note di rilascio in-code IT/EN, auto-update col
-> consenso, installer con asar snellito), ESLint 9 + Vite 7. macOS escluso in via
-> definitiva (solo auto-compilazione). N1 e N2 (sotto) sono stati chiusi in v1.4.0.
+> definitiva e ora con il canale alfa, whats-new nel main, note di rilascio in-code IT/EN,
+> auto-update col consenso, installer con asar snellito), ESLint 9 + Vite 7. macOS escluso in
+> via definitiva (solo auto-compilazione). N1 e N2 (sotto) sono stati chiusi in v1.4.0.
 
 Questo è l'unico documento autorevole per tutto il lavoro pendente post-v1.0.0.
 I documenti precedenti (`roadmap_technical_fixes.md`, `roadmap_documentation_2026.md`) sono archiviati in `archivio/`.

@@ -3,10 +3,11 @@
 **Aperto:** 18 agosto 2026
 **Obiettivo:** ritirare FeedDownloader Pro dal mercato, spostarlo su `Pitz72` come repository pubblico
 sotto licenza MIT, con build automatiche per Windows e Linux.
-**Stato:** **FASI 1, 2 e 4 CHIUSE** (18/08). **Gumroad chiuso** dall'utente il 18/08 (verificato:
-HTTP 404). **`Pitz72/FeedDownloader` è pubblico dal 18/08**, licenza MIT riconosciuta da GitHub.
-▶️ **Prossima: FASE 3**, la prima release da progetto aperto, ora sbloccata perché la destinazione
-definitiva esiste. Poi la Fase 5.
+**Stato:** **FASI 1, 2, 3 e 4 CHIUSE** (18/08). **Gumroad chiuso** dall'utente il 18/08 (verificato:
+HTTP 404). **`Pitz72/FeedDownloader` è pubblico dal 18/08**, licenza MIT riconosciuta da GitHub, e
+la **release `v1.5.0` è pubblicata lì**, la prima da progetto aperto.
+▶️ **Resta la FASE 5**: la scheda prodotto sul sito Ecosystem da «acquista» a «scarica», e la
+cancellazione delle repo ponte — che sono **due**, e una serve ancora le installazioni vecchie.
 
 > **Eccezione alla regola «una fase per sessione»:** la Fase 4 è stata eseguita nella stessa
 > sessione della Fase 2, su decisione dell'utente.
@@ -159,25 +160,54 @@ guardando i PDF.
 - [x] **Copertina inglese disallineata dall'italiana**: non mostrava il numero di versione e
       spezzava la citazione dove andava a capo il Markdown. Ora le due copertine sono gemelle.
 
-## FASE 3 — La prima release da progetto aperto (v1.5.0)
+## FASE 3 — La prima release da progetto aperto (v1.5.0) ✅ CHIUSA (18/08)
 
 ✅ **Vincolo sciolto:** andava fatta dopo la Fase 4.1–4.2, perché `app-update.yml` viene generato
-dalla configurazione di publish e deve già puntare alla destinazione definitiva. La Fase 4 è chiusa
-dal 18/08, quindi questa fase è sbloccata.
+dalla configurazione di publish e deve già puntare alla destinazione definitiva.
 
-- [ ] `electron-builder.yml` → `publish` verso `Pitz72/FeedDownloader`; via il `RELEASE_TOKEN`, basta
-      il `GITHUB_TOKEN` integrato quando la release esce sulla repo stessa.
-- [ ] 🔴 **`OPEN_MANUAL_PDF` (`electron/ipc.ts`) punta ancora a `manuals/` sulla ponte.** Va spostato
-      sulla repo pubblica **prima** di cancellare la ponte, altrimenti il pulsante «Apri manuale»
-      restituisce 404. Verificare HTTP 200 sui due nomi file prima di toccare il codice.
-- [ ] 🔴 **`resources/icon.png` è RGB senza canale alfa** (scoperto nella Fase 2 mettendo il marchio
-      sulla copertina): gli angoli attorno allo squircle sono bianchi, non trasparenti. Da lì
-      derivano `public/logo.png` e `public/icon.ico`, quindi finestra, notifiche e area di notifica
-      mostrano un contorno bianco sui fondi scuri. Si rigenera da `branding/feeddownloader-icon.svg`
-      conservando l'alfa, e si rifà `public/icon.ico`.
-- [ ] Ricaricare i due PDF dei manuali sulla destinazione definitiva (voce che arriva dalla Fase 2.5).
-- [ ] Bump a **1.5.0** in `package.json`, tag, changelog già pronto (`docs/changelog/1.5.0.md`).
-- [ ] Lanciare la build e verificare che l'auto-update dalla 1.4.2 installata funzioni davvero.
+**La release `v1.5.0` è pubblica** su `Pitz72/FeedDownloader`, prodotta dal workflow manuale
+(run `32125254210`, tutti e quattro i job verdi: `verify` 2m39s, `build-windows` 4m25s,
+`build-linux` 5m01s, `release` 19s). Commit `c149627`, tag `v1.5.0` su entrambi i remoti.
+
+- [x] `electron-builder.yml` → `publish` verso `Pitz72/FeedDownloader`. Il `RELEASE_TOKEN` non serve
+      più: il job `release` usa il `GITHUB_TOKEN` integrato e si alza da solo a `contents: write`,
+      mentre il resto del workflow resta in sola lettura. Il PAT resta valido sul repository ma non
+      è più riferito da nessuna riga di CI.
+- [x] 🔴 **`OPEN_MANUAL_PDF` spostato.** I due PDF **erano già nella repo pubblica**, versionati
+      accanto ai sorgenti Markdown in `docs/user/`: la Fase 4 li aveva portati su col push della
+      storia. Non c'era quindi niente da caricare — la voce 2.5 della Fase 2 si chiude qui senza
+      upload. Verificato **HTTP 200** su entrambi gli indirizzi e, per non fidarsi del codice di
+      stato, confrontato lo **SHA-256** delle copie remote con quelle locali: identici. L'handler
+      punta ora a `.../Pitz72/FeedDownloader/raw/master/docs/user/`, con i percorsi codificati per
+      segmento (le due lingue stanno in cartelle diverse).
+- [x] 🔴 **`resources/icon.png` rigenerato con il canale alfa.** Rasterizzato da
+      `branding/feeddownloader-icon.svg` a 1024² con un motore di browser: **ImageMagick non va
+      bene**, il suo renderer SVG interno sbaglia gli angoli dello squircle e la maschera
+      dell'anello (verificato affiancando le due rese). Rigenerati anche `public/logo.png` (identico
+      al sorgente) e `public/icon.ico` (`png-to-ico`, 4 livelli 16/32/48/256 a 32 bpp). Controllato a
+      video su fondo chiaro: gli angoli sono trasparenti in tutti i livelli.
+- [x] Ricaricare i due PDF dei manuali — **non necessario**, vedi sopra. Le copertine dicevano già
+      «Versione 1.5.0» dalla Fase 2, quindi nessuna rigenerazione.
+- [x] Bump a **1.5.0** in `package.json` e `package-lock.json`, tag annotato `v1.5.0` su `origin` e
+      `pubblico`. Changelog `docs/changelog/1.5.0.md` datato e aperto da una sezione **«Apertura del
+      sorgente»** (licenza, repo pubblica, crediti, nuova destinazione delle release); stessa
+      notizia in cima alle note in-app (`releaseNotes.ts`), IT ed EN.
+- [x] Gate verde prima del tag: lint, `tsc` renderer, `tsc` main, **394/394 test**. `npm audit` in CI
+      esce 1 ed è l'unica annotazione rossa della run: è il passo dichiarato informativo
+      (`continue-on-error`), e le 22 segnalazioni stanno tutte nella catena Vivliostyle delle
+      *devDependencies* — `npm audit --omit=dev` dà **0 vulnerabilità**.
+- [x] **Documentazione allineata**: README (badge della CI e tabella dei download), le due guide
+      in-app, `CONTRIBUTING.md`, `docs/ARCHITECTURE.md`. In `ARCHITECTURE.md` corretta anche la
+      descrizione dell'auto-updater, ferma a «scarica in background»: dalla v1.5.0 `autoDownload` è
+      spento. Corrette in `scripts/README.md` e `branding/README.md` le note che davano
+      `resources/icon.png` come privo di alfa.
+- [x] **Auto-update dalla 1.4.2 installata.** Verificato leggendo l'`app-update.yml` dell'app
+      installata: punta ancora a `Ecosystem-Runtime/FeedDownloader-Releases`, perché quel file è
+      cablato nel pacchetto al momento della build. Una release solo sulla repo pubblica sarebbe
+      quindi **invisibile** a chi ha la 1.4.2. **Decisione dell'utente: pubblicare la v1.5.0 anche
+      sulla ponte**, con gli stessi identici asset. È l'ultimo compito della ponte: chi si aggiorna
+      passa a un pacchetto il cui `app-update.yml` punta già alla repo pubblica, e da lì in avanti
+      la ponte non serve più a nessuno.
 
 ---
 
