@@ -1,33 +1,43 @@
-# Chapter 7: NAS, Network Drives, and SMB Paths
+# Chapter 7: NAS, network drives and SMB paths
 
-## 7.1 Why Network Drives Require a Specific Approach
+## 7.1 Why network drives are a case apart
 
-Most desktop download applications handle local paths (`C:\`, `D:\`) correctly and exhibit unpredictable behaviour when the destination is a NAS, a shared Windows server, or an SMB unit. The reason is technical: network drives are inherently less reliable than local drives. The NAS may be switched off, the local network may experience latency spikes, SMB credentials may expire. Any operation on a network path that is not responding can block the application's main thread for tens of seconds, rendering the interface unresponsive.
+Almost every desktop application copes well with `C:\` and `D:\` and turns unpredictable when the
+destination is a NAS, a Windows shared folder or an SMB volume. The reason is technical: a network
+drive is less dependable than a local one. The NAS may be off or asleep, the network may spike in
+latency, the credentials may have expired. And an operation on a path that does not answer will
+block the program for tens of seconds, freezing the interface.
 
-FeedDownloader Pro handles these scenarios correctly. For users who archive to NAS, this chapter is essential.
-
----
-
-## 7.2 How Network Path Validation Works
-
-Every time a destination path is set that begins with `\\` (UNC path, typical of SMB) or corresponds to a mapped network drive (e.g. `Z:\`), FeedDownloader Pro automatically activates the **network path validation module**.
-
-This module performs three operations on a **separate thread**, without ever involving the interface thread:
-
-1.  **Reachability test:** Attempts to access the root of the network path. If the NAS is not switched on or the network is unavailable, this operation fails.
-2.  **Read access test:** Verifies that the destination folder exists and is readable.
-3.  **Write access test:** Creates and then deletes a temporary file (`_fdp_write_test_[timestamp].tmp`) in the destination folder to verify write permissions.
-
-The entire sequence has an **8-second timeout**. If no response is received within this interval, the software considers the path unavailable and displays a warning, without blocking the interface.
-
-*Rationale for the timeout:* Most consumer NAS devices (Synology, QNAP, WD MyCloud) take 3–6 seconds to wake from sleep mode. 8 seconds is a sufficient interval to await this recovery, whilst remaining short enough not to constitute a perceptible wait for the user.
+FeedDownloader Pro is built not to be taken hostage. If your archive lives on a NAS, this chapter
+concerns you.
 
 ---
 
-## 7.3 Configuring a NAS Path
+## 7.2 How the path is verified
 
-**Method 1 — Direct UNC path:**
-Enter the path in the format `\\ServerName\ShareName\Folder`:
+When you choose a destination folder, the program checks that it exists and that it is writable.
+The check runs outside the process that draws the interface and has an **eight-second limit**: once
+that expires, the path is declared unavailable and a warning appears. The window never blocks
+waiting.
+
+It is one check, not a battery of tests: the program asks the operating system whether it can write
+in there and takes the answer at face value. No test file is created in your folder.
+
+The program recognises as network paths those beginning with `\\` or `//` (Windows UNC and SMB
+notation) and, on Linux and macOS, those under `/mnt/`, `/media/` and `/Volumes/`. On these it
+shows a dedicated warning when something is wrong. A drive mapped to a letter, `Z:` for instance,
+is treated by the system as any other disk: the writability check still happens, but the program
+does not recognise it as a network path and will not flag it as such.
+
+*Why eight seconds.* Consumer NAS devices (Synology, QNAP, WD MyCloud) take three to six seconds to
+wake from standby. Eight is enough to wait for them and still short enough not to feel like a
+freeze.
+
+---
+
+## 7.3 Setting a path on a NAS
+
+**A direct UNC path.** In the form `\\ServerName\ShareName\Folder`:
 
 ```
 \\MYNAS\Podcast\Archive
@@ -35,67 +45,72 @@ Enter the path in the format `\\ServerName\ShareName\Folder`:
 \\NAS-SYNOLOGY\video\audio_archive
 ```
 
-The path can be entered directly in the destination text field, or via the folder selection window, which on Windows supports navigation of network paths.
+You can type it by hand or reach it through the picker, which on Windows browses network resources
+too.
 
-**Method 2 — Mapped network drive:**
-If the NAS is already mapped as a network drive in Windows (e.g. `Z:` → `\\MYNAS\Podcast`), it is possible to select `Z:\Archive` as the destination folder. FeedDownloader Pro automatically recognises that this is a network path and activates validation.
+**A mapped drive.** If the NAS is already mounted as a drive (say `Z:` pointing at
+`\\MYNAS\Podcast`), just choose `Z:\Archive`. It works without trouble; the program simply treats
+it as a local disk, because at that point the operating system is handling the network.
 
-**Method 3 — Linux (mount point):**
-On Linux, SMB network paths are presented as normal folders in the filesystem after mounting (e.g. `/mnt/nas/podcast`). These paths can be used directly as the destination folder.
-
----
-
-## 7.4 SMB Credentials and Authentication
-
-NAS access credentials must be configured at the operating system level, not within FeedDownloader Pro.
-
-**On Windows:**
-1.  Open **File Explorer** and navigate to the NAS path (`\\MYNAS\`).
-2.  Enter the credentials when prompted and tick **"Remember my credentials"**.
-3.  The credentials are saved in the **Windows Credential Manager** (`Control Panel → Credential Manager → Windows Credentials`).
-4.  FeedDownloader Pro, like any other application, will access the NAS without requiring further credentials.
-
-**On Linux:**
-Mount the share with credentials in the `fstab` file or via a graphical tool such as GNOME Files. Alternatively, use `smbclient` or `mount -t cifs` from the terminal.
+**Linux.** Mounted SMB shares appear as ordinary folders (`/mnt/nas/podcast`, for example) and are
+used directly.
 
 ---
 
-## 7.5 Diagnosing Problems with Network Paths
+## 7.4 Credentials and authentication
 
-In the event of a "Network path not reachable" warning, check the following points in the order shown.
+NAS credentials are configured in the operating system, not inside FeedDownloader Pro.
 
-**1. Is the NAS switched on and started up?**
-Check the device indicator lights. Many consumer NAS devices enter sleep mode after a period of inactivity. Before starting the download, open the NAS administration panel from the browser to verify its availability.
+**Windows.** Open the NAS path (`\\MYNAS\`) in File Explorer, enter the credentials when prompted
+and tick the option to remember them. They go into Windows Credential Manager (*Control Panel →
+Credential Manager → Windows Credentials*), and from then on the program reaches the share like any
+other application.
 
-**2. Is the NAS reachable from the network?**
-From the Command Prompt (Windows) or Terminal (Linux):
+**Linux.** Mount the share with the credentials in `fstab`, or from a graphical file manager, or by
+hand with `mount -t cifs`.
+
+---
+
+## 7.5 When the network path does not answer
+
+Faced with the unreachable-path warning, check in this order.
+
+**Is the NAS awake?** Many home devices go into standby after a period of inactivity. A quick visit
+to the admin panel in a browser is the fastest way to find out.
+
+**Is it reachable on the network?** From Command Prompt or a terminal:
+
 ```
 ping 192.168.1.100
 ```
-Replace with the NAS IP address. If the command receives a reply, basic network connectivity is working.
 
-**3. Is the SMB share accessible?**
-Attempt to open the path `\\192.168.1.100\ShareName` directly from Windows File Explorer. If the operation fails, the problem lies in the NAS SMB configuration, not in FeedDownloader Pro.
+If it answers, basic networking works and the problem is higher up.
 
-**4. Are write permissions correct?**
-Manually create a file in the destination folder via the file manager. If the operation is not permitted, the user used to access the NAS does not have write permissions on that share. Configure the permissions from the NAS administration panel.
+**Does the share open?** Try `\\192.168.1.100\ShareName` directly from the file manager. If it will
+not open there, the problem is in the NAS SMB configuration and not in the program.
 
-**5. Is the firewall blocking SMB connections?**
-The SMB protocol uses port 445 (and in some cases port 139). Verify that the system or third-party firewall is not blocking these ports for connections on the local network.
+**Can you write to it?** Create a file by hand in the destination folder. If the system refuses,
+the user you connect as has no write permission on that share: fix it from the NAS panel.
 
----
-
-## 7.6 Optimal Performance on NAS
-
-Downloads to NAS present an additional complexity compared to those to a local drive: files are written across the network and speed depends on both the LAN bandwidth and the NAS write capacity.
-
-**Operational guidance:**
-
-*   **Use a wired (Ethernet) connection:** Wi-Fi introduces latency and instability in network write operations. For large archives, a wired Gigabit Ethernet connection offers significantly better performance.
-*   **Reduce parallel downloads:** Simultaneously writing many files to a NAS can saturate its I/O. A "Parallel Downloads" value of 1–3 often yields better results than using the maximum available number.
-*   **Avoid overlapping with NAS backups:** If the NAS runs automatic backups, avoid starting batch downloads during the same time windows, as competition for the disk's I/O slows down both operations.
-*   **Use a local cache:** For very large archives, it is possible to download first to a fast local drive and move the files to the NAS once the download is complete.
+**Is a firewall involved?** SMB uses port 445, and in some cases 139. It is worth checking they are
+not blocked on the local network.
 
 ---
 
-*Go to Chapter 8 for the configuration of the rename template and metadata features.*
+## 7.6 Getting good performance
+
+Writing to a NAS means every byte crosses the network twice: speed depends on the LAN and on the
+device’s write capacity, not just on your internet connection.
+
+*   **Cable beats Wi-Fi.** Wi-Fi adds latency and instability exactly where writes are concerned.
+    For large archives, Gigabit Ethernet changes things.
+*   **Fewer downloads in parallel.** Writing many files together saturates the NAS I/O: one or two
+    transfers often outperform five.
+*   **Mind the backups.** If the NAS runs automatic backups at fixed times, avoid overlapping them
+    with download batches: they contend for the same disk and both slow down.
+*   **Local first, network after.** For very large archives it pays to download to a fast local
+    disk and move the files to the NAS once the batch is done.
+
+---
+
+*Chapter 8 covers file names, templates and metadata.*

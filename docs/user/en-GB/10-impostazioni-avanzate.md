@@ -1,125 +1,164 @@
-# Chapter 10: Advanced Settings
+# Chapter 10: Settings
 
-## 10.1 Overview of the Settings Panel
+## 10.1 How they are organised
 
-The settings panel is accessible at any time via the gear icon (⚙) in the upper corner of the interface. Settings are organised into five thematic tabs: **General**, **Download**, **Metadata**, **Archive**, and **Advanced**. All changes are saved automatically: it is not necessary to confirm with a dedicated button.
+The panel opens at any time from the cog icon at the top right, even while a download is running.
+The entries are divided into five tabs, in this order: **General**, **Download**, **Metadata**,
+**Archive**, **Advanced**. Every change is saved immediately: there is no confirm button because
+none is needed.
 
----
-
-## 10.2 Download
-
-This section contains the main controls for the download engine. Internal technical parameters (connection timeout, number of retries, stall detection) are fixed in the engine and do not require manual configuration.
-
-### Parallel Downloads
-
-The number of simultaneous downloads. Selectable from three presets: **1**, **3**, and **5**. For guidelines on choosing the value, see Chapter 6.
-
-**Default value:** 3
-
-### Download Speed Limit
-
-Allows you to limit the aggregate bandwidth used by all active downloads, to avoid interference with other network activities.
-
-**Available values:** `0` = unlimited (default); any positive value in KB/s. Example: `500` limits total consumption to approximately 4 Mbps.
-
-### Maximum File Size
-
-Rejects downloads larger than the configured cap, in **MB**. It protects against anomalous enclosures (huge files declared by mistake, or servers sending content other than the expected audio). A file over the cap is marked as a definitive error, with no retry.
-
-**Available values:** `0` = unlimited (default); any positive value in MB.
+This chapter follows the tabs one by one. Templates, sidecars and ID3 tags (the Metadata tab) are
+covered in chapter 8; the health check, the CSV inventory and migration (the Archive tab) in
+chapter 9.
 
 ---
 
-## 10.3 General
+## 10.2 General
 
 ### Language
 
-FeedDownloader Pro is available in 2 languages: **Italiano** and **English**.
+The interface speaks **English** and **Italian**. The change is immediate, with no restart. The
+program uses a single theme, dark: there is no light theme and no control over list density.
 
-The language change is immediate: the interface updates without needing to restart the software. The application uses exclusively the dark "Obsidian Command" theme: no light theme or list density selector is available.
+### Automatic feed refresh
 
-### Automatic Feed Refresh
-
-Allows all feeds to be automatically synchronised at regular intervals, without manual intervention. A check also runs at every application startup and when the connection returns after a period offline. Four presets are available:
+Sets how often the program re-reads the feeds by itself. A check happens in any case at startup and
+when the connection returns after an outage.
 
 | Option | Behaviour |
 |--------|-----------|
-| **Disabled** | No periodic synchronisation (the startup check remains). |
-| **6 hours** (default) | Full synchronisation every 6 hours. |
-| **12 hours** | Full synchronisation every 12 hours. |
-| **24 hours** | Full synchronisation every 24 hours. |
+| Disabled | No cyclical check; the one at startup remains. |
+| 6 hours (default) | A full re-read every six hours. |
+| 12 hours | Re-read every twelve hours. |
+| 24 hours | Re-read once a day. |
 
-The change is immediate and does not require restarting the software. If new episodes are found during the automatic synchronisation, a clickable operating system notification is sent: it brings the app to the foreground and, if it concerns a single podcast, opens that feed. Automatic synchronisation does not start downloads: it only signals the availability of new content. For a detailed description of the behaviour, see section 5.9.
+The change applies at once. If the check finds new episodes it sends a clickable system
+notification, which brings the program to the front and opens the feed concerned when there is only
+one. No download starts by itself: the notification is a signal and nothing more (section 5.9).
 
-### User Guide and What's New
+### Guide and release notes
 
-Also in the **General** tab you will find:
-
-*   **"User Guide":** Opens the built-in documentation, with the **"Open the full PDF manual"** button to consult this manual.
-*   **"What's new in this version":** Opens the in-app changelog with the release notes of the installed version. The same window appears automatically on the first launch after an update.
-
-*Note:* The episode list filter bar (text search, status, date, duration) is documented in section 3.4, as it is part of the episode list rather than a setting.
-
----
-
-## 10.4 Security: The Multi-Level Anti-SSRF System
-
-This section is documented for informational purposes: the security system operates in a completely automatic manner and does not require any configuration from the user.
-
-**What is an SSRF attack?**
-SSRF (Server-Side Request Forgery) is a type of attack in which a malicious URL, instead of pointing to a public resource, points to internal network resources (such as the router administration panel, a NAS, or a local server). In the context of a downloader, a carefully crafted RSS feed could include audio URLs pointing to these internal resources.
-
-**The validation levels:**
-
-1.  **URL syntactic validation:** The URL is analysed to verify conformance with the standard.
-
-2.  **Protocol validation:** Only `http://` and `https://` protocols are accepted. Protocols such as `file://`, `ftp://`, `data:`, `javascript:` are rejected immediately.
-
-3.  **Blocking of well-known internal hostnames:** Names such as `localhost` and literal loopback addresses are rejected.
-
-4.  **Blocking of private and reserved IP addresses:** All IP addresses belonging to private or reserved ranges are blocked, including:
-    *   `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16` (RFC 1918 private networks)
-    *   `127.0.0.0/8` (loopback)
-    *   `169.254.0.0/16` (link-local)
-    *   `::1/128` (IPv6 loopback)
-    *   `fc00::/7` (IPv6 unique local)
-    *   Any address pointing to the local host.
-
-5.  **Re-validation at connection time:** The DNS-resolved IP address is checked again on every connection and every redirect. This neutralises DNS-based evasion techniques (a public domain resolving to a private address, or a redirect towards an internal resource).
-
-*Note for corporate environments:* If the corporate network includes internal podcast servers reachable via private IP addresses, the anti-SSRF system will block these URLs. In this case, contact support for a custom configuration that includes specific IP address ranges in the internal whitelist.
+The same tab holds two shortcuts: the **user guide**, which opens the built-in documentation and
+from there the full PDF manual, and **What's new in this version**, which shows the release notes
+for the installed version. The same window appears on its own at the first launch after an update.
 
 ---
 
-## 10.5 Advanced
+## 10.3 Download
+
+This is where the engine controls live. The internal parameters (connection timeout, number of
+retries, stall watching) are fixed and cannot be touched.
+
+### Download Path
+
+The folder everything ends up in, in the **Storage** section. You choose it with the icon beside
+the field, which opens the system picker, and it does the same job as the folder icon in the
+command bar.
+
+### Parallel Downloads
+
+How many transfers at once: **1**, **3** or **5**. The default is 3. For guidance on choosing, see
+chapter 6.
+
+### Download Speed Limit
+
+Caps the total bandwidth the downloads use, so they do not take the whole line. The value is in
+KB/s; `0` means no limit and is the default. To give a sense of scale: `500` keeps consumption
+around 4 Mbps.
+
+### Maximum File Size
+
+Rejects files larger than the stated value, expressed in MB; `0` means no limit. It guards against
+anomalies: sizes declared in error, or servers that send something quite other than audio. A file
+over the threshold becomes a definitive error, with no further attempts. When the server declares
+the size, the refusal comes before a single byte is written; when it does not, the transfer is
+stopped as soon as it passes the cap.
+
+---
+
+## 10.4 Metadata
+
+This tab holds the **File Naming Template** with its preview, the **Sidecar .json Files** switch
+and the ID3 tagging switch, which changes its label with its state. They are described in
+chapter 8.
+
+---
+
+## 10.5 Archive
+
+This gathers four groups: the archive statistics, **Data & Portability** with OPML import and
+export and the CSV inventory, the **Archive Health Check** with checksum repair, and **Migrate
+Archive** for moving the files to another disk. All in chapter 9, except OPML which is in
+chapter 5.
+
+---
+
+## 10.6 Advanced
 
 ### Updates
 
-FeedDownloader Pro includes an integrated, **consent-based** update system: no download and no installation ever happen automatically.
+The update system works **by consent**: nothing downloads and nothing installs on its own.
 
-**Automatic check on startup:** In the installed version (package), the software automatically checks for the availability of new updates shortly after startup, by querying the releases repository. If a new version is available, the persistent **"Update available"** indicator appears in the top bar, along with a system notification — but **nothing is downloaded**.
+At startup the installed version queries the releases repository. If it finds a new version, the
+**Update available** banner appears in the top bar along with a system notification, but the
+package **is not downloaded**. The **Check for Updates** button forces the check whenever you want.
 
-**Manual check:** The **"Check for Updates"** button in the **Advanced** tab forces an immediate check at any time.
+The download begins when you press **Download** on the banner or **Download update** here in the
+settings. Once the package is ready, **Restart & Install** appears, and that does not fire by
+itself either: installation happens when you decide, never when you quit the program.
 
-**Consent-based download:** The package download starts only when you press **"Download"** in the top-bar indicator, or **"Download update"** in the Settings. Once the download completes, the **"Restart & Install"** button appears: installation, too, requires an explicit user action.
-
-**States displayed during the process:**
-*   **Checking for updates...** — the software is querying the releases repository.
-*   **You have the latest version** — the installed version is the most recent.
-*   **Update available: vX.Y.Z** — waiting for download consent.
-*   **Downloading update... N%** — download in progress (started by the user).
-*   **Update downloaded — restart to install** — the package is ready for installation.
+The states you will see, in order: *Checking for updates...*, then *You have the latest version* or
+*Update available: vX.Y.Z*, then *Downloading update... N%* and finally *Update downloaded —
+restart to install*.
 
 ### Maintenance
 
-The **"Clean temporary files"** button removes orphaned `.part` files left in the destination folder by past interrupted downloads. The function is unavailable while downloads are running (their `.part` files are in use). On completion, the number of removed files is shown.
+**Clean temporary files** removes orphaned `.part` files left in the destination folder by
+interrupted sessions. It does not work while downloads are active, because those files are in use:
+in that case the program says so rather than proceeding. At the end it reports how many files it
+removed.
 
-### Danger Zone: Reset Download History
+### Danger Zone
 
-The **"Reset Download History"** button clears the download history recorded in the database (the "tick marks" of downloaded episodes). The software requires explicit confirmation before proceeding. Audio files on disk are **not** deleted: after the reset, episodes will appear as not downloaded again.
+**Reset Download History** clears the download history from the database, that is the memory of
+what has already been fetched. The program asks for confirmation. The audio files on disk **stay
+where they are**: after the reset the episodes go back to showing as pending, and a fresh download
+would overwrite them.
 
-*When to use it:* Only when you intend to start from an empty history, for example after migrating to a new system or to remove data from a test cycle.
+There is one case where it makes sense: when you want to start again with a clean history, for
+example after moving everything to another system or at the end of a run of tests.
 
 ---
 
-*Go to Chapter 11 for troubleshooting the most common problems.*
+## 10.7 How addresses are filtered (for information)
+
+This section explains something the program does by itself and that cannot be configured.
+
+A feed is content arriving from outside, and the addresses it contains could point at resources on
+your local network rather than at a public audio file: the router panel, a NAS, an internal
+service. This is the family of attacks called SSRF. An archiver that blindly follows the addresses
+in a feed becomes the instrument by which somebody knocks on your own doors.
+
+Every address therefore passes through five filters:
+
+1.  **Syntax**: it must be a valid URL.
+2.  **Protocol**: only `http://` and `https://`. Things like `file://`, `ftp://`, `data:` or
+    `javascript:` are turned away immediately.
+3.  **Internal names**: `localhost` and the loopback names are refused.
+4.  **Private and reserved addresses**: the RFC 1918 networks (`10.0.0.0/8`, `172.16.0.0/12`,
+    `192.168.0.0/16`), loopback `127.0.0.0/8`, link-local `169.254.0.0/16`, and for IPv6 `::1` and
+    `fc00::/7`.
+5.  **Verification at connection time**: the IP address the name resolved to is re-checked on every
+    connection and every redirect. This is the filter that closes the cleverer loopholes, namely a
+    public domain resolving to a private address, or a redirect that halfway along points inside
+    the network.
+
+*A declared limitation.* If your network has an internal podcast server reachable at a private
+address, those filters will block it, and there is no way to make an exception: there is no
+allow-list to configure. This is deliberate, because a configurable exception is exactly what a
+hostile feed would try to exploit. Content like that needs a different route — downloading it with
+another tool and importing it as local files, for instance.
+
+---
+
+*Chapter 11 collects the most common problems and how to get out of them.*

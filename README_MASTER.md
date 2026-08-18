@@ -1,101 +1,126 @@
 # Runtime FeedDownloader Pro
 
-Versione 1.4.2
-
-Il modo più potente per archiviare i tuoi podcast.
+Versione 1.5.0
 
 ## Cos'è
 
-Runtime FeedDownloader Pro è uno strumento professionale progettato per archivisti, editori e appassionati che necessitano di scaricare interi cataloghi di podcast per la conservazione offline.
-A differenza dei normali player, questo software è ottimizzato per il download massivo (Batch), la resilienza di rete e l'organizzazione strutturata su file system.
+Uno strumento per archiviare podcast sul serio: scarica interi cataloghi da feed RSS e li conserva
+in modo ordinato e verificabile. Non è un lettore, è un archiviatore. Sa cosa hai già preso, non
+scarica due volte la stessa cosa, riprende i trasferimenti interrotti e registra l'impronta
+crittografica di ogni file.
 
-## Caratteristiche Principali
+Il programma è gratuito e può essere ridistribuito liberamente.
 
-### Gestione dei feed
+## Cosa sa fare
 
-* **Libreria Feed Permanente:** Gestisce più podcast contemporaneamente con barra laterale ridimensionabile, ricerca e ordinamento A–Z; i feed restano salvati tra le sessioni.
-* **Badge "Da Scaricare":** Indicatore numerico per ogni feed che segnala quanti episodi non sono ancora presenti nel tuo archivio.
-* **Rilevamento Nuovi Episodi:** Basato sui GUID degli episodi, non sul semplice conteggio — le notifiche sono affidabili anche con i podcast "a finestra mobile" che rimuovono le puntate vecchie.
-* **Feed Paginati (RFC 5005):** Segue automaticamente i link alle pagine successive del feed, ricostruendo l'intero catalogo anche quando il provider (Apple Podcasts, Libsyn, Blubrry…) pubblica solo gli episodi recenti nella prima pagina.
-* **Sync All con progresso per-feed:** Aggiorna tutti i feed in parallelo; ogni thumbnail mostra il proprio stato in tempo reale.
-* **Aggiornamento Automatico dei Feed:** Timer in background (6/12/24h) con notifica OS per i nuovi episodi.
+### Feed
 
-### Download e coda
+* **Libreria permanente.** I feed restano salvati tra le sessioni, con ricerca, ordinamento e barra
+  laterale ridimensionabile.
+* **Badge DA SCARICARE.** Per ogni feed, quanti episodi non sono ancora nel tuo archivio.
+* **Rilevamento affidabile.** I nuovi episodi si riconoscono dai GUID, non dal conteggio: funziona
+  anche con i podcast a finestra mobile che tolgono le puntate vecchie.
+* **Feed paginati (RFC 5005).** Segue i collegamenti alle pagine successive e ricompone il catalogo,
+  fino a venti pagine.
+* **Sincronizza Tutti.** Aggiorna l'intera libreria in parallelo, con lo stato su ogni copertina.
+* **Controllo automatico.** All'avvio, a intervalli regolari (6, 12 o 24 ore) e al ritorno della
+  connessione. Se escono episodi nuovi arriva una notifica di sistema: cliccandola si apre il feed
+  interessato.
 
-* **Batch Download:** Scarica centinaia di episodi con un click, con gestione intelligente della coda e concorrenza configurabile (1, 3 o 5 download paralleli).
-* **Limite di Velocità:** Banda massima di download configurabile nelle Impostazioni (0 = illimitato).
-* **Pannello Download:** Drawer laterale con coda, velocità (KB/s), tempo stimato e log errori per ogni batch. Pulsante flottante per riaprirlo senza perdere i download.
-* **Velocità e Tempo Stimato:** Visualizzati inline per ogni download attivo nella riga episodio.
-* **Cancellazione Singola:** Cancella un singolo download dalla coda senza fermare gli altri.
-* **Riscarica Episodio:** Possibilità di riscaricare un episodio già presente nell'archivio.
-* **Selezione Multipla:** Ctrl+click / Shift+click per selezionare intervalli di episodi e scaricarli insieme.
+### Download
 
-### Interfaccia e navigazione
+* **Lotti.** Centinaia di episodi con un comando, coda gestita, da uno a cinque trasferimenti in
+  parallelo.
+* **Pausa e Riprendi.** Il singolo download o l'intera coda si sospendono senza perdere niente: il
+  file parziale resta e la ripresa riparte dal punto raggiunto.
+* **Riprova falliti.** A fine lotto, un comando rimette in coda tutti gli episodi andati storti.
+* **Annulla singolo.** Si toglie un download dalla coda senza fermare gli altri.
+* **Selezione multipla.** Ctrl+clic e Maiusc+clic per scegliere intervalli.
+* **Limiti.** Velocità massima complessiva e dimensione massima per file, entrambe configurabili
+  (0 = nessun limite).
 
-* **Design Moderno "Electric Azure on Deep Dark":** Interfaccia scura completamente ridisegnata, veloce e leggibile.
-* **Palette Comandi (Ctrl+K):** Accesso rapido a tutte le azioni principali e ai feed salvati senza usare il mouse.
-* **Pannello Dettaglio Episodio:** Click su un episodio apre un pannello con metadati completi, dati archivio e show notes.
-* **Ordinamento Episodi:** Ordina la lista per data, titolo o durata, oltre all'ordine originale del feed.
-* **Vista Archivio:** Tab dedicata per consultare, cercare e ordinare l'intero archivio di tutti gli episodi scaricati.
-* **Export Playlist M3U:** Genera playlist locali compatibili con qualsiasi player audio.
-* **Onboarding Guidato:** Suggerimenti al primo avvio per iniziare subito.
+### Interfaccia
 
-### Resilienza e integrità
+* **Palette comandi (Ctrl+K).** Azioni, feed ed episodi del feed aperto, senza mouse.
+* **Pannello di dettaglio.** Un clic sull'episodio apre metadati, dati d'archivio e note.
+* **Vista Archivio.** Tutti gli episodi scaricati in un'unica tabella, con ricerca e ordinamento.
+* **Esporta M3U.** Playlist locali per qualsiasi lettore.
+* **Riduzione nell'area di notifica.** Chiudendo la finestra il lavoro continua in background.
+* **Novità di questa versione.** Le note di rilascio si leggono dentro l'app, e compaiono da sé al
+  primo avvio dopo un aggiornamento.
 
-* **Motore "Database-First":** Il sistema ricorda cosa hai scaricato indipendentemente dai file su disco (SQLite).
-* **Download Resilienti:** Timeout di connessione (30s) e stall detection (60s), retry automatici con backoff esponenziale, file `.part` anti-corruzione.
-* **Integrità Dati:** Calcolo automatico SHA-256 e estrazione metadati audio (bitrate, sample rate) post-download.
-* **Health Check:** Ripristino automatico degli episodi mancanti su disco con risincronizzazione del database.
+### Integrità
 
-### Organizzazione e portabilità
+* **Database-first.** Il programma ricorda cosa ha scaricato anche se i file si spostano (SQLite).
+* **Trasferimenti robusti.** Timeout di connessione a 30 secondi, sorveglianza degli stalli a 60,
+  tre tentativi con attesa crescente, file `.part` che consentono la ripresa.
+* **Impronta SHA-256** calcolata su ogni file e registrata, insieme a bitrate e frequenza di
+  campionamento.
+* **Controllo dell'archivio.** Verifica quali file mancano e ricalcola le impronte di quelli
+  presenti, segnalando i file alterati.
+* **Ripara archivio.** Ritrova per checksum i file rinominati a mano e li riaggancia all'archivio,
+  senza riscaricare nulla.
+* **Ripristino del database.** Se il database si danneggia, all'avvio il programma propone di
+  recuperare feed, archivio e cronologia dal backup che ha messo da parte.
+* **Rifiuto dei contenuti non audio.** Se il server manda una pagina web al posto del file, il
+  download viene respinto invece di salvare spazzatura.
 
-* **Estensione Reale:** Rileva e salva il formato corretto del file (`.m4a`, `.ogg`, `.opus`, `.flac`…) invece di forzare sempre `.mp3`.
-* **Tag ID3 con Copertina:** Scrive automaticamente i tag ID3 nei file `.mp3`, con priorità alla copertina specifica dell'episodio quando disponibile.
-* **Template Rinomina:** Token personalizzabili (`{{title}}`, `{{date}}`, `{{podcast}}`) per nomi file organizzati.
-* **Portabilità Dati:** Importa ed Esporta feed tramite standard OPML. Genera report CSV dettagliati del tuo archivio.
-* **Migrazione Archivio:** Sposta l'intera libreria in un nuovo percorso/disco con aggiornamento automatico del DB.
-* **Supporto NAS/SMB:** Validazione nativa e timeout (8s) per percorsi di rete, senza freeze dell'interfaccia.
+### Organizzazione
 
-### Sistema e sicurezza
+* **Estensione reale.** Salva `.m4a`, `.ogg`, `.opus`, `.flac` con la loro estensione, senza forzare
+  `.mp3`.
+* **Tag ID3 con copertina**, con priorità all'immagine dell'episodio quando il feed la dichiara.
+* **Template dei nomi.** Token `{title}`, `{podcast}`, `{date}`, `{year}`, `{month}`, `{day}`.
+* **File sidecar `.json`** accanto a ogni audio, se ti servono i metadati fuori dal database.
+* **OPML e CSV.** Importi ed esporti la lista dei feed, esporti l'inventario completo dell'archivio.
+* **Migrazione.** Sposta l'intera libreria su un altro disco aggiornando l'archivio.
+* **NAS e SMB.** I percorsi di rete vengono verificati con un limite di otto secondi, senza mai
+  bloccare l'interfaccia.
 
-* **Auto-Update con Notifica:** Aggiornamenti automatici tramite GitHub Releases, con notifica di sistema quando un update è disponibile e quando è pronto da installare.
-* **Sicurezza URL:** Validazione anti-SSRF a livello di connessione — blocca protocolli pericolosi, IP privati, indirizzi riservati e redirect ostili, per ogni pagina di feed.
-* **Smart Truncate:** Rinomina automaticamente i file per evitare errori di lunghezza percorso su Windows.
-* **Performance:** Lista virtualizzata — gestisce feed con migliaia di episodi senza rallentamenti.
-* **Help Integrato:** Guida utente consultabile direttamente all'interno dell'applicazione.
+### Sistema
 
-## Certificazione Multilingua
+* **Aggiornamenti col consenso.** Il programma segnala la nuova versione ma non scarica niente da
+  solo: prima **Scarica**, poi **Riavvia e Installa**. Nessuna installazione alla chiusura.
+* **Difese sugli indirizzi.** Ogni URL passa da controlli anti-SSRF: solo HTTP e HTTPS, niente
+  indirizzi interni o riservati, verifica dell'IP a ogni connessione e a ogni redirezione.
+* **Nomi file sicuri.** Caratteri non ammessi rimossi e percorsi accorciati per non sbattere contro
+  i limiti di Windows.
+* **Liste virtualizzate.** Anche con migliaia di episodi la finestra resta scorrevole.
+* **Manuale completo in PDF**, apribile dalla guida.
 
-Il software supporta completamente **8 lingue**: Italiano (IT), English (EN), Français (FR), Deutsch (DE), Español (ES), Português (PT), Русский (RU), 中文 (ZH). L'interfaccia, le notifiche di sistema e la documentazione sono disponibili in tutte le lingue.
+## Lingue
 
-## Istruzioni Rapide
+Interfaccia, notifiche e manuali sono disponibili in **italiano** e **inglese**.
 
-1. **Analizza:** Incolla l'URL del feed RSS nella barra principale e premi "Analizza". Il feed viene aggiunto alla barra laterale per gli accessi futuri.
-2. **Scegli Cartella:** In Impostazioni → Archivio, imposta la cartella dove salvare i file. Il percorso è sempre visibile nel footer della barra laterale.
-3. **Scarica:** Usa il tasto "Scarica Tutto" per l'intero archivio, oppure seleziona gli episodi con Ctrl+click e usa "Scarica Selezionati".
-4. **Monitora:** Il Pannello Download si apre automaticamente con la coda, la velocità e il tempo stimato per ogni file.
-5. **Gestisci:** Usa Ctrl+K per la Palette Comandi, o le Impostazioni (⚙) per concorrenza, limite di velocità, template, OPML e statistiche archivio.
+## Per cominciare
 
-## Requisiti di Sistema
+1. **Analizza.** Incolla l'indirizzo RSS nella barra in alto e premi **Analizza**. Il feed entra
+   nella libreria.
+2. **Scegli la cartella.** Con l'icona cartella nella barra di comando, oppure da **Impostazioni →
+   Download**. Il percorso resta visibile in fondo alla barra laterale.
+3. **Scarica.** **Scarica Tutto** per l'intero catalogo (agisce sugli episodi visibili, quindi i
+   filtri contano), oppure seleziona con Ctrl+clic e usa **Scarica Selezionati**.
+4. **Sorveglia.** Il pannello download si apre da solo: coda, percentuali, velocità, e i comandi di
+   pausa.
+5. **Regola.** Ctrl+K per la palette, l'ingranaggio per download paralleli, limiti, template, OPML e
+   statistiche.
 
-Il software è Cross-Platform e gira nativamente su:
+## Requisiti
 
-* **Windows**: 10/11 (64-bit) — installer NSIS (`.exe`)
-* **Linux**: Distribuzioni moderne (Ubuntu 20.04+, Debian 11+, Fedora 34+) — `.AppImage` o `.deb`
-* **macOS**: 11.0 (Big Sur) o superiore — supportato dal codice, ma i pacchetti macOS non sono attualmente distribuiti
-* Connessione Internet attiva
+* **Windows** 10 o 11 a 64 bit, installer `.exe`
+* **Linux** moderno (Ubuntu 22.04+, Debian 11+, Fedora 36+), `.AppImage` o `.deb`
+* **macOS**: non supportato. Il codice si compila anche su Mac, ma non esistono pacchetti ufficiali
+  e la compilazione è a carico di chi la esegue.
+* Una connessione a Internet
 
-## Download
+## Dove si scarica
 
-I pacchetti ufficiali sono disponibili su [GitHub Releases](https://github.com/Ecosystem-Runtime/FeedDownloader-Releases/releases) e vengono generati tramite GitHub Actions.
+I pacchetti stanno su
+[GitHub Releases](https://github.com/Ecosystem-Runtime/FeedDownloader-Releases/releases) e sono
+prodotti automaticamente dalla pipeline di build.
 
-| Piattaforma | Formato | Note |
-|---|---|---|
-| Windows 10/11 | `.exe` (installer NSIS) | Software non firmato — vedi nota SmartScreen |
-| Linux | `.AppImage` / `.deb` | Nessuna firma richiesta |
+**Avviso SmartScreen (Windows).** Al primo avvio Windows può mostrare «Windows ha protetto il PC»
+perché il programma non ha una firma commerciale. Si prosegue con **Ulteriori informazioni** →
+**Esegui comunque**.
 
-**Windows — avviso SmartScreen:** Al primo avvio, Windows Defender potrebbe mostrare la schermata "PC protetto da Windows — Autore sconosciuto". Il software è sicuro. Fare clic su **Ulteriori informazioni** → **Esegui comunque**.
-
-**macOS:** I pacchetti `.dmg` non vengono attualmente pubblicati; è possibile compilare l'app dal codice sorgente.
-
-*Sviluppato con tecnologia Electron & React per garantire prestazioni e stabilità.*
+*Costruito con Electron e React.*

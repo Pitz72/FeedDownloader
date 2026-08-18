@@ -1,98 +1,105 @@
-# ⚡ Runtime FeedDownloader Pro: Quick Start Guide
+# Runtime FeedDownloader Pro — Quick start
 
-Welcome to **Runtime FeedDownloader Pro**. This guide will take you from first launch to your first complete podcast archive in under 3 minutes.
-
----
-
-## 1. Feed Analysis
-
-First, tell the software which podcast you want to archive:
-
-1. Copy the **RSS URL** of the podcast you want to download (usually found on the podcast's website with labels like "RSS", "Feed" or "Subscribe").
-2. Paste it into the **main search bar** at the top of the interface.
-3. Click the **"Analyse"** button (or press `Enter`).
-4. The software will query the feed and display the full list of available episodes, with title, duration and publication date. The feed is automatically added to the left sidebar for future access.
-
-> **Tip:** You can drag and drop the URL directly onto the application window (Drag & Drop) without using the search bar.
+From first launch to a complete archive in a few minutes.
 
 ---
 
-## 2. Choosing the Destination
+## 1. Analyse the feed
 
-Before starting the download, choose where to save your files:
+1. Copy the podcast's **RSS address**. It is usually on the show's website, behind a link labelled
+   RSS, Feed or Subscribe.
+2. Paste it into the bar at the top of the window.
+3. Press **Analyze**, or `Enter`.
+4. The full episode list appears, with titles, durations and dates. The feed joins the sidebar and
+   stays there for next time.
 
-1. Go to **Settings → Archive** and click the **folder** icon next to the destination path field.
-2. Select (or create) the folder where you want the archive to be organised.
-3. The configured path is always visible in the footer of the left sidebar: clicking it opens the folder directly in the file manager.
-4. If you are using a **NAS or network drive (SMB)**, enter the network path (e.g. `\\NAS\Podcasts\`). The software will automatically verify write access within 8 seconds, without freezing the interface.
-
-> **Tip:** Create a dedicated folder for each podcast (e.g. `D:\Archive\PodcastName\`). FeedDownloader Pro will save files in an organised way and remember the location in its database.
-
----
-
-## 3. Starting the Download
-
-You have the feed analysed and the folder ready. Now you can download:
-
-**Option A — Download the entire catalogue:**
-
-1. Click the main **"Download All"** button in the episode list header.
-2. The entire episode list will be added to the download queue.
-3. The software will start downloading files in parallel (the number of threads is configurable in Settings).
-
-**Option B — Selective download:**
-
-1. In the episode list, find the episodes you are interested in.
-2. Click the **download** icon (downward arrow) that appears next to the episode on hover.
-3. To select multiple episodes, hold `Ctrl` and click each one (or use `Shift`+click to select a range), then click **"Download Selected (N)"**.
-
-> **Tip:** The **Stall Detection** system monitors every download: if a server stops responding for 60 seconds, the download is automatically restarted.
+> You can also drag the link straight from your browser onto the field.
 
 ---
 
-## 4. Download Monitoring
+## 2. Choose where files go
 
-When you start a batch, the **Download Panel** opens automatically on the right side of the window.
+1. Press the **folder** icon in the command bar, or open **Settings → Download** and use the icon
+   next to **Download Path**.
+2. Pick or create the archive folder.
+3. The path stays visible at the bottom of the sidebar; clicking it opens the folder in your file
+   manager.
+4. For a **NAS or network drive**, enter the network path (for example `\\NAS\Podcasts\`). The
+   program checks that it can write there within eight seconds, and the window never freezes.
 
-* **What it shows:** each episode in the queue with progress percentage, current speed (KB/s or MB/s) and estimated time to completion.
-* **Cancel a single download:** hover over the episode in the panel and click the **×** button that appears.
-* **Stop everything:** click the **Stop** button in the panel header.
-* **Close the panel without stopping downloads:** click the **×** in the top right of the panel. A **floating button** remains visible at the bottom right: clicking it reopens the panel at any time.
-* **Error log:** at the end of the batch, if some episodes failed, the panel shows an expandable summary with titles and error codes.
-* **Background operation:** you can close the main window by clicking the X: the software continues working in the notification area (system tray) and downloads continue uninterrupted.
-
-> **Tip:** Press **Ctrl+K** at any time to open the Command Palette: from there you can start "Sync all feeds", open Settings or switch to another podcast without using the mouse.
-
----
-
-## 5. Export and Statistics
-
-Once the download is complete, access **Settings** (gear icon ⚙️) for advanced features:
-
-* **Export CSV:** Generates a spreadsheet file with the complete list of downloaded episodes (title, URL, file path, SHA-256 hash, size, bitrate).
-* **Import/Export OPML:** Share your feed list with other apps or another installation of the software.
-* **Archive Statistics:** View disk space used, total number of episodes and distinct podcasts in the archive.
-* **Rename Template:** Customise the file name format using tokens like `{{title}}`, `{{date}}`, `{{podcast}}` for a perfectly organised archive.
-* **Export M3U:** From the "Export M3U" button in the episode list header, generate a playlist with the local paths of all downloaded episodes for a podcast.
+> A subfolder for each podcast is created inside the destination automatically.
 
 ---
 
-## Useful Tips & Troubleshooting
+## 3. Download
 
-**The feed is not recognised:**
-Make sure the URL is directly the address of the RSS file (usually ends in `.xml` or `.rss`). Some sites show an HTML page with a link to the actual feed: use that link.
+**The whole catalogue.** Press **Download All** in the feed header. The program asks for
+confirmation, checks the free space and queues every episode you have never downloaded. Mind any
+active filter: it works on what is visible at that moment.
 
-**Some episodes won't download (404 error):**
-The episode has been removed from the podcast server. FeedDownloader Pro will log the error in the Download Panel without blocking other downloads. This is one of the reasons why timely archiving is essential.
+**A few episodes.** Hover an episode and press the download icon. For several, hold `Ctrl` and
+click, or use `Shift` for a range, then press **Download Selected (N)**.
 
-**NAS path unreachable:**
-Make sure the NAS is powered on and reachable on the local network before starting the download. If you use SMB credentials, make sure the share is mounted (or credentials are configured in Windows).
+**Only what is new.** **Sync New** re-reads the feed and immediately queues the episodes that have
+just appeared.
 
-**The software stopped the download due to "insufficient disk space":**
-Free up space in the destination and restart the batch. Already downloaded files will not be re-downloaded thanks to the database.
+> If a server goes quiet for sixty seconds, the program closes that transfer and retries it from
+> where it stopped.
 
 ---
 
-*Security Guaranteed: Every URL is filtered by the 5-level anti-SSRF system before being processed.*
+## 4. Watch and control the queue
 
-*Part of the Ecosystem Runtime | Digital Core — Tools built to last.*
+The **download panel** opens by itself on the right.
+
+* **What it shows:** every queued episode with its percentage, current speed and estimated time.
+* **Pause and resume:** at the bottom of the panel, **Pause** suspends the whole queue and
+  **Resume** restarts it from the exact point reached. The same controls appear on each row for a
+  single episode.
+* **Cancel one download:** the × button on its row.
+* **Stop everything:** **Stop download**, at the bottom of the panel. Note the difference: stopping
+  deletes the partial files, pausing keeps them.
+* **Closing the panel** with × stops nothing; a round button stays at the bottom right to bring it
+  back.
+* **Errors:** at the end of a batch a summary lists the titles and error codes. **Retry failed**
+  re-queues them all at once.
+* **In the background:** close the window and the program keeps working from the notification area.
+
+> **Ctrl+K** opens the command palette: actions, feeds, and a search across the episodes of the open
+> feed.
+
+---
+
+## 5. Settings worth knowing
+
+From the gear icon:
+
+* **Parallel Downloads**, **Download Speed Limit** and **Maximum File Size**, to match the engine to
+  your line and your disk.
+* **File Naming Template** (Metadata tab) with the tokens `{title}`, `{date}`, `{podcast}`,
+  `{year}`, `{month}`, `{day}`, and a live preview.
+* **Export Inventory (CSV)** for the full list with SHA-256 fingerprints, sizes and bitrates.
+* **Import / Export Feeds (OPML)** to move your subscription list between applications.
+* **Archive Health Check** to see what is missing or altered, with **Repair archive (checksum
+  search)** to find files that were renamed by hand.
+* **Export M3U**, from the feed header, for a local playlist of that show.
+
+---
+
+## If something goes wrong
+
+**The feed is not recognised.** Make sure the address points at the RSS file itself and not at the
+web page containing it; it usually ends in `.xml` or `.rss`.
+
+**Some episodes report "File not found on server".** The publisher removed the file. The program
+records the error and carries on with the rest, which is precisely why archiving early matters.
+
+**The network path does not answer.** Check that the NAS is awake and reachable, and that the
+share's credentials are already stored by your operating system.
+
+**Not enough disk space.** Free some room and start again: thanks to the database, whatever was
+already downloaded is not fetched twice.
+
+---
+
+*Every address goes through the anti-SSRF checks described in the manual before it is contacted.*

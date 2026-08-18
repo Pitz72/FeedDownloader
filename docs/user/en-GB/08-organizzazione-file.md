@@ -1,168 +1,155 @@
-# Chapter 8: File Organisation, Templates, and Metadata
+# Chapter 8: File organisation, templates and metadata
 
-## 8.1 The Problem of Non-Meaningful Names
+## 8.1 The problem with names
 
-When an audio file is published on a podcast server, its original name is often difficult to read: `ep_2024_03_15_FINAL_v2_mixdown.mp3`, `podcast-episode-187-compressed.m4a`, or even just `abc123def456.mp3` are common examples. These names make sense for the producer's systems, but make an archive difficult to browse.
+The name an audio file is published under is rarely meant to be read by a human:
+`ep_2024_03_15_FINAL_v2_mixdown.mp3`, `podcast-episode-187-compressed.m4a`, or even
+`abc123def456.mp3`. They make sense inside the producer’s systems; inside an archive they are
+noise.
 
-FeedDownloader Pro resolves this problem through the **rename template system**: a mechanism that allows you to define a custom name format for all downloaded files, using information extracted directly from the RSS feed.
-
----
-
-## 8.2 How the Template Works
-
-A rename template is a text string that can contain fixed text and **tokens** — variables enclosed in single curly braces (`{ }`). Upon completion of each download, the software replaces each token with the corresponding value for the episode.
-
-**Example:**
-
-Configured template: `{date} - {podcast} - {title}`
-
-Result: `2024-03-15 - Mario's Podcast - Episode 187: Artificial Intelligence Explained.mp3`
-
-The file extension (`.mp3`, `.m4a`, etc.) is added automatically based on the format of the original file: it is not part of the template.
+The program deals with this through **naming templates**: you define the format of the names once
+and every downloaded file follows it, drawing on the information in the feed.
 
 ---
 
-## 8.3 Available Tokens
+## 8.2 How a template works
 
-| Token | Description | Example |
-|-------|-------------|---------|
-| `{title}` | Episode title from the RSS feed | `Episode 187: AI Explained` |
-| `{podcast}` | Podcast name (RSS channel title) | `Mario's Podcast` |
-| `{date}` | Publication date in `YYYY-MM-DD` format | `2024-03-15` |
-| `{year}` | Publication year | `2024` |
-| `{month}` | Publication month (2 digits) | `03` |
-| `{day}` | Publication day (2 digits) | `15` |
+A template is a line of text mixing fixed parts with **tokens**, that is variables in curly
+brackets. Once a download finishes, each token is replaced with that episode’s value.
 
-*Note:* If text is entered in the template within curly braces that does not correspond to any of the listed tokens (for example `{episode}`), the text is left unchanged in the resulting file name.
+The template `{date} - {podcast} - {title}` gives you:
+
+`2024-03-15 - Mario’s Podcast - Episode 187: Artificial intelligence explained properly.mp3`
+
+The extension is not part of the template: it is added according to the format of the source file.
 
 ---
 
-## 8.4 Recommended Templates
+## 8.3 The available tokens
 
-**Default template:**
+| Token | What it holds | Example |
+|-------|---------------|---------|
+| `{title}` | Episode title from the feed | `Episode 187: AI explained properly` |
+| `{podcast}` | Podcast name | `Mario’s Podcast` |
+| `{date}` | Publication date, `YYYY-MM-DD` | `2024-03-15` |
+| `{year}` | Year | `2024` |
+| `{month}` | Two-digit month | `03` |
+| `{day}` | Two-digit day | `15` |
+
+When an episode declares no date, the time tokens become the word `unknown`. A made-up token,
+`{episode}` for instance, stays in the name exactly as written: the program does not recognise it
+and leaves it alone.
+
+---
+
+## 8.4 Recommended templates
+
+The default is the title on its own:
+
 ```
 {title}
 ```
-The default template uses the episode title alone. It is suitable for catalogues with descriptive titles.
 
-**For general use (recommended):**
+That suits catalogues whose titles are already descriptive.
+
+For general use it is worth putting the date first:
+
 ```
 {date} - {title}
 ```
-Result: `2024-03-15 - Episode 187: AI Explained.mp3`
 
-This format is recommended because alphabetical sorting of the files coincides with chronological ordering.
+which produces `2024-03-15 - Episode 187: AI explained properly.mp3`. The advantage is practical:
+alphabetical file order matches chronological order.
 
-**For multi-podcast archives (shared folder):**
+If several podcasts end up in the same folder, include the programme name:
+
 ```
 {podcast} - {date} - {title}
 ```
-Result: `Mario's Podcast - 2024-03-15 - Episode 187.mp3`
-
-Useful when all podcasts are saved in the same destination folder.
-
-**For organisation into subfolders by year and month:**
-```
-{year}/{month}/{date} - {title}
-```
-Creates an automatic subfolder structure (see section 8.7).
 
 ---
 
-## 8.5 Automatic Name Normalisation
+## 8.5 How names are cleaned up
 
-Some characters are not permitted in file names on the main operating systems: `/`, `\`, `:`, `*`, `?`, `"`, `<`, `>`, `|` on Windows.
+Some characters are not allowed in file names: on Windows `/`, `\`, `:`, `*`, `?`, `"`, `<`, `>`,
+`|`. The program **removes** them from the name the template produces, without substituting
+anything: `Episode 12: The AI` becomes `Episode 12 The AI`.
 
-FeedDownloader Pro automatically applies **normalisation** to the name produced by the template:
+Two less obvious cases are handled too. The Windows reserved names (`CON`, `PRN`, `AUX` and
+company) cannot be used as file names: if the title reduces to one of those, the program falls back
+on `episode`. And the full path, folder included, is kept within 250 characters: if need be, the
+title is shortened, leaving room for the technical suffixes the program adds while it works
+(`.part.meta` and the `_2` it may need when two names collide).
 
-*   Non-permitted characters are replaced with a hyphen (`-`) or removed.
-*   Double spaces are reduced to a single space.
-*   Leading and trailing hyphens or spaces are removed.
-*   The name is truncated to 240 characters if it exceeds the filesystem limit.
-
-*Note on long titles:* Some podcasts use very descriptive titles (over 150 characters). Using the `{title}` token in the template may produce very long file names. In these cases, pairing `{date}` as the primary chronological element can limit the overall length of the name.
-
----
-
-## 8.6 Configuring the Template
-
-The rename template is configured in **Settings → Metadata**, in the **"File Naming Template"** field.
-
-The text field accepts any combination of text and tokens. Beneath the field, a real-time preview is available showing the result of the template applied to a sample episode, to verify the format before saving.
-
-The default template is `{title}`.
+*On long titles.* Some podcasts use titles of a hundred and fifty characters. With `{title}` alone
+you get unwieldy names at risk of truncation; put `{date}` at the front and the name stays sortable
+and recognisable even when the tail is cut off.
 
 ---
 
-## 8.7 Organisation into Subfolders
+## 8.6 Where to set it
 
-In the template it is possible to use the `/` character to create an automatic **subfolder** structure within the destination folder.
-
-**Example — organisation by year and month:**
-```
-{year}/{month}/{date} - {title}
-```
-
-With a destination folder of `D:\Podcast Archive\Mario's Podcast\`, the result will be:
-```
-D:\Podcast Archive\Mario's Podcast\
-    ├── 2024\
-    │   ├── 01\
-    │   │   ├── 2024-01-08 - First Episode of the Year.mp3
-    │   │   └── 2024-01-22 - Second Episode.mp3
-    │   └── 03\
-    │       └── 2024-03-15 - Episode 187.mp3
-    └── 2023\
-        └── 12\
-            └── 2023-12-20 - Last Episode of 2023.mp3
-```
-
-Subfolders are created automatically if they do not exist.
-
-*Caution:* The `\` (backslash) character is not supported as a path separator in the template. Always use `/` (forward slash), which the software correctly translates for the operating system in use.
+The template is configured in **Settings → Metadata**, in the **File Naming Template** field. Below
+the field a preview shows the result on a sample episode, so you can see the effect before closing
+the settings.
 
 ---
 
-## 8.8 Sidecar JSON Files
+## 8.7 One thing the template does not do
 
-The **"Sidecar .json File"** toggle is available in the **Settings → Metadata** tab.
+The template generates **a file name, not a folder structure**. Writing `{year}/{month}/{title}`
+does not create subfolders by year and month: the slashes are removed along with the other
+forbidden characters, and the result is a single file called `202403Title.mp3`.
 
-When enabled, for each downloaded audio file a `.json` file is created with the same name in the same folder. The file contains the episode metadata in structured format:
+The program applies exactly one piece of automatic organisation, and it concerns podcasts: inside
+the destination folder each programme gets its own subfolder, named after the podcast. To subdivide
+further by year, use different destination folders and switch between them from the folder icon in
+the command bar.
+
+---
+
+## 8.8 JSON sidecar files
+
+**Settings → Metadata** has the **Sidecar .json Files** switch, off by default.
+
+When it is on, a `.json` file with the same name appears beside each audio file, carrying the
+episode data:
 
 ```json
 {
-  "title": "Episode 187: AI Explained",
-  "podcast": "Mario's Podcast",
-  "date": "2024-03-15",
-  "sourceUrl": "https://media.example.com/ep187.mp3"
+  "title": "Episode 187: AI explained properly",
+  "podcast": "Mario’s Podcast",
+  "guid": "https://example.com/ep187",
+  "pubDate": "2024-03-15T08:00:00.000Z",
+  "downloadedAt": "2026-08-18T09:14:22.517Z",
+  "sourceUrl": "https://media.example.com/ep187.mp3",
+  "filename": "2024-03-15 - Episode 187 AI explained properly.mp3"
 }
 ```
 
-**Use cases:**
-*   Integration with automation scripts or systems that read metadata directly from the filesystem without querying the database.
-*   Preserving metadata independently of the database, useful in the event of archive migration or reconstruction.
-
-This option is disabled by default.
+It serves two purposes: letting scripts and external systems read the metadata without going
+through the database, and keeping a copy independent of the database itself, which helps if the
+archive ever has to be rebuilt.
 
 ---
 
-## 8.9 ID3 Tagging
+## 8.9 ID3 tags
 
-The **"ID3 Tagging"** toggle is available in the **Settings → Metadata** tab.
+Also in **Settings → Metadata**, the ID3 tagging switch changes its label with its state:
+**ID3 Tagging Enabled** or **ID3 Tagging Disabled**. It is off out of the box.
 
-When enabled, upon completion of each download the software writes metadata directly into the `.mp3` file, in the standard ID3 tags:
+When it is on, the program writes the data inside the file once the download finishes:
 
-*   **Title:** The episode title
-*   **Artist:** The podcast name
-*   **Year:** The publication year
-*   **Cover art:** The podcast image (if available in the RSS feed)
+*   **Title**: the episode title.
+*   **Artist** and **Album**: the podcast name.
+*   **Year**: the year of publication.
+*   **Cover art**: the episode image if the feed declares one, otherwise the podcast’s.
 
-ID3 tags are recognised by major audio players (Windows Media Player, VLC, iTunes, Foobar2000) and allow episode information to be displayed independently of the file name.
+Every widely used audio player reads these tags, so the information stays visible even if the file
+name changes.
 
-*Note:* ID3 tagging applies exclusively to `.mp3` files. Files in other formats (`.m4a`, `.ogg`, `.opus`) are not modified, even with this option active.
-
-This option is disabled by default.
+*MP3 only.* `.m4a`, `.ogg` and `.opus` files are not modified even with the option on.
 
 ---
 
-*Go to Chapter 9 for integrity verification and archive management.*
+*Chapter 9 covers file integrity and archive management.*

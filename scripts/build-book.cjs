@@ -19,6 +19,25 @@ async function main() {
     logoBase64 = 'data:image/png;base64,' + fs.readFileSync(logoPath).toString('base64');
   }
 
+  // 1-bis. Metadati di copertina letti da 00-copertina.md, che resta la fonte
+  // unica: sottotitolo, versione, edizione e citazione stanno nel Markdown e non
+  // più cablati qui dentro (prima il PDF usciva senza numero di versione).
+  const coverMd = fs.readFileSync(path.join(manualDir, '00-copertina.md'), 'utf8');
+  const pick = (re, fallback) => {
+    const m = coverMd.match(re);
+    return m ? m[1].trim() : fallback;
+  };
+  const mdSubtitle = pick(/^##\s+(.+)$/m, "Manuale d'uso avanzato");
+  const mdVersion = pick(/^###\s+Versione\s+(.+)$/m, '');
+  const mdEdition = pick(/^\*\*Edizione:\*\*\s*(.+)$/m, '');
+  const mdQuote = pick(/^>\s*\*«([\s\S]*?)»\*/m, '')
+    .replace(/^>\s?/gm, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const coverEdition = [mdVersion && `Versione ${mdVersion}`, mdEdition]
+    .filter(Boolean)
+    .join(' · ');
+
   // 2. Crea la Cover in HTML
   const coverHtml = `
 <!DOCTYPE html>
@@ -31,15 +50,15 @@ async function main() {
     <div class="cover-content">
       <img src="${logoBase64}" class="cover-logo" alt="Logo">
       <h1>Runtime FeedDownloader Pro</h1>
-      <h2>Manuale d'Uso Avanzato</h2>
+      <h2>${mdSubtitle}</h2>
       <div class="cover-meta">
-        <p class="edition">Edizione 2026</p>
+        <p class="edition">${coverEdition}</p>
         <p class="company">Ecosystem Runtime | Digital Core</p>
       </div>
     </div>
     <div class="cover-footer">
       <div class="quote-box">
-        <p class="quote">"I contenuti digitali sono fragili. Un dominio scade, un CDN si spegne, una piattaforma chiude.<br>L'unica copia che non scomparirà mai è quella che hai salvato tu."</p>
+        <p class="quote">«${mdQuote}»</p>
       </div>
     </div>
   </section>

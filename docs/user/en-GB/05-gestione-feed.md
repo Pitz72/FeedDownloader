@@ -1,150 +1,173 @@
-# Chapter 5: Feed Management
+# Chapter 5: Managing feeds
 
-## 5.1 What is an RSS Feed
+## 5.1 What an RSS feed is
 
-An RSS feed is an XML document published by a podcast to allow applications to automatically read the list of available episodes. When a publisher releases a new episode, they update this document by adding a new entry. Podcast applications periodically read these documents to identify the most recent content.
+An RSS feed is an XML document a podcast publishes so that programs can read its list of episodes.
+When a new instalment comes out, the publisher adds an entry to that document; readers re-read it
+now and then and notice the addition.
 
-For FeedDownloader Pro, the RSS feed is the **primary data source**: it contains the episode list, audio file URLs, metadata (title, date, duration, description, cover art), and general podcast information (name, author, category).
+For FeedDownloader Pro the feed is the source of everything: it carries the episode list, the
+addresses of the audio files, the metadata (title, date, duration, description, cover art) and the
+general information about the programme.
 
-Knowledge of the internal structure of an RSS feed is not necessary to use the software, but it facilitates the interpretation of data displayed in the episode list and the understanding of why some information may be missing or incomplete.
-
----
-
-## 5.2 Valid Feeds and Problematic Feeds
-
-Not all RSS feeds comply with the same level of adherence to the standards.
-
-**Well-formed feed:** Follows the RSS 2.0 or Atom standard, includes all required fields (title, link, publication date, audio URL with MIME type), and optionally the iTunes/Podcast Index tags for duration, cover art, and seasons. FeedDownloader Pro reads these feeds without issue.
-
-**Partially incomplete feed:** Some optional fields are missing (duration, file size, episode cover art). The software downloads the audio files regardless, but some columns in the list will remain empty.
-
-**Feed with unreachable audio URLs:** The feed is readable, but the audio file URLs point to resources that no longer exist (404 error). This situation is common with abandoned podcasts or those migrated to other servers. FeedDownloader Pro marks these episodes with **"Error"** status after the download attempt.
-
-**Authentication-protected feeds:** Some private or paid podcasts require HTTP Basic credentials to access the feed. The software supports these feeds: credentials are included directly in the URL in the format `https://username:password@www.example.com/feed.xml`.
+You do not need to know its internal structure to use the software. It does help, though, in
+understanding why data is sometimes missing from the list: nearly always it is the feed that fails
+to declare it.
 
 ---
 
-## 5.3 Analysing a Feed: Detail
+## 5.2 Well-made feeds and awkward ones
 
-When **"Analyse"** is clicked, FeedDownloader Pro performs the following operations in sequence:
+Standards compliance, in the podcast world, is an aspiration rather than a rule.
 
-1.  **URL validation:** Verifies that the URL is syntactically correct and passes the 5 anti-SSRF checks (see Chapter 10 for details).
-2.  **HTTP request:** Contacts the feed server with a standard user-agent. The timeout for this operation is 30 seconds.
-3.  **XML parsing:** Reads and analyses the RSS or Atom document. The software handles feeds with minor deviations from the standards (undeclared encoding, missing tags, unconventional namespaces).
-4.  **Deduplication:** For each episode in the feed, the database is queried to verify whether the episode has already been downloaded. The audio URL is used as the unique identification key.
-5.  **List population:** All episodes are displayed with their current status.
-6.  **Adding to the library:** The feed is permanently inserted into the sidebar if it is not already present. Feeds already in the library are updated with the latest episode count.
+**A well-formed feed.** It respects RSS 2.0 or Atom, declares title, link, date and audio address
+with its MIME type, and may add iTunes or Podcast Index tags for duration, cover art and seasons.
+The program reads it without fuss.
+
+**An incomplete feed.** Optional fields such as duration, size or episode artwork are missing. The
+files download the same, but some information stays blank in the list.
+
+**A feed with unreachable audio.** The document reads fine, but the file addresses point at
+resources that are gone. This happens often with abandoned programmes or ones that moved elsewhere.
+The episodes end in error after the download attempt.
+
+**Password-protected feeds.** Some private podcasts ask for HTTP Basic credentials. You can put
+them straight into the address: `https://user:password@www.example.com/feed.xml`.
 
 ---
 
-## 5.4 The Feed Library
+## 5.3 What happens when you press Analyze
 
-FeedDownloader Pro maintains a **permanent feed library**. Each analysed feed is saved in the sidebar and remains available between sessions, with no need to re-enter the URL at every launch.
+In sequence:
 
-### Display
+1.  **Address check.** Correct syntax, and clearance from the checks against SSRF attacks
+    (chapter 10).
+2.  **Request to the server.** The program identifies itself with an ordinary user agent and gives
+    up after fifteen seconds of silence.
+3.  **Reading the document.** It reads RSS or Atom and tolerates the common deviations: undeclared
+    encoding, missing tags, invented namespaces.
+4.  **Comparison with the archive.** Each episode is looked up in the database through its unique
+    identifier, the GUID; when the feed does not declare one, the audio file address stands in for
+    it.
+5.  **Filling the list.** Every episode appears with its own state.
+6.  **Entry into the library.** The feed joins the sidebar if it was not there already; if it was,
+    the episode count is updated.
 
-Each item in the library shows: the podcast cover art (thumbnail), the title, the date of the last synchronisation with the server, and the **"TO DOWNLOAD"** badge (e.g. `3 TO DOWNLOAD`), indicating how many new episodes have been detected via their unique identifier (GUID). The badge disappears as soon as all the new episodes have been downloaded.
+---
 
-Clicking on a feed in the sidebar immediately updates the episode list in the main area.
+## 5.4 The feed library
 
-### Removing a feed from the library
+Analysed feeds stay saved in the sidebar: there is no need to paste the addresses again at every
+launch.
 
-To remove a feed, hover over the entry in the sidebar: the bin button appears on the right side of the row. Clicking it opens a confirmation dialog. Removal deletes the feed from the library but **does not delete the audio files already downloaded** nor the related data in the database; the episodes remain visible in the Archive View.
+### What each row shows
+
+Cover art, title, date of the last sync and, when there are episodes never downloaded, the
+**TO DOWNLOAD** badge with a count. The count comes from comparing the feed’s GUIDs with the ones
+already on record. A click loads the episodes into the main area.
+
+### Removing a feed
+
+Hover over the row and a bin icon appears, which asks for confirmation. Removal deletes the feed
+from the library but **does not touch the audio files already downloaded**, nor their records: the
+episodes remain visible in the Archive view.
 
 ### Search and sorting
 
-*   **Feed search:** The search field at the top of the sidebar filters feeds by name in real time. Useful with large libraries.
-*   **A–Z sorting:** The sort button arranges feeds alphabetically by title. Clicking it again restores the original order.
+The field at the top filters by name as you type. The sort button puts the feeds in alphabetical
+order and, pressed again, restores the original order.
 
-*Privacy note:* The feed library is saved exclusively in the local database. No data is transmitted to external servers.
-
----
-
-## 5.5 Importing Feeds from OPML
-
-**OPML** (Outline Processor Markup Language) is the standard format for exporting and importing podcast lists between different applications. If you have a podcast library in an app such as Pocket Casts, Overcast, AntennaPod, or any other client, you can export it to OPML and import it directly into FeedDownloader Pro.
-
-**How to import an OPML file:**
-
-1.  Go to **Settings → Archive**, "Data and Portability" section.
-2.  Click **Import Feeds (OPML)** and select the `.opml` file exported from the podcast application.
-3.  FeedDownloader Pro analyses the file and adds the identified feeds to the library.
-
-*Note:* Some podcast applications use proprietary variants of the OPML format. FeedDownloader Pro supports the most widely used versions. If a file is not imported correctly, open it with a text editor and verify the presence of `<outline type="rss" xmlUrl="...">` tags for each podcast.
+*On privacy.* The library lives only in the local database. The program does not send your feeds to
+anyone.
 
 ---
 
-## 5.6 Exporting the Library to OPML
+## 5.5 Importing feeds from an OPML file
 
-The feed library can be exported in OPML format to:
+OPML is the format podcast applications use to exchange subscription lists. If you have a library
+in Pocket Casts, Overcast, AntennaPod or similar, you can export it and bring it in here.
 
-*   Create a backup of the podcast list.
-*   Share it with other users or with another installation of the software.
-*   Import it into a podcast application to follow the same feeds.
+1.  Open **Settings → Archive**, section **Data & Portability**.
+2.  Press **Import Feeds (OPML)** and choose the `.opml` file.
+3.  The program reads it and adds the feeds it finds to the library.
 
-**How to export:**
-
-1.  Go to **Settings → Archive**, "Data and Portability" section.
-2.  Click **Export Feeds (OPML)** and choose a name and location for the file.
-3.  The generated file is compatible with any application that supports the OPML standard.
-
----
-
-## 5.7 Large Feeds
-
-Some historical podcasts or radio production archives can have feeds with thousands of episodes and RSS files of considerable size. In these cases:
-
-*   **RFC 5005 pagination:** Many platforms publish only the most recent episodes in the feed and split the historical archive into multiple linked pages (RFC 5005 standard, `rel="next"` links). FeedDownloader Pro follows these links automatically and reassembles the entire catalogue into a single list, with no user intervention. Every pagination link is subject to the same security checks as manually entered URLs.
-*   **The initial analysis takes longer:** A feed with 2,000 episodes (or split across many pages) may require 15–30 seconds for download and parsing. This behaviour is expected.
-*   **List virtualisation:** With thousands of entries, the list loads only the rows visible on screen to keep the interface responsive.
-*   **Estimating required space:** With 2,000 episodes at approximately 50 MB each, the total volume is approximately 100 GB. Verify that sufficient space is available before proceeding.
+*If the import fails*, it is worth opening the file in a text editor and looking for lines like
+`<outline type="rss" xmlUrl="...">`: some applications use proprietary variants of the format and
+leave exactly those out.
 
 ---
 
-## 5.8 Managing Multiple Feeds
+## 5.6 Exporting the library to OPML
 
-FeedDownloader Pro natively manages a library of multiple feeds. There is no limit to the number of podcasts that can be added: all are kept in the sidebar and remain accessible between sessions.
+Exporting is for keeping a copy of the list, moving it to another installation, or following the
+same programmes in a listening app.
 
-### Navigating between feeds
+1.  Open **Settings → Archive**, section **Data & Portability**.
+2.  Press **Export Feeds (OPML)** and choose a name and location.
 
-Clicking on a feed in the sidebar immediately updates the episode list in the main area. The software remembers which feed was selected at the last closure.
-
-### Synchronising feeds
-
-*   **Individual synchronisation:** Hover the mouse over a feed entry in the sidebar to display the sync icon. Clicking it makes the software re-read that feed from the server and update the list with any new episodes.
-*   **Sync All:** The **"Sync All"** button refreshes all feeds in parallel in a single operation. During the process, each thumbnail in the sidebar shows its own status in real time. On completion, any new episodes are highlighted with the **"TO DOWNLOAD"** badge.
-
-For scheduled automatic refresh without manual intervention, see section 5.9.
+The resulting file can be read by any application that supports the standard.
 
 ---
 
-## 5.9 Automatic Feed Refresh
+## 5.7 Very large feeds
 
-FeedDownloader Pro synchronises all feeds automatically in the background, without requiring any action from the user. The check runs:
+Long-running podcasts and radio archives easily reach thousands of episodes.
 
-*   **at startup** (a few seconds after the application opens);
-*   **at regular intervals** (the "Automatic Feed Refresh" setting);
-*   **when the connection returns** after a period offline.
+**RFC 5005 pagination.** Many platforms publish only recent instalments in the feed and break the
+rest into pages linked to each other with `rel="next"`. The program follows those links by itself
+and reassembles the catalogue into a single list. Each page goes through the same security checks
+as an address typed by hand. The number of pages followed stops at twenty: a safety ceiling against
+feeds that refer to one another endlessly, which on enormous catalogues means the oldest part may
+be left out.
 
-### Configuration
+**Analysis takes longer.** Two thousand episodes, or a feed split across many pages, can need
+fifteen to thirty seconds. That is normal.
 
-The setting is found in **Settings → General → Automatic Feed Refresh**. Four options are available:
+**The list stays light.** Even with thousands of entries, only the rows visible on screen are
+drawn.
+
+**Space.** Two thousand episodes at fifty megabytes apiece make a hundred gigabytes: worth counting
+before you start.
+
+---
+
+## 5.8 Working with many feeds
+
+There is no limit to the number of podcasts in the library, and they all stay available from one
+session to the next.
+
+A click on a feed in the sidebar loads its episodes immediately. At startup no feed is selected:
+the program does not remember the last one open, it shows the library and waits.
+
+To refresh them: the sync icon on an individual row re-reads that feed; **Sync All** re-reads them
+all in parallel, showing the state on each cover and flagging the news at the end with the
+**TO DOWNLOAD** badge.
+
+For scheduled refreshing, with nothing for you to do, see the next section.
+
+---
+
+## 5.9 Automatic refresh
+
+The program checks the feeds by itself: at startup, then at regular intervals, and every time the
+connection returns after an outage.
+
+You choose the interval in **Settings → General → Automatic Feed Refresh**.
 
 | Option | Behaviour |
 |--------|-----------|
-| **Disabled** | No periodic synchronisation (the startup check remains). |
-| **6 hours** (default) | The software synchronises all feeds every 6 hours. |
-| **12 hours** | The software synchronises all feeds every 12 hours. |
-| **24 hours** | The software synchronises all feeds once every 24 hours. |
+| Disabled | No cyclical checks; the one at startup remains. |
+| 6 hours (default) | Every feed re-read every six hours. |
+| 12 hours | Re-read every twelve hours. |
+| 24 hours | Re-read once a day. |
 
-The setting change is immediate and does not require restarting the software. The timer starts from application startup.
+The change takes effect at once, with no restart. The count starts again from the program launch.
 
-### Behaviour
-
-Automatic refresh **does not start downloads**: it only checks whether new episodes have been published. If new episodes are found on one or more feeds, the system sends an **operating system notification** with a summary of the content found (in Italian or English, following the interface language). The notification is **clickable**: it brings the application to the foreground and, if the new episodes belong to a single podcast, opens that feed directly.
-
-To download the reported new episodes, use the normal batch controls.
+Automatic refresh **downloads nothing**: it only looks for new episodes. When it finds some, it
+sends a system notification with the summary, in the interface language. The notification is
+clickable: it brings the program to the front and, if the news concerns a single podcast, opens
+that feed directly. To download them you then use the normal commands.
 
 ---
 
-*Go to Chapter 6 for a detailed description of the download engine.*
+*Chapter 6 explains how the download engine works.*

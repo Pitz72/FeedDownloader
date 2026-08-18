@@ -1,125 +1,147 @@
-# Capitolo 6: Il Motore di Download
+# Capitolo 6: Il motore di download
 
-## 6.1 Architettura del Motore
+## 6.1 Com’è fatto
 
-Il motore di download di FeedDownloader Pro è un sistema asincrono a thread multipli. A differenza di un downloader sequenziale, il software gestisce più download contemporaneamente attraverso un sistema di coda centrale.
+Il motore lavora in modo asincrono e parallelo: invece di scaricare un file per volta, gestisce più
+trasferimenti insieme attraverso una coda centrale.
 
-**Componenti principali:**
-
-*   **La coda:** Una lista ordinata di tutti i download in attesa. Ogni episodio aggiunto al batch entra in questa coda e attende di essere assegnato a un thread disponibile.
-*   **I worker thread:** I processi che eseguono fisicamente i download. Il numero di thread attivi è configurabile. Ogni thread gestisce un download alla volta, in modo indipendente dagli altri.
-*   **Il database manager:** Il componente che aggiorna in tempo reale il database SQLite con lo stato di ogni download (avviato, completato, fallito, percentuale di avanzamento).
-*   **Il monitor di integrità:** Il processo che, al completamento di ogni download, calcola e registra l'hash SHA-256 del file scaricato.
-
----
-
-## 6.2 Download Paralleli: Configurazione
-
-Il numero di download simultanei è uno dei parametri più rilevanti da configurare. Un valore insufficiente rallenta il processo; un valore eccessivo può saturare la connessione, sovraccaricare il server sorgente o generare errori di rete.
-
-**Il valore predefinito è 3 thread.** Per la maggior parte degli utenti con connessione domestica, questo valore offre un buon equilibrio tra velocità e stabilità.
-
-**Linee guida per la configurazione:**
-
-| Scenario | Thread consigliati |
-|----------|--------------------|
-| Connessione lenta o server con throttling | 1 |
-| Connessione domestica standard | 3 (predefinito) |
-| Connessione in fibra veloce | 5 |
-| NAS con connessione di rete lenta | 1 |
-
-**Come modificare il numero di download simultanei:**
-Andare in **Impostazioni → Download → Download Paralleli** e selezionare uno dei tre preset disponibili: **1**, **3** o **5**. La modifica viene applicata immediatamente alla coda in corso.
-
-*Nota sui server con limiti di connessione:* Alcuni server di hosting podcast applicano limitazioni al numero di connessioni simultanee per singolo indirizzo IP. In presenza di errori frequenti `429 Too Many Requests` o `503 Service Unavailable`, ridurre il numero di thread a 1 o 2. Il meccanismo di retry gestisce automaticamente i fallimenti, ma ridurre il carico previene il problema alla radice.
+Le parti in gioco sono quattro. La **coda** raccoglie in ordine tutti gli episodi in attesa. I
+**processi di download** prendono dalla coda un episodio ciascuno e lo portano a termine, senza
+sapere nulla degli altri; quanti ne lavorano insieme lo decidi tu. Il **gestore del database**
+registra momento per momento lo stato di ogni trasferimento. Il **controllo di integrità** calcola
+l’impronta SHA-256 di ogni file appena arrivato e la scrive in archivio.
 
 ---
 
-## 6.3 Gestione degli Errori e Sistema di Retry
+## 6.2 Quanti download in parallelo
 
-In un download batch di centinaia di file, gli errori di rete sono prevedibili. FeedDownloader Pro utilizza una strategia di **retry con backoff esponenziale**: quando un download fallisce, il sistema attende un intervallo crescente prima di riprovare, anziché rimettere immediatamente l'episodio in coda.
+È il parametro che conviene tarare per primo. Troppo pochi e l’archiviazione si trascina; troppi e si
+satura la connessione, si irrita il server o si moltiplicano gli errori.
 
-**Ciclo di retry:**
+Il valore predefinito è **3**, che su una linea domestica è un buon compromesso.
 
-| Tentativo | Attesa prima del retry |
-|-----------|------------------------|
-| 1° fallimento | 1 secondo |
-| 2° fallimento | 2 secondi |
-| 3° fallimento (ultimo) | L'episodio viene marcato come **"Errore"** definitivo |
+| Situazione | Download in parallelo |
+|------------|-----------------------|
+| Connessione lenta, o server che limita la banda | 1 |
+| Linea domestica normale | 3 (predefinito) |
+| Fibra veloce | 5 |
+| NAS raggiunto da una rete lenta | 1 |
 
-Se un server è temporaneamente sovraccarico, il sistema dà al server il tempo di recuperare prima di riprovare. In caso di risposta `429 Too Many Requests` con intestazione `Retry-After`, l'attesa indicata dal server viene rispettata (fino a un massimo di 60 secondi). Poiché il file parziale `.part` viene conservato tra un tentativo e l'altro, il retry **riprende dal punto raggiunto** invece di ricominciare da zero.
+Si cambia da **Impostazioni → Download → Download Paralleli**, scegliendo fra **1**, **3** e **5**.
+La modifica vale subito, anche sulla coda in corso.
 
-**Errori definitivi (non soggetti a retry):**
-*   `404 Not Found`: Il file non esiste sul server. Nuovi tentativi non sono utili.
-*   **Contenuto non audio:** Il server ha risposto con una pagina web (HTML) al posto del file audio — tipico di link scaduti che reindirizzano a una pagina di cortesia. Il download viene rifiutato con il messaggio *"Il server ha inviato una pagina web, non audio"*.
-*   **File oltre il limite di dimensione:** Il file supera il valore di **"Dimensione Massima File"** configurato nelle Impostazioni (vedi il Capitolo 10).
+*Se il server protesta.* Diversi servizi di hosting limitano le connessioni simultanee per indirizzo
+IP. Quando compaiono spesso errori `429 Too Many Requests` o `503 Service Unavailable`, conviene
+scendere a uno o due. Il meccanismo dei tentativi gestisce comunque i fallimenti, ma togliere carico
+risolve il problema all’origine.
+
+---
+
+## 6.3 Errori e tentativi
+
+Su centinaia di file, qualche errore di rete è certo. Il programma non insiste subito: aspetta, e
+l’attesa cresce a ogni fallimento.
+
+| Tentativo | Cosa succede |
+|-----------|--------------|
+| Dopo il primo fallimento | attende 1 secondo e riprova |
+| Dopo il secondo | attende 2 secondi e riprova |
+| Dopo il terzo | l’episodio è dichiarato in **errore** |
+
+Se il server risponde `429 Too Many Requests` indicando un tempo di attesa nell’intestazione
+`Retry-After`, il programma lo rispetta fino a un massimo di sessanta secondi. Poiché il file
+parziale `.part` sopravvive fra un tentativo e l’altro, la ripresa riparte dal punto raggiunto
+invece che da capo.
+
+Alcuni errori non meritano un secondo tentativo, e il programma lo riconosce:
+
+*   **File inesistente** (`404 Not Found`): riprovare non lo farà comparire.
+*   **Contenuto non audio**: il server ha risposto con una pagina web al posto del file, tipico dei
+    collegamenti scaduti che rimbalzano su una pagina di cortesia. Il download viene rifiutato con
+    il messaggio *Il server ha inviato una pagina web, non audio*.
+*   **File troppo grande**: supera il valore di **Dimensione Massima File** impostato (capitolo 10).
 *   **Disco pieno o accesso negato** alla cartella di destinazione.
-*   Errori di validazione SSRF: L'URL non ha superato i controlli di sicurezza interni.
+*   **Indirizzo bocciato dai controlli di sicurezza** contro gli attacchi SSRF.
 
-**Riprovare gli episodi falliti:** Al termine del batch, il pulsante **"Riprova falliti"** nella sezione errori del Pannello Download rimette in coda in un solo clic tutti gli episodi in errore.
-
----
-
-## 6.4 Stall Detection
-
-Un download bloccato è uno scenario in cui la connessione TCP è tecnicamente attiva e i pacchetti continuano ad arrivare, ma il flusso di dati si è interrotto. Il sistema operativo non segnala errori poiché la connessione è ancora aperta; il file continua a risultare "in download" senza progredire.
-
-Questa condizione si verifica frequentemente con:
-*   Server sotto carico che applicano il throttling dopo aver inviato i primi byte.
-*   Problemi di routing di rete intermedi.
-*   File audio di grandi dimensioni serviti da CDN con limitazioni di banda.
-
-**Rilevamento:**
-Ogni download attivo è monitorato da un watchdog. Se per **60 secondi consecutivi** non arrivano nuovi byte, il download viene considerato bloccato e:
-1.  La connessione viene interrotta.
-2.  Il file `.part` parziale viene **conservato**.
-3.  L'episodio rientra nel normale ciclo di retry e, grazie al file parziale, il nuovo tentativo **riprende dal punto raggiunto**.
-
-Il processo è trasparente per l'utente. Se il blocco era causato da una condizione transitoria, il download riprende normalmente. Se il problema persiste oltre i tentativi massimi, l'episodio viene marcato come **"Errore"**.
+A fine lotto, **Riprova falliti** rimette in coda tutti gli episodi in errore con un solo clic.
 
 ---
 
-## 6.5 File `.part`: Anti-Corruzione e Ripresa
+## 6.4 Il rilevamento degli stalli
 
-Ogni file audio viene scaricato con l'estensione temporanea `.part` durante il trasferimento. Il file viene rinominato con l'estensione definitiva (`.mp3`, `.m4a`, `.ogg`, ecc.) **solo** dopo che:
+C’è un caso peggiore dell’errore: il trasferimento che non finisce e non fallisce. La connessione
+resta tecnicamente aperta, il sistema operativo non segnala niente, ma i byte hanno smesso di
+arrivare. Senza una difesa, quel download resterebbe appeso a occupare un posto in coda.
 
-1.  Il trasferimento è completato al 100%.
-2.  La dimensione del file corrisponde a quella dichiarata nell'intestazione HTTP (`Content-Length`), se disponibile.
-3.  L'hash SHA-256 è stato calcolato e registrato nel database.
+Capita soprattutto con server sotto carico che strozzano la banda dopo i primi byte, con problemi di
+instradamento lungo la strada e con file grossi serviti da reti di distribuzione limitate.
 
-Questo meccanismo garantisce che nella cartella di destinazione non siano mai presenti file audio parziali o corrotti con estensione definitiva.
-
-**Ripresa dei trasferimenti:** In caso di pausa, errore transitorio o interruzione, il file `.part` viene conservato insieme a un piccolo file `.part.meta` che registra il "validatore" del server (ETag o Last-Modified). Al tentativo successivo, il software chiede al server solo i byte mancanti (richiesta HTTP `Range` con `If-Range`): se nel frattempo il file remoto è cambiato, il server lo segnala e il download riparte da zero, evitando di incollare frammenti di file diversi.
-
-**Pulizia dei residui:** I file `.part` rimasti orfani da sessioni passate si eliminano con **Impostazioni → Avanzate → Manutenzione → Pulisci file temporanei** (la funzione è disponibile solo a download fermi).
-
-*Posizione dei file `.part`:* Nella stessa cartella di destinazione dei file completati. Questi file non devono essere aperti con un player audio: essendo parziali, causerebbero errori di lettura.
-
----
-
-## 6.6 Pausa, Ripresa e Interruzione
-
-**Mettere in pausa (non distruttivo):**
-Dal Pannello Download è possibile sospendere **un singolo download** (pulsante **"Metti in pausa"** sulla riga) oppure **l'intera coda** (pulsante **"Pausa"** nell'intestazione; il pannello mostra **"Coda in pausa"**). La pausa conserva i file `.part`: premendo **"Riprendi"** il trasferimento continua esattamente dal punto in cui era arrivato. Un download in pausa mantiene il proprio posto nella coda e nel batch.
-
-**Fermare il Batch (distruttivo):**
-Il pulsante **"Ferma download"** nel Pannello Download interrompe tutti i download attivi in modo ordinato, svuota la coda ed elimina i file `.part` parziali. I file già completati rimangono nel database. Gli episodi interrotti appariranno nuovamente con il tag **"NUOVO"**.
-
-**Chiusura della finestra durante un download:**
-Chiudendo la finestra principale con la X, il programma continua a operare nel system tray e i download proseguono in background. La voce **"Quit"** del menu del tray chiude invece definitivamente il programma, interrompendo i download attivi; i file `.part` rimangono su disco, quindi rimettendo in coda gli stessi episodi alla sessione successiva il trasferimento riprende dal punto raggiunto.
+Ogni trasferimento attivo è quindi sorvegliato. Se per **sessanta secondi** non arriva un solo byte,
+il programma chiude la connessione, **conserva il file `.part`** e conta l’accaduto come un
+tentativo fallito: il tentativo successivo riprende dal punto raggiunto. Se lo stallo era passeggero
+la cosa si risolve da sé; se invece si ripete fino a esaurire i tre tentativi, l’episodio finisce in
+errore.
 
 ---
 
-## 6.7 Velocità di Download
+## 6.5 I file `.part`
 
-La velocità complessiva del batch è la **somma aggregata** di tutti i download attivi. Con 3 thread attivi che scaricano ciascuno a 2 MB/s, la velocità totale visualizzata è di circa 6 MB/s.
+Durante il trasferimento il contenuto finisce in un file temporaneo con estensione `.part`. Il nome
+definitivo arriva solo quando il trasferimento è completo e la dimensione corrisponde a quella
+dichiarata dal server. Così nella cartella di destinazione non compare mai un file audio troncato
+con l’estensione buona.
 
-**Fattori che influenzano la velocità:**
-*   **Larghezza di banda della connessione:** Il limite massimo disponibile.
-*   **Velocità del server sorgente:** Molti server di hosting podcast applicano limitazioni di banda per contenere i costi. La velocità di un singolo thread raramente supera i 2–5 MB/s su questi server.
-*   **Numero di thread:** Un numero maggiore di thread compensa la lentezza dei singoli server scaricando da più connessioni simultanee.
-*   **Dimensione dei file:** File di dimensione media (20–80 MB, corrispondenti a episodi di 30–60 minuti) offrono l'efficienza ottimale, con un overhead relativo di connessione ridotto.
+L’impronta SHA-256 viene calcolata subito dopo, sul file ormai definitivo, e registrata in archivio
+insieme a dimensione, bitrate e frequenza di campionamento.
+
+**La ripresa.** In caso di pausa, errore temporaneo o interruzione, accanto al `.part` resta un
+piccolo file `.part.meta` con il «validatore» fornito dal server (ETag oppure Last-Modified). Al
+tentativo successivo il programma chiede soltanto i byte mancanti, con una richiesta HTTP `Range`
+accompagnata da `If-Range`: se nel frattempo il file remoto è cambiato, il server lo dichiara e il
+download riparte da zero. È la garanzia contro il rischio peggiore della ripresa, cioè incollare
+insieme pezzi di due file diversi.
+
+**La pulizia.** I `.part` rimasti orfani da sessioni passate si eliminano da **Impostazioni →
+Avanzate → Manutenzione → Pulisci file temporanei**; la funzione lavora solo a download fermi.
+
+I file parziali stanno nella stessa cartella dei file completati. Non ha senso aprirli con un
+lettore audio: sono monconi, e il lettore protesterà.
 
 ---
 
-*Vai al Capitolo 7 per la configurazione dei percorsi NAS e di rete.*
+## 6.6 Pausa, ripresa, interruzione
+
+**Pausa.** Dal pannello download si sospende un singolo trasferimento, con **Metti in pausa** sulla
+riga, oppure tutta la coda, con **Pausa** in fondo al pannello: la scritta **Coda in pausa** segnala
+lo stato. La pausa conserva i file parziali e il posto nella coda; **Riprendi** fa continuare il
+trasferimento dal punto esatto in cui si era fermato.
+
+**Interruzione.** **Ferma download** è un’altra cosa: chiude ordinatamente i trasferimenti attivi,
+svuota la coda ed elimina i file parziali. Ciò che era già completo resta in archivio; gli episodi
+interrotti tornano a mostrarsi come **NUOVO**.
+
+**Chiusura della finestra.** Con la × il programma si ritira nell’area di notifica e continua a
+scaricare. La voce **Quit** del menu del tray invece chiude tutto e interrompe i trasferimenti; i
+`.part` restano sul disco, quindi rimettendo in coda quegli episodi alla sessione successiva la
+ripresa riparte da dove eravamo.
+
+---
+
+## 6.7 La velocità
+
+Ogni riga del pannello mostra la velocità del proprio trasferimento. Non c’è un totale aggregato a
+schermo: per farsi un’idea della banda occupata si sommano a occhio le righe attive.
+
+Quattro fattori la determinano.
+
+*   **La tua linea**, che resta il tetto.
+*   **Il server di origine**, che spesso è il vero collo di bottiglia: molti servizi di hosting
+    limitano la banda per contenere i costi, e un singolo trasferimento raramente supera i 2–5 MB/s.
+*   **Il numero di download paralleli**, che compensa la lentezza del singolo server usando più
+    connessioni insieme.
+*   **La dimensione dei file**: i file da 20–80 MB, cioè episodi da mezz’ora o un’ora, sono i più
+    efficienti, perché il tempo speso ad aprire la connessione pesa poco sul totale.
+
+---
+
+*Il capitolo 7 tratta i percorsi su NAS e dischi di rete.*

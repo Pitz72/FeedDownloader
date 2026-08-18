@@ -1,124 +1,139 @@
-# Chapter 9: Integrity, Statistics, and Archiving
+# Chapter 9: Integrity, statistics and archiving
 
-## 9.1 Why Verify File Integrity
+## 9.1 Why files need verifying
 
-The completion of a download does not guarantee that the received file is intact. A network packet lost during transfer, a disk write error, or an interruption in the last second can produce a file that is formally "present" but corrupted. Without an explicit verification, an apparently complete archive can contain unplayable audio files whose corruption is only detected during playback.
+A download that reaches the end is not necessarily a healthy file. A packet lost on the way, a
+write error, an interruption in the last second: the file is there, it weighs nearly what it
+should, and it turns out to be a stump the day somebody tries to listen to it. For an archive that
+is the worst way to fail, because the damage surfaces years later.
 
-FeedDownloader Pro addresses this problem with two complementary mechanisms: **size verification** (during download) and **SHA-256 verification** (upon completion).
-
----
-
-## 9.2 SHA-256 Verification
-
-**SHA-256** (Secure Hash Algorithm 256-bit) is a cryptographic function that produces a 64-character hexadecimal fingerprint for any file. Two identical files always produce the same hash; a difference of even a single bit produces a completely different hash.
-
-For each downloaded file, FeedDownloader Pro:
-1.  Calculates the SHA-256 hash of the file at the end of the download.
-2.  Saves the hash in the database, together with the file path and the date of calculation.
-
-**Practical uses:**
-*   The **Health Check** (see section 9.4) recalculates the hash of every present file and compares it with the recorded one: any modification, corruption or replacement after the download is detected.
-*   The **"Repair archive (checksum search)"** function uses the same hash to find files that have been renamed by hand (see section 9.4).
-*   In professional contexts, the SHA-256 hash constitutes a verifiable reference of content integrity at the time of download.
+FeedDownloader Pro works on two levels: it checks the **size** while downloading and calculates the
+**SHA-256 checksum** as soon as the file is complete.
 
 ---
 
-## 9.3 Extracted Audio Metadata
+## 9.2 The SHA-256 checksum
 
-Upon completion of each download, FeedDownloader Pro automatically extracts the **technical metadata** from the audio file. This information is read directly from the file (not from the RSS feed) and recorded in the database.
+SHA-256 produces, for any file, a sequence of 64 hexadecimal characters. Two identical files give
+the same checksum; change one bit and the checksum becomes unrecognisable. It is the standard way
+of saying "this file is exactly the one from back then".
 
-**Extracted metadata:**
+For every download the program calculates the checksum and records it in the archive along with the
+file name and the date.
 
-| Field | Description | Example |
-|-------|-------------|---------|
-| **Bitrate** | Audio quality in kilobits per second | `128 kbps`, `320 kbps` |
-| **Sample rate** | Sampling frequency | `44100 Hz`, `48000 Hz` |
-| **Size on disk** | Actual size of the downloaded file | `67.4 MB` |
-
-These values are recorded in the database and are included in the CSV export (see section 9.6).
+It serves three purposes. The **archive health check** (section 9.4) recalculates the checksum of
+the files present and compares it with the one on record, catching corruption and substitutions
+that happened after the download. **Checksum repair** uses the same checksum to recognise files
+somebody renamed by hand. And in a professional context, the checksum is verifiable proof of what
+that file contained at the moment it was archived.
 
 ---
 
-## 9.4 Health Check: Archive Integrity Verification
+## 9.3 Technical metadata
 
-Over time, an archive may undergo external modifications outside the software: files moved, renamed, deleted or corrupted directly on the filesystem. The **Health Check** verifies the state of the archive against what is recorded in the database.
+Once a download finishes the program reads the technical data **inside the file**, not from the
+feed, and records it.
 
-**How to run the Health Check:**
-Go to **Settings → Archive → Archive Health Check** and click **"Run Check"**.
+| Field | What it tells you | Example |
+|-------|-------------------|---------|
+| Bitrate | Audio quality in kilobits per second | `128 kbps`, `320 kbps` |
+| Sample rate | Samples per second | `44100 Hz`, `48000 Hz` |
+| Size on disk | Real weight of the file | `67.4 MB` |
 
-The process performs two checks on each file recorded in the database:
+They end up in the episode detail panel and in the CSV inventory (section 9.6).
 
-1.  **Presence:** verifies that the file still exists at the recorded path.
-2.  **Real integrity:** for present files, it recalculates the SHA-256 hash and compares it with the one recorded at download time. A modified or damaged file is reported as **corrupted** ("checksum mismatch"), with the suggestion to re-download the affected episodes.
+---
 
-Upon completion, a summary is shown with four indicators:
+## 9.4 The archive health check
+
+Over time an archive changes behind the program’s back: files moved, renamed, deleted by mistake,
+or ruined by a dying disk. The check compares the reality on disk with what the archive says.
+
+You start it from **Settings → Archive → Archive Health Check**, pressing **Run Check**.
+
+Two verifications are run on every recorded file: that it still exists where it is meant to, and —
+for those present — that the recalculated SHA-256 checksum matches the one from back then. Files
+that no longer match are flagged as corrupted, with a prompt to download them again.
+
+Four numbers appear at the end:
 
 | Indicator | Meaning |
 |-----------|---------|
-| **In DB** | Total number of episodes in the database |
-| **On Disk** | Files that exist at the recorded path |
-| **Missing** | Files not found at the recorded path |
-| **Disk Usage** | Total disk space of the present files |
+| **In DB** | Episodes recorded in the archive |
+| **On Disk** | Files found where they were meant to be |
+| **Missing** | Files not found |
+| **Disk Usage** | Total space taken by the files present |
 
-If missing files are found, the software lists the first 5 with the podcast name and file name, and offers two actions:
+When something is missing, the program lists the first five cases with podcast and file name, and
+offers two routes.
 
-*   **"Repair archive (checksum search)":** Searches the podcast folders for files that have been **renamed by hand**: each candidate file is identified via its recorded SHA-256 hash and, on a match, is re-linked to the database under its new name — without re-downloading anything. A summary is then shown: *"N files re-linked, M not found"*.
-*   **"Mark as not downloaded":** Removes the genuinely missing files from the registry; they return to the episode list with the **"NEW"** tag and can be re-downloaded with the normal controls (**"Download"** or **"Download All"**).
+**Repair archive (checksum search)** looks through the podcast folders for files somebody renamed
+by hand: it calculates the checksum of the candidates and, when it finds the right one, re-links
+the file to the episode under its new name. It downloads nothing and touches no files: it updates
+the archive. At the end it reports how many it re-linked and how many it could not find.
 
----
+**Mark as not downloaded** is for the genuinely lost: it removes them from the register, so the
+episodes go back to **NEW** in the list and can be downloaded again normally.
 
-## 9.5 Archive Statistics
-
-The statistics section is accessible from **Settings → Archive** and provides a concise overview of the data recorded in the database:
-
-*   **Downloaded files:** Total number of episodes present in the database.
-*   **Podcasts:** Number of distinct feeds represented in the archive.
-*   **Time range:** Date of the first and last downloaded episode.
-
-Statistics are automatically updated each time the Settings panel is opened.
+That is the sensible order: try to repair first, then declare lost whatever is left.
 
 ---
 
-## 9.6 CSV Export
+## 9.5 Statistics
 
-The CSV export generates a file with the data of each episode present in the database. It is useful for integrating FeedDownloader Pro with other tools (spreadsheets, content management systems, automation scripts).
+**Settings → Archive** carries three summary figures: **Files Downloaded**, the episodes on record;
+**Podcasts**, how many distinct programmes make up the archive; **Archive range**, the date of the
+first and the last download. They refresh every time you open the settings.
 
-**How to export:**
-Go to **Settings → Archive → Export CSV** and choose the path in which to save the file.
+---
 
-**Export columns:**
+## 9.6 The CSV inventory
 
-| Column | Content |
-|--------|---------|
+The export produces a file with one row per episode: useful for spreadsheets, editorial systems,
+scripts, or simply for having a list of what you hold outside the program.
+
+You generate it from **Settings → Archive → Export Inventory (CSV)**, choosing where to save it.
+
+| Column | Contents |
+|--------|----------|
 | `Podcast` | Podcast name |
 | `Episode Title` | Episode title |
 | `Publish Date` | Publication date |
-| `Downloaded At` | Date and time of download |
-| `File Size (bytes)` | File size in bytes |
-| `Bitrate (kbps)` | Audio bitrate in kilobits per second |
-| `Sample Rate (Hz)` | Sampling frequency in hertz |
-| `SHA-256 Checksum` | SHA-256 hash of the file |
-| `Validation Status` | Result of the last integrity check |
-| `GUID` | Unique identifier of the episode in the RSS feed |
+| `Downloaded At` | Download date and time |
+| `File Size (bytes)` | Size in bytes |
+| `Bitrate (kbps)` | Audio bitrate |
+| `Sample Rate (Hz)` | Sample rate |
+| `SHA-256 Checksum` | File checksum |
+| `Validation Status` | See below |
+| `GUID` | Episode identifier in the feed |
 
-*File format:* CSV with comma separator (`,`), UTF-8 encoding with BOM (for compatibility with Microsoft Excel). Fields containing commas are enclosed in quotation marks.
+The `Validation Status` column says what guarantees the episode was recorded with, not the outcome
+of the last check: it reads `OK` when a SHA-256 checksum is on record, `LEGACY` for older rows that
+have the file name but no checksum, and `UNKNOWN` when even that is missing.
 
----
-
-## 9.7 Archive Migration
-
-To move the archive to a new drive or a new folder, use the built-in migration function, which keeps the database synchronised with the new file location.
-
-**Procedure:**
-1.  Go to **Settings → Archive → Migrate Archive**.
-2.  Select the **new destination folder** via the selection window.
-3.  The software physically moves all audio files to the new folder and updates the paths in the database.
-4.  Upon completion, a summary is shown: number of files moved and any errors.
-
-*Caution:* The migration moves files from the current folder to the new one. Files are removed from the original location. Verify that the destination drive has sufficient space before starting the operation.
-
-*Moving to a new computer:* Copy both the audio files folder and the `feeddownloader.sqlite` file (from the user data folder described in Chapter 2). On the new computer, install FeedDownloader Pro, copy the database to the user data folder, and use the migration function if the archive path has changed.
+*Format.* Comma-separated CSV, UTF-8 with BOM to keep Excel happy, fields in quotes when they
+contain commas.
 
 ---
 
-*Go to Chapter 10 for the advanced software settings.*
+## 9.7 Moving the archive
+
+To transfer the files to another disk, use the built-in migration, which moves them and keeps the
+archive aligned as it goes.
+
+1.  Open **Settings → Archive → Migrate Archive**.
+2.  Choose the new folder.
+3.  The program moves the podcast folders and updates the default destination.
+4.  At the end it reports how many folders it moved and how many errors it met.
+
+*Careful:* this is a move, not a copy — the files leave their original location. Best to check there
+is room at the destination first.
+
+*Moving to another computer.* Two things are needed: the folder of audio files and the
+`feeddownloader.sqlite` database (chapter 2). On the new machine, install the program, put the
+database in the data folder and, if the audio files ended up somewhere different, use migration to
+realign everything.
+
+---
+
+*Chapter 10 goes through the settings.*

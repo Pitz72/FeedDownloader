@@ -1,124 +1,166 @@
-# Capitolo 10: Impostazioni Avanzate
+# Capitolo 10: Le impostazioni
 
-## 10.1 Panoramica del Pannello Impostazioni
+## 10.1 Come sono organizzate
 
-Il pannello delle impostazioni è accessibile in qualsiasi momento tramite l'icona dell'ingranaggio (⚙) nell'angolo superiore dell'interfaccia. Le impostazioni sono organizzate in cinque schede tematiche: **Generale**, **Download**, **Metadati**, **Archivio** e **Avanzate**. Tutte le modifiche vengono salvate automaticamente: non è necessario confermare con un pulsante dedicato.
+Il pannello si apre in qualsiasi momento con l’icona dell’ingranaggio in alto a destra, anche
+mentre un download è in corso. Le voci sono divise in cinque schede, nell’ordine: **Generale**,
+**Download**, **Metadati**, **Archivio**, **Avanzate**. Ogni modifica viene salvata subito: non
+esiste un pulsante di conferma perché non serve.
 
----
-
-## 10.2 Download
-
-Questa sezione contiene i controlli principali del motore di download. I parametri tecnici interni (timeout di connessione, numero di retry, stall detection) sono fissi nel motore e non richiedono configurazione manuale.
-
-### Download Paralleli
-
-Il numero di download simultanei. Selezionabile tra tre preset: **1**, **3** e **5**. Per le linee guida sulla scelta del valore, vedi il Capitolo 6.
-
-**Valore predefinito:** 3
-
-### Limite Velocità Download
-
-Consente di limitare la banda aggregata utilizzata da tutti i download attivi, per evitare interferenze con altre attività di rete.
-
-**Valori disponibili:** `0` = illimitato (predefinito); qualsiasi valore positivo in KB/s. Esempio: `500` limita il consumo totale a circa 4 Mbps.
-
-### Dimensione Massima File
-
-Rifiuta i download più grandi del limite impostato, in **MB**. Protegge da enclosure anomale (file enormi dichiarati per errore, o server che inviano contenuti diversi dall'audio previsto). Un file oltre il limite viene marcato come errore definitivo, senza retry.
-
-**Valori disponibili:** `0` = illimitato (predefinito); qualsiasi valore positivo in MB.
+Questo capitolo segue le schede una per una. Template, sidecar e tag ID3 (scheda Metadati) sono
+trattati nel capitolo 8; controllo dell’archivio, inventario CSV e migrazione (scheda Archivio) nel
+capitolo 9.
 
 ---
 
-## 10.3 Generale
+## 10.2 Generale
 
 ### Lingua
 
-FeedDownloader Pro è disponibile in 2 lingue: **Italiano** e **English**.
+L’interfaccia parla **italiano** e **inglese**. Il cambio è immediato, senza riavviare. Il programma
+usa un solo tema, scuro: non c’è un tema chiaro né un controllo della densità delle liste.
 
-Il cambio di lingua è immediato: l'interfaccia si aggiorna senza necessità di riavviare il software. L'applicazione utilizza esclusivamente il tema scuro "Obsidian Command": non è disponibile un tema chiaro né un selettore di densità della lista.
+### Aggiornamento automatico dei feed
 
-### Aggiornamento Automatico Feed
-
-Consente di sincronizzare automaticamente tutti i feed a intervalli regolari, senza intervento manuale. Un controllo viene comunque eseguito a ogni avvio dell'applicazione e al ritorno della connessione dopo un periodo offline. Sono disponibili quattro preset:
+Stabilisce ogni quanto il programma rilegge i feed da solo. Un controllo avviene comunque all’avvio
+e al ritorno della connessione dopo un’interruzione.
 
 | Opzione | Comportamento |
 |---------|--------------|
-| **Disattivato** | Nessuna sincronizzazione ciclica (resta il controllo all'avvio). |
-| **6 ore** (predefinito) | Sincronizzazione completa ogni 6 ore. |
-| **12 ore** | Sincronizzazione completa ogni 12 ore. |
-| **24 ore** | Sincronizzazione completa ogni 24 ore. |
+| Disattivato | Nessun controllo ciclico; resta quello all’avvio. |
+| 6 ore (predefinito) | Rilettura completa ogni sei ore. |
+| 12 ore | Rilettura ogni dodici ore. |
+| 24 ore | Rilettura una volta al giorno. |
 
-Il cambio è immediato e non richiede il riavvio del software. Se durante la sincronizzazione automatica vengono trovati nuovi episodi, viene inviata una notifica del sistema operativo, cliccabile: porta l'app in primo piano e, se riguarda un solo podcast, apre quel feed. La sincronizzazione automatica non avvia download: segnala soltanto la disponibilità di nuovi contenuti. Per una descrizione dettagliata del comportamento, vedi la sezione 5.9.
+La modifica vale subito. Se il controllo trova episodi nuovi manda una notifica di sistema
+cliccabile, che porta in primo piano il programma e apre il feed interessato quando è uno solo.
+Nessun download parte da sé: la notifica segnala e basta (sezione 5.9).
 
-### Guida Utente e Novità
+### Guida e novità
 
-Sempre nella scheda **Generale** sono disponibili:
-
-*   **"Guida Utente":** Apre la documentazione integrata, con il pulsante **"Apri il manuale completo in PDF"** per consultare questo manuale.
-*   **"Novità di questa versione":** Apre il changelog in-app con le note di rilascio della versione installata. La stessa finestra appare automaticamente al primo avvio dopo un aggiornamento.
-
----
-
-## 10.4 Sicurezza: Il Sistema Anti-SSRF Multilivello
-
-Questa sezione è documentata a titolo informativo: il sistema di sicurezza opera in modo completamente automatico e non richiede configurazione da parte dell'utente.
-
-**Cos'è un attacco SSRF?**
-SSRF (Server-Side Request Forgery) è un tipo di attacco in cui un URL malevolo, invece di puntare a una risorsa pubblica, punta a risorse interne della rete (come il pannello di amministrazione del router, un NAS o un server locale). Nel contesto di un downloader, un feed RSS costruito ad arte potrebbe includere URL audio che puntano a queste risorse interne.
-
-**I livelli di validazione:**
-
-1.  **Validazione sintattica dell'URL:** L'URL viene analizzato per verificare la conformità allo standard.
-
-2.  **Validazione del protocollo:** Sono accettati solo i protocolli `http://` e `https://`. Protocolli come `file://`, `ftp://`, `data:`, `javascript:` vengono rifiutati immediatamente.
-
-3.  **Blocco degli hostname interni noti:** Nomi come `localhost` e gli indirizzi di loopback letterali vengono rifiutati.
-
-4.  **Blocco degli indirizzi IP privati e riservati:** Vengono bloccati tutti gli indirizzi IP appartenenti a intervalli privati o riservati, inclusi:
-    *   `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16` (reti private RFC 1918)
-    *   `127.0.0.0/8` (loopback)
-    *   `169.254.0.0/16` (link-local)
-    *   `::1/128` (loopback IPv6)
-    *   `fc00::/7` (unique local IPv6)
-    *   Qualsiasi indirizzo che punti all'host locale.
-
-5.  **Ri-validazione alla connessione:** L'indirizzo IP risolto via DNS viene verificato di nuovo a ogni connessione e a ogni redirect. Questo neutralizza le tecniche di elusione basate su DNS (un dominio pubblico che risolve verso un indirizzo privato, o un redirect verso una risorsa interna).
-
-*Nota per ambienti aziendali:* Se la rete aziendale include server di podcast interni raggiungibili tramite indirizzi IP privati, il sistema anti-SSRF bloccherà questi URL. In tal caso, contattare il supporto per una configurazione personalizzata che includa specifici intervalli di indirizzi IP nella whitelist interna.
+Nella stessa scheda ci sono due scorciatoie: la **guida utente**, che apre la documentazione
+integrata e da lì il manuale completo in PDF, e **Novità di questa versione**, che mostra le note di
+rilascio della versione installata. La stessa finestra compare da sé al primo avvio dopo un
+aggiornamento.
 
 ---
 
-## 10.5 Avanzate
+## 10.3 Download
+
+Qui stanno i comandi del motore. I parametri interni (timeout di connessione, numero di tentativi,
+sorveglianza degli stalli) sono fissi e non si toccano.
+
+### Percorso Download
+
+La cartella dove finisce tutto, nella sezione **Archiviazione**. Si sceglie con l’icona accanto al
+campo, che apre il selettore di sistema, ed è la stessa cosa che fa l’icona cartella nella barra di
+comando.
+
+### Download Paralleli
+
+Quanti trasferimenti insieme: **1**, **3** o **5**. Il predefinito è 3. Per orientarsi nella scelta,
+si veda il capitolo 6.
+
+### Limite Velocità Download
+
+Limita la banda complessiva usata dai download, per non prendersi tutta la linea. Il valore è in
+KB/s; `0` significa nessun limite ed è il predefinito. Per dare un’idea: `500` tiene il consumo
+intorno ai 4 Mbps.
+
+### Dimensione Massima File
+
+Rifiuta i file più grandi del valore indicato, espresso in MB; `0` significa nessun limite. Serve
+contro le anomalie: dimensioni dichiarate per errore, o server che al posto dell’audio spediscono
+tutt’altro. Il file oltre soglia diventa un errore definitivo, senza tentativi ulteriori. Quando il
+server dichiara la dimensione, il rifiuto arriva prima di scrivere un byte; quando non la dichiara,
+il trasferimento viene interrotto appena supera il tetto.
+
+---
+
+## 10.4 Metadati
+
+Contiene il **Template Nome File** con la sua anteprima, l’interruttore dei **File Sidecar .json** e
+quello del **tagging ID3**, che cambia etichetta a seconda dello stato. Sono descritti nel
+capitolo 8.
+
+---
+
+## 10.5 Archivio
+
+Raccoglie quattro gruppi: le statistiche dell’archivio, **Dati & Portabilità** con importazione ed
+esportazione OPML e l’inventario CSV, l’**Health Check Archivio** con la riparazione per checksum, e
+**Migra Archivio** per spostare i file su un altro disco. Tutto nel capitolo 9, tranne l’OPML che sta
+nel capitolo 5.
+
+---
+
+## 10.6 Avanzate
 
 ### Aggiornamenti
 
-FeedDownloader Pro include un sistema di aggiornamento integrato **basato sul consenso**: nessun download e nessuna installazione avvengono automaticamente.
+Il sistema di aggiornamento funziona **col consenso**: niente si scarica e niente si installa da sé.
 
-**Verifica automatica all'avvio:** Nella versione installata (pacchetto), il software controlla automaticamente la disponibilità di nuovi aggiornamenti poco dopo l'avvio, interrogando il repository delle release. Se una nuova versione è disponibile, appare l'indicatore persistente **"Aggiornamento disponibile"** nella barra superiore e una notifica di sistema — ma **non viene scaricato nulla**.
+All’avvio, nella versione installata, il programma interroga il repository delle release. Se trova
+una versione nuova compaiono l’indicatore **Aggiornamento disponibile** nella barra superiore e una
+notifica di sistema, ma il pacchetto **non viene scaricato**. Il pulsante **Controlla Aggiornamenti**
+forza la verifica quando vuoi tu.
 
-**Verifica manuale:** Il pulsante **"Controlla Aggiornamenti"** nella scheda **Avanzate** forza una verifica immediata in qualsiasi momento.
+Lo scaricamento parte premendo **Scarica** sull’indicatore o **Scarica aggiornamento** qui nelle
+impostazioni. A pacchetto pronto compare **Riavvia e Installa**, e nemmeno quello scatta da solo:
+l’installazione avviene quando lo decidi, mai alla chiusura del programma.
 
-**Download col consenso:** Il download del pacchetto parte solo premendo **"Scarica"** nell'indicatore della barra superiore, oppure **"Scarica aggiornamento"** nelle Impostazioni. A download completato appare il pulsante **"Riavvia e Installa"**: anche l'installazione richiede un'azione esplicita dell'utente.
-
-**Stati visualizzati durante il processo:**
-
-*   **Ricerca aggiornamenti...** — il software sta interrogando il repository delle release.
-*   **Hai già la versione più recente** — la versione installata è la più recente.
-*   **Aggiornamento disponibile: vX.Y.Z** — in attesa del consenso al download.
-*   **Download aggiornamento... N%** — download in corso (avviato dall'utente).
-*   **Aggiornamento scaricato — riavvia per installare** — il pacchetto è pronto per l'installazione.
+Gli stati che vedrai, nell’ordine: *Ricerca aggiornamenti…*, poi *Hai già la versione più recente*
+oppure *Aggiornamento disponibile: vX.Y.Z*, quindi *Download aggiornamento… N%* e infine
+*Aggiornamento scaricato — riavvia per installare*.
 
 ### Manutenzione
 
-Il pulsante **"Pulisci file temporanei"** rimuove i file `.part` orfani rimasti nella cartella di destinazione da download interrotti in passato. La funzione non è disponibile mentre ci sono download in corso (i loro `.part` sono in uso). Al termine viene mostrato il numero di file rimossi.
+**Pulisci file temporanei** elimina i `.part` orfani rimasti nella cartella di destinazione da
+sessioni interrotte. Non funziona mentre ci sono download attivi, perché quei file sono in uso: in
+quel caso il programma lo dice invece di procedere. Alla fine riporta quanti file ha rimosso.
 
-### Zona Pericolo: Resetta Storico Download
+### Zona Pericolo
 
-Il pulsante **"Resetta Storico Download"** cancella la cronologia dei download registrata nel database (i "segni di spunta" degli episodi scaricati). Il software richiede una conferma esplicita prima di procedere. I file audio sul disco **non** vengono eliminati: dopo il reset, gli episodi appariranno di nuovo come da scaricare.
+**Resetta Storico Download** cancella dal database la cronologia dei download, cioè la memoria di
+cosa è già stato preso. Il programma chiede conferma. I file audio sul disco **restano dove sono**:
+dopo il reset gli episodi tornano a mostrarsi come da scaricare, e un nuovo download li
+sovrascriverebbe.
 
-*Quando utilizzarlo:* Esclusivamente quando si intende ripartire da una cronologia vuota, ad esempio dopo una migrazione su un nuovo sistema o per rimuovere i dati di un ciclo di test.
+Ha senso in un caso solo: quando si vuole ripartire con una cronologia pulita, per esempio dopo aver
+spostato tutto su un altro sistema o al termine di una serie di prove.
 
 ---
 
-*Vai al Capitolo 11 per la risoluzione dei problemi più comuni.*
+## 10.7 Come vengono filtrati gli indirizzi (informativo)
+
+Questa sezione spiega qualcosa che il programma fa da solo e che non è configurabile.
+
+Un feed è contenuto che arriva dall’esterno, e gli indirizzi che contiene potrebbero puntare a
+risorse della tua rete locale invece che a un file audio pubblico: il pannello del router, un NAS,
+un servizio interno. È la famiglia di attacchi chiamata SSRF. Un archiviatore che segue ciecamente
+gli indirizzi di un feed diventa lo strumento con cui qualcuno bussa alle porte di casa tua.
+
+Ogni indirizzo passa quindi cinque filtri:
+
+1.  **Sintassi**: deve essere un URL valido.
+2.  **Protocollo**: solo `http://` e `https://`. Roba come `file://`, `ftp://`, `data:` o
+    `javascript:` viene respinta subito.
+3.  **Nomi interni**: `localhost` e i nomi di loopback vengono rifiutati.
+4.  **Indirizzi privati e riservati**: le reti RFC 1918 (`10.0.0.0/8`, `172.16.0.0/12`,
+    `192.168.0.0/16`), il loopback `127.0.0.0/8`, il link-local `169.254.0.0/16`, e per IPv6 `::1`
+    e `fc00::/7`.
+5.  **Verifica al momento della connessione**: l’indirizzo IP a cui il nome è stato risolto viene
+    ricontrollato a ogni connessione e a ogni redirezione. È il filtro che chiude le scappatoie più
+    astute, cioè un dominio pubblico che risolve verso un indirizzo privato o una redirezione che a
+    metà strada punta all’interno della rete.
+
+*Un limite dichiarato.* Se nella tua rete esiste un server di podcast interno raggiungibile a un
+indirizzo privato, quei filtri lo bloccheranno, e non c’è modo di fare un’eccezione: non esiste una
+lista di indirizzi consentiti da configurare. È una scelta deliberata, perché un’eccezione
+configurabile è esattamente ciò che un feed ostile cercherebbe di sfruttare. Per quei contenuti
+serve un percorso diverso, per esempio scaricarli con un altro strumento e importarli come file
+locali.
+
+---
+
+*Il capitolo 11 raccoglie i problemi più comuni e come uscirne.*

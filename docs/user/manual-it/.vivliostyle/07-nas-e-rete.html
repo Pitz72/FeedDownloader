@@ -1,106 +1,141 @@
 <!DOCTYPE html><html lang="it"><head>
     <meta charset="utf-8">
-    <title>Capitolo 7: NAS, Dischi di Rete e Percorsi SMB</title>
+    <title>Capitolo 7: NAS, dischi di rete e percorsi SMB</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" href="book/theme.css">
   </head>
   <body>
     <section class="level1">
-      <h1 id="capitolo-7-nas-dischi-di-rete-e-percorsi-smb">Capitolo 7: NAS, Dischi di Rete e Percorsi SMB</h1>
+      <h1 id="capitolo-7-nas-dischi-di-rete-e-percorsi-smb">Capitolo 7: NAS, dischi di rete e percorsi SMB</h1>
       <section class="level2">
-        <h2 id="71-perché-i-dischi-di-rete-richiedono-un-approccio-specifico">7.1 Perché i Dischi di Rete Richiedono un Approccio Specifico</h2>
-        <p>La maggior parte delle applicazioni di download desktop gestisce correttamente i percorsi locali (<code>C:\</code>, <code>D:\</code>) e presenta comportamenti imprevedibili quando la destinazione è un NAS, un server Windows condiviso o un'unità SMB. Il motivo è tecnico: i dischi di rete sono intrinsecamente meno affidabili dei dischi locali. Il NAS può essere spento, la rete locale può subire picchi di latenza, le credenziali SMB possono scadere. Qualsiasi operazione su un percorso di rete che non risponde può bloccare il thread principale dell'applicazione per decine di secondi, rendendo l'interfaccia non reattiva.</p>
-        <p>FeedDownloader Pro gestisce correttamente questi scenari. Per gli utenti che archiviano su NAS, questo capitolo è essenziale.</p>
-        <hr>
-      </section>
-      <section class="level2">
-        <h2 id="72-come-funziona-la-validazione-del-percorso-di-rete">7.2 Come Funziona la Validazione del Percorso di Rete</h2>
-        <p>Ogni volta che viene impostato un percorso di destinazione che inizia con <code>\\</code> (percorso UNC, tipico di SMB) o corrisponde a un'unità di rete mappata (es. <code>Z:\</code>), FeedDownloader Pro attiva automaticamente il <strong>modulo di validazione del percorso di rete</strong>.</p>
-        <p>Questo modulo esegue tre operazioni su un <strong>thread separato</strong>, senza mai coinvolgere il thread dell'interfaccia:</p>
-        <ol>
-          <li><strong>Test di raggiungibilità:</strong> Tenta di accedere alla root del percorso di rete. Se il NAS non è acceso o la rete non è disponibile, questa operazione fallisce.</li>
-          <li><strong>Test di accesso in lettura:</strong> Verifica che la cartella di destinazione esista e sia leggibile.</li>
-          <li><strong>Test di accesso in scrittura:</strong> Crea e poi elimina un file temporaneo (<code>_fdp_write_test_[timestamp].tmp</code>) nella cartella di destinazione per verificare i permessi di scrittura.</li>
-        </ol>
-        <p>L'intera sequenza ha un <strong>timeout di 8 secondi</strong>. Se entro questo intervallo non si riceve risposta, il software considera il percorso non disponibile e mostra un avviso, senza bloccare l'interfaccia.</p>
-        <p><em>Motivazione del timeout:</em> La maggior parte dei NAS consumer (Synology, QNAP, WD MyCloud) impiega 3–6 secondi per uscire dalla modalità sospensione. 8 secondi è un intervallo sufficiente ad attendere questo ripristino, rimanendo abbastanza breve da non risultare un'attesa percettibile per l'utente.</p>
-        <hr>
-      </section>
-      <section class="level2">
-        <h2 id="73-configurare-un-percorso-nas">7.3 Configurare un Percorso NAS</h2>
+        <h2 id="71-perché-i-dischi-di-rete-sono-un-caso-a-parte">7.1 Perché i dischi di rete sono un caso a parte</h2>
         <p>
-          <strong>Metodo 1 — Percorso UNC diretto:</strong>
-          Inserire il percorso nel formato <code>\\NomeServer\NomeCondivisione\Cartella</code>:
+          Quasi tutte le applicazioni desktop se la cavano bene con <code>C:\</code> e <code>D:\</code> e diventano imprevedibili
+          quando la destinazione è un NAS, una cartella condivisa di Windows o un’unità SMB. Il motivo è
+          tecnico: un disco di rete è meno affidabile di uno locale. Il NAS può essere spento o addormentato,
+          la rete può avere un picco di latenza, le credenziali possono essere scadute. E un’operazione su un
+          percorso che non risponde blocca il programma per decine di secondi, congelando l’interfaccia.
         </p>
+        <p>
+          FeedDownloader Pro è costruito per non farsi prendere in ostaggio. Se il tuo archivio vive su un NAS,
+          questo capitolo ti riguarda.
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="72-come-viene-verificato-il-percorso">7.2 Come viene verificato il percorso</h2>
+        <p>
+          Quando scegli una cartella di destinazione, il programma controlla che esista e che sia scrivibile.
+          Il controllo gira fuori dal processo che disegna l’interfaccia e ha un <strong>limite di otto secondi</strong>:
+          scaduti quelli, il percorso viene dichiarato non disponibile e compare un avviso. In nessun caso la
+          finestra si blocca in attesa.
+        </p>
+        <p>
+          È un solo controllo, non una batteria di test: il programma chiede al sistema operativo se può
+          scrivere lì dentro e si accontenta della risposta. Nessun file di prova viene creato nella tua
+          cartella.
+        </p>
+        <p>
+          Il programma riconosce come percorsi di rete quelli che iniziano con <code>\\</code> o <code>//</code> (notazione UNC di
+          Windows e SMB) e, su Linux e macOS, quelli sotto <code>/mnt/</code>, <code>/media/</code> e <code>/Volumes/</code>. Su questi mostra
+          un avviso dedicato quando qualcosa non torna. Un’unità mappata a lettera, per esempio <code>Z:</code>, viene
+          trattata dal sistema come un disco qualunque: la verifica di scrivibilità c’è lo stesso, ma il
+          programma non la riconosce come di rete e non te lo segnala.
+        </p>
+        <p>
+          <em>Perché proprio otto secondi.</em> I NAS di fascia domestica (Synology, QNAP, WD MyCloud) impiegano dai
+          tre ai sei secondi per svegliarsi dallo standby. Otto bastano ad aspettarli e sono ancora pochi
+          abbastanza da non sembrare un blocco.
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="73-impostare-un-percorso-su-nas">7.3 Impostare un percorso su NAS</h2>
+        <p><strong>Percorso UNC diretto.</strong> Nella forma <code>\\NomeServer\NomeCondivisione\Cartella</code>:</p>
         <pre class="language-text"><code class="language-text">\\MYNAS\Podcast\Archivio
 \\192.168.1.100\media\podcast
 \\NAS-SYNOLOGY\video\audio_archive</code></pre>
-        <p>Il percorso può essere inserito direttamente nel campo di testo della destinazione, oppure tramite la finestra di selezione cartella, che su Windows supporta la navigazione dei percorsi di rete.</p>
         <p>
-          <strong>Metodo 2 — Unità di rete mappata:</strong>
-          Se il NAS è già mappato come unità di rete in Windows (es. <code>Z:</code> → <code>\\MYNAS\Podcast</code>), è possibile selezionare <code>Z:\Archivio</code> come cartella di destinazione. FeedDownloader Pro riconosce automaticamente che si tratta di un percorso di rete e attiva la validazione.
+          Si può scrivere a mano o raggiungere con la finestra di selezione, che su Windows naviga anche le
+          risorse di rete.
         </p>
         <p>
-          <strong>Metodo 3 — Linux (mount point):</strong>
-          Su Linux, i percorsi di rete SMB vengono presentati come cartelle normali nel filesystem dopo il montaggio (es. <code>/mnt/nas/podcast</code>). Questi percorsi possono essere usati direttamente come cartella di destinazione.
+          <strong>Unità mappata.</strong> Se il NAS è già montato come unità (per esempio <code>Z:</code> verso <code>\\MYNAS\Podcast</code>),
+          basta scegliere <code>Z:\Archivio</code>. Funziona senza problemi; semplicemente il programma la tratta come un
+          disco locale, perché a quel punto è il sistema operativo a occuparsi della rete.
         </p>
-        <hr>
-      </section>
-      <section class="level2">
-        <h2 id="74-credenziali-smb-e-autenticazione">7.4 Credenziali SMB e Autenticazione</h2>
-        <p>Le credenziali di accesso al NAS devono essere configurate a livello di sistema operativo, non all'interno di FeedDownloader Pro.</p>
-        <p><strong>Su Windows:</strong></p>
-        <ol>
-          <li>Aprire <strong>Esplora file</strong> e navigare fino al percorso del NAS (<code>\\MYNAS\</code>).</li>
-          <li>Inserire le credenziali quando richieste e spuntare <strong>"Memorizza credenziali"</strong>.</li>
-          <li>Le credenziali vengono salvate nel <strong>Gestore Credenziali di Windows</strong> (<code>Pannello di Controllo → Gestione credenziali → Credenziali Windows</code>).</li>
-          <li>FeedDownloader Pro, come qualsiasi altra applicazione, accederà al NAS senza richiedere ulteriori credenziali.</li>
-        </ol>
         <p>
-          <strong>Su Linux:</strong>
-          Montare la condivisione con le credenziali nel file <code>fstab</code> o tramite uno strumento grafico come GNOME Files. In alternativa, usare <code>smbclient</code> o <code>mount -t cifs</code> da terminale.
+          <strong>Linux.</strong> Le condivisioni SMB montate compaiono come cartelle normali (per esempio
+          <code>/mnt/nas/podcast</code>) e si usano direttamente.
         </p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="75-diagnostica-dei-problemi-con-i-percorsi-di-rete">7.5 Diagnostica dei Problemi con i Percorsi di Rete</h2>
-        <p>In caso di avviso "Percorso di rete non raggiungibile", verificare i seguenti punti nell'ordine indicato.</p>
+        <h2 id="74-credenziali-e-autenticazione">7.4 Credenziali e autenticazione</h2>
+        <p>Le credenziali del NAS si configurano nel sistema operativo, non dentro FeedDownloader Pro.</p>
         <p>
-          <strong>1. Il NAS è acceso e avviato?</strong>
-          Verificare le spie del dispositivo. Molti NAS consumer entrano in modalità sospensione dopo un periodo di inattività. Prima di avviare il download, aprire il pannello di amministrazione del NAS dal browser per verificarne la disponibilità.
+          <strong>Windows.</strong> Aprire il percorso del NAS (<code>\\MYNAS\</code>) da Esplora file, inserire le credenziali quando
+          vengono richieste e spuntare la memorizzazione. Finiscono nel Gestore credenziali di Windows
+          (<em>Pannello di controllo → Gestione credenziali → Credenziali Windows</em>), e da quel momento il
+          programma accede alla condivisione come qualsiasi altra applicazione.
         </p>
         <p>
-          <strong>2. Il NAS è raggiungibile dalla rete?</strong>
-          Dal Prompt dei comandi (Windows) o dal Terminale (Linux):
-          <code>ping 192.168.1.100</code>
-          Sostituire con l'indirizzo IP del NAS. Se il comando riceve risposta, la connettività di rete di base è funzionante.
-        </p>
-        <p>
-          <strong>3. La condivisione SMB è accessibile?</strong>
-          Tentare di aprire il percorso <code>\\192.168.1.100\NomeCondivisione</code> direttamente da Esplora file di Windows. Se l'operazione non riesce, il problema risiede nella configurazione SMB del NAS, non in FeedDownloader Pro.
-        </p>
-        <p>
-          <strong>4. I permessi di scrittura sono corretti?</strong>
-          Creare manualmente un file nella cartella di destinazione tramite il gestore file. Se l'operazione non è consentita, l'utente con cui si accede al NAS non dispone dei permessi di scrittura su quella condivisione. Configurare i permessi dal pannello di amministrazione del NAS.
-        </p>
-        <p>
-          <strong>5. Il firewall blocca le connessioni SMB?</strong>
-          Il protocollo SMB utilizza la porta 445 (e in alcuni casi la porta 139). Verificare che il firewall di sistema o di terze parti non blocchi queste porte per le connessioni sulla rete locale.
+          <strong>Linux.</strong> Montare la condivisione con le credenziali in <code>fstab</code>, oppure da un gestore file grafico,
+          oppure a mano con <code>mount -t cifs</code>.
         </p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="76-prestazioni-ottimali-su-nas">7.6 Prestazioni Ottimali su NAS</h2>
-        <p>I download su NAS presentano una complessità aggiuntiva rispetto a quelli su disco locale: i file vengono scritti attraverso la rete e la velocità dipende sia dalla larghezza di banda della LAN sia dalla capacità di scrittura del NAS.</p>
-        <p><strong>Indicazioni operative:</strong></p>
+        <h2 id="75-quando-il-percorso-di-rete-non-risponde">7.5 Quando il percorso di rete non risponde</h2>
+        <p>Davanti all’avviso di percorso non raggiungibile, conviene controllare in quest’ordine.</p>
+        <p>
+          <strong>Il NAS è sveglio?</strong> Molti dispositivi domestici vanno in standby dopo un periodo di inattività. Un
+          giro nel pannello di amministrazione dal browser è il modo più rapido per accertarsene.
+        </p>
+        <p><strong>È raggiungibile in rete?</strong> Da Prompt dei comandi o Terminale:</p>
+        <pre class="language-text"><code class="language-text">ping 192.168.1.100</code></pre>
+        <p>Se risponde, la rete di base funziona e il problema è più in alto.</p>
+        <p>
+          <strong>La condivisione si apre?</strong> Provare <code>\\192.168.1.100\NomeCondivisione</code> direttamente dal gestore
+          file. Se non si apre di lì, il problema sta nella configurazione SMB del NAS e non nel programma.
+        </p>
+        <p>
+          <strong>Puoi scriverci?</strong> Creare a mano un file nella cartella di destinazione. Se il sistema rifiuta,
+          l’utente con cui accedi non ha permesso di scrittura su quella condivisione: si sistema dal pannello
+          del NAS.
+        </p>
+        <p>
+          <strong>C’è di mezzo un firewall?</strong> SMB usa la porta 445, e in qualche caso la 139. Vale la pena
+          verificare che non siano bloccate sulla rete locale.
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="76-ottenere-buone-prestazioni">7.6 Ottenere buone prestazioni</h2>
+        <p>
+          Scrivere su un NAS significa far passare ogni byte due volte per la rete: la velocità dipende dalla
+          LAN e dalla capacità di scrittura del dispositivo, non solo dalla connessione a Internet.
+        </p>
         <ul>
-          <li><strong>Usare una connessione cablata (Ethernet):</strong> Il Wi-Fi introduce latenza e instabilità nelle operazioni di scrittura su rete. Per archivi di grandi dimensioni, una connessione Gigabit Ethernet cablata offre prestazioni significativamente migliori.</li>
-          <li><strong>Ridurre i download paralleli:</strong> La scrittura simultanea di molti file su un NAS può saturarne l'I/O. Con un valore di 1–3 in "Download Paralleli" si ottengono spesso risultati migliori rispetto all'utilizzo del numero massimo disponibile.</li>
-          <li><strong>Evitare sovrapposizioni con i backup del NAS:</strong> Se il NAS esegue backup automatici, evitare di avviare download batch nelle stesse finestre temporali, poiché la competizione sull'I/O del disco rallenta entrambe le operazioni.</li>
-          <li><strong>Utilizzare una cache locale:</strong> Per archivi molto grandi, è possibile scaricare prima su un disco locale veloce e spostare i file sul NAS al completamento del download.</li>
+          <li>
+            <strong>Meglio il cavo.</strong> Il Wi-Fi aggiunge latenza e instabilità proprio nelle scritture. Per archivi
+            grandi, una Gigabit Ethernet cambia le cose.
+          </li>
+          <li>
+            <strong>Meno download in parallelo.</strong> Scrivere molti file insieme satura l’I/O del NAS: uno o due
+            trasferimenti rendono spesso più di cinque.
+          </li>
+          <li>
+            <strong>Attenzione ai backup.</strong> Se il NAS fa backup automatici a orari fissi, meglio non sovrapporre i
+            lotti di download: si contendono lo stesso disco e rallentano entrambi.
+          </li>
+          <li>
+            <strong>Prima locale, poi in rete.</strong> Per archivi molto grandi conviene scaricare su un disco veloce
+            locale e spostare i file sul NAS a lotto finito.
+          </li>
         </ul>
         <hr>
-        <p><em>Vai al Capitolo 8 per la configurazione del template di rinomina e delle funzionalità di metadati.</em></p>
+        <p><em>Il capitolo 8 tratta i nomi dei file, i template e i metadati.</em></p>
       </section>
     </section>
   

@@ -1,80 +1,94 @@
 <!DOCTYPE html><html lang="en"><head>
     <meta charset="utf-8">
-    <title>Chapter 9: Integrity, Statistics, and Archiving</title>
+    <title>Chapter 9: Integrity, statistics and archiving</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" href="book/theme.css">
   </head>
   <body>
     <section class="level1">
-      <h1 id="chapter-9-integrity-statistics-and-archiving">Chapter 9: Integrity, Statistics, and Archiving</h1>
+      <h1 id="chapter-9-integrity-statistics-and-archiving">Chapter 9: Integrity, statistics and archiving</h1>
       <section class="level2">
-        <h2 id="91-why-verify-file-integrity">9.1 Why Verify File Integrity</h2>
-        <p>The completion of a download does not guarantee that the received file is intact. A network packet lost during transfer, a disk write error, or an interruption in the last second can produce a file that is formally "present" but corrupted. Without an explicit verification, an apparently complete archive can contain unplayable audio files whose corruption is only detected during playback.</p>
-        <p>FeedDownloader Pro addresses this problem with two complementary mechanisms: <strong>size verification</strong> (during download) and <strong>SHA-256 verification</strong> (upon completion).</p>
+        <h2 id="91-why-files-need-verifying">9.1 Why files need verifying</h2>
+        <p>
+          A download that reaches the end is not necessarily a healthy file. A packet lost on the way, a
+          write error, an interruption in the last second: the file is there, it weighs nearly what it
+          should, and it turns out to be a stump the day somebody tries to listen to it. For an archive that
+          is the worst way to fail, because the damage surfaces years later.
+        </p>
+        <p>
+          FeedDownloader Pro works on two levels: it checks the <strong>size</strong> while downloading and calculates the
+          <strong>SHA-256 checksum</strong> as soon as the file is complete.
+        </p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="92-sha-256-verification">9.2 SHA-256 Verification</h2>
-        <p><strong>SHA-256</strong> (Secure Hash Algorithm 256-bit) is a cryptographic function that produces a 64-character hexadecimal fingerprint for any file. Two identical files always produce the same hash; a difference of even a single bit produces a completely different hash.</p>
-        <p>For each downloaded file, FeedDownloader Pro:</p>
-        <ol>
-          <li>Calculates the SHA-256 hash of the file at the end of the download.</li>
-          <li>Saves the hash in the database, together with the file path and the date of calculation.</li>
-        </ol>
-        <p><strong>Practical uses:</strong></p>
-        <ul>
-          <li>The <strong>Health Check</strong> (see section 9.4) recalculates the hash of every present file and compares it with the recorded one: any modification, corruption or replacement after the download is detected.</li>
-          <li>The <strong>"Repair archive (checksum search)"</strong> function uses the same hash to find files that have been renamed by hand (see section 9.4).</li>
-          <li>In professional contexts, the SHA-256 hash constitutes a verifiable reference of content integrity at the time of download.</li>
-        </ul>
+        <h2 id="92-the-sha-256-checksum">9.2 The SHA-256 checksum</h2>
+        <p>
+          SHA-256 produces, for any file, a sequence of 64 hexadecimal characters. Two identical files give
+          the same checksum; change one bit and the checksum becomes unrecognisable. It is the standard way
+          of saying "this file is exactly the one from back then".
+        </p>
+        <p>
+          For every download the program calculates the checksum and records it in the archive along with the
+          file name and the date.
+        </p>
+        <p>
+          It serves three purposes. The <strong>archive health check</strong> (section 9.4) recalculates the checksum of
+          the files present and compares it with the one on record, catching corruption and substitutions
+          that happened after the download. <strong>Checksum repair</strong> uses the same checksum to recognise files
+          somebody renamed by hand. And in a professional context, the checksum is verifiable proof of what
+          that file contained at the moment it was archived.
+        </p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="93-extracted-audio-metadata">9.3 Extracted Audio Metadata</h2>
-        <p>Upon completion of each download, FeedDownloader Pro automatically extracts the <strong>technical metadata</strong> from the audio file. This information is read directly from the file (not from the RSS feed) and recorded in the database.</p>
-        <p><strong>Extracted metadata:</strong></p>
+        <h2 id="93-technical-metadata">9.3 Technical metadata</h2>
+        <p>
+          Once a download finishes the program reads the technical data <strong>inside the file</strong>, not from the
+          feed, and records it.
+        </p>
         <table>
           <thead>
             <tr>
               <th>Field</th>
-              <th>Description</th>
+              <th>What it tells you</th>
               <th>Example</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td><strong>Bitrate</strong></td>
+              <td>Bitrate</td>
               <td>Audio quality in kilobits per second</td>
               <td><code>128 kbps</code>, <code>320 kbps</code></td>
             </tr>
             <tr>
-              <td><strong>Sample rate</strong></td>
-              <td>Sampling frequency</td>
+              <td>Sample rate</td>
+              <td>Samples per second</td>
               <td><code>44100 Hz</code>, <code>48000 Hz</code></td>
             </tr>
             <tr>
-              <td><strong>Size on disk</strong></td>
-              <td>Actual size of the downloaded file</td>
+              <td>Size on disk</td>
+              <td>Real weight of the file</td>
               <td><code>67.4 MB</code></td>
             </tr>
           </tbody>
         </table>
-        <p>These values are recorded in the database and are included in the CSV export (see section 9.6).</p>
+        <p>They end up in the episode detail panel and in the CSV inventory (section 9.6).</p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="94-health-check-archive-integrity-verification">9.4 Health Check: Archive Integrity Verification</h2>
-        <p>Over time, an archive may undergo external modifications outside the software: files moved, renamed, deleted or corrupted directly on the filesystem. The <strong>Health Check</strong> verifies the state of the archive against what is recorded in the database.</p>
+        <h2 id="94-the-archive-health-check">9.4 The archive health check</h2>
         <p>
-          <strong>How to run the Health Check:</strong>
-          Go to <strong>Settings → Archive → Archive Health Check</strong> and click <strong>"Run Check"</strong>.
+          Over time an archive changes behind the program’s back: files moved, renamed, deleted by mistake,
+          or ruined by a dying disk. The check compares the reality on disk with what the archive says.
         </p>
-        <p>The process performs two checks on each file recorded in the database:</p>
-        <ol>
-          <li><strong>Presence:</strong> verifies that the file still exists at the recorded path.</li>
-          <li><strong>Real integrity:</strong> for present files, it recalculates the SHA-256 hash and compares it with the one recorded at download time. A modified or damaged file is reported as <strong>corrupted</strong> ("checksum mismatch"), with the suggestion to re-download the affected episodes.</li>
-        </ol>
-        <p>Upon completion, a summary is shown with four indicators:</p>
+        <p>You start it from <strong>Settings → Archive → Archive Health Check</strong>, pressing <strong>Run Check</strong>.</p>
+        <p>
+          Two verifications are run on every recorded file: that it still exists where it is meant to, and —
+          for those present — that the recalculated SHA-256 checksum matches the one from back then. Files
+          that no longer match are flagged as corrupted, with a prompt to download them again.
+        </p>
+        <p>Four numbers appear at the end:</p>
         <table>
           <thead>
             <tr>
@@ -85,53 +99,60 @@
           <tbody>
             <tr>
               <td><strong>In DB</strong></td>
-              <td>Total number of episodes in the database</td>
+              <td>Episodes recorded in the archive</td>
             </tr>
             <tr>
               <td><strong>On Disk</strong></td>
-              <td>Files that exist at the recorded path</td>
+              <td>Files found where they were meant to be</td>
             </tr>
             <tr>
               <td><strong>Missing</strong></td>
-              <td>Files not found at the recorded path</td>
+              <td>Files not found</td>
             </tr>
             <tr>
               <td><strong>Disk Usage</strong></td>
-              <td>Total disk space of the present files</td>
+              <td>Total space taken by the files present</td>
             </tr>
           </tbody>
         </table>
-        <p>If missing files are found, the software lists the first 5 with the podcast name and file name, and offers two actions:</p>
-        <ul>
-          <li><strong>"Repair archive (checksum search)":</strong> Searches the podcast folders for files that have been <strong>renamed by hand</strong>: each candidate file is identified via its recorded SHA-256 hash and, on a match, is re-linked to the database under its new name — without re-downloading anything. A summary is then shown: <em>"N files re-linked, M not found"</em>.</li>
-          <li><strong>"Mark as not downloaded":</strong> Removes the genuinely missing files from the registry; they return to the episode list with the <strong>"NEW"</strong> tag and can be re-downloaded with the normal controls (<strong>"Download"</strong> or <strong>"Download All"</strong>).</li>
-        </ul>
-        <hr>
-      </section>
-      <section class="level2">
-        <h2 id="95-archive-statistics">9.5 Archive Statistics</h2>
-        <p>The statistics section is accessible from <strong>Settings → Archive</strong> and provides a concise overview of the data recorded in the database:</p>
-        <ul>
-          <li><strong>Downloaded files:</strong> Total number of episodes present in the database.</li>
-          <li><strong>Podcasts:</strong> Number of distinct feeds represented in the archive.</li>
-          <li><strong>Time range:</strong> Date of the first and last downloaded episode.</li>
-        </ul>
-        <p>Statistics are automatically updated each time the Settings panel is opened.</p>
-        <hr>
-      </section>
-      <section class="level2">
-        <h2 id="96-csv-export">9.6 CSV Export</h2>
-        <p>The CSV export generates a file with the data of each episode present in the database. It is useful for integrating FeedDownloader Pro with other tools (spreadsheets, content management systems, automation scripts).</p>
         <p>
-          <strong>How to export:</strong>
-          Go to <strong>Settings → Archive → Export CSV</strong> and choose the path in which to save the file.
+          When something is missing, the program lists the first five cases with podcast and file name, and
+          offers two routes.
         </p>
-        <p><strong>Export columns:</strong></p>
+        <p>
+          <strong>Repair archive (checksum search)</strong> looks through the podcast folders for files somebody renamed
+          by hand: it calculates the checksum of the candidates and, when it finds the right one, re-links
+          the file to the episode under its new name. It downloads nothing and touches no files: it updates
+          the archive. At the end it reports how many it re-linked and how many it could not find.
+        </p>
+        <p>
+          <strong>Mark as not downloaded</strong> is for the genuinely lost: it removes them from the register, so the
+          episodes go back to <strong>NEW</strong> in the list and can be downloaded again normally.
+        </p>
+        <p>That is the sensible order: try to repair first, then declare lost whatever is left.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="95-statistics">9.5 Statistics</h2>
+        <p>
+          <strong>Settings → Archive</strong> carries three summary figures: <strong>Files Downloaded</strong>, the episodes on record;
+          <strong>Podcasts</strong>, how many distinct programmes make up the archive; <strong>Archive range</strong>, the date of the
+          first and the last download. They refresh every time you open the settings.
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="96-the-csv-inventory">9.6 The CSV inventory</h2>
+        <p>
+          The export produces a file with one row per episode: useful for spreadsheets, editorial systems,
+          scripts, or simply for having a list of what you hold outside the program.
+        </p>
+        <p>You generate it from <strong>Settings → Archive → Export Inventory (CSV)</strong>, choosing where to save it.</p>
         <table>
           <thead>
             <tr>
               <th>Column</th>
-              <th>Content</th>
+              <th>Contents</th>
             </tr>
           </thead>
           <tbody>
@@ -149,51 +170,69 @@
             </tr>
             <tr>
               <td><code>Downloaded At</code></td>
-              <td>Date and time of download</td>
+              <td>Download date and time</td>
             </tr>
             <tr>
               <td><code>File Size (bytes)</code></td>
-              <td>File size in bytes</td>
+              <td>Size in bytes</td>
             </tr>
             <tr>
               <td><code>Bitrate (kbps)</code></td>
-              <td>Audio bitrate in kilobits per second</td>
+              <td>Audio bitrate</td>
             </tr>
             <tr>
               <td><code>Sample Rate (Hz)</code></td>
-              <td>Sampling frequency in hertz</td>
+              <td>Sample rate</td>
             </tr>
             <tr>
               <td><code>SHA-256 Checksum</code></td>
-              <td>SHA-256 hash of the file</td>
+              <td>File checksum</td>
             </tr>
             <tr>
               <td><code>Validation Status</code></td>
-              <td>Result of the last integrity check</td>
+              <td>See below</td>
             </tr>
             <tr>
               <td><code>GUID</code></td>
-              <td>Unique identifier of the episode in the RSS feed</td>
+              <td>Episode identifier in the feed</td>
             </tr>
           </tbody>
         </table>
-        <p><em>File format:</em> CSV with comma separator (<code>,</code>), UTF-8 encoding with BOM (for compatibility with Microsoft Excel). Fields containing commas are enclosed in quotation marks.</p>
+        <p>
+          The <code>Validation Status</code> column says what guarantees the episode was recorded with, not the outcome
+          of the last check: it reads <code>OK</code> when a SHA-256 checksum is on record, <code>LEGACY</code> for older rows that
+          have the file name but no checksum, and <code>UNKNOWN</code> when even that is missing.
+        </p>
+        <p>
+          <em>Format.</em> Comma-separated CSV, UTF-8 with BOM to keep Excel happy, fields in quotes when they
+          contain commas.
+        </p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="97-archive-migration">9.7 Archive Migration</h2>
-        <p>To move the archive to a new drive or a new folder, use the built-in migration function, which keeps the database synchronised with the new file location.</p>
-        <p><strong>Procedure:</strong></p>
+        <h2 id="97-moving-the-archive">9.7 Moving the archive</h2>
+        <p>
+          To transfer the files to another disk, use the built-in migration, which moves them and keeps the
+          archive aligned as it goes.
+        </p>
         <ol>
-          <li>Go to <strong>Settings → Archive → Migrate Archive</strong>.</li>
-          <li>Select the <strong>new destination folder</strong> via the selection window.</li>
-          <li>The software physically moves all audio files to the new folder and updates the paths in the database.</li>
-          <li>Upon completion, a summary is shown: number of files moved and any errors.</li>
+          <li>Open <strong>Settings → Archive → Migrate Archive</strong>.</li>
+          <li>Choose the new folder.</li>
+          <li>The program moves the podcast folders and updates the default destination.</li>
+          <li>At the end it reports how many folders it moved and how many errors it met.</li>
         </ol>
-        <p><em>Caution:</em> The migration moves files from the current folder to the new one. Files are removed from the original location. Verify that the destination drive has sufficient space before starting the operation.</p>
-        <p><em>Moving to a new computer:</em> Copy both the audio files folder and the <code>feeddownloader.sqlite</code> file (from the user data folder described in Chapter 2). On the new computer, install FeedDownloader Pro, copy the database to the user data folder, and use the migration function if the archive path has changed.</p>
+        <p>
+          <em>Careful:</em> this is a move, not a copy — the files leave their original location. Best to check there
+          is room at the destination first.
+        </p>
+        <p>
+          <em>Moving to another computer.</em> Two things are needed: the folder of audio files and the
+          <code>feeddownloader.sqlite</code> database (chapter 2). On the new machine, install the program, put the
+          database in the data folder and, if the audio files ended up somewhere different, use migration to
+          realign everything.
+        </p>
         <hr>
-        <p><em>Go to Chapter 10 for the advanced software settings.</em></p>
+        <p><em>Chapter 10 goes through the settings.</em></p>
       </section>
     </section>
   

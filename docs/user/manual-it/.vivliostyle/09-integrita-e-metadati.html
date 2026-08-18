@@ -1,80 +1,92 @@
 <!DOCTYPE html><html lang="it"><head>
     <meta charset="utf-8">
-    <title>Capitolo 9: Integrità, Statistiche e Archiviazione</title>
+    <title>Capitolo 9: Integrità, statistiche e archiviazione</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" href="book/theme.css">
   </head>
   <body>
     <section class="level1">
-      <h1 id="capitolo-9-integrità-statistiche-e-archiviazione">Capitolo 9: Integrità, Statistiche e Archiviazione</h1>
+      <h1 id="capitolo-9-integrità-statistiche-e-archiviazione">Capitolo 9: Integrità, statistiche e archiviazione</h1>
       <section class="level2">
-        <h2 id="91-perché-verificare-lintegrità-dei-file">9.1 Perché Verificare l'Integrità dei File</h2>
-        <p>Il completamento di un download non garantisce che il file ricevuto sia integro. Un pacchetto di rete perso durante il trasferimento, un errore di scrittura su disco o un'interruzione nell'ultimo secondo possono produrre un file formalmente "presente" ma corrotto. In assenza di una verifica esplicita, un archivio apparentemente completo può contenere file audio non riproducibili, la cui corruzione viene rilevata solo durante la riproduzione.</p>
-        <p>FeedDownloader Pro affronta questo problema con due meccanismi complementari: la <strong>verifica della dimensione</strong> (durante il download) e la <strong>verifica SHA-256</strong> (al completamento).</p>
+        <h2 id="91-perché-verificare-i-file">9.1 Perché verificare i file</h2>
+        <p>
+          Un download che arriva in fondo non è per forza un file sano. Un pacchetto perso per strada, un
+          errore di scrittura, un’interruzione nell’ultimo secondo: il file c’è, pesa quasi quanto dovrebbe, e
+          si scopre monco il giorno in cui qualcuno prova ad ascoltarlo. Per un archivio è il modo peggiore di
+          sbagliare, perché il danno si manifesta anni dopo.
+        </p>
+        <p>
+          FeedDownloader Pro lavora su due piani: controlla la <strong>dimensione</strong> mentre scarica e calcola
+          l’<strong>impronta SHA-256</strong> appena il file è completo.
+        </p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="92-la-verifica-sha-256">9.2 La Verifica SHA-256</h2>
-        <p><strong>SHA-256</strong> (Secure Hash Algorithm 256-bit) è una funzione crittografica che produce un'impronta digitale di 64 caratteri esadecimali per qualsiasi file. Due file identici producono sempre lo stesso hash; una differenza di anche un solo bit produce un hash completamente diverso.</p>
-        <p>Per ogni file scaricato, FeedDownloader Pro:</p>
-        <ol>
-          <li>Calcola l'hash SHA-256 del file al termine del download.</li>
-          <li>Salva l'hash nel database, insieme al percorso del file e alla data di calcolo.</li>
-        </ol>
-        <p><strong>Utilizzi pratici:</strong></p>
-        <ul>
-          <li>Il <strong>Health Check</strong> (vedi la sezione 9.4) ricalcola l'hash di ogni file presente e lo confronta con quello registrato: qualsiasi modifica, corruzione o sostituzione successiva al download viene rilevata.</li>
-          <li>La funzione <strong>"Ripara archivio (ricerca per checksum)"</strong> usa lo stesso hash per ritrovare i file rinominati a mano (vedi la sezione 9.4).</li>
-          <li>In contesti professionali, l'hash SHA-256 costituisce un riferimento verificabile dell'integrità del contenuto al momento del download.</li>
-        </ul>
+        <h2 id="92-limpronta-sha-256">9.2 L’impronta SHA-256</h2>
+        <p>
+          SHA-256 produce, per qualunque file, una sequenza di 64 caratteri esadecimali. Due file identici
+          danno la stessa impronta; cambiando un solo bit l’impronta diventa irriconoscibile. È il modo
+          standard per dire «questo file è esattamente quello di allora».
+        </p>
+        <p>
+          Per ogni download il programma calcola l’impronta e la registra in archivio insieme al nome del file
+          e alla data.
+        </p>
+        <p>
+          Serve a tre cose. Il <strong>controllo dell’archivio</strong> (sezione 9.4) ricalcola l’impronta dei file presenti
+          e la confronta con quella registrata, scoprendo corruzioni e sostituzioni avvenute dopo il download.
+          La <strong>riparazione per checksum</strong> usa la stessa impronta per riconoscere i file che qualcuno ha
+          rinominato a mano. E in un contesto professionale, l’impronta è la prova verificabile di cosa
+          contenesse quel file nel momento in cui è stato archiviato.
+        </p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="93-i-metadati-audio-estratti">9.3 I Metadati Audio Estratti</h2>
-        <p>Al completamento di ogni download, FeedDownloader Pro estrae automaticamente i <strong>metadati tecnici</strong> del file audio. Queste informazioni vengono lette direttamente dal file (non dal feed RSS) e registrate nel database.</p>
-        <p><strong>Metadati estratti:</strong></p>
+        <h2 id="93-i-metadati-tecnici">9.3 I metadati tecnici</h2>
+        <p>A download finito il programma legge i dati tecnici <strong>dentro il file</strong>, non dal feed, e li registra.</p>
         <table>
           <thead>
             <tr>
               <th>Campo</th>
-              <th>Descrizione</th>
+              <th>Cosa dice</th>
               <th>Esempio</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td><strong>Bitrate</strong></td>
+              <td>Bitrate</td>
               <td>Qualità audio in kilobit al secondo</td>
               <td><code>128 kbps</code>, <code>320 kbps</code></td>
             </tr>
             <tr>
-              <td><strong>Sample rate</strong></td>
               <td>Frequenza di campionamento</td>
+              <td>Campioni al secondo</td>
               <td><code>44100 Hz</code>, <code>48000 Hz</code></td>
             </tr>
             <tr>
-              <td><strong>Dimensione su disco</strong></td>
-              <td>Dimensione reale del file scaricato</td>
-              <td><code>67.4 MB</code></td>
+              <td>Dimensione su disco</td>
+              <td>Peso reale del file</td>
+              <td><code>67,4 MB</code></td>
             </tr>
           </tbody>
         </table>
-        <p>Questi valori vengono registrati nel database e sono inclusi nell'esportazione CSV (vedi la sezione 9.6).</p>
+        <p>Finiscono nel pannello di dettaglio dell’episodio e nell’inventario CSV (sezione 9.6).</p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="94-health-check-verifica-dellintegrità-dellarchivio">9.4 Health Check: Verifica dell'Integrità dell'Archivio</h2>
-        <p>Nel tempo, un archivio può subire modifiche esterne al software: file spostati, rinominati, eliminati o corrotti direttamente dal filesystem. Il <strong>Health Check</strong> verifica lo stato dell'archivio rispetto a quanto registrato nel database.</p>
+        <h2 id="94-il-controllo-dellarchivio">9.4 Il controllo dell’archivio</h2>
         <p>
-          <strong>Come eseguire il Health Check:</strong>
-          Andare in <strong>Impostazioni → Archivio → Health Check Archivio</strong> e cliccare su <strong>"Avvia Verifica"</strong>.
+          Col tempo un archivio cambia alle spalle del programma: file spostati, rinominati, cancellati per
+          sbaglio, o rovinati da un disco che sta morendo. Il controllo confronta la realtà del disco con
+          quanto risulta in archivio.
         </p>
-        <p>Il processo esegue due controlli su ogni file registrato nel database:</p>
-        <ol>
-          <li><strong>Presenza:</strong> verifica che il file esista ancora nel percorso registrato.</li>
-          <li><strong>Integrità reale:</strong> per i file presenti, ricalcola l'hash SHA-256 e lo confronta con quello registrato al momento del download. Un file modificato o danneggiato viene segnalato come <strong>corrotto</strong> ("checksum non corrispondente"), con l'invito a riscaricare gli episodi interessati.</li>
-        </ol>
-        <p>Al termine, viene mostrato un riepilogo con quattro indicatori:</p>
+        <p>Si avvia da <strong>Impostazioni → Archivio → Health Check Archivio</strong>, premendo <strong>Avvia Verifica</strong>.</p>
+        <p>
+          Su ogni file registrato vengono fatte due verifiche: che esista ancora dove risulta, e — per quelli
+          presenti — che l’impronta SHA-256 ricalcolata coincida con quella di allora. I file che non
+          corrispondono più vengono segnalati come corrotti, con l’invito a riscaricarli.
+        </p>
+        <p>Alla fine compaiono quattro numeri:</p>
         <table>
           <thead>
             <tr>
@@ -85,48 +97,56 @@
           <tbody>
             <tr>
               <td><strong>Nel DB</strong></td>
-              <td>Numero totale di episodi nel database</td>
+              <td>Episodi registrati in archivio</td>
             </tr>
             <tr>
               <td><strong>Su disco</strong></td>
-              <td>File che esistono nel percorso registrato</td>
+              <td>File trovati dove risultavano</td>
             </tr>
             <tr>
               <td><strong>Mancanti</strong></td>
-              <td>File non trovati nel percorso registrato</td>
+              <td>File non trovati</td>
             </tr>
             <tr>
               <td><strong>Spazio occupato</strong></td>
-              <td>Spazio disco totale dei file presenti</td>
+              <td>Spazio complessivo dei file presenti</td>
             </tr>
           </tbody>
         </table>
-        <p>In presenza di file mancanti, il software elenca i primi 5 con il nome del podcast e il nome del file, e offre due azioni:</p>
-        <ul>
-          <li><strong>"Ripara archivio (ricerca per checksum)":</strong> Cerca nelle cartelle dei podcast eventuali file <strong>rinominati a mano</strong>: ogni file candidato viene identificato tramite l'hash SHA-256 registrato e, in caso di corrispondenza, viene riagganciato al database con il nuovo nome — senza riscaricare nulla. Al termine viene mostrato il riepilogo <em>"N file riagganciati, M non ritrovati"</em>.</li>
-          <li><strong>"Segna come non scaricati":</strong> Rimuove dal registro i file davvero mancanti, che tornano così con il tag <strong>"NUOVO"</strong> nella lista episodi e possono essere riscaricati con i normali controlli (pulsante <strong>"Scarica"</strong> o <strong>"Scarica Tutto"</strong>).</li>
-        </ul>
-        <hr>
-      </section>
-      <section class="level2">
-        <h2 id="95-statistiche-dellarchivio">9.5 Statistiche dell'Archivio</h2>
-        <p>La sezione statistiche è accessibile da <strong>Impostazioni → Archivio</strong> e fornisce una panoramica sintetica dei dati registrati nel database:</p>
-        <ul>
-          <li><strong>File scaricati:</strong> Numero totale di episodi presenti nel database.</li>
-          <li><strong>Podcast:</strong> Numero di feed distinti rappresentati nell'archivio.</li>
-          <li><strong>Intervallo temporale:</strong> Data del primo e dell'ultimo episodio scaricato.</li>
-        </ul>
-        <p>Le statistiche vengono aggiornate automaticamente a ogni apertura del pannello Impostazioni.</p>
-        <hr>
-      </section>
-      <section class="level2">
-        <h2 id="96-esportazione-csv">9.6 Esportazione CSV</h2>
-        <p>L'esportazione CSV genera un file con i dati di ogni episodio presente nel database. È utile per integrare FeedDownloader Pro con altri strumenti (fogli di calcolo, sistemi di gestione dei contenuti, script di automazione).</p>
         <p>
-          <strong>Come esportare:</strong>
-          Andare in <strong>Impostazioni → Archivio → Esporta CSV</strong> e scegliere il percorso in cui salvare il file.
+          Quando qualcosa manca, il programma elenca i primi cinque casi con podcast e nome del file, e offre
+          due strade.
         </p>
-        <p><strong>Colonne dell'esportazione:</strong></p>
+        <p>
+          <strong>Ripara archivio (ricerca per checksum)</strong> cerca nelle cartelle dei podcast i file che qualcuno ha
+          rinominato a mano: calcola l’impronta dei candidati e, quando trova quella giusta, riaggancia il
+          file all’episodio con il nome nuovo. Non scarica niente e non tocca i file: aggiorna l’archivio.
+          Alla fine dichiara quanti ne ha riagganciati e quanti non è riuscito a ritrovare.
+        </p>
+        <p>
+          <strong>Segna come non scaricati</strong> è per i file davvero perduti: li toglie dal registro, così gli episodi
+          tornano <strong>NUOVO</strong> nella lista e si possono riscaricare normalmente.
+        </p>
+        <p>L’ordine sensato è quello: prima si prova a riparare, poi si dichiara perduto ciò che resta.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="95-le-statistiche">9.5 Le statistiche</h2>
+        <p>
+          In <strong>Impostazioni → Archivio</strong> ci sono tre numeri di sintesi: <strong>File Scaricati</strong>, cioè gli episodi
+          registrati; <strong>Podcast</strong>, quanti programmi distinti compongono l’archivio; <strong>Periodo archivio</strong>, la
+          data del primo e dell’ultimo download. Si aggiornano ogni volta che apri le impostazioni.
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="96-linventario-csv">9.6 L’inventario CSV</h2>
+        <p>
+          L’esportazione produce un file con una riga per episodio: serve per i fogli di calcolo, per i
+          sistemi editoriali, per gli script, o semplicemente per avere l’elenco di cosa possiedi fuori dal
+          programma.
+        </p>
+        <p>Si genera da <strong>Impostazioni → Archivio → Esporta Inventario (CSV)</strong>, scegliendo dove salvarlo.</p>
         <table>
           <thead>
             <tr>
@@ -141,7 +161,7 @@
             </tr>
             <tr>
               <td><code>Episode Title</code></td>
-              <td>Titolo dell'episodio</td>
+              <td>Titolo dell’episodio</td>
             </tr>
             <tr>
               <td><code>Publish Date</code></td>
@@ -153,47 +173,66 @@
             </tr>
             <tr>
               <td><code>File Size (bytes)</code></td>
-              <td>Dimensione del file in byte</td>
+              <td>Dimensione in byte</td>
             </tr>
             <tr>
               <td><code>Bitrate (kbps)</code></td>
-              <td>Bitrate audio in kilobit al secondo</td>
+              <td>Bitrate audio</td>
             </tr>
             <tr>
               <td><code>Sample Rate (Hz)</code></td>
-              <td>Frequenza di campionamento in hertz</td>
+              <td>Frequenza di campionamento</td>
             </tr>
             <tr>
               <td><code>SHA-256 Checksum</code></td>
-              <td>Hash SHA-256 del file</td>
+              <td>Impronta del file</td>
             </tr>
             <tr>
               <td><code>Validation Status</code></td>
-              <td>Esito dell'ultimo controllo di integrità</td>
+              <td>Vedi sotto</td>
             </tr>
             <tr>
               <td><code>GUID</code></td>
-              <td>Identificatore univoco dell'episodio nel feed RSS</td>
+              <td>Identificatore dell’episodio nel feed</td>
             </tr>
           </tbody>
         </table>
-        <p><em>Formato del file:</em> CSV con separatore virgola (<code>,</code>), codifica UTF-8 con BOM (per compatibilità con Microsoft Excel). I campi contenenti virgole sono racchiusi tra virgolette.</p>
+        <p>
+          La colonna <code>Validation Status</code> dice con quale corredo di garanzie è stato registrato l’episodio, non
+          l’esito dell’ultimo controllo: vale <code>OK</code> quando esiste un’impronta SHA-256 registrata, <code>LEGACY</code> per
+          le righe più vecchie che hanno il nome del file ma non l’impronta, <code>UNKNOWN</code> quando manca anche
+          quello.
+        </p>
+        <p>
+          <em>Formato.</em> CSV separato da virgole, codifica UTF-8 con BOM per far contento Excel, campi fra
+          virgolette quando contengono virgole.
+        </p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="97-migrazione-dellarchivio">9.7 Migrazione dell'Archivio</h2>
-        <p>Per spostare l'archivio su un nuovo disco o una nuova cartella, utilizzare la funzione integrata di migrazione, che mantiene il database sincronizzato con la nuova posizione dei file.</p>
-        <p><strong>Procedura:</strong></p>
+        <h2 id="97-spostare-larchivio">9.7 Spostare l’archivio</h2>
+        <p>
+          Per trasferire i file su un altro disco conviene usare la migrazione integrata, che sposta e nel
+          frattempo tiene allineato l’archivio.
+        </p>
         <ol>
-          <li>Andare in <strong>Impostazioni → Archivio → Migra Archivio</strong>.</li>
-          <li>Selezionare la <strong>nuova cartella di destinazione</strong> tramite la finestra di selezione.</li>
-          <li>Il software sposta fisicamente tutti i file audio nella nuova cartella e aggiorna i percorsi nel database.</li>
-          <li>Al termine viene mostrato un riepilogo: numero di file spostati ed eventuali errori.</li>
+          <li>Aprire <strong>Impostazioni → Archivio → Migra Archivio</strong>.</li>
+          <li>Scegliere la nuova cartella.</li>
+          <li>Il programma sposta le cartelle dei podcast e aggiorna la destinazione predefinita.</li>
+          <li>Alla fine dichiara quante cartelle ha spostato e quanti errori ha incontrato.</li>
         </ol>
-        <p><em>Attenzione:</em> La migrazione sposta i file dalla cartella corrente a quella nuova. I file vengono rimossi dalla posizione originale. Verificare che il disco di destinazione disponga di spazio sufficiente prima di avviare l'operazione.</p>
-        <p><em>Spostamento su un nuovo computer:</em> Copiare sia la cartella dei file audio sia il file <code>feeddownloader.sqlite</code> (dalla cartella dati utente descritta nel Capitolo 2). Sul nuovo computer, installare FeedDownloader Pro, copiare il database nella cartella dati utente e utilizzare la funzione di migrazione se il percorso dell'archivio è cambiato.</p>
+        <p>
+          <em>Attenzione:</em> è uno spostamento, non una copia: i file lasciano la posizione di partenza. Meglio
+          verificare prima che sulla destinazione ci sia spazio.
+        </p>
+        <p>
+          <em>Trasloco su un altro computer.</em> Servono due cose: la cartella dei file audio e il database
+          <code>feeddownloader.sqlite</code> (capitolo 2). Sul computer nuovo si installa il programma, si mette il
+          database nella cartella dati e, se i file audio sono finiti in un percorso diverso, si usa la
+          migrazione per riallineare tutto.
+        </p>
         <hr>
-        <p><em>Vai al Capitolo 10 per le impostazioni avanzate del software.</em></p>
+        <p><em>Il capitolo 10 passa in rassegna le impostazioni.</em></p>
       </section>
     </section>
   

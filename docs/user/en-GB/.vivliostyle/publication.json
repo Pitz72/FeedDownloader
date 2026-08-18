@@ -8,7 +8,7 @@
   "name": "Runtime FeedDownloader Pro - Advanced User Manual",
   "author": "Ecosystem Runtime",
   "inLanguage": "en",
-  "dateModified": "2026-08-18T03:09:44.800Z",
+  "dateModified": "2026-08-18T07:39:35.949Z",
   "readingOrder": [
     {
       "url": "book/cover.html",
@@ -16,43 +16,43 @@
     },
     {
       "url": "01-introduzione.html",
-      "name": "Chapter 1: Introduction and Philosophy"
+      "name": "Chapter 1: Introduction and philosophy"
     },
     {
       "url": "02-installazione.html",
-      "name": "Chapter 2: Installation and First Launch"
+      "name": "Chapter 2: Installation and first launch"
     },
     {
       "url": "03-interfaccia.html",
-      "name": "Chapter 3: Interface Tour"
+      "name": "Chapter 3: A tour of the interface"
     },
     {
       "url": "04-primo-archivio.html",
-      "name": "Chapter 4: The First Archive — Step-by-Step Guide"
+      "name": "Chapter 4: Your first archive, step by step"
     },
     {
       "url": "05-gestione-feed.html",
-      "name": "Chapter 5: Feed Management"
+      "name": "Chapter 5: Managing feeds"
     },
     {
       "url": "06-motore-download.html",
-      "name": "Chapter 6: The Download Engine"
+      "name": "Chapter 6: The download engine"
     },
     {
       "url": "07-nas-e-rete.html",
-      "name": "Chapter 7: NAS, Network Drives, and SMB Paths"
+      "name": "Chapter 7: NAS, network drives and SMB paths"
     },
     {
       "url": "08-organizzazione-file.html",
-      "name": "Chapter 8: File Organisation, Templates, and Metadata"
+      "name": "Chapter 8: File organisation, templates and metadata"
     },
     {
       "url": "09-integrita-e-metadati.html",
-      "name": "Chapter 9: Integrity, Statistics, and Archiving"
+      "name": "Chapter 9: Integrity, statistics and archiving"
     },
     {
       "url": "10-impostazioni-avanzate.html",
-      "name": "Chapter 10: Advanced Settings"
+      "name": "Chapter 10: Settings"
     },
     {
       "url": "11-troubleshooting.html",

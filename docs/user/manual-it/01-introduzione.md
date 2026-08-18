@@ -1,76 +1,124 @@
-# Capitolo 1: Introduzione e Filosofia
+# Capitolo 1: Introduzione e filosofia
 
-## 1.1 Cos'è Runtime FeedDownloader Pro?
+## 1.1 Cos’è Runtime FeedDownloader Pro?
 
-Per descrivere il software, è utile partire dal problema che risolve.
+Conviene partire dal problema che il software risolve.
 
-Ogni giorno vengono pubblicati, distribuiti e ascoltati migliaia di episodi di podcast. Nel tempo, tuttavia, una parte consistente di questi contenuti scompare: il conduttore cessa di pagare il servizio di hosting, la piattaforma di distribuzione interrompe l'attività, il CDN che ospitava i file audio viene dismesso. Un episodio ascoltato tre anni fa potrebbe oggi essere irraggiungibile in modo definitivo — non perché sia stato cancellato intenzionalmente, ma perché nessuno ne ha conservato una copia.
+Ogni giorno vengono pubblicati e ascoltati migliaia di episodi di podcast. Nel tempo una parte
+consistente di quei contenuti scompare: il conduttore smette di pagare l’hosting, la piattaforma di
+distribuzione chiude, il server che ospitava i file audio viene spento. Un episodio ascoltato tre
+anni fa oggi può essere irraggiungibile per sempre, non perché qualcuno lo abbia cancellato, ma
+perché nessuno ne ha conservato una copia.
 
-**Runtime FeedDownloader Pro** nasce per rispondere a questo problema. Non è un semplice strumento di download di podcast: è un'applicazione professionale per la **conservazione e l'archiviazione sistematica** di contenuti audio provenienti da feed RSS. È progettato per archivisti, editori, stazioni radio, produttori di contenuti e appassionati per i quali la documentazione sonora richiede lo stesso rigore conservativo riservato ad altri tipi di documenti.
-
----
-
-## 1.2 A Chi È Rivolto
-
-FeedDownloader Pro risponde a esigenze diverse:
-
-*   **L'Archivista:** Vuole scaricare l'intero catalogo di un podcast storico prima che venga rimosso. Ha bisogno di un sistema che ricordi gli episodi già scaricati, eviti i duplicati e verifichi l'integrità di ogni file.
-
-*   **Il Produttore Radiofonico:** Gestisce una biblioteca di contenuti su un NAS condiviso. Ha bisogno di uno strumento che operi su percorsi di rete senza bloccarsi, organizzi i file in modo prevedibile e produca report in formato CSV per il proprio team.
-
-*   **L'Editore:** Vuole mantenere una copia locale di tutti i podcast della propria rete, esportare metadati per i sistemi di gestione dei contenuti e monitorare lo stato dell'archivio nel tempo.
-
-*   **L'Appassionato:** Vuole conservare i podcast preferiti sul proprio disco, organizzati in modo ordinato, senza dipendere dalla disponibilità della connessione internet o rischiare di ricevere file corrotti.
+Runtime FeedDownloader Pro nasce da qui. Non è un semplice scaricatore di podcast: è
+un’applicazione per la conservazione sistematica di contenuti audio pubblicati via feed RSS. Si
+rivolge a chi tratta il suono come documento, e quindi lo archivia con lo stesso rigore che
+riserverebbe a un testo o a una fotografia: archivisti, redazioni, stazioni radio, ricercatori,
+ascoltatori metodici.
 
 ---
 
-## 1.3 La Filosofia "Database-First"
+## 1.2 A chi è rivolto
 
-La differenza fondamentale tra FeedDownloader Pro e un generico strumento di download è l'approccio alla gestione del dato.
+Quattro modi tipici di usarlo.
 
-La maggior parte degli strumenti di download funziona in questo modo: analizza i file presenti sul disco, li confronta con il feed RSS e scarica ciò che manca. Questo approccio ha un limite critico: **il disco non è una fonte di verità affidabile**. I file possono essere spostati, rinominati, corrotti o cancellati accidentalmente. Se si sposta la cartella dei podcast da `C:\Podcast` a `D:\Archivio`, lo strumento perde il riferimento agli episodi già scaricati e ricomincia a scaricare l'intero catalogo.
+*   **L’archivista** vuole scaricare l’intero catalogo di un podcast storico prima che sparisca. Gli
+    serve un sistema che ricordi cosa ha già preso, non duplichi nulla e certifichi l’integrità di
+    ogni file.
 
-FeedDownloader Pro adotta un approccio diverso. Al centro di ogni operazione si trova un **database SQLite** che registra ogni episodio analizzato o scaricato: l'URL originale, il percorso del file sul disco, la data di download, l'hash SHA-256 del contenuto e i metadati audio. Il database è la memoria persistente del software. Indipendentemente dalla posizione fisica dei file, il database conserva lo stato completo dell'archivio.
+*   **Il produttore radiofonico** tiene la libreria su un NAS condiviso. Gli serve uno strumento che
+    lavori su percorsi di rete senza piantarsi, organizzi i file in modo prevedibile e produca
+    inventari in CSV per la squadra.
 
-Questa architettura ha conseguenze pratiche dirette:
+*   **L’editore** conserva una copia locale dei podcast della propria rete, esporta i metadati verso
+    il sistema editoriale e tiene d’occhio lo stato dell’archivio nel tempo.
 
-1.  **Nessun duplicato.** Anche se si analizza lo stesso feed più volte, il sistema riconosce gli episodi già presenti nel database e non li inserisce nuovamente in coda.
-2.  **Resilienza agli spostamenti.** È possibile spostare l'archivio su un nuovo disco o su un NAS: la cronologia rimane intatta nel database.
-3.  **Stato persistente tra le sessioni.** Se il programma viene chiuso durante un download batch da 300 episodi, alla riapertura la coda è disponibile nella stessa condizione in cui è stata lasciata.
-4.  **Registro delle operazioni.** Ogni file scaricato è documentato: data di download, URL di origine e stato della verifica di integrità.
-
----
-
-## 1.4 I Tre Pilastri del Software
-
-Oltre all'approccio Database-First, FeedDownloader Pro è costruito attorno a tre principi tecnici con impatto diretto sulle funzionalità.
-
-### Resilienza di Rete
-
-Scaricare centinaia di file audio in sequenza su Internet non è un'operazione priva di complessità. I server possono essere sovraccarichi, le connessioni interrompersi, i trasferimenti corrompere il file. FeedDownloader Pro gestisce questi scenari con tre meccanismi:
-
-*   **Retry con backoff esponenziale:** Quando un download fallisce, il software non ripete il tentativo immediatamente. Attende invece un intervallo crescente: 1 secondo, poi 2, poi 4. Questo approccio, standard nei sistemi distribuiti, aumenta le probabilità di successo senza aggravare il carico sul server sorgente.
-*   **Stall detection:** Un download bloccato è più problematico di un download fallito. Se un server inizia a inviare dati e poi si interrompe senza chiudere la connessione, un software privo di questo controllo rimarrebbe in attesa indefinita. FeedDownloader Pro monitora il flusso dati in tempo reale: se non arrivano nuovi byte per 60 secondi consecutivi, il download viene interrotto e reinserito in coda automaticamente.
-*   **File `.part` anti-corruzione con ripresa:** Ogni file viene scaricato con l'estensione temporanea `.part`. Solo al completamento totale e verificato del trasferimento il file viene rinominato con l'estensione definitiva (`.mp3`, `.m4a`, ecc.). In caso di interruzione, il file `.part` viene conservato: al tentativo successivo il download **riprende dal punto in cui si era fermato** (richiesta HTTP Range con validatore If-Range), invece di ricominciare da zero. Eventuali file `.part` orfani si eliminano con **Impostazioni → Avanzate → Pulisci file temporanei**.
-
-### Sicurezza Integrata
-
-FeedDownloader Pro elabora URL provenienti da fonti esterne (i feed RSS). Un URL costruito in modo malevolo, che punti a risorse interne della rete (un router, un NAS, un server locale), potrebbe essere usato per accedere a informazioni riservate — un attacco noto come **SSRF (Server-Side Request Forgery)**.
-
-Per prevenire questo rischio, ogni URL viene sottoposto a una validazione **multilivello** prima dell'elaborazione: verifica sintattica, accettazione dei soli protocolli HTTP/HTTPS, blocco degli hostname interni noti, blocco degli intervalli di indirizzi IP privati e riservati (RFC 1918, loopback, link-local) e ri-validazione dell'indirizzo IP risolto via DNS a ogni connessione e a ogni redirect. Questa procedura è completamente automatica e trasparente per l'utente.
-
-### Supporto NAS e Percorsi di Rete
-
-FeedDownloader Pro è progettato per operare con archivi su dischi di rete. La gestione dei percorsi SMB — il protocollo utilizzato da NAS, server Windows e condivisioni di rete — è una fonte frequente di problemi nelle applicazioni desktop: un disco di rete non raggiungibile può causare il blocco dell'intera interfaccia per un tempo considerevole. FeedDownloader Pro risolve questo problema eseguendo la validazione del percorso di rete su un thread separato, con un timeout di 8 secondi. L'interfaccia rimane sempre reattiva, indipendentemente dallo stato del percorso di rete.
+*   **L’ascoltatore** vuole i suoi podcast sul disco, ordinati, senza dipendere dalla connessione né
+    ritrovarsi file troncati.
 
 ---
 
-## 1.5 Contenuto del Manuale
+## 1.3 La filosofia «database-first»
 
-Questo manuale copre l'uso completo di FeedDownloader Pro, dall'installazione alle funzionalità più avanzate. Non è necessario leggerlo in sequenza: ogni capitolo è autonomo e consultabile indipendentemente.
+La differenza tra FeedDownloader Pro e un generico scaricatore sta in dove risiede la verità.
 
-Per un primo approccio al software, si consiglia di seguire il **Capitolo 4 (Il Primo Archivio)**, che illustra un workflow completo dall'analisi del feed al download. Chi già conosce il software può accedere direttamente al capitolo di interesse tramite l'indice generale.
+Quasi tutti gli strumenti di download ragionano così: guardano i file sul disco, li confrontano con
+il feed RSS e scaricano ciò che manca. Il limite è evidente: il disco non è una fonte affidabile. I
+file si spostano, si rinominano, si corrompono, si cancellano per sbaglio. Basta trasferire la
+cartella dei podcast da `C:\Podcast` a `D:\Archivio` e lo strumento perde ogni riferimento, salvo
+poi riscaricare l’intero catalogo.
+
+FeedDownloader Pro tiene la verità altrove. Al centro di ogni operazione c’è un database SQLite che
+registra ogni episodio incontrato o scaricato: l’URL di origine, il nome del file sul disco, la data
+di download, l’impronta SHA-256 del contenuto, i metadati audio. Il database è la memoria del
+software, e resta esatta anche quando i file si spostano.
+
+Da questa scelta discendono quattro conseguenze pratiche.
+
+1.  **Nessun duplicato.** Anche analizzando lo stesso feed dieci volte, gli episodi già registrati
+    non tornano in coda.
+2.  **Resilienza agli spostamenti.** L’archivio può traslocare su un altro disco o su un NAS senza
+    perdere la cronologia.
+3.  **Stato persistente.** Se il programma viene chiuso durante un lotto da 300 episodi, alla
+    riapertura la cronologia è intatta e gli episodi mancanti risultano ancora da scaricare.
+4.  **Registro delle operazioni.** Ogni file scaricato porta con sé data, URL di origine e impronta
+    crittografica.
 
 ---
 
-*Ecosystem Runtime | Digital Core — Strumenti costruiti per durare.*
+## 1.4 Le tre scelte tecniche di fondo
+
+Oltre all’impostazione database-first, il programma poggia su tre decisioni che si vedono
+direttamente all’uso.
+
+### Resilienza di rete
+
+Scaricare centinaia di file audio da Internet è un’operazione che fallisce spesso, e in modi
+diversi. I server si sovraccaricano, le connessioni cadono, i trasferimenti si troncano a metà. Il
+software affronta la cosa su tre fronti.
+
+*   **Tentativi con attesa crescente.** Quando un download fallisce per una causa temporanea, il
+    programma non riprova subito: aspetta un secondo, poi due. I tentativi sono tre in tutto; se il
+    server chiede esplicitamente di attendere (intestazione `Retry-After`), il programma rispetta
+    quel tempo fino a un massimo di sessanta secondi.
+*   **Rilevamento degli stalli.** Un download bloccato è peggio di un download fallito: resta
+    appeso e non libera la coda. Il programma sorveglia il flusso dei dati e, se per sessanta
+    secondi non arriva un solo byte, chiude il trasferimento e lo conta come tentativo fallito,
+    passando al successivo.
+*   **File `.part` con ripresa.** Ogni trasferimento scrive su un file temporaneo con estensione
+    `.part`. Solo quando il file è completo e la dimensione corrisponde a quella dichiarata dal
+    server, il file assume il nome definitivo. Se il trasferimento si interrompe, il `.part` resta
+    sul disco e il tentativo successivo **riprende dal punto raggiunto** invece di ricominciare
+    (richiesta HTTP Range con validatore If-Range). I `.part` rimasti orfani si eliminano da
+    **Impostazioni → Avanzate → Pulisci file temporanei**.
+
+### Sicurezza sugli indirizzi
+
+Il programma elabora URL che arrivano dall’esterno, cioè dai feed. Un indirizzo costruito ad arte
+può puntare a risorse della rete locale (il router, il NAS, un server interno) e trasformare
+l’applicazione in un tramite per raggiungerle: è la famiglia di attacchi nota come SSRF, *server-side
+request forgery*.
+
+Ogni URL passa perciò attraverso una validazione a più livelli: controllo sintattico, accettazione
+dei soli protocolli HTTP e HTTPS, blocco degli hostname interni noti, blocco degli intervalli di
+indirizzi privati e riservati (RFC 1918, loopback, link-local) e nuova verifica dell’indirizzo IP
+risolto a ogni connessione e a ogni redirezione. Il controllo è automatico e invisibile all’uso.
+
+### Percorsi di rete
+
+L’archivio può stare su un disco di rete. La gestione dei percorsi SMB, quelli usati da NAS, server
+Windows e cartelle condivise, è una fonte classica di blocchi nelle applicazioni desktop: se il
+disco remoto non risponde, l’interfaccia si congela finché il sistema operativo non si arrende.
+FeedDownloader Pro verifica il percorso fuori dal processo grafico e si arrende da solo dopo otto
+secondi. L’interfaccia resta reattiva in ogni caso.
+
+---
+
+## 1.5 Come leggere questo manuale
+
+Il manuale copre l’uso completo del programma, dall’installazione alle funzioni meno frequentate.
+Non serve leggerlo in ordine: i capitoli sono autonomi.
+
+Per prendere confidenza conviene partire dal capitolo 4, che segue un flusso completo dall’analisi
+del feed al file archiviato. Chi conosce già il software può andare diretto al capitolo che gli
+interessa.

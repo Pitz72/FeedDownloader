@@ -1,165 +1,234 @@
 <!DOCTYPE html><html lang="it"><head>
     <meta charset="utf-8">
-    <title>Capitolo 5: Gestione dei Feed</title>
+    <title>Capitolo 5: Gestione dei feed</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" href="book/theme.css">
   </head>
   <body>
     <section class="level1">
-      <h1 id="capitolo-5-gestione-dei-feed">Capitolo 5: Gestione dei Feed</h1>
+      <h1 id="capitolo-5-gestione-dei-feed">Capitolo 5: Gestione dei feed</h1>
       <section class="level2">
-        <h2 id="51-cosè-un-feed-rss">5.1 Cos'è un Feed RSS</h2>
-        <p>Un feed RSS è un documento XML pubblicato da un podcast per consentire alle applicazioni di leggere automaticamente la lista degli episodi disponibili. Quando un editore pubblica un nuovo episodio, aggiorna questo documento aggiungendo una nuova voce. Le applicazioni di podcast leggono periodicamente questi documenti per identificare i contenuti più recenti.</p>
-        <p>Per FeedDownloader Pro, il feed RSS è la <strong>fonte primaria di dati</strong>: contiene la lista degli episodi, gli URL dei file audio, i metadati (titolo, data, durata, descrizione, copertina) e le informazioni generali sul podcast (nome, autore, categoria).</p>
-        <p>La conoscenza della struttura interna di un feed RSS non è necessaria per utilizzare il software, ma facilita l'interpretazione dei dati visualizzati nella lista degli episodi e la comprensione delle cause di eventuali informazioni mancanti o incomplete.</p>
+        <h2 id="51-cosè-un-feed-rss">5.1 Cos’è un feed RSS</h2>
+        <p>
+          Un feed RSS è un documento XML che il podcast pubblica perché i programmi possano leggerne l’elenco
+          degli episodi. Quando esce una puntata nuova, chi pubblica aggiunge una voce a quel documento; i
+          lettori lo rileggono ogni tanto e si accorgono della novità.
+        </p>
+        <p>
+          Per FeedDownloader Pro il feed è la sorgente di tutto: contiene la lista degli episodi, gli
+          indirizzi dei file audio, i metadati (titolo, data, durata, descrizione, copertina) e le
+          informazioni generali sul programma.
+        </p>
+        <p>
+          Non serve conoscerne la struttura interna per usare il software. Aiuta però a capire perché a volte
+          mancano dati nella lista: quasi sempre è il feed a non dichiararli.
+        </p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="52-feed-validi-e-feed-problematici">5.2 Feed Validi e Feed Problematici</h2>
-        <p>Non tutti i feed RSS rispettano lo stesso livello di conformità agli standard.</p>
-        <p><strong>Feed ben formato:</strong> Segue lo standard RSS 2.0 o Atom, include tutti i campi obbligatori (titolo, link, data di pubblicazione, URL audio con tipo MIME) e, facoltativamente, i tag iTunes/Podcast Index per durata, copertina e stagioni. FeedDownloader Pro legge questi feed senza problemi.</p>
-        <p><strong>Feed parzialmente incompleto:</strong> Mancano alcuni campi facoltativi (durata, dimensione file, copertina dell'episodio). Il software scarica comunque i file audio, ma alcune colonne della lista resteranno vuote.</p>
-        <p><strong>Feed con URL audio non raggiungibili:</strong> Il feed è leggibile, ma gli URL dei file audio puntano a risorse non più esistenti (errore 404). Questa situazione è frequente con podcast abbandonati o migrati su altri server. FeedDownloader Pro segnala questi episodi con stato <strong>"Errore"</strong> dopo il tentativo di download.</p>
-        <p><strong>Feed protetti da autenticazione:</strong> Alcuni podcast privati o a pagamento richiedono credenziali HTTP Basic per accedere al feed. Il software supporta questi feed: le credenziali si includono direttamente nell'URL nel formato <code>https://utente:password@www.esempio.it/feed.xml</code>.</p>
+        <h2 id="52-feed-ben-fatti-e-feed-problematici">5.2 Feed ben fatti e feed problematici</h2>
+        <p>La conformità agli standard, nel mondo dei podcast, è un’aspirazione più che una regola.</p>
+        <p>
+          <strong>Feed ben formato.</strong> Rispetta RSS 2.0 o Atom, dichiara titolo, collegamento, data e indirizzo audio
+          con il tipo MIME, e magari aggiunge i tag iTunes o Podcast Index per durata, copertina e stagioni. Il
+          programma lo legge senza storie.
+        </p>
+        <p>
+          <strong>Feed incompleto.</strong> Mancano campi facoltativi come durata, dimensione o copertina dell’episodio. I
+          file si scaricano lo stesso, ma in lista qualche informazione resterà vuota.
+        </p>
+        <p>
+          <strong>Feed con audio irraggiungibile.</strong> Il documento si legge, ma gli indirizzi dei file puntano a
+          risorse sparite. Succede spesso con programmi abbandonati o migrati altrove. Gli episodi finiscono
+          in errore dopo il tentativo di download.
+        </p>
+        <p>
+          <strong>Feed protetti da password.</strong> Alcuni podcast privati chiedono credenziali HTTP Basic. Si possono
+          mettere direttamente nell’indirizzo: <code>https://utente:password@www.esempio.it/feed.xml</code>.
+        </p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="53-analizzare-un-feed-dettaglio">5.3 Analizzare un Feed: Dettaglio</h2>
-        <p>Quando si clicca su <strong>"Analizza"</strong>, FeedDownloader Pro esegue le seguenti operazioni in sequenza:</p>
+        <h2 id="53-cosa-succede-quando-premi-analizza">5.3 Cosa succede quando premi Analizza</h2>
+        <p>In sequenza:</p>
         <ol>
-          <li><strong>Validazione URL:</strong> Verifica che l'URL sia sintatticamente corretto e che superi i 5 controlli anti-SSRF (vedi il Capitolo 10 per i dettagli).</li>
-          <li><strong>Richiesta HTTP:</strong> Contatta il server del feed con un user-agent standard. Il timeout per questa operazione è di 30 secondi.</li>
-          <li><strong>Parsing XML:</strong> Legge e analizza il documento RSS o Atom. Il software gestisce feed con lievi deviazioni dagli standard (encoding non dichiarato, tag mancanti, namespace non convenzionali).</li>
-          <li><strong>Deduplicazione:</strong> Per ogni episodio nel feed, il database viene interrogato per verificare se l'episodio è già stato scaricato. L'URL audio viene utilizzato come chiave di identificazione univoca.</li>
-          <li><strong>Popolamento della lista:</strong> Tutti gli episodi vengono visualizzati con il loro stato attuale.</li>
-          <li><strong>Aggiunta alla libreria:</strong> Il feed viene inserito permanentemente nella barra laterale, se non è già presente. I feed già in libreria vengono aggiornati con il conteggio degli episodi più recente.</li>
+          <li>
+            <strong>Controllo dell’indirizzo.</strong> Sintassi corretta e superamento delle verifiche contro gli attacchi
+            SSRF (capitolo 10).
+          </li>
+          <li>
+            <strong>Richiesta al server.</strong> Il programma si presenta con uno user-agent normale e rinuncia dopo
+            quindici secondi di silenzio.
+          </li>
+          <li>
+            <strong>Lettura del documento.</strong> Legge RSS o Atom e tollera le deviazioni più comuni: codifica non
+            dichiarata, tag mancanti, namespace inventati.
+          </li>
+          <li>
+            <strong>Confronto con l’archivio.</strong> Ogni episodio viene cercato nel database attraverso il suo
+            identificatore univoco, il GUID; quando il feed non lo dichiara, al suo posto vale l’indirizzo
+            del file audio.
+          </li>
+          <li><strong>Riempimento della lista.</strong> Ogni episodio compare con il proprio stato.</li>
+          <li>
+            <strong>Ingresso in libreria.</strong> Il feed entra nella barra laterale, se non c’era già; se c’era, il
+            conteggio degli episodi viene aggiornato.
+          </li>
         </ol>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="54-la-libreria-dei-feed">5.4 La Libreria dei Feed</h2>
-        <p>FeedDownloader Pro mantiene una <strong>libreria permanente dei feed</strong>. Ogni feed analizzato viene salvato nella barra laterale e rimane disponibile tra le sessioni, senza necessità di reinserire l'URL ad ogni avvio.</p>
+        <h2 id="54-la-libreria-dei-feed">5.4 La libreria dei feed</h2>
+        <p>
+          I feed analizzati restano salvati nella barra laterale: non serve reincollare gli indirizzi a ogni
+          avvio.
+        </p>
         <section class="level3">
-          <h3 id="visualizzazione">Visualizzazione</h3>
-          <p>Ogni elemento della libreria mostra: la copertina del podcast (thumbnail), il titolo, la data dell'ultima sincronizzazione con il server e il badge <strong>"DA SCARICARE"</strong> (es. <code>3 DA SCARICARE</code>), che indica quanti episodi nuovi sono stati rilevati tramite il loro identificatore univoco (GUID). Il badge scompare non appena tutti i nuovi episodi vengono scaricati.</p>
-          <p>Cliccando su un feed nella barra laterale, la lista degli episodi si aggiorna immediatamente nell'area principale.</p>
+          <h3 id="cosa-mostra-ogni-riga">Cosa mostra ogni riga</h3>
+          <p>
+            Copertina, titolo, data dell’ultima sincronizzazione e, quando ci sono episodi mai scaricati, il
+            badge <strong>DA SCARICARE</strong> con il conteggio. Il conteggio nasce dal confronto fra i GUID del feed e
+            quelli già registrati. Un clic carica gli episodi nell’area principale.
+          </p>
         </section>
         <section class="level3">
-          <h3 id="rimuovere-un-feed-dalla-libreria">Rimuovere un feed dalla libreria</h3>
-          <p>Per rimuovere un feed, passare il mouse sull'elemento nella barra laterale: compare il pulsante cestino nell'angolo destro della riga. Cliccarlo apre una finestra di conferma. La rimozione elimina il feed dalla libreria ma <strong>non cancella i file audio già scaricati</strong> né i relativi dati nel database; gli episodi rimangono visibili nella Vista Archivio.</p>
+          <h3 id="togliere-un-feed">Togliere un feed</h3>
+          <p>
+            Passando il mouse sulla riga compare il cestino, che chiede conferma. La rimozione cancella il feed
+            dalla libreria ma <strong>non tocca i file audio già scaricati</strong> né la loro registrazione: gli episodi
+            restano visibili nella vista Archivio.
+          </p>
         </section>
         <section class="level3">
           <h3 id="ricerca-e-ordinamento">Ricerca e ordinamento</h3>
-          <ul>
-            <li><strong>Ricerca feed:</strong> Il campo di ricerca nella parte superiore della barra laterale filtra i feed per nome in tempo reale. Utile con librerie di grandi dimensioni.</li>
-            <li><strong>Ordinamento A-Z:</strong> Il pulsante di ordinamento ordina i feed alfabeticamente per titolo. Cliccarlo di nuovo ripristina l'ordine originale.</li>
-          </ul>
-          <p><em>Nota sulla privacy:</em> La libreria dei feed è salvata esclusivamente nel database locale. Nessun dato viene trasmesso a server esterni.</p>
+          <p>
+            Il campo in alto filtra per nome mentre digiti. Il pulsante di ordinamento mette i feed in ordine
+            alfabetico e, premuto di nuovo, ripristina l’ordine originale.
+          </p>
+          <p>
+            <em>Sulla riservatezza.</em> La libreria vive soltanto nel database locale. Il programma non manda i tuoi
+            feed a nessuno.
+          </p>
           <hr>
         </section>
       </section>
       <section class="level2">
-        <h2 id="55-importare-feed-da-opml">5.5 Importare Feed da OPML</h2>
-        <p><strong>OPML</strong> (Outline Processor Markup Language) è il formato standard per l'esportazione e l'importazione di liste di podcast tra applicazioni diverse. Se si dispone di una libreria podcast in un'app come Pocket Casts, Overcast, AntennaPod o qualsiasi altro client, è possibile esportarla in OPML e importarla direttamente in FeedDownloader Pro.</p>
-        <p><strong>Come importare un file OPML:</strong></p>
+        <h2 id="55-importare-feed-da-un-file-opml">5.5 Importare feed da un file OPML</h2>
+        <p>
+          OPML è il formato con cui le applicazioni di podcast si scambiano le liste di sottoscrizioni. Se hai
+          una libreria in Pocket Casts, Overcast, AntennaPod o simili, la puoi esportare e portare qui dentro.
+        </p>
         <ol>
-          <li>Andare in <strong>Impostazioni → Archivio</strong>, sezione "Dati e Portabilità".</li>
-          <li>Cliccare su <strong>Importa Feed (OPML)</strong> e selezionare il file <code>.opml</code> esportato dall'applicazione di podcast.</li>
-          <li>FeedDownloader Pro analizza il file e aggiunge i feed individuati alla libreria.</li>
+          <li>Aprire <strong>Impostazioni → Archivio</strong>, sezione <strong>Dati &amp; Portabilità</strong>.</li>
+          <li>Premere <strong>Importa Feed (OPML)</strong> e scegliere il file <code>.opml</code>.</li>
+          <li>Il programma lo legge e aggiunge alla libreria i feed che trova.</li>
         </ol>
-        <p><em>Nota:</em> Alcune applicazioni di podcast utilizzano varianti proprietarie del formato OPML. FeedDownloader Pro supporta le versioni più diffuse. Se un file non viene importato correttamente, aprirlo con un editor di testo e verificare la presenza di tag <code>&lt;outline type="rss" xmlUrl="..."&gt;</code> per ogni podcast.</p>
+        <p>
+          <em>Se l’importazione non riesce</em>, vale la pena aprire il file con un editor di testo e cercare le
+          righe <code>&lt;outline type="rss" xmlUrl="..."&gt;</code>: alcune applicazioni usano varianti proprietarie del
+          formato e omettono proprio quelle.
+        </p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="56-esportare-la-libreria-in-opml">5.6 Esportare la Libreria in OPML</h2>
-        <p>È possibile esportare la libreria dei feed in formato OPML per:</p>
-        <ul>
-          <li>Creare un backup della lista di podcast.</li>
-          <li>Condividerla con altri utenti o con un'altra installazione del software.</li>
-          <li>Importarla in un'applicazione di podcast per seguire gli stessi feed.</li>
-        </ul>
-        <p><strong>Come esportare:</strong></p>
+        <h2 id="56-esportare-la-libreria-in-opml">5.6 Esportare la libreria in OPML</h2>
+        <p>
+          L’esportazione serve a tenere una copia della lista, a spostarla su un’altra installazione o a
+          seguire gli stessi programmi con un’app di ascolto.
+        </p>
         <ol>
-          <li>Andare in <strong>Impostazioni → Archivio</strong>, sezione "Dati e Portabilità".</li>
-          <li>Cliccare su <strong>Esporta Feed (OPML)</strong> e scegliere un nome e una posizione per il file.</li>
-          <li>Il file generato è compatibile con qualsiasi applicazione che supporti lo standard OPML.</li>
+          <li>Aprire <strong>Impostazioni → Archivio</strong>, sezione <strong>Dati &amp; Portabilità</strong>.</li>
+          <li>Premere <strong>Esporta Feed (OPML)</strong> e scegliere nome e posizione.</li>
         </ol>
+        <p>Il file prodotto è leggibile da qualsiasi applicazione che supporti lo standard.</p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="57-feed-di-grandi-dimensioni">5.7 Feed di Grandi Dimensioni</h2>
-        <p>Alcuni podcast storici o archivi di produzione radiofonica possono avere feed con migliaia di episodi e file RSS di dimensioni considerevoli. In questi casi:</p>
-        <ul>
-          <li><strong>Paginazione RFC 5005:</strong> Molte piattaforme pubblicano nel feed solo gli episodi più recenti e suddividono l'archivio storico in più pagine collegate tra loro (standard RFC 5005, link <code>rel="next"</code>). FeedDownloader Pro segue automaticamente questi collegamenti e ricompone l'intero catalogo in un'unica lista, senza intervento dell'utente. Ogni link di paginazione è sottoposto agli stessi controlli di sicurezza degli URL inseriti manualmente.</li>
-          <li><strong>L'analisi iniziale richiede più tempo:</strong> Un feed con 2.000 episodi (o suddiviso in molte pagine) può richiedere 15–30 secondi per il download e il parsing. Questo comportamento è atteso.</li>
-          <li><strong>Virtualizzazione della lista:</strong> Con migliaia di voci, la lista carica solo le righe visibili a schermo per mantenere l'interfaccia reattiva.</li>
-          <li><strong>Stima dello spazio necessario:</strong> Con 2.000 episodi a circa 50 MB ciascuno, il volume totale è di circa 100 GB. Verificare la disponibilità di spazio sufficiente prima di procedere.</li>
-        </ul>
+        <h2 id="57-feed-molto-grandi">5.7 Feed molto grandi</h2>
+        <p>I podcast storici e gli archivi radiofonici arrivano facilmente a migliaia di episodi.</p>
+        <p>
+          <strong>Paginazione RFC 5005.</strong> Molte piattaforme pubblicano nel feed solo le puntate recenti e spezzano
+          il resto in pagine collegate fra loro con il link <code>rel="next"</code>. Il programma segue quei collegamenti
+          da sé e ricompone il catalogo in un’unica lista. Ogni pagina passa dagli stessi controlli di
+          sicurezza di un indirizzo digitato a mano. Il numero di pagine seguite si ferma a venti: è un tetto
+          di sicurezza contro i feed che si rimandano l’un l’altro all’infinito, e su cataloghi enormi
+          significa che la parte più antica potrebbe restare fuori.
+        </p>
+        <p>
+          <strong>L’analisi dura di più.</strong> Duemila episodi, o un feed spezzato in molte pagine, possono richiedere
+          dai quindici ai trenta secondi. È normale.
+        </p>
+        <p>
+          <strong>La lista resta leggera.</strong> Anche con migliaia di voci vengono disegnate solo le righe visibili a
+          schermo.
+        </p>
+        <p>
+          <strong>Lo spazio.</strong> Duemila episodi da una cinquantina di megabyte fanno un centinaio di gigabyte:
+          conviene contarli prima di cominciare.
+        </p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="58-gestione-di-più-feed">5.8 Gestione di Più Feed</h2>
-        <p>FeedDownloader Pro gestisce nativamente una libreria di feed multipli. Non c'è limite al numero di podcast che è possibile aggiungere: tutti vengono conservati nella barra laterale e rimangono accessibili tra una sessione e l'altra.</p>
-        <section class="level3">
-          <h3 id="navigare-tra-i-feed">Navigare tra i feed</h3>
-          <p>Cliccando su un feed nella barra laterale, la lista degli episodi nell'area principale si aggiorna immediatamente. Il software ricorda quale feed era selezionato all'ultima chiusura.</p>
-        </section>
-        <section class="level3">
-          <h3 id="sincronizzare-i-feed">Sincronizzare i feed</h3>
-          <ul>
-            <li><strong>Sincronizzazione individuale:</strong> Passare il mouse su un elemento feed nella barra laterale per visualizzare l'icona di sincronizzazione. Cliccandola, il software rilegge quel feed dal server e aggiorna la lista con gli eventuali nuovi episodi.</li>
-            <li><strong>Sincronizza Tutti:</strong> Il pulsante <strong>"Sincronizza Tutti"</strong> aggiorna tutti i feed in parallelo con un'unica operazione. Durante il processo, ogni thumbnail nella barra laterale mostra il proprio stato in tempo reale. Al termine, eventuali nuovi episodi vengono evidenziati con il badge <strong>"DA SCARICARE"</strong>.</li>
-          </ul>
-          <p>Per l'aggiornamento automatico programmato senza intervento manuale, vedi la sezione 5.9.</p>
-          <hr>
-        </section>
+        <h2 id="58-lavorare-con-molti-feed">5.8 Lavorare con molti feed</h2>
+        <p>
+          Non c’è un limite al numero di podcast in libreria, e tutti restano disponibili tra una sessione e
+          l’altra.
+        </p>
+        <p>
+          Un clic su un feed della barra laterale ne carica subito gli episodi. All’avvio nessun feed è
+          selezionato: il programma non ricorda l’ultimo aperto, mostra la libreria e aspetta.
+        </p>
+        <p>
+          Per aggiornarli: l’icona di sincronizzazione sulla singola riga rilegge quel feed; <strong>Sincronizza
+Tutti</strong> li rilegge tutti in parallelo, mostrando lo stato su ogni copertina e segnalando alla fine
+          le novità con il badge <strong>DA SCARICARE</strong>.
+        </p>
+        <p>Per l’aggiornamento programmato, senza toccare nulla, si veda la sezione seguente.</p>
+        <hr>
       </section>
       <section class="level2">
-        <h2 id="59-aggiornamento-automatico-dei-feed">5.9 Aggiornamento Automatico dei Feed</h2>
-        <p>FeedDownloader Pro sincronizza automaticamente tutti i feed in background, senza richiedere alcuna azione da parte dell'utente. Il controllo avviene:</p>
-        <ul>
-          <li><strong>all'avvio</strong> dell'applicazione (pochi secondi dopo l'apertura);</li>
-          <li><strong>a intervalli regolari</strong> (impostazione "Aggiornamento Automatico Feed");</li>
-          <li><strong>al ritorno della connessione</strong>, dopo un periodo offline.</li>
-        </ul>
-        <section class="level3">
-          <h3 id="configurazione">Configurazione</h3>
-          <p>L'impostazione si trova in <strong>Impostazioni → Generale → Aggiornamento Automatico Feed</strong>. Sono disponibili quattro opzioni:</p>
-          <table>
-            <thead>
-              <tr>
-                <th>Opzione</th>
-                <th>Comportamento</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>Disattivato</strong></td>
-                <td>Nessuna sincronizzazione ciclica (resta il controllo all'avvio).</td>
-              </tr>
-              <tr>
-                <td><strong>6 ore</strong> (predefinito)</td>
-                <td>Il software sincronizza tutti i feed ogni 6 ore.</td>
-              </tr>
-              <tr>
-                <td><strong>12 ore</strong></td>
-                <td>Il software sincronizza tutti i feed ogni 12 ore.</td>
-              </tr>
-              <tr>
-                <td><strong>24 ore</strong></td>
-                <td>Il software sincronizza tutti i feed una volta ogni 24 ore.</td>
-              </tr>
-            </tbody>
-          </table>
-          <p>Il cambio di impostazione è immediato e non richiede il riavvio del software. Il timer parte dall'avvio dell'applicazione.</p>
-        </section>
-        <section class="level3">
-          <h3 id="comportamento">Comportamento</h3>
-          <p>L'aggiornamento automatico <strong>non avvia download</strong>: si limita a verificare se sono stati pubblicati nuovi episodi. Se vengono trovati nuovi episodi su uno o più feed, il sistema invia una <strong>notifica del sistema operativo</strong> con il riepilogo dei contenuti trovati (in italiano o in inglese, secondo la lingua dell'interfaccia). La notifica è <strong>cliccabile</strong>: porta l'applicazione in primo piano e, se i nuovi episodi riguardano un solo podcast, apre direttamente quel feed.</p>
-          <p>Per scaricare i nuovi episodi segnalati, usare i normali controlli del batch.</p>
-          <hr>
-          <p><em>Vai al Capitolo 6 per una descrizione dettagliata del motore di download.</em></p>
-        </section>
+        <h2 id="59-aggiornamento-automatico">5.9 Aggiornamento automatico</h2>
+        <p>
+          Il programma controlla i feed da solo: all’avvio, poi a intervalli regolari, e ogni volta che la
+          connessione torna dopo un’interruzione.
+        </p>
+        <p>L’intervallo si sceglie in <strong>Impostazioni → Generale → Aggiornamento Automatico Feed</strong>.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Opzione</th>
+              <th>Comportamento</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Disattivato</td>
+              <td>Niente controlli ciclici; resta quello all’avvio.</td>
+            </tr>
+            <tr>
+              <td>6 ore (predefinito)</td>
+              <td>Rilettura di tutti i feed ogni sei ore.</td>
+            </tr>
+            <tr>
+              <td>12 ore</td>
+              <td>Rilettura ogni dodici ore.</td>
+            </tr>
+            <tr>
+              <td>24 ore</td>
+              <td>Rilettura una volta al giorno.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>Il cambio ha effetto subito, senza riavviare. Il conteggio riparte dall’avvio del programma.</p>
+        <p>
+          L’aggiornamento automatico <strong>non scarica niente</strong>: si limita a guardare se sono usciti episodi
+          nuovi. Quando ne trova, manda una notifica di sistema con il riepilogo, nella lingua
+          dell’interfaccia. La notifica è cliccabile: riporta in primo piano il programma e, se le novità
+          riguardano un solo podcast, apre direttamente quel feed. Per scaricarli si usano poi i comandi
+          normali.
+        </p>
+        <hr>
+        <p><em>Il capitolo 6 racconta come lavora il motore di download.</em></p>
       </section>
     </section>
   

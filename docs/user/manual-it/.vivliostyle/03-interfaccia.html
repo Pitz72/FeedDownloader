@@ -1,299 +1,456 @@
 <!DOCTYPE html><html lang="it"><head>
     <meta charset="utf-8">
-    <title>Capitolo 3: Tour dell'Interfaccia</title>
+    <title>Capitolo 3: Tour dell’interfaccia</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" href="book/theme.css">
   </head>
   <body>
     <section class="level1">
-      <h1 id="capitolo-3-tour-dellinterfaccia">Capitolo 3: Tour dell'Interfaccia</h1>
+      <h1 id="capitolo-3-tour-dellinterfaccia">Capitolo 3: Tour dell’interfaccia</h1>
       <section class="level2">
-        <h2 id="31-anatomia-della-finestra-principale">3.1 Anatomia della Finestra Principale</h2>
-        <p>All'apertura di FeedDownloader Pro, la finestra è organizzata in quattro zone funzionali:</p>
+        <h2 id="31-anatomia-della-finestra-principale">3.1 Anatomia della finestra principale</h2>
+        <p>La finestra si divide in quattro zone.</p>
         <ul>
-          <li><strong>Barra di comando (in alto):</strong> La barra fissa contenente il campo URL, il pulsante di analisi, il pulsante di accesso alla Palette Comandi e l'icona Impostazioni. Quando è disponibile un aggiornamento del software, in questa barra appare anche l'indicatore persistente di aggiornamento (vedi il Capitolo 2, sezione 2.5). Da qui si avviano tutte le operazioni di aggiunta di nuovi feed.</li>
-          <li><strong>Barra laterale dei feed (sinistra):</strong> La colonna che contiene la libreria permanente dei feed salvati, la scheda Archivio, i controlli di sincronizzazione e il footer con il percorso di destinazione. La larghezza è regolabile trascinando il bordo destro.</li>
-          <li><strong>Area principale (centro):</strong> L'area dove vengono visualizzati gli episodi del feed selezionato, con la barra filtri, i controlli del batch e la lista degli episodi.</li>
-          <li><strong>Pannello Download (destra, sovrapposto):</strong> Il pannello che si apre automaticamente quando è in corso un batch di download. Quando è chiuso, rimane visibile un pulsante flottante in basso a destra per riaprirlo.</li>
+          <li>
+            <strong>Barra di comando, in alto.</strong> Contiene il campo URL, il pulsante di analisi, il pulsante per
+            cambiare cartella di destinazione, l’accesso alla palette comandi e l’icona delle impostazioni.
+            Quando esiste un aggiornamento, qui compare anche il relativo indicatore (capitolo 2, sezione
+            2.5).
+          </li>
+          <li>
+            <strong>Barra laterale dei feed, a sinistra.</strong> Ospita la libreria dei feed salvati, la scheda
+            Archivio, i controlli di sincronizzazione e, in fondo, il percorso di destinazione. La larghezza
+            si regola trascinando il bordo destro.
+          </li>
+          <li>
+            <strong>Area principale, al centro.</strong> Mostra gli episodi del feed selezionato, con l’intestazione del
+            podcast, la barra dei filtri e la lista.
+          </li>
+          <li>
+            <strong>Pannello download, a destra.</strong> Si apre da solo quando parte un lotto di download. Quando è
+            chiuso resta un pulsante rotondo in basso a destra per richiamarlo.
+          </li>
         </ul>
-        <p>Al primo avvio, con la libreria vuota, l'area principale mostra un messaggio guida che indica come aggiungere il primo feed e dove configurare il percorso di destinazione. Il messaggio scompare automaticamente all'aggiunta del primo feed, oppure manualmente tramite il pulsante ×.</p>
+        <p>
+          Al primo avvio, con la libreria vuota, l’area principale mostra un riquadro guida che spiega come
+          aggiungere il primo feed e dove impostare la cartella di destinazione. Sparisce da sé quando il
+          primo feed entra in libreria.
+        </p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="32-la-barra-di-comando-in-alto">3.2 La Barra di Comando (In Alto)</h2>
-        <p><strong>Campo URL:</strong> La barra di testo dove si inserisce l'indirizzo RSS del podcast da analizzare. Accetta URL diretti a file XML/RSS. Supporta il <strong>drag and drop</strong>: è possibile trascinare un link direttamente da un browser su quest'area.</p>
-        <p><strong>Pulsante "Analizza":</strong> Avvia l'analisi del feed. Il software contatta l'URL, legge il file RSS e popola la lista degli episodi. Al completamento dell'analisi, il feed viene aggiunto permanentemente alla barra laterale. L'operazione richiede generalmente da 1 a 5 secondi, in base alla dimensione del feed e alla velocità della connessione.</p>
-        <p><strong>Icona Impostazioni (⚙):</strong> Apre il pannello delle impostazioni. È accessibile in qualsiasi momento, anche durante un download in corso. Per i dettagli, vedi il Capitolo 10.</p>
+        <h2 id="32-la-barra-di-comando">3.2 La barra di comando</h2>
+        <p>
+          <strong>Campo URL.</strong> Qui si incolla l’indirizzo RSS del podcast. Accetta URL che puntano a file XML o RSS
+          e supporta il trascinamento: si può prendere un link dal browser e lasciarlo sul campo.
+        </p>
+        <p>
+          <strong>Analizza.</strong> Contatta l’indirizzo, legge il feed e riempie la lista degli episodi. Al termine il
+          feed entra stabilmente nella barra laterale. In genere richiede da uno a cinque secondi, secondo la
+          dimensione del feed e la rete.
+        </p>
+        <p>
+          <strong>Icona cartella.</strong> Apre il selettore per cambiare la cartella di destinazione dei download, senza
+          passare dalle impostazioni.
+        </p>
+        <p>
+          <strong>Icona impostazioni.</strong> Apre il pannello delle impostazioni, anche mentre un download è in corso
+          (capitolo 10).
+        </p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="33-la-barra-laterale-dei-feed">3.3 La Barra Laterale dei Feed</h2>
-        <p>La barra laterale è il centro di controllo della libreria podcast. Contiene tutti i feed aggiunti in modo permanente: i feed non si perdono alla chiusura del software.</p>
+        <h2 id="33-la-barra-laterale-dei-feed">3.3 La barra laterale dei feed</h2>
+        <p>
+          La barra laterale è il centro della libreria: i feed che contiene restano anche dopo la chiusura del
+          programma.
+        </p>
         <section class="level3">
           <h3 id="le-schede-feed-e-archivio">Le schede Feed e Archivio</h3>
-          <p>In cima alla barra laterale sono presenti due schede:</p>
-          <ul>
-            <li><strong>Scheda Feed:</strong> Mostra la libreria dei feed salvati. È la vista predefinita.</li>
-            <li><strong>Scheda Archivio:</strong> Mostra la Vista Archivio, ovvero una tabella con tutti gli episodi scaricati nell'intera libreria. Vedi la sezione 3.10.</li>
-          </ul>
+          <p>
+            In cima ci sono due schede. <strong>Feed</strong> mostra la libreria ed è la vista predefinita. <strong>Archivio</strong>
+            apre la tabella di tutti gli episodi scaricati nell’intera libreria (sezione 3.10).
+          </p>
         </section>
         <section class="level3">
-          <h3 id="elementi-della-libreria-feed">Elementi della libreria feed</h3>
-          <p>Ogni feed nella lista è rappresentato da una riga che mostra:</p>
-          <ul>
-            <li><strong>Thumbnail:</strong> L'immagine di copertina del podcast.</li>
-            <li><strong>Titolo:</strong> Il nome del podcast come dichiarato nel feed RSS.</li>
-            <li><strong>Data:</strong> La data dell'ultima sincronizzazione con il server.</li>
-            <li><strong>Badge "DA SCARICARE":</strong> Un indicatore (es. <code>3 DA SCARICARE</code>) che segnala quanti episodi nuovi sono stati rilevati rispetto all'ultima sincronizzazione. Il riconoscimento dei nuovi episodi avviene tramite l'identificatore univoco (GUID) di ciascun episodio, registrato nel database: un episodio viene contato come nuovo solo se il suo GUID non è mai stato visto prima. Il badge scompare dopo aver scaricato tutti i nuovi episodi.</li>
-          </ul>
-          <p>Cliccare su un elemento della lista carica la lista degli episodi di quel feed nell'area principale.</p>
+          <h3 id="come-si-legge-una-riga-della-libreria">Come si legge una riga della libreria</h3>
+          <p>
+            Ogni feed mostra la copertina, il titolo dichiarato nel feed RSS e la data dell’ultima
+            sincronizzazione. Quando ci sono episodi mai scaricati compare il badge <strong>DA SCARICARE</strong> con il
+            numero (per esempio <code>3 DA SCARICARE</code>). Il conteggio si basa sull’identificatore univoco degli
+            episodi, il GUID, registrato nel database: un episodio conta come nuovo solo se il suo GUID non è
+            mai stato visto prima. Il badge sparisce quando tutti i nuovi episodi sono stati scaricati.
+          </p>
+          <p>Un clic sulla riga carica gli episodi di quel feed nell’area principale.</p>
         </section>
         <section class="level3">
           <h3 id="aggiungere-un-feed">Aggiungere un feed</h3>
-          <p>Incollare l'URL RSS nel campo URL in cima all'interfaccia e cliccare "Analizza". Una volta completata l'analisi, il feed viene aggiunto automaticamente alla barra laterale e rimane disponibile per le sessioni successive.</p>
+          <p>
+            Si incolla l’URL nel campo in alto e si preme <strong>Analizza</strong>. Il feed viene salvato in libreria e
+            resta disponibile nelle sessioni successive.
+          </p>
         </section>
         <section class="level3">
           <h3 id="ricerca-e-ordinamento">Ricerca e ordinamento</h3>
-          <ul>
-            <li><strong>Ricerca feed:</strong> Il campo di ricerca nella barra laterale filtra i feed per nome in tempo reale. Utile con librerie di grandi dimensioni.</li>
-            <li><strong>Ordinamento A-Z:</strong> Il pulsante di ordinamento ordina alfabeticamente i feed per titolo. Cliccarlo di nuovo ripristina l'ordine originale.</li>
-          </ul>
+          <p>
+            Il campo di ricerca filtra i feed per nome mentre si digita, utile quando la libreria cresce. Il
+            pulsante di ordinamento dispone i feed in ordine alfabetico; premuto di nuovo ripristina l’ordine
+            originale.
+          </p>
         </section>
         <section class="level3">
           <h3 id="sincronizzazione">Sincronizzazione</h3>
-          <ul>
-            <li><strong>Sincronizzazione individuale:</strong> Passando il mouse su un elemento feed, appare l'icona di sincronizzazione. Cliccandola, il software rilegge il feed dal server e aggiorna la lista episodi con eventuali nuovi contenuti.</li>
-            <li><strong>Sincronizza Tutti:</strong> Il pulsante <strong>"Sincronizza Tutti"</strong> in cima alla barra laterale aggiorna tutti i feed in parallelo. Durante l'operazione, ogni thumbnail mostra il proprio stato: icona rotante (in corso), segno di spunta verde (completato), icona di errore rossa (fallito). Il pulsante riporta il progresso in tempo reale (es. <code>Sincronizzando... 3/7</code>). Gli stati rimangono visibili per 2,5 secondi al termine dell'operazione, poi scompaiono.</li>
-          </ul>
+          <p>
+            Passando il mouse su un feed compare l’icona di sincronizzazione: rilegge il feed dal server e
+            aggiorna la lista con gli episodi nuovi.
+          </p>
+          <p>
+            Il pulsante <strong>Sincronizza Tutti</strong>, in cima alla barra laterale, aggiorna l’intera libreria in
+            parallelo. Durante l’operazione ogni copertina mostra il proprio stato con un’icona: rotante mentre
+            lavora, spunta verde a buon fine, segnale rosso se il feed non risponde. Il pulsante riporta
+            l’avanzamento (<code>Sincronizzando... 3/7</code>). Gli esiti restano visibili due secondi e mezzo, poi
+            scompaiono.
+          </p>
         </section>
         <section class="level3">
-          <h3 id="footer-percorso-di-destinazione">Footer: percorso di destinazione</h3>
-          <p>In fondo alla barra laterale è visibile il percorso della cartella di destinazione download, abbreviato alle ultime due componenti (es. <code>Documenti / Podcast</code>). Cliccare su questa riga apre la cartella nel file manager di sistema. Per modificare il percorso, usare <strong>Impostazioni → Archivio</strong>.</p>
+          <h3 id="in-fondo-il-percorso-di-destinazione">In fondo: il percorso di destinazione</h3>
+          <p>
+            L’ultima riga della barra laterale mostra la cartella di destinazione abbreviata alle ultime due
+            componenti (per esempio <code>Documenti / Podcast</code>). Un clic la apre nel gestore file del sistema. Per
+            cambiarla si usa l’icona cartella della barra di comando oppure <strong>Impostazioni → Download</strong>.
+          </p>
         </section>
         <section class="level3">
           <h3 id="ridimensionamento">Ridimensionamento</h3>
-          <p>La larghezza della barra laterale è regolabile trascinando il bordo destro (il cursore diventa una doppia freccia orizzontale). La larghezza minima è 240 px, la massima è 640 px, il valore predefinito è 360 px. L'impostazione viene memorizzata tra le sessioni.</p>
+          <p>
+            La larghezza si regola trascinando il bordo destro: minimo 240 pixel, massimo 640, valore
+            predefinito 360. La misura scelta viene ricordata.
+          </p>
         </section>
         <section class="level3">
-          <h3 id="indicatore-di-connessione">Indicatore di connessione</h3>
-          <p>Nell'intestazione della barra laterale è visibile lo stato della connessione: <strong>"Connesso"</strong> oppure <strong>"Offline"</strong>. Quando la connessione manca, un banner segnala che i download sono in pausa fino al ripristino; al ritorno della connessione il software riprende automaticamente e verifica la presenza di nuovi episodi.</p>
+          <h3 id="stato-della-connessione">Stato della connessione</h3>
+          <p>
+            L’intestazione della barra laterale segnala se il programma è <strong>Connesso</strong> oppure <strong>Offline</strong>.
+            Quando la rete manca, un avviso in alto ricorda che i download restano fermi fino al ripristino; al
+            ritorno della connessione il programma riprende e controlla se nel frattempo sono usciti episodi
+            nuovi.
+          </p>
           <hr>
         </section>
       </section>
       <section class="level2">
-        <h2 id="34-la-lista-degli-episodi">3.4 La Lista degli Episodi</h2>
-        <p>Dopo aver selezionato un feed dalla barra laterale, l'area principale viene popolata con la lista degli episodi disponibili per quel podcast.</p>
+        <h2 id="34-la-lista-degli-episodi">3.4 La lista degli episodi</h2>
+        <p>Selezionato un feed, l’area principale si popola con i suoi episodi.</p>
         <section class="level3">
           <h3 id="intestazione-del-feed">Intestazione del feed</h3>
-          <p>In cima all'area principale è visibile l'intestazione del feed selezionato, con thumbnail, titolo del podcast e il numero di episodi. Da questa intestazione sono accessibili i principali controlli del batch (vedi la sezione 3.7).</p>
+          <p>
+            In cima trovi copertina, titolo del podcast e numero di episodi. Da qui si raggiungono i comandi che
+            agiscono sull’intero feed (sezione 3.7).
+          </p>
         </section>
         <section class="level3">
-          <h3 id="colonne-dellelenco">Colonne dell'elenco</h3>
-          <p>Ogni riga della lista rappresenta un episodio e contiene le seguenti informazioni:</p>
+          <h3 id="cosa-mostra-ogni-riga">Cosa mostra ogni riga</h3>
           <ul>
-            <li><strong>Titolo:</strong> Il nome dell'episodio come definito nel feed RSS.</li>
-            <li><strong>Data:</strong> La data di pubblicazione originale dell'episodio.</li>
-            <li><strong>Durata:</strong> La durata dell'episodio (quando disponibile nel feed).</li>
-            <li><strong>Dimensione:</strong> La dimensione del file. Prima del download, il valore è dichiarativo (ricavato dal feed); dopo il download, riflette la dimensione reale del file.</li>
-            <li><strong>Stato:</strong> L'indicatore visivo dello stato del singolo episodio. Vedi la sezione 3.5.</li>
+            <li><strong>Titolo</strong> dell’episodio come compare nel feed.</li>
+            <li><strong>Data</strong> di pubblicazione.</li>
+            <li><strong>Durata</strong>, quando il feed la dichiara.</li>
+            <li><strong>Stato</strong>, con il tag corrispondente (sezione 3.5).</li>
           </ul>
+          <p>
+            La dimensione del file non compare in lista: si legge nel pannello di dettaglio, dove prima del
+            download è il valore dichiarato dal feed e dopo quello reale del file su disco.
+          </p>
         </section>
         <section class="level3">
-          <h3 id="barra-filtri">Barra filtri</h3>
-          <p>Sotto l'intestazione del feed è presente una barra filtri che consente di restringere gli episodi visualizzati:</p>
+          <h3 id="barra-dei-filtri">Barra dei filtri</h3>
+          <p>Sotto l’intestazione una barra permette di restringere la lista.</p>
           <ul>
-            <li><strong>Ricerca per testo:</strong> Filtra per parole chiave nel titolo (logica AND: tutti i termini inseriti devono essere presenti). Il filtro si azzera automaticamente al cambio feed.</li>
-            <li><strong>Filtro per stato:</strong> Pulsanti rapidi per mostrare solo gli episodi in un determinato stato: <strong>"Tutti"</strong>, <strong>"Da scaricare"</strong>, <strong>"Scaricati"</strong>.</li>
-            <li><strong>Filtro per data:</strong> Campi data "dal" e "al" per limitare la lista a un intervallo di pubblicazione.</li>
-            <li><strong>Filtro per durata:</strong> Limita la lista agli episodi con durata compresa tra un minimo e un massimo (in minuti).</li>
-            <li><strong>Ordina:</strong> Apre un pannello con cinque opzioni di ordinamento — ordine del feed (predefinito), data più recente, data meno recente, durata più lunga, durata più corta.</li>
+            <li>
+              <strong>Ricerca testuale.</strong> Filtra per parole chiave cercandole nel titolo e nella descrizione
+              dell’episodio. Vale la logica AND: tutti i termini digitati devono comparire.
+            </li>
+            <li><strong>Stato.</strong> Tre pulsanti rapidi: <strong>Tutti</strong>, <strong>Da scaricare</strong>, <strong>Scaricati</strong>.</li>
+            <li><strong>Data.</strong> Due campi, <strong>Da</strong> e <strong>A</strong>, per limitare l’intervallo di pubblicazione.</li>
+            <li><strong>Durata.</strong> Minimo e massimo in minuti.</li>
+            <li>
+              <strong>Ordina.</strong> Cinque criteri: ordine del feed (predefinito), data più recente, data meno recente,
+              durata più lunga, durata più corta.
+            </li>
           </ul>
-          <p>Tutti i filtri vengono azzerati automaticamente quando si seleziona un feed diverso.</p>
+          <p>Cambiando feed, tutti i filtri tornano a zero.</p>
         </section>
         <section class="level3">
           <h3 id="selezione-multipla">Selezione multipla</h3>
-          <p>È possibile selezionare più episodi contemporaneamente per avviarne il download in blocco:</p>
+          <p>Si possono scegliere più episodi e scaricarli in blocco.</p>
           <ul>
-            <li><strong>Ctrl+click:</strong> aggiunge o rimuove singolarmente l'episodio dalla selezione.</li>
-            <li><strong>Shift+click:</strong> seleziona l'intervallo tra l'ultimo episodio selezionato e quello cliccato.</li>
-            <li>Una casella di controllo appare on-hover sugli episodi non selezionati e sempre sugli episodi selezionati.</li>
+            <li><strong>Ctrl+clic</strong> aggiunge o toglie il singolo episodio dalla selezione.</li>
+            <li><strong>Maiusc+clic</strong> seleziona l’intervallo tra l’ultimo episodio scelto e quello cliccato.</li>
+            <li>
+              La casella di spunta appare al passaggio del mouse sugli episodi non selezionati e resta sempre
+              visibile su quelli selezionati.
+            </li>
           </ul>
-          <p>Quando almeno un episodio è selezionato, nell'intestazione del feed appare il pulsante <strong>"Scarica Selezionati (N)"</strong>. La selezione viene azzerata al cambio feed e dopo l'avvio del download.</p>
+          <p>
+            Con almeno un episodio selezionato, nell’intestazione compare <strong>Scarica Selezionati (N)</strong>. La
+            selezione si azzera al cambio feed e dopo l’avvio del download.
+          </p>
           <hr>
         </section>
       </section>
       <section class="level2">
-        <h2 id="35-gli-stati-degli-episodi">3.5 Gli Stati degli Episodi</h2>
-        <p>Ogni episodio nella lista è contrassegnato da un indicatore di stato. Comprendere questi stati è essenziale per interpretare correttamente la situazione dell'archivio.</p>
+        <h2 id="35-gli-stati-degli-episodi">3.5 Gli stati degli episodi</h2>
+        <p>
+          Ogni episodio porta un indicatore di stato. Saperli leggere è il modo più rapido per capire com’è
+          messo l’archivio.
+        </p>
         <table>
           <thead>
             <tr>
               <th>Stato</th>
-              <th>Etichetta nella lista</th>
+              <th>Dove si legge</th>
               <th>Significato</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td><strong>Da scaricare</strong></td>
-              <td>Tag <strong>"NUOVO"</strong></td>
-              <td>L'episodio è presente nel feed ma non è mai stato scaricato.</td>
+              <td>Da scaricare</td>
+              <td>Tag <strong>NUOVO</strong> nella lista</td>
+              <td>L’episodio è nel feed e non è mai stato scaricato.</td>
             </tr>
             <tr>
-              <td><strong>In coda</strong></td>
-              <td>Voce "in coda" nel Pannello Download</td>
-              <td>L'episodio attende il proprio turno nella coda di download.</td>
+              <td>In coda</td>
+              <td>Voce <em>in coda</em> nel pannello download</td>
+              <td>Attende il proprio turno.</td>
             </tr>
             <tr>
-              <td><strong>In pausa</strong></td>
-              <td>Voce "in pausa" nel Pannello Download</td>
-              <td>Il download è stato sospeso dall'utente e può riprendere dal punto raggiunto.</td>
+              <td>In pausa</td>
+              <td>Voce <em>in pausa</em> nel pannello download</td>
+              <td>Sospeso dall’utente; riprende dal punto raggiunto.</td>
             </tr>
             <tr>
-              <td><strong>In corso</strong></td>
+              <td>In corso</td>
               <td>Barra di avanzamento animata</td>
-              <td>Il download è attivo. La riga mostra percentuale e velocità in tempo reale.</td>
+              <td>Trasferimento attivo, con percentuale e velocità.</td>
             </tr>
             <tr>
-              <td><strong>Errore</strong></td>
-              <td>Riepilogo errori nel Pannello Download</td>
-              <td>Il download non è riuscito dopo tutti i tentativi automatici.</td>
+              <td>Errore</td>
+              <td>Riepilogo errori del pannello download</td>
+              <td>Falliti tutti i tentativi automatici.</td>
             </tr>
             <tr>
-              <td><strong>Scaricato</strong></td>
-              <td>Tag <strong>"ARCHIVIATO"</strong></td>
-              <td>Il file è nel database: scaricato e verificato, in questa sessione o in una precedente.</td>
+              <td>Scaricato</td>
+              <td>Tag <strong>ARCHIVIATO</strong> nella lista</td>
+              <td>Il file è registrato nel database, di questa sessione o di una precedente.</td>
             </tr>
           </tbody>
         </table>
-        <p><em>Nota sullo stato <strong>"Scaricato"</strong>:</em> Questo stato è il risultato della filosofia Database-First. Quando si analizza un feed già elaborato, la maggior parte degli episodi mostra il tag <strong>"ARCHIVIATO"</strong>: il software sa già che sono presenti nell'archivio. Solo gli episodi pubblicati dopo l'ultimo download appariranno con il tag <strong>"NUOVO"</strong>.</p>
-        <hr>
-      </section>
-      <section class="level2">
-        <h2 id="36-i-controlli-di-download-individuali">3.6 I Controlli di Download Individuali</h2>
-        <p>A destra di ogni riga nella lista, al passaggio del mouse, compaiono i pulsanti di controllo specifici per quell'episodio. I pulsanti visibili variano in base allo stato:</p>
-        <p><strong>Per tutti gli episodi:</strong></p>
-        <ul>
-          <li><strong>Copia titolo</strong> (icona documento): Copia il titolo dell'episodio negli appunti di sistema.</li>
-          <li><strong>Casella di controllo:</strong> Per la selezione multipla (vedi sezione 3.4).</li>
-        </ul>
-        <p><strong>Per gli episodi Da Scaricare o in Errore:</strong></p>
-        <ul>
-          <li><strong>Scarica</strong> (freccia verso il basso): Aggiunge il singolo episodio alla coda di download.</li>
-        </ul>
-        <p><strong>Per gli episodi Scaricati (tag "ARCHIVIATO"):</strong></p>
-        <ul>
-          <li><strong>Riscarica</strong> (freccia verso il basso): Aggiunge nuovamente l'episodio alla coda, sovrascrivendo il file esistente.</li>
-          <li><strong>Dimentica download</strong> (icona aggiorna): Azzera lo stato dell'episodio, riportandolo a "Da scaricare" senza eliminare il file dal disco.</li>
-          <li><strong>Apri Cartella</strong> (icona cartella): Apre il file manager di sistema sulla posizione del file scaricato.</li>
-        </ul>
         <p>
-          <strong>Interazione con il Pannello Dettaglio:</strong>
-          Un <strong>click semplice</strong> sulla riga dell'episodio apre il Pannello Dettaglio (vedi la sezione 3.9) con i metadati completi e le azioni contestuali. Ctrl+click e Shift+click sono riservati esclusivamente alla selezione multipla e non aprono il pannello.
+          Il tag <strong>ARCHIVIATO</strong> discende direttamente dall’impostazione database-first. Rianalizzando un feed
+          già lavorato, quasi tutti gli episodi risulteranno archiviati: il programma sa di averli. Compaiono
+          come <strong>NUOVO</strong> solo quelli usciti dopo l’ultimo download.
         </p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="37-i-controlli-del-batch">3.7 I Controlli del Batch</h2>
-        <p>I controlli del batch operano sull'intera coda di download, non sui singoli episodi. Si trovano nell'intestazione del feed, sopra la barra filtri.</p>
-        <p><strong>"Scarica Tutto":</strong> Aggiunge alla coda tutti gli episodi in stato <strong>"Da Scaricare"</strong>. Gli episodi già presenti nel database vengono esclusi automaticamente. Il Pannello Download si apre automaticamente all'avvio.</p>
-        <p><strong>"Scarica Selezionati (N)":</strong> Appare quando almeno un episodio è selezionato. Avvia il download esclusivamente per gli episodi selezionati.</p>
-        <p><strong>"Ferma download":</strong> Invia un segnale di cancellazione a tutti i download attivi e svuota la coda. I file già completati rimangono nel database. I file <code>.part</code> vengono eliminati. Gli episodi interrotti appariranno nuovamente con il tag <strong>"NUOVO"</strong>. Per una sospensione temporanea (senza perdere l'avanzamento) usare invece <strong>"Pausa"</strong> nel Pannello Download (vedi la sezione 3.8).</p>
-        <p><strong>"Esporta M3U":</strong> Genera una playlist in formato <code>.m3u</code> con i percorsi assoluti locali di tutti gli episodi scaricati per quel podcast. Apre una finestra di salvataggio nativa. Il pulsante è disponibile solo quando sono presenti episodi scaricati per il feed corrente.</p>
-        <p><strong>"Apri cartella"</strong> (icona cartella nell'intestazione): Apre il file manager nella cartella di destinazione del feed corrente.</p>
-        <hr>
-      </section>
-      <section class="level2">
-        <h2 id="38-il-pannello-download">3.8 Il Pannello Download</h2>
-        <p>Il Pannello Download è il centro di monitoraggio e controllo di tutti i download in corso. Sostituisce la precedente barra di avanzamento fissa nella parte inferiore dell'interfaccia.</p>
-        <section class="level3">
-          <h3 id="apertura-e-chiusura">Apertura e chiusura</h3>
-          <p>Il pannello si apre <strong>automaticamente</strong> all'avvio di ogni batch. Quando è chiuso, è visibile il <strong>pulsante flottante</strong> (icona circolare) nell'angolo inferiore destro della finestra: cliccarlo riapre il pannello. La chiusura del pannello non interrompe i download in corso.</p>
-        </section>
-        <section class="level3">
-          <h3 id="struttura-del-pannello">Struttura del pannello</h3>
-          <ul>
-            <li><strong>Intestazione:</strong> Mostra il contatore file completati/totale (es. <code>47 / 312</code>) e i controlli globali della coda: il pulsante <strong>"Pausa"</strong> (sospende l'intera coda; diventa <strong>"Riprendi"</strong> quando la coda è in pausa e l'intestazione mostra <strong>"Coda in pausa"</strong>), il pulsante <strong>"Ferma download"</strong> per interrompere definitivamente tutti i download, e il pulsante × per chiudere il pannello.</li>
-            <li><strong>Lista coda:</strong> Ogni download in corso o in attesa è rappresentato da una riga con: titolo dell'episodio, nome del podcast, percentuale di avanzamento, velocità corrente (KB/s o MB/s), barra di avanzamento individuale. Se il server non dichiara la dimensione del file (intestazione <code>Content-Length</code> assente), la barra diventa <strong>indeterminata</strong> (animazione continua) e mostra i byte ricevuti. Passando il mouse sulla riga appaiono i pulsanti <strong>"Metti in pausa"</strong> (o <strong>"Riprendi"</strong> se in pausa) e × (<strong>"Annulla download"</strong>) per quel singolo episodio.</li>
-            <li><strong>Pausa non distruttiva:</strong> La pausa — di un singolo download o dell'intera coda — conserva il file parziale <code>.part</code>: alla ripresa il trasferimento continua <strong>dal punto in cui era arrivato</strong>, senza ricominciare da zero.</li>
-            <li><strong>Sezione Errori:</strong> Al termine del batch, se uno o più download sono falliti, appare nella parte inferiore del pannello un riepilogo espandibile con l'elenco degli episodi non scaricati e il relativo codice di errore, insieme al pulsante <strong>"Riprova falliti"</strong> che rimette in coda in un solo clic tutti gli episodi in errore.</li>
-          </ul>
-          <hr>
-        </section>
-      </section>
-      <section class="level2">
-        <h2 id="39-il-pannello-dettaglio-episodio">3.9 Il Pannello Dettaglio Episodio</h2>
-        <p>Il Pannello Dettaglio fornisce una vista approfondita di un singolo episodio: metadati, azioni e, se l'episodio è già nell'archivio, i dati tecnici del file scaricato.</p>
-        <section class="level3">
-          <h3 id="come-aprirlo">Come aprirlo</h3>
-          <p>Un <strong>click semplice</strong> su qualsiasi riga della lista episodi apre il pannello, che scorre lateralmente nell'area destra della finestra (sotto la barra di comando). Il pannello si chiude automaticamente quando si seleziona un feed diverso nella barra laterale.</p>
-          <p><em>Nota:</em> Ctrl+click e Shift+click sono riservati alla selezione multipla e non aprono il pannello.</p>
-        </section>
-        <section class="level3">
-          <h3 id="contenuto-del-pannello">Contenuto del pannello</h3>
-          <ul>
-            <li><strong>Metadati base:</strong> Data di pubblicazione, durata dichiarata, dimensione del file indicata nel feed.</li>
-            <li><strong>Azioni contestuali:</strong> I pulsanti disponibili variano in base allo stato dell'episodio: Scarica, Riscarica, Dimentica download, Apri Cartella.</li>
-            <li><strong>Dati archivio</strong> (visibili solo se l'episodio è già scaricato): Data e ora del download, dimensione reale del file, bitrate, sample rate, nome file sul disco, checksum SHA-256.</li>
-            <li><strong>Link sorgente:</strong> L'URL originale del file audio nel feed RSS, con pulsante per copiarlo negli appunti.</li>
-            <li><strong>Note dell'episodio:</strong> Il testo descrittivo dell'episodio estratto dal feed (show notes), presentato in formato testo pulito.</li>
-          </ul>
-          <hr>
-        </section>
-      </section>
-      <section class="level2">
-        <h2 id="310-la-vista-archivio">3.10 La Vista Archivio</h2>
-        <p>La Vista Archivio è accessibile tramite la scheda <strong>Archivio</strong> nella barra laterale. A differenza della lista episodi, che mostra solo gli episodi di un feed alla volta, la Vista Archivio raccoglie in un'unica tabella <strong>tutti gli episodi scaricati nell'intera libreria</strong>, indipendentemente dal podcast di appartenenza.</p>
-        <section class="level3">
-          <h3 id="funzionalità">Funzionalità</h3>
-          <ul>
-            <li><strong>Ricerca:</strong> Il campo di ricerca filtra per titolo dell'episodio o nome del podcast.</li>
-            <li><strong>Filtro per podcast:</strong> Il menu a tendina consente di limitare la visualizzazione agli episodi di un singolo podcast.</li>
-            <li><strong>Ordinamento:</strong> La tabella è ordinabile per data di download, data di pubblicazione, dimensione del file e bitrate.</li>
-            <li><strong>Statistiche:</strong> L'intestazione della Vista Archivio mostra il numero totale di file scaricati, il numero di podcast distinti e la dimensione totale dell'archivio in gigabyte.</li>
-            <li><strong>Mostra in cartella:</strong> Passando il mouse su una riga, appare il pulsante che apre il file manager nella posizione del file sul disco.</li>
-          </ul>
-          <p>La Vista Archivio si aggiorna automaticamente al completamento di ogni download.</p>
-          <hr>
-        </section>
-      </section>
-      <section class="level2">
-        <h2 id="311-la-palette-comandi-ctrlk">3.11 La Palette Comandi (Ctrl+K)</h2>
-        <p>La Palette Comandi è uno strumento di accesso rapido che consente di raggiungere qualsiasi funzione principale del software senza usare il mouse.</p>
-        <section class="level3">
-          <h3 id="come-aprirla">Come aprirla</h3>
-          <p>La scorciatoia <strong>Ctrl+K</strong> (da qualsiasi punto dell'app, anche durante un download) apre un overlay con un campo di ricerca centrale.</p>
-        </section>
-        <section class="level3">
-          <h3 id="navigazione">Navigazione</h3>
-          <ul>
-            <li><strong>Digitare</strong> nel campo di ricerca filtra le azioni e i feed in tempo reale.</li>
-            <li><strong>Frecce ↑↓</strong> spostano la selezione tra i risultati.</li>
-            <li><strong>Invio</strong> esegue l'azione selezionata.</li>
-            <li><strong>Esc</strong> chiude la palette senza eseguire alcuna azione.</li>
-          </ul>
-        </section>
-        <section class="level3">
-          <h3 id="contenuto">Contenuto</h3>
-          <ul>
-            <li><strong>Gruppo "Azioni":</strong> Cinque comandi fissi sempre disponibili: <em>Apri Impostazioni</em>, <em>Sincronizza Tutti</em>, <em>Aggiungi Feed</em> (focalizza il campo URL), <em>Vai all'Archivio</em>, <em>Vai ai Feed</em>.</li>
-            <li><strong>Gruppo "Feed":</strong> Quando il campo di ricerca è vuoto, mostra i primi feed della libreria. Digitando, filtra i feed per titolo. Selezionando un feed dalla palette, questo viene caricato direttamente nell'area principale.</li>
-            <li><strong>Gruppo "Episodi (feed corrente)":</strong> Digitando, la palette cerca anche tra i titoli degli episodi del feed attualmente aperto. Selezionando un episodio, la lista viene filtrata su quel titolo.</li>
-          </ul>
-          <hr>
-        </section>
-      </section>
-      <section class="level2">
-        <h2 id="312-licona-nel-system-tray">3.12 L'Icona nel System Tray</h2>
-        <p>Quando si chiude la finestra principale cliccando sulla X, FeedDownloader Pro non termina il processo: si riduce nell'area di notifica di sistema (system tray, vicino all'orologio). Questo comportamento è intenzionale: i download e il controllo automatico dei nuovi episodi proseguono in background mentre la finestra non è visibile.</p>
-        <p><strong>Interazione con l'icona del tray:</strong></p>
+        <h2 id="36-i-comandi-sul-singolo-episodio">3.6 I comandi sul singolo episodio</h2>
+        <p>
+          Al passaggio del mouse, a destra di ogni riga compaiono i comandi dedicati a quell’episodio. Variano
+          con lo stato.
+        </p>
+        <p><strong>Sempre disponibili</strong></p>
         <ul>
-          <li><strong>Clic sull'icona:</strong> Mostra o nasconde la finestra principale.</li>
-          <li><strong>Menu contestuale (clic destro):</strong> Contiene due voci — <strong>"Show"</strong> (riporta in primo piano la finestra) ed <strong>"Quit"</strong> (chiude il programma e interrompe tutti i download attivi).</li>
+          <li><strong>Copia titolo</strong>: copia il titolo dell’episodio negli appunti.</li>
+          <li><strong>Casella di spunta</strong>: serve alla selezione multipla (sezione 3.4).</li>
         </ul>
-        <p><em>Nota pratica:</em> Per eseguire un download di grandi dimensioni senza tenere la finestra aperta, avviare il batch, chiudere la finestra e lasciare il computer in esecuzione. L'archivio sarà disponibile al completamento del processo.</p>
+        <p><strong>Episodi da scaricare o in errore</strong></p>
+        <ul>
+          <li><strong>Scarica</strong>: mette l’episodio in coda.</li>
+        </ul>
+        <p><strong>Episodi già archiviati</strong></p>
+        <ul>
+          <li><strong>Dimentica download</strong>: riporta l’episodio a «da scaricare» senza toccare il file sul disco.</li>
+          <li><strong>Apri Cartella</strong>: apre il gestore file sulla posizione del file.</li>
+        </ul>
+        <p>
+          Per riscaricare un episodio già archiviato si passa dal pannello di dettaglio, dove il pulsante
+          <strong>Riscarica</strong> rimette il file in coda sovrascrivendo quello esistente.
+        </p>
+        <p>
+          Un clic semplice sulla riga apre il pannello di dettaglio (sezione 3.9). Ctrl+clic e Maiusc+clic
+          restano riservati alla selezione multipla e non aprono nulla.
+        </p>
         <hr>
-        <p><em>Vai al Capitolo 4 per un workflow completo dalla prima analisi al download.</em></p>
+      </section>
+      <section class="level2">
+        <h2 id="37-i-comandi-sullintero-feed">3.7 I comandi sull’intero feed</h2>
+        <p>
+          Questi comandi stanno nell’intestazione del feed, sopra la barra dei filtri, e agiscono su molti
+          episodi insieme.
+        </p>
+        <p>
+          <strong>Scarica Tutto</strong> mette in coda gli episodi mai scaricati fra quelli <strong>attualmente visibili</strong>: se un
+          filtro è attivo, agisce solo su quelli. Prima di partire il programma chiede conferma («Vuoi davvero
+          scaricare tutti i N episodi?») e controlla lo spazio libero sul disco di destinazione, avvertendo se
+          non basta. Il pannello download si apre da solo.
+        </p>
+        <p><strong>Scarica Selezionati (N)</strong> compare quando c’è una selezione attiva e scarica soltanto quella.</p>
+        <p>
+          <strong>Sincronizza Nuovi</strong> rilegge il feed dal server e mette subito in coda gli episodi appena
+          comparsi, senza passare dalla lista. Anche qui vale il controllo dello spazio disponibile.
+        </p>
+        <p>
+          <strong>Esporta M3U</strong> genera una playlist <code>.m3u</code> con i percorsi locali degli episodi scaricati di quel
+          podcast e apre la finestra di salvataggio. Il pulsante è sempre presente: se per quel feed non c’è
+          ancora nulla sul disco, il programma lo segnala con un avviso invece di creare un file vuoto.
+        </p>
+        <p>
+          <strong>Cambia Cartella</strong>, l’icona cartella dell’intestazione, apre il selettore della cartella di
+          destinazione.
+        </p>
+        <p>
+          Per fermare o sospendere i download attivi si usano invece i comandi del pannello download
+          (sezione 3.8).
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="38-il-pannello-download">3.8 Il pannello download</h2>
+        <p>È il posto da cui si sorveglia e si governa tutto ciò che sta scaricando.</p>
+        <section class="level3">
+          <h3 id="aprirlo-e-chiuderlo">Aprirlo e chiuderlo</h3>
+          <p>
+            Si apre da solo quando parte un lotto. Chiudendolo resta il pulsante rotondo in basso a destra, che
+            lo richiama. Chiudere il pannello non ferma nulla.
+          </p>
+        </section>
+        <section class="level3">
+          <h3 id="comè-fatto">Com’è fatto</h3>
+          <ul>
+            <li>
+              <strong>In cima</strong>, il contatore dei file completati sul totale (per esempio <code>47 / 312</code>), il riepilogo
+              di quanti download sono attivi e quanti in coda, e il pulsante × per chiudere il pannello.
+            </li>
+            <li>
+              <strong>Al centro</strong>, la coda: una riga per ogni download, con titolo dell’episodio, nome del podcast,
+              percentuale, velocità corrente e barra di avanzamento. Se il server non dichiara la dimensione
+              del file, la barra diventa indeterminata e al posto della percentuale scorrono i byte ricevuti.
+              Su ogni riga ci sono <strong>Metti in pausa</strong> (che diventa <strong>Riprendi</strong> quando la riga è sospesa) e
+              <strong>Annulla download</strong>.
+            </li>
+            <li>
+              <strong>In fondo</strong>, i comandi che valgono per tutta la coda: <strong>Pausa</strong>, che sospende ogni
+              trasferimento e diventa <strong>Riprendi</strong> mentre la scritta accanto segnala <strong>Coda in pausa</strong>, e
+              <strong>Ferma download</strong>, che interrompe tutto e svuota la coda.
+            </li>
+          </ul>
+        </section>
+        <section class="level3">
+          <h3 id="pausa-e-interruzione-non-sono-la-stessa-cosa">Pausa e interruzione non sono la stessa cosa</h3>
+          <p>
+            La pausa, di un singolo episodio o dell’intera coda, conserva il file parziale <code>.part</code>: alla ripresa
+            il trasferimento riparte dal punto raggiunto. <strong>Ferma download</strong> invece è definitivo: cancella i
+            file parziali, svuota la coda e riporta gli episodi interrotti allo stato <strong>NUOVO</strong>. I file già
+            completati restano naturalmente nell’archivio.
+          </p>
+        </section>
+        <section class="level3">
+          <h3 id="quando-qualcosa-va-storto">Quando qualcosa va storto</h3>
+          <p>
+            Alla fine del lotto, se dei download sono falliti, compare in basso un riepilogo espandibile con
+            gli episodi mancati e il codice di errore di ciascuno. Accanto c’è <strong>Riprova falliti</strong>, che li
+            rimette in coda tutti insieme senza doverli ricercare nella lista.
+          </p>
+          <hr>
+        </section>
+      </section>
+      <section class="level2">
+        <h2 id="39-il-pannello-di-dettaglio">3.9 Il pannello di dettaglio</h2>
+        <p>
+          Un clic semplice su una riga apre il pannello di dettaglio, che entra da destra sotto la barra di
+          comando. Si chiude da solo quando si passa a un altro feed. Ctrl+clic e Maiusc+clic non lo aprono:
+          servono alla selezione multipla.
+        </p>
+        <p>Contiene:</p>
+        <ul>
+          <li><strong>Metadati di base</strong>: data di pubblicazione, durata dichiarata, dimensione indicata nel feed.</li>
+          <li>
+            <strong>Azioni</strong>, che cambiano con lo stato dell’episodio: Scarica, Riscarica, Dimentica download,
+            Apri Cartella.
+          </li>
+          <li>
+            <strong>Dati d’archivio</strong>, solo per gli episodi già scaricati: data del download, dimensione reale,
+            bitrate, frequenza di campionamento, nome del file sul disco e impronta SHA-256 registrata al
+            momento del download.
+          </li>
+          <li><strong>Link alla sorgente</strong>: l’URL del file audio nel feed, con il pulsante per copiarlo.</li>
+          <li><strong>Note dell’episodio</strong>: il testo descrittivo pubblicato nel feed, ripulito dal codice HTML.</li>
+        </ul>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="310-la-vista-archivio">3.10 La vista Archivio</h2>
+        <p>
+          Si raggiunge dalla scheda <strong>Archivio</strong> della barra laterale. Mentre la lista episodi mostra un feed
+          per volta, qui compaiono in un’unica tabella tutti gli episodi scaricati, di qualunque podcast.
+        </p>
+        <ul>
+          <li>
+            <strong>Ricerca</strong>: cerca nel titolo dell’episodio, nel nome del podcast e nella data, sia come la
+            vedi a schermo sia in forma ISO (<code>2026-08-18</code>).
+          </li>
+          <li><strong>Filtro per podcast</strong>: un menu a tendina restringe la tabella a un solo show.</li>
+          <li><strong>Ordinamento</strong>: per data di download, data di pubblicazione, dimensione o bitrate.</li>
+          <li><strong>Statistiche</strong>: in cima, il numero di file, quello dei podcast distinti e lo spazio occupato.</li>
+          <li><strong>Mostra in cartella</strong>: al passaggio del mouse su una riga, apre il gestore file sul file.</li>
+        </ul>
+        <p>La tabella si aggiorna da sola a ogni download completato.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="311-la-palette-comandi-ctrlk">3.11 La palette comandi (Ctrl+K)</h2>
+        <p>
+          La palette raggiunge le funzioni principali senza mouse. Si apre con <strong>Ctrl+K</strong> da qualsiasi punto
+          del programma, anche durante un download, e presenta un campo di ricerca al centro.
+        </p>
+        <p>
+          Si digita per filtrare, si scorre con le <strong>frecce ↑↓</strong>, si conferma con <strong>Invio</strong>, si esce con
+          <strong>Esc</strong> senza eseguire niente.
+        </p>
+        <p>I risultati sono raggruppati.</p>
+        <ul>
+          <li>
+            <strong>Azioni rapide</strong>: cinque comandi sempre presenti, cioè apri impostazioni, sincronizza tutti i
+            feed, aggiungi feed (che porta il cursore nel campo URL), apri archivio, torna ai feed.
+          </li>
+          <li>
+            <strong>Salta al feed</strong>: a campo vuoto mostra i primi feed della libreria; digitando li filtra per
+            titolo. Scegliendone uno, viene caricato nell’area principale.
+          </li>
+          <li>
+            <strong>Episodi (feed corrente)</strong>: digitando, la palette cerca anche tra i titoli degli episodi del
+            feed aperto. Scegliendone uno, la lista viene filtrata su quel titolo.
+          </li>
+        </ul>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="312-licona-nellarea-di-notifica">3.12 L’icona nell’area di notifica</h2>
+        <p>
+          Chiudendo la finestra con la ×, il programma non esce: si riduce nell’area di notifica, vicino
+          all’orologio. È voluto, perché i download e il controllo automatico dei nuovi episodi proseguono
+          anche a finestra chiusa.
+        </p>
+        <p>
+          Un clic sull’icona mostra o nasconde la finestra. Il menu con il tasto destro ha due voci, in
+          inglese perché fornite dal sistema: <strong>Show</strong> riporta la finestra in primo piano, <strong>Quit</strong> chiude il
+          programma e interrompe i download attivi.
+        </p>
+        <p>
+          In pratica: per un archivio grande conviene avviare il lotto, chiudere la finestra e lasciare
+          lavorare il computer.
+        </p>
+        <hr>
+        <p><em>Il capitolo 4 percorre un flusso completo, dalla prima analisi al file archiviato.</em></p>
       </section>
     </section>
   

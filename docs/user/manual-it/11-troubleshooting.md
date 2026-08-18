@@ -1,185 +1,184 @@
-# Capitolo 11: Risoluzione dei Problemi
+# Capitolo 11: Risoluzione dei problemi
 
-## 11.1 Come Utilizzare Questo Capitolo
+## 11.1 Come usare questo capitolo
 
-Questo capitolo raccoglie i problemi più comuni segnalati dagli utenti, con le cause più probabili e le soluzioni passo-passo. Ogni problema è descritto nel modo in cui si manifesta nell'interfaccia, non in termini tecnici interni.
+Qui trovi i problemi che capitano davvero, descritti come si presentano a schermo e non come si
+chiamano dentro il programma. Per ciascuno: perché succede e cosa si può fare.
 
-Se il problema non è presente in questo elenco, contattare il supporto descrivendo i passaggi che lo riproducono e il messaggio di errore visualizzato.
-
----
-
-## Problemi di Feed e Analisi
+Se il tuo caso non è in elenco, la pagina pubblica delle release è il posto giusto per segnalarlo,
+indicando i passaggi che lo riproducono e il messaggio esatto che compare.
 
 ---
 
-### Problema: "Errore di connessione" o "Timeout" durante l'analisi del feed
+## Feed e analisi
 
-**Come si manifesta:** Si clicca su **"Analizza"** e dopo alcuni secondi appare un messaggio di errore che indica un timeout o un fallimento della connessione. La lista rimane vuota.
+### Errore di connessione o timeout mentre analizzo un feed
 
-**Cause probabili e soluzioni:**
+*Cosa vedi:* premi **Analizza**, passa qualche secondo e compare un errore di rete. La lista resta
+vuota.
 
-*   **Il server del feed non è disponibile.** Aprire l'URL del feed nel browser. Se il browser restituisce un errore (pagina non trovata, "Questo sito non è raggiungibile"), il problema riguarda il server del podcast: non è possibile intervenire se non riprovando in un secondo momento.
-*   **La connessione internet non è disponibile o è instabile.** Verificare che altri siti web siano raggiungibili. Se la connessione è instabile, attendere che si stabilizzi prima di riprovare.
-*   **Un firewall o proxy aziendale blocca la richiesta.** In ambienti aziendali, il traffico verso certi host può essere bloccato. Provare dalla rete domestica per verificare se il problema è specifico della rete aziendale.
+Le cause, in ordine di probabilità.
 
----
+*   **Il server del feed non risponde.** Prova ad aprire lo stesso indirizzo nel browser: se non si
+    apre nemmeno lì, il problema è del podcast e l’unica mossa è riprovare più tardi.
+*   **La tua connessione è instabile.** Verifica che altri siti rispondano.
+*   **Un firewall o un proxy aziendale ti sta bloccando.** Se il feed si apre da casa e non
+    dall’ufficio, hai la risposta.
 
-### Problema: Il feed viene analizzato ma la lista degli episodi è vuota
+Il programma rinuncia dopo quindici secondi di silenzio: è un timeout voluto, per non lasciarti
+davanti a una finestra bloccata.
 
-**Come si manifesta:** L'analisi si completa senza errori, ma la lista degli episodi non mostra alcun elemento (o mostra 0 episodi).
+### Il feed viene letto ma la lista è vuota
 
-**Cause probabili e soluzioni:**
+*   **Il feed non contiene episodi.** Apri l’indirizzo nel browser e cerca i tag `<item>` o
+    `<entry>`. Se non ci sono, non c’è niente da scaricare.
+*   **Il formato è fuori standard.** Il programma legge RSS 2.0 e Atom 1.0 e perdona parecchie
+    imprecisioni, ma qualche piattaforma proprietaria produce documenti irriconoscibili.
+*   **Hai già tutto.** Se il feed era stato lavorato in passato, gli episodi ci sono ma portano il
+    tag **ARCHIVIATO**. Il filtro **Scaricati** lo conferma in un colpo d’occhio.
 
-*   **Il feed non contiene episodi.** Aprire l'URL nel browser e verificare che il documento XML contenga tag `<item>` o `<entry>`. Se non sono presenti, il podcast non ha ancora pubblicato episodi.
-*   **Il feed usa un formato non standard.** FeedDownloader Pro supporta RSS 2.0 e Atom 1.0. Alcuni feed prodotti da piattaforme proprietarie possono avere una struttura non convenzionale. In questo caso, il software mostra un avviso specifico nel messaggio di analisi.
-*   **Tutti gli episodi sono già nel database.** Se il feed è stato analizzato in precedenza, gli episodi appaiono con il tag **"ARCHIVIATO"**. Scorrere la lista e verificare la presenza di questo indicatore, oppure usare il filtro di stato **"Scaricati"**.
+### Vedo solo gli ultimi episodi, non il catalogo storico
 
----
+*Perché:* il limite lo impone chi pubblica, non il programma. Molte piattaforme espongono nel feed
+solo le ultime 50 o 100 puntate per non appesantire i propri server.
 
-### Problema: Il feed mostra solo gli ultimi N episodi e non l'intero catalogo storico
+*Cosa fa già il programma:* se l’archivio storico è pubblicato in pagine collegate secondo lo
+standard RFC 5005, il programma le segue da sé e ricompone il catalogo, fino a un massimo di venti
+pagine. Il problema resta solo quando la paginazione non c’è, o quando il catalogo supera quel tetto.
 
-**Come si manifesta:** Si analizza un podcast con centinaia di episodi noti, ma la lista ne mostra solo 50 o 100.
-
-**Causa:** Questo limite è imposto dall'editore del podcast o dalla sua piattaforma di hosting, non da FeedDownloader Pro. Molte piattaforme limitano il feed RSS agli ultimi 50–100 episodi per ridurre il carico sui propri server.
-
-**Cosa fa già il software:** Se la piattaforma pubblica l'archivio storico in più pagine collegate secondo lo standard **RFC 5005** (link `rel="next"`), FeedDownloader Pro le segue automaticamente e ricompone l'intero catalogo. Il limite si presenta solo quando il feed non offre alcuna paginazione.
-
-**Possibili alternative:**
-*   Verificare se il podcast offre un "feed completo" come URL alternativo (alcune piattaforme lo mettono a disposizione).
-*   Consultare il sito web del podcast o la piattaforma di distribuzione (Spotify, Apple Podcasts) per recuperare i link degli episodi meno recenti.
-*   Alcune piattaforme accettano parametri nell'URL per richiedere il feed completo (es. `?limit=0` o `?paged=all`): verificare la documentazione della piattaforma specifica.
-
----
-
-## Problemi di Download
-
----
-
-### Problema: Molti episodi risultano in stato "Errore 404"
-
-**Come si manifesta:** Dopo un download batch, numerosi episodi mostrano stato **"Errore"** con il messaggio `404 Not Found`.
-
-**Causa:** Gli episodi sono ancora presenti nel feed RSS (nel documento XML), ma i file audio a cui puntano sono stati rimossi dal server. Questa situazione è frequente con podcast abbandonati o migrati su altre piattaforme.
-
-**Cosa è possibile fare:**
-*   Non è possibile scaricare file che non esistono più sul server.
-*   Se si tratta di un podcast attivo e gli errori sembrano eccessivi, contattare l'editore del podcast: potrebbe trattarsi di una migrazione temporanea o di un problema tecnico risolvibile.
-*   Gli episodi con errore 404 vengono esclusi automaticamente dai batch successivi. Non è necessario rimuoverli dalla lista.
+*Cosa puoi provare:* cercare un «feed completo» alternativo, che alcune piattaforme offrono;
+recuperare gli episodi vecchi dal sito del podcast; verificare se la piattaforma accetta parametri
+nell’indirizzo del tipo `?limit=0`.
 
 ---
 
-### Problema: I download si avviano ma procedono molto lentamente
+## Download
 
-**Come si manifesta:** La barra di avanzamento si muove, ma la velocità è molto bassa (pochi KB/s) rispetto alla banda disponibile.
+### Molti episodi finiscono in errore «File non trovato sul server»
 
-**Cause probabili e soluzioni:**
+*Perché:* gli episodi sono ancora elencati nel feed, ma i file audio non ci sono più. Succede
+spesso con programmi abbandonati o migrati altrove.
 
-*   **Il server del podcast applica limitazioni di banda.** Molti server di hosting impongono un throttling per contenere i costi. Ridurre i thread a 1 può migliorare la situazione con i server che penalizzano le connessioni multiple.
-*   **La connessione Wi-Fi è instabile.** Per download batch intensivi, utilizzare una connessione cablata (Ethernet).
-*   **Il disco di destinazione è lento.** La scrittura su NAS con connessione Wi-Fi o su dispositivi USB 2.0 può rappresentare il collo di bottiglia. Considerare di scaricare prima su un disco locale veloce.
-*   **La connessione internet è effettivamente limitata.** Verificare la velocità di download effettiva con uno speed test. Se il risultato è inferiore alle aspettative, il problema riguarda la connessione.
+Non c’è modo di scaricare un file che non esiste. Se però il podcast è vivo e gli errori sono
+troppi, vale la pena avvisare chi lo pubblica: a volte è una migrazione fatta male, e si sistema.
 
----
+Da sapere: gli episodi falliti **non vengono esclusi** dai lotti successivi. Restano segnati come da
+scaricare e un nuovo **Scarica Tutto** li ritenterà. È voluto, perché un file può tornare
+disponibile; se ti danno fastidio, il filtro per data o la selezione manuale li tengono fuori.
 
-### Problema: Un episodio rimane bloccato a una percentuale elevata e non completa mai
+### I download vanno lentissimi
 
-**Come si manifesta:** Un singolo download mostra una percentuale alta (90%, 95%, 99%) che non raggiunge il 100% e non si aggiorna.
+*   **Il server limita la banda.** È il caso più comune. Con i server che penalizzano le connessioni
+    multiple, scendere a un solo download in parallelo a volte migliora le cose.
+*   **Sei in Wi-Fi.** Per i lotti lunghi, il cavo fa la differenza.
+*   **Il disco di destinazione è lento**, tipicamente un NAS in Wi-Fi o una chiavetta USB 2.0.
+    Scarica prima in locale e sposta dopo.
+*   **La linea è quella.** Uno speed test toglie ogni dubbio.
 
-**Causa:** Il server ha inviato quasi tutto il file ma ha interrotto il trasferimento prima del completamento. La stall detection rileverà questa condizione entro 60 secondi dall'ultimo dato ricevuto e riavvierà il download automaticamente.
+### Un episodio resta fermo al 99% e non finisce mai
 
-**Se il problema persiste dopo più tentativi:** Il file sul server potrebbe essere corrotto o troncato. Dopo il numero massimo di tentativi, l'episodio verrà marcato come **"Errore"** con un messaggio che indica una discrepanza tra la dimensione dichiarata e quella ricevuta.
+*Perché:* il server ha smesso di inviare dati senza chiudere la connessione. Entro sessanta secondi
+la sorveglianza degli stalli se ne accorge, chiude il trasferimento e lo conta come tentativo
+fallito; il tentativo successivo riprende dal punto raggiunto grazie al file `.part`.
 
----
+Se la cosa si ripete fino a esaurire i tre tentativi, l’episodio finisce in errore. Di solito
+significa che il file sul server è troncato o corrotto: lo si riconosce dal messaggio sulla verifica
+di integrità, cioè la dimensione ricevuta non corrisponde a quella dichiarata.
 
-### Problema: Il software ha scaricato un file `.mp3` ma il player audio segnala che è corrotto
+### Ho scaricato un `.mp3` che il lettore dichiara corrotto
 
-**Come si manifesta:** Il download risulta completato (stato verde), ma all'apertura del file con un player audio viene restituito un errore o il file non viene riprodotto.
+*Perché:* non dovrebbe accadere, visti i file `.part` e il controllo della dimensione. Se accade, o
+il file sul server era già rovinato, o c’è stato un errore di scrittura sul disco.
 
-**Causa:** Questo non dovrebbe verificarsi grazie al meccanismo dei file `.part` e alla verifica della dimensione. Se accade, il file originale sul server potrebbe essere già corrotto (problema dell'editore), oppure si è verificato un errore di scrittura su disco.
+Cosa fare, nell’ordine:
 
-**Soluzione:**
-1.  Passare il mouse sull'episodio nella lista e cliccare **"Riscarica"** (disponibile anche nel Pannello Dettaglio).
-2.  Se il file riscaricato è ancora corrotto, il problema riguarda il file sorgente sul server del podcast. Verificarlo aprendo direttamente l'URL del file nel browser.
-3.  Eseguire un Health Check (vedi il Capitolo 9): la verifica SHA-256 segnala tutti i file dell'archivio il cui contenuto non corrisponde più a quello registrato al download.
+1.  Aprire il pannello di dettaglio dell’episodio con un clic sulla riga e premere **Riscarica**.
+2.  Se il file arriva rotto una seconda volta, il problema è alla fonte: si verifica aprendo
+    l’indirizzo del file direttamente nel browser.
+3.  Lanciare il controllo dell’archivio (capitolo 9): la verifica SHA-256 elenca tutti i file il cui
+    contenuto non corrisponde più a quello registrato al download.
 
-*Nota:* Dalla v1.5.0 il software rifiuta anche le enclosure non audio: se il server invia una pagina web al posto del file, il download fallisce con il messaggio *"Il server ha inviato una pagina web, non audio"* invece di salvare un file inutilizzabile.
+Dalla versione 1.5.0 il programma rifiuta anche le risposte che non sono audio: se il server manda
+una pagina web al posto del file, il download fallisce con *Il server ha inviato una pagina web, non
+audio* invece di salvare un file inservibile. Allo stesso modo, un file oltre il tetto impostato in
+**Dimensione Massima File** viene respinto con *File oltre il limite di dimensione impostato*.
 
----
+### Devo sospendere, non buttare via
 
-## Problemi di NAS e Rete
+Non serve fermare tutto in modo definitivo: **Pausa** nel pannello download sospende la coda
+conservando i file parziali, e **Riprendi** fa ripartire i trasferimenti dal punto esatto in cui
+erano. Vale anche per il singolo episodio. **Ferma download**, invece, cancella i parziali: è la
+scelta giusta solo quando vuoi davvero buttare via il lavoro fatto.
 
----
-
-### Problema: "Percorso di rete non raggiungibile" anche se il NAS è acceso
-
-**Come si manifesta:** Il software mostra l'avviso di percorso non raggiungibile, ma il NAS è accessibile normalmente dal gestore file.
-
-**Soluzioni da verificare nell'ordine:**
-
-1.  **Verificare che il percorso sia esatto.** Una differenza di maiuscole/minuscole (`\\MYNAS\podcast` vs `\\MYNAS\Podcast`) può causare un errore su alcuni sistemi.
-2.  **Le credenziali SMB sono memorizzate?** Aprire Esplora file e tentare di accedere manualmente a `\\MYNAS\NomeCondivisione`. Se viene richiesta la password, le credenziali non sono salvate nel Gestore Credenziali di Windows. Inserirle e spuntare **"Memorizza"**.
-3.  **Il firewall di Windows blocca FeedDownloader Pro?** Andare in `Pannello di Controllo → Windows Defender Firewall → App consentite` e verificare che FeedDownloader Pro sia elencato con accesso consentito.
-4.  **Il NAS supporta SMBv2/3?** Alcuni NAS datati supportano solo SMBv1, disabilitato per impostazione predefinita su Windows 11. Aggiornare il firmware del NAS oppure abilitare SMBv1 dal pannello di amministrazione del NAS.
-
----
-
-### Problema: I download su NAS si interrompono dopo alcuni minuti
-
-**Come si manifesta:** Il batch si avvia normalmente, scarica alcuni episodi, poi si blocca con errori di scrittura o di percorso non raggiungibile.
-
-**Causa:** Il NAS entra in modalità sospensione durante il download. Alcuni NAS consumer hanno una funzione di risparmio energetico che può attivarsi anche durante trasferimenti attivi se il dispositivo è configurato per monitorare solo il traffico web, ignorando le connessioni SMB.
-
-**Soluzioni:**
-*   Disabilitare temporaneamente la modalità sospensione dal pannello di amministrazione del NAS durante i download batch.
-*   Ridurre il numero di thread a 1: un flusso di scrittura continuo previene l'attivazione della sospensione in modo più efficace rispetto a burst intensi con pause intermedie.
+A fine lotto, per rimettere in coda tutti gli episodi andati storti c’è **Riprova falliti**.
 
 ---
 
-## Problemi Generali
+## NAS e rete
+
+### «Percorso di rete non raggiungibile» ma il NAS funziona
+
+1.  **Controlla il percorso carattere per carattere.** Su alcuni sistemi anche le maiuscole contano
+    (`\\MYNAS\podcast` non è `\\MYNAS\Podcast`).
+2.  **Verifica le credenziali.** Apri `\\MYNAS\NomeCondivisione` da Esplora file: se ti chiede la
+    password, non è memorizzata nel Gestore credenziali di Windows. Inseriscila e spunta la
+    memorizzazione.
+3.  **Guarda il firewall.** In *Windows Defender Firewall → App consentite* il programma deve
+    risultare autorizzato.
+4.  **Controlla la versione di SMB.** I NAS più datati parlano solo SMBv1, che Windows 11 disattiva
+    di serie. Meglio aggiornare il firmware del NAS che riabilitare un protocollo insicuro.
+
+### I download su NAS si interrompono dopo qualche minuto
+
+*Perché:* il NAS si addormenta durante il lavoro. Certi modelli domestici sorvegliano solo il
+traffico web e ignorano le connessioni SMB, quindi credono di essere inattivi mentre stanno
+ricevendo file.
+
+Si risolve disattivando temporaneamente il risparmio energetico dal pannello del NAS, oppure
+scendendo a un solo download in parallelo: un flusso continuo tiene sveglio il dispositivo meglio di
+raffiche intervallate da pause.
 
 ---
 
-### Problema: L'interfaccia risponde con ritardo
+## Problemi generali
 
-**Come si manifesta:** I clic richiedono 1–2 secondi per avere risposta, lo scorrimento della lista è discontinuo, il programma appare lento.
+### L’interfaccia risponde in ritardo
 
-**Cause probabili:**
+*   **Archivio molto grande.** Con decine di migliaia di episodi registrati qualche operazione
+    rallenta.
+*   **Troppi download in parallelo su poca memoria.** Cinque trasferimenti su una macchina con meno
+    di 4 GB si sentono: meglio uno o tre.
+*   **L’antivirus ispeziona ogni `.part`.** Molti prodotti analizzano ogni scrittura su disco.
+    Escludere la cartella di destinazione dalla scansione in tempo reale risolve.
 
-*   **Database di grandi dimensioni.** Con decine di migliaia di episodi nel database, alcune operazioni possono rallentare. Valutare l'utilizzo di **"Resetta Storico Download"** (**Impostazioni → Avanzate**) solo se l'archivio contiene molti episodi in errore o dati che non si intende recuperare.
-*   **Numero elevato di thread su hardware con poca RAM.** Con 5 thread attivi su un sistema con meno di 4 GB di RAM, il processo può risultare lento. Ridurre i thread a 1 o 3.
-*   **Antivirus che analizza i file `.part` in tempo reale.** Alcuni software di sicurezza intercettano ogni operazione di scrittura su disco, rallentando i download. Aggiungere la cartella di destinazione alle esclusioni dell'antivirus.
+### Il programma non parte, o si chiude subito
 
----
+1.  **Database danneggiato: recupero automatico.** Se all’avvio `feeddownloader.sqlite` risulta
+    illeggibile, il programma lo mette da parte rinominandolo `feeddownloader.sqlite.corrupt-[data]`
+    e riparte con un database nuovo. L’applicazione si apre comunque.
+2.  **Ripristino guidato.** Al primo avvio dopo un recupero, cioè con il database vuoto e un backup
+    `.corrupt-*` presente, compare la finestra *Trovato un backup del database danneggiato* con
+    **Tenta ripristino** e **Ignora**. Il ripristino recupera dal backup feed, archivio e cronologia
+    per quanto sono leggibili: i file audio non vengono toccati e il backup non viene modificato.
+    Alla fine un riepilogo dice quanto è stato salvato.
+3.  **Reinstallare.** Disinstallare e reinstallare l’ultima versione non cancella né il database né
+    le impostazioni.
 
-### Problema: Il software non si avvia o si chiude immediatamente all'apertura
+### Ho perso il database: posso recuperare qualcosa?
 
-**Come si manifesta:** Si avvia il programma, il processo appare brevemente nel Task Manager ma poi scompare senza che l'interfaccia venga visualizzata.
-
-**Soluzioni:**
-
-1.  **Database corrotto — recupero automatico.** Se all'avvio il file `feeddownloader.sqlite` risulta corrotto, il software lo mette automaticamente da parte rinominandolo `feeddownloader.sqlite.corrupt-[data]` e riparte con un database nuovo: l'applicazione si avvia comunque.
-2.  **Ripristino guidato.** Al primo avvio dopo un recupero (database attuale vuoto e backup `.corrupt-*` presente), il software mostra la finestra *"Trovato un backup del database danneggiato."* con i pulsanti **"Tenta ripristino"** e **"Ignora"**. Scegliendo il ripristino, feed, archivio e cronologia vengono recuperati dal backup per quanto possibile; i file audio non vengono toccati e il backup non viene modificato. Al termine, un riepilogo indica quanti feed ed episodi sono stati recuperati.
-3.  **Reinstallare il software.** Disinstallare FeedDownloader Pro e installare la versione più recente. Il database e le impostazioni non vengono eliminati dalla disinstallazione.
-
----
-
-### Problema: Ho perso i dati del database — è possibile recuperarli?
-
-**Come si manifesta:** Il database è stato eliminato accidentalmente, è corrotto, oppure è stato eseguito un reset senza un backup preventivo.
-
-**Possibilità di recupero:**
-
-*   **Con un backup disponibile:** Copiare il file `feeddownloader.sqlite` di backup nella cartella dati utente dell'applicazione, a programma chiuso (vedi il Capitolo 2 per il percorso della cartella dati utente).
-*   **Dopo una corruzione:** Verificare la presenza di file `feeddownloader.sqlite.corrupt-[data]` nella cartella dati utente: se il database attuale è vuoto, all'avvio il software propone automaticamente il ripristino guidato (vedi il problema precedente).
-*   **Senza backup:** I file audio sul disco sono ancora presenti: solo la memoria del software è andata persa. Analizzando di nuovo i feed, la funzione **"Ripara archivio (ricerca per checksum)"** non può aiutare (gli hash erano nel database perso), ma è possibile riscaricare o ricatalogare gli episodi mancanti.
-*   **Prevenzione:** Eseguire periodicamente una copia manuale del file `feeddownloader.sqlite` in una posizione sicura, oppure esportare la lista dei feed in formato OPML (vedi il Capitolo 5) come backup della configurazione. È consigliabile eseguire questo backup prima di ogni migrazione o aggiornamento del software.
-
----
-
-*Questo è l'ultimo capitolo del Manuale d'Uso Avanzato di Runtime FeedDownloader Pro.*
-
-*Per assistenza non coperta da questo manuale, fare riferimento alla pagina ufficiale delle release o contattare il supporto tecnico di Ecosystem Runtime | Digital Core.*
+*   **Se hai un backup**, basta rimettere `feeddownloader.sqlite` nella cartella dati a programma
+    chiuso (il percorso è nel capitolo 2).
+*   **Se il database si è corrotto**, cerca i file `feeddownloader.sqlite.corrupt-[data]` nella
+    stessa cartella: con il database attuale vuoto, all’avvio il programma propone da sé il
+    ripristino guidato.
+*   **Se non hai nulla di tutto questo**, i file audio sono comunque salvi sul disco: si è persa la
+    memoria, non l’archivio. Rianalizzando i feed si riparte, tenendo presente che la riparazione
+    per checksum in questo caso non aiuta, perché le impronte stavano proprio nel database perduto.
+*   **Per non ritrovartici**, ogni tanto copia `feeddownloader.sqlite` altrove ed esporta la lista
+    dei feed in OPML (capitolo 5). Prima di una migrazione o di un aggiornamento importante è tempo
+    ben speso.
 
 ---
 
-*Ecosystem Runtime | Digital Core — Strumenti costruiti per durare.*
+*Qui finisce il manuale di Runtime FeedDownloader Pro. Per quello che non è coperto da queste
+pagine, il riferimento è la pagina pubblica delle release del progetto.*

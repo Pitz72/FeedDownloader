@@ -1,299 +1,434 @@
 <!DOCTYPE html><html lang="en"><head>
     <meta charset="utf-8">
-    <title>Chapter 3: Interface Tour</title>
+    <title>Chapter 3: A tour of the interface</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" href="book/theme.css">
   </head>
   <body>
     <section class="level1">
-      <h1 id="chapter-3-interface-tour">Chapter 3: Interface Tour</h1>
+      <h1 id="chapter-3-a-tour-of-the-interface">Chapter 3: A tour of the interface</h1>
       <section class="level2">
-        <h2 id="31-anatomy-of-the-main-window">3.1 Anatomy of the Main Window</h2>
-        <p>When FeedDownloader Pro opens, the window is organised into four functional zones:</p>
+        <h2 id="31-anatomy-of-the-main-window">3.1 Anatomy of the main window</h2>
+        <p>The window falls into four zones.</p>
         <ul>
-          <li><strong>Command bar (top):</strong> The fixed bar containing the URL field, the Analyse button, the Command Palette button and the Settings icon. When a software update is available, the persistent update indicator also appears in this bar (see Chapter 2, section 2.5). All operations for adding new feeds are initiated from here.</li>
-          <li><strong>Feed sidebar (left):</strong> The column containing the permanent library of saved feeds, the Archive tab, synchronisation controls, and the footer showing the destination path. Its width can be adjusted by dragging the right edge.</li>
-          <li><strong>Main area (centre):</strong> The area where the episodes of the selected feed are displayed, with the filter bar, batch controls, and the episode list.</li>
-          <li><strong>Download Panel (right, overlaid):</strong> The panel that opens automatically when a download batch is in progress. When closed, a floating button remains visible at the bottom right to reopen it.</li>
+          <li>
+            <strong>Command bar, at the top.</strong> It holds the URL field, the analysis button, the button for
+            changing the destination folder, access to the command palette and the settings icon. When an
+            update exists, its banner appears here too (chapter 2, section 2.5).
+          </li>
+          <li>
+            <strong>Feed sidebar, on the left.</strong> Home to the library of saved feeds, the Archive tab, the sync
+            controls and, at the bottom, the destination path. You adjust its width by dragging the right
+            edge.
+          </li>
+          <li>
+            <strong>Main area, in the centre.</strong> Shows the episodes of the selected feed, with the podcast header,
+            the filter bar and the list.
+          </li>
+          <li>
+            <strong>Download panel, on the right.</strong> It opens by itself when a batch of downloads starts. When it
+            is closed, a round button in the bottom right corner brings it back.
+          </li>
         </ul>
-        <p>On first launch, with an empty library, the main area shows a guide message explaining how to add the first feed and where to configure the destination path. The message disappears automatically when the first feed is added, or manually via the × button.</p>
+        <p>
+          On first launch, with the library empty, the main area shows a guide panel explaining how to add
+          your first feed and where to set the destination folder. It disappears on its own once the first
+          feed enters the library.
+        </p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="32-the-command-bar-top">3.2 The Command Bar (Top)</h2>
-        <p><strong>URL Field:</strong> The text bar where you enter the RSS address of the podcast to analyse. Accepts direct URLs to XML/RSS files. Supports <strong>drag and drop</strong>: you can drag a link directly from a browser onto this area.</p>
-        <p><strong>"Analyse" Button:</strong> Starts the feed analysis. The software contacts the URL, reads the RSS file, and populates the episode list. On completion of the analysis, the feed is permanently added to the sidebar. The operation generally takes between 1 and 5 seconds, depending on the feed size and connection speed.</p>
-        <p><strong>Settings Icon (⚙):</strong> Opens the settings panel. It is accessible at any time, even during an active download. For details, see Chapter 10.</p>
+        <h2 id="32-the-command-bar">3.2 The command bar</h2>
+        <p>
+          <strong>URL field.</strong> This is where you paste the podcast’s RSS address. It accepts URLs pointing at XML
+          or RSS files and supports dragging: you can take a link from the browser and drop it on the field.
+        </p>
+        <p>
+          <strong>Analyze.</strong> Contacts the address, reads the feed and fills the episode list. When it finishes, the
+          feed takes its place in the sidebar for good. It usually takes one to five seconds, depending on
+          the size of the feed and the network.
+        </p>
+        <p>
+          <strong>Folder icon.</strong> Opens the picker for changing the download destination folder, without going
+          through the settings.
+        </p>
+        <p><strong>Settings icon.</strong> Opens the settings panel, even while a download is running (chapter 10).</p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="33-the-feed-sidebar">3.3 The Feed Sidebar</h2>
-        <p>The sidebar is the control centre of the podcast library. It contains all added feeds permanently: feeds are not lost when the software is closed.</p>
+        <h2 id="33-the-feed-sidebar">3.3 The feed sidebar</h2>
+        <p>The sidebar is the heart of the library: the feeds it holds survive closing the program.</p>
         <section class="level3">
-          <h3 id="the-feed-and-archive-tabs">The Feed and Archive Tabs</h3>
-          <p>At the top of the sidebar there are two tabs:</p>
-          <ul>
-            <li><strong>Feed Tab:</strong> Shows the library of saved feeds. This is the default view.</li>
-            <li><strong>Archive Tab:</strong> Shows the Archive View — a table of all episodes downloaded across the entire library. See section 3.10.</li>
-          </ul>
+          <h3 id="the-feeds-and-archive-tabs">The Feeds and Archive tabs</h3>
+          <p>
+            Two tabs sit at the top. <strong>Feeds</strong> shows the library and is the default view. <strong>Archive</strong> opens the
+            table of every episode downloaded across the whole library (section 3.10).
+          </p>
         </section>
         <section class="level3">
-          <h3 id="feed-library-items">Feed library items</h3>
-          <p>Each feed in the list is represented by a row showing:</p>
-          <ul>
-            <li><strong>Thumbnail:</strong> The podcast cover image.</li>
-            <li><strong>Title:</strong> The name of the podcast as declared in the RSS feed.</li>
-            <li><strong>Date:</strong> The date of the last synchronisation with the server.</li>
-            <li><strong>"TO DOWNLOAD" badge:</strong> An indicator (e.g. <code>3 TO DOWNLOAD</code>) showing how many new episodes have been detected since the last synchronisation. New episodes are recognised via each episode's unique identifier (GUID), recorded in the database: an episode counts as new only if its GUID has never been seen before. The badge disappears after all new episodes have been downloaded.</li>
-          </ul>
-          <p>Clicking on a list item loads that feed's episode list in the main area.</p>
+          <h3 id="how-to-read-a-library-row">How to read a library row</h3>
+          <p>
+            Each feed shows its cover art, the title declared in the RSS feed and the date of the last sync.
+            When there are episodes that have never been downloaded, the <strong>TO DOWNLOAD</strong> badge appears with a
+            count (for example <code>3 TO DOWNLOAD</code>). The count is based on the episodes’ unique identifier, the
+            GUID, as recorded in the database: an episode counts as new only if its GUID has never been seen
+            before. The badge disappears once all the new episodes have been downloaded.
+          </p>
+          <p>A click on the row loads that feed’s episodes into the main area.</p>
         </section>
         <section class="level3">
           <h3 id="adding-a-feed">Adding a feed</h3>
-          <p>Paste the RSS URL into the URL field at the top of the interface and click "Analyse". Once the analysis is complete, the feed is automatically added to the sidebar and remains available for subsequent sessions.</p>
+          <p>
+            Paste the URL into the field at the top and press <strong>Analyze</strong>. The feed is saved to the library and
+            stays available in later sessions.
+          </p>
         </section>
         <section class="level3">
           <h3 id="search-and-sorting">Search and sorting</h3>
-          <ul>
-            <li><strong>Feed search:</strong> The search field in the sidebar filters feeds by name in real time. Useful with large libraries.</li>
-            <li><strong>A–Z sorting:</strong> The sort button orders feeds alphabetically by title. Clicking it again restores the original order.</li>
-          </ul>
+          <p>
+            The search field filters feeds by name as you type, which helps once the library grows. The sort
+            button arranges the feeds alphabetically; press it again to restore the original order.
+          </p>
         </section>
         <section class="level3">
           <h3 id="synchronisation">Synchronisation</h3>
-          <ul>
-            <li><strong>Individual synchronisation:</strong> Hovering over a feed item reveals the synchronisation icon. Clicking it causes the software to re-read the feed from the server and update the episode list with any new content.</li>
-            <li><strong>Sync All:</strong> The "Sync All" button at the top of the sidebar updates all feeds in parallel. During the operation, each thumbnail shows its own status: spinning icon (in progress), green tick (completed), red error icon (failed). The button reports progress in real time (e.g. <code>Syncing… 3/7</code>). The statuses remain visible for 2.5 seconds after the operation, then disappear.</li>
-          </ul>
+          <p>
+            Hover over a feed and the sync icon appears: it re-reads the feed from the server and updates the
+            list with any new episodes.
+          </p>
+          <p>
+            The <strong>Sync All</strong> button, at the top of the sidebar, refreshes the whole library in parallel. While
+            it works, each cover shows its own state through an icon: spinning while in progress, a green tick
+            on success, a red marker if the feed does not respond. The button reports progress
+            (<code>Syncing... 3/7</code>). The results stay visible for two and a half seconds, then fade.
+          </p>
         </section>
         <section class="level3">
-          <h3 id="footer-destination-path">Footer: destination path</h3>
-          <p>At the bottom of the sidebar the destination download folder path is shown, abbreviated to the last two components (e.g. <code>Documents / Podcasts</code>). Clicking this line opens the folder in the system file manager. To change the path, use <strong>Settings → Archive</strong>.</p>
+          <h3 id="at-the-bottom-the-destination-path">At the bottom: the destination path</h3>
+          <p>
+            The last row of the sidebar shows the destination folder shortened to its last two components (for
+            example <code>Documents / Podcasts</code>). A click opens it in the system file manager. To change it, use the
+            folder icon in the command bar or <strong>Settings → Download</strong>.
+          </p>
         </section>
         <section class="level3">
           <h3 id="resizing">Resizing</h3>
-          <p>The width of the sidebar can be adjusted by dragging the right edge (the cursor becomes a horizontal double arrow). The minimum width is 240 px, the maximum is 640 px, and the default is 360 px. The setting is remembered between sessions.</p>
+          <p>
+            Width is adjusted by dragging the right edge: 240 pixels minimum, 640 maximum, 360 by default. The
+            size you choose is remembered.
+          </p>
         </section>
         <section class="level3">
-          <h3 id="connection-indicator">Connection indicator</h3>
-          <p>The sidebar header shows the connection status: <strong>"Connected"</strong> or <strong>"Offline"</strong>. When the connection is lost, a banner indicates that downloads are paused until it is restored; when the connection returns, the software resumes automatically and checks for new episodes.</p>
+          <h3 id="connection-state">Connection state</h3>
+          <p>
+            The sidebar header reports whether the program is <strong>Connected</strong> or <strong>Offline</strong>. When the network is
+            down, a notice at the top reminds you that downloads stay put until it comes back; once the
+            connection returns, the program picks up again and checks whether new episodes appeared in the
+            meantime.
+          </p>
           <hr>
         </section>
       </section>
       <section class="level2">
-        <h2 id="34-the-episode-list">3.4 The Episode List</h2>
-        <p>After selecting a feed from the sidebar, the main area is populated with the list of available episodes for that podcast.</p>
+        <h2 id="34-the-episode-list">3.4 The episode list</h2>
+        <p>Once a feed is selected, the main area fills with its episodes.</p>
         <section class="level3">
           <h3 id="feed-header">Feed header</h3>
-          <p>At the top of the main area the header of the selected feed is visible, with thumbnail, podcast title and episode count. The main batch controls are accessible from this header (see section 3.7).</p>
+          <p>
+            At the top you get the cover art, the podcast title and the episode count. This is also where the
+            commands that act on the whole feed live (section 3.7).
+          </p>
         </section>
         <section class="level3">
-          <h3 id="list-columns">List columns</h3>
-          <p>Each row in the list represents an episode and contains the following information:</p>
+          <h3 id="what-each-row-shows">What each row shows</h3>
           <ul>
-            <li><strong>Title:</strong> The name of the episode as defined in the RSS feed.</li>
-            <li><strong>Date:</strong> The original publication date of the episode.</li>
-            <li><strong>Duration:</strong> The duration of the episode (when available in the feed).</li>
-            <li><strong>Size:</strong> The file size. Before download, the value is declarative (taken from the feed); after download, it reflects the actual file size.</li>
-            <li><strong>Status:</strong> The visual status indicator for the individual episode. See section 3.5.</li>
+            <li><strong>Title</strong> of the episode as it appears in the feed.</li>
+            <li><strong>Date</strong> of publication.</li>
+            <li><strong>Duration</strong>, when the feed declares it.</li>
+            <li><strong>Status</strong>, with the matching tag (section 3.5).</li>
           </ul>
+          <p>
+            File size is not shown in the list: you read it in the detail panel, where before the download it
+            is the value declared by the feed and afterwards the real size of the file on disk.
+          </p>
         </section>
         <section class="level3">
-          <h3 id="filter-bar">Filter bar</h3>
-          <p>Below the feed header there is a filter bar that allows you to narrow the displayed episodes:</p>
+          <h3 id="the-filter-bar">The filter bar</h3>
+          <p>A bar under the header lets you narrow the list.</p>
           <ul>
-            <li><strong>Text search:</strong> Filters by keywords in the title (AND logic: all entered terms must be present). The filter is automatically cleared when changing feed.</li>
-            <li><strong>Status filter:</strong> Quick buttons to show only episodes in a given status: <strong>"All"</strong>, <strong>"Not Downloaded"</strong>, <strong>"Downloaded"</strong>.</li>
-            <li><strong>Date filter:</strong> "From" and "to" date fields to limit the list to a publication date range.</li>
-            <li><strong>Duration filter:</strong> Limits the list to episodes with a duration between a minimum and maximum (in minutes).</li>
-            <li><strong>Sort:</strong> Opens a panel with five sort options — feed order (default), newest date, oldest date, longest duration, shortest duration.</li>
+            <li>
+              <strong>Text search.</strong> Filters by keyword, looking in the episode title and description. AND logic
+              applies: every term you type must be present.
+            </li>
+            <li><strong>Status.</strong> Three quick buttons: <strong>All</strong>, <strong>Not Downloaded</strong>, <strong>Downloaded</strong>.</li>
+            <li><strong>Date.</strong> Two fields, <strong>From</strong> and <strong>To</strong>, to limit the publication range.</li>
+            <li><strong>Duration.</strong> Minimum and maximum in minutes.</li>
+            <li>
+              <strong>Sort.</strong> Five criteria: feed order (the default), newest date, oldest date, longest duration,
+              shortest duration.
+            </li>
           </ul>
-          <p>All filters are automatically cleared when a different feed is selected.</p>
+          <p>Change feed and all the filters reset.</p>
         </section>
         <section class="level3">
           <h3 id="multiple-selection">Multiple selection</h3>
-          <p>You can select multiple episodes simultaneously to start their download in bulk:</p>
+          <p>You can pick several episodes and download them as a block.</p>
           <ul>
-            <li><strong>Ctrl+click:</strong> adds or removes the episode from the selection individually.</li>
-            <li><strong>Shift+click:</strong> selects the range between the last selected episode and the clicked one.</li>
-            <li>A checkbox appears on hover for unselected episodes and always for selected episodes.</li>
+            <li><strong>Ctrl+click</strong> adds or removes a single episode from the selection.</li>
+            <li><strong>Shift+click</strong> selects the range between the last episode chosen and the one you clicked.</li>
+            <li>
+              The tick box appears on hover for unselected episodes and stays permanently visible on selected
+              ones.
+            </li>
           </ul>
-          <p>When at least one episode is selected, the <strong>"Download Selected (N)"</strong> button appears in the feed header. The selection is cleared when changing feed and after starting the download.</p>
+          <p>
+            With at least one episode selected, <strong>Download Selected (N)</strong> appears in the header. The selection
+            clears when you change feed and once a download starts.
+          </p>
           <hr>
         </section>
       </section>
       <section class="level2">
-        <h2 id="35-episode-statuses">3.5 Episode Statuses</h2>
-        <p>Each episode in the list is marked with a status indicator. Understanding these statuses is essential for correctly interpreting the state of the archive.</p>
+        <h2 id="35-episode-states">3.5 Episode states</h2>
+        <p>
+          Every episode carries a status indicator. Reading them is the quickest way to see how the archive
+          stands.
+        </p>
         <table>
           <thead>
             <tr>
-              <th>Status</th>
-              <th>Label in the list</th>
+              <th>State</th>
+              <th>Where you see it</th>
               <th>Meaning</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td><strong>Not downloaded</strong></td>
-              <td><strong>"NEW"</strong> tag</td>
-              <td>The episode is present in the feed but has never been downloaded.</td>
+              <td>To download</td>
+              <td><strong>NEW</strong> tag in the list</td>
+              <td>The episode is in the feed and has never been downloaded.</td>
             </tr>
             <tr>
-              <td><strong>Queued</strong></td>
-              <td>"queued" entry in the Download Panel</td>
-              <td>The episode is awaiting its turn in the download queue.</td>
+              <td>Queued</td>
+              <td><em>queued</em> in the download panel</td>
+              <td>Waiting its turn.</td>
             </tr>
             <tr>
-              <td><strong>Paused</strong></td>
-              <td>"paused" entry in the Download Panel</td>
-              <td>The download has been suspended by the user and can resume from where it stopped.</td>
+              <td>Paused</td>
+              <td><em>paused</em> in the download panel</td>
+              <td>Suspended by you; resumes from where it stopped.</td>
             </tr>
             <tr>
-              <td><strong>In progress</strong></td>
+              <td>In progress</td>
               <td>Animated progress bar</td>
-              <td>The download is active. The row shows percentage and speed in real time.</td>
+              <td>Transfer under way, with percentage and speed.</td>
             </tr>
             <tr>
-              <td><strong>Error</strong></td>
-              <td>Error summary in the Download Panel</td>
-              <td>The download failed after all automatic retries.</td>
+              <td>Error</td>
+              <td>Error summary in the download panel</td>
+              <td>All automatic attempts failed.</td>
             </tr>
             <tr>
-              <td><strong>Downloaded</strong></td>
-              <td><strong>"ARCHIVED"</strong> tag</td>
-              <td>The file is in the database: downloaded and verified, in this session or a previous one.</td>
+              <td>Downloaded</td>
+              <td><strong>ARCHIVED</strong> tag in the list</td>
+              <td>The file is on record in the database, from this session or an earlier one.</td>
             </tr>
           </tbody>
         </table>
-        <p><em>Note on the <strong>"Downloaded"</strong> status:</em> This status is the result of the Database-First philosophy. When analysing a feed that has previously been processed, most episodes will show the <strong>"ARCHIVED"</strong> tag: the software already knows they are present in the archive. Only episodes published after the last download will appear with the <strong>"NEW"</strong> tag.</p>
-        <hr>
-      </section>
-      <section class="level2">
-        <h2 id="36-individual-download-controls">3.6 Individual Download Controls</h2>
-        <p>On the right of each row in the list, when hovering, episode-specific control buttons appear. The visible buttons vary according to the status:</p>
-        <p><strong>For all episodes:</strong></p>
-        <ul>
-          <li><strong>Copy title</strong> (document icon): Copies the episode title to the system clipboard.</li>
-          <li><strong>Checkbox:</strong> For multiple selection (see section 3.4).</li>
-        </ul>
-        <p><strong>For To Download or Error episodes:</strong></p>
-        <ul>
-          <li><strong>Download</strong> (downward arrow): Adds the individual episode to the download queue.</li>
-        </ul>
-        <p><strong>For Downloaded episodes ("ARCHIVED" tag):</strong></p>
-        <ul>
-          <li><strong>Re-download</strong> (downward arrow): Adds the episode to the queue again, overwriting the existing file.</li>
-          <li><strong>Forget download</strong> (refresh icon): Clears the episode status, returning it to not-downloaded without deleting the file from disk.</li>
-          <li><strong>Open Folder</strong> (folder icon): Opens the system file manager at the location of the downloaded file.</li>
-        </ul>
         <p>
-          <strong>Interaction with the Detail Panel:</strong>
-          A <strong>single click</strong> on the episode row opens the Detail Panel (see section 3.9) with complete metadata and contextual actions. Ctrl+click and Shift+click are reserved exclusively for multiple selection and do not open the panel.
+          The <strong>ARCHIVED</strong> tag follows directly from the database-first design. Re-analyse a feed you have
+          already worked through and almost every episode will come back as archived: the program knows it
+          has them. Only those published after your last download show up as <strong>NEW</strong>.
         </p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="37-batch-controls">3.7 Batch Controls</h2>
-        <p>Batch controls operate on the entire download queue, not on individual episodes. They are located in the feed header, above the filter bar.</p>
-        <p><strong>"Download All":</strong> Adds all episodes with the <strong>"NEW"</strong> tag to the queue. Episodes already in the database are excluded automatically. The Download Panel opens automatically on launch.</p>
-        <p><strong>"Download Selected (N)":</strong> Appears when at least one episode is selected. Starts the download exclusively for the selected episodes.</p>
-        <p><strong>"Stop download":</strong> Sends a cancellation signal to all active downloads and empties the queue. Files already completed remain in the database. <code>.part</code> files are deleted. Interrupted episodes will appear again with the <strong>"NEW"</strong> tag. For a temporary suspension (without losing progress), use <strong>"Pause"</strong> in the Download Panel instead (see section 3.8).</p>
-        <p><strong>"Export M3U":</strong> Generates a playlist in <code>.m3u</code> format with the absolute local paths of all downloaded episodes for that podcast. Opens a native save dialogue. The button is only available when there are downloaded episodes for the current feed.</p>
-        <p><strong>"Open folder"</strong> (folder icon in the header): Opens the file manager in the destination folder for the current feed.</p>
-        <hr>
-      </section>
-      <section class="level2">
-        <h2 id="38-the-download-panel">3.8 The Download Panel</h2>
-        <p>The Download Panel is the monitoring and control centre for all downloads in progress. It replaces the previous fixed progress bar at the bottom of the interface.</p>
-        <section class="level3">
-          <h3 id="opening-and-closing">Opening and closing</h3>
-          <p>The panel opens <strong>automatically</strong> when each batch is started. When closed, the <strong>floating button</strong> (circular icon) is visible in the bottom-right corner of the window: clicking it reopens the panel. Closing the panel does not interrupt downloads in progress.</p>
-        </section>
-        <section class="level3">
-          <h3 id="panel-structure">Panel structure</h3>
-          <ul>
-            <li><strong>Header:</strong> Shows the completed/total file counter (e.g. <code>47 / 312</code>) and the global queue controls: the <strong>"Pause"</strong> button (suspends the entire queue; it becomes <strong>"Resume"</strong> while the queue is paused, and the header shows <strong>"Queue paused"</strong>), the <strong>"Stop download"</strong> button to interrupt all downloads permanently, and the × button to close the panel.</li>
-            <li><strong>Queue list:</strong> Each download in progress or waiting is represented by a row with: episode title, podcast name, progress percentage, current speed (KB/s or MB/s), individual progress bar. If the server does not declare the file size (no <code>Content-Length</code> header), the bar becomes <strong>indeterminate</strong> (a continuous animation) and shows the bytes received. Hovering over the row reveals the <strong>"Pause"</strong> button (or <strong>"Resume"</strong> if paused) and the × (<strong>"Cancel download"</strong>) button for that individual episode.</li>
-            <li><strong>Non-destructive pause:</strong> Pausing — a single download or the whole queue — keeps the partial <code>.part</code> file: on resume, the transfer continues <strong>from where it left off</strong>, without starting over.</li>
-            <li><strong>Errors section:</strong> At the end of the batch, if one or more downloads failed, an expandable summary appears at the bottom of the panel with the list of undownloaded episodes and their error code, together with the <strong>"Retry failed"</strong> button, which re-queues all failed episodes in a single click.</li>
-          </ul>
-          <hr>
-        </section>
-      </section>
-      <section class="level2">
-        <h2 id="39-the-episode-detail-panel">3.9 The Episode Detail Panel</h2>
-        <p>The Detail Panel provides an in-depth view of a single episode: metadata, actions, and — if the episode is already in the archive — technical data from the downloaded file.</p>
-        <section class="level3">
-          <h3 id="opening-the-detail-panel">Opening the Detail Panel</h3>
-          <p>A <strong>single click</strong> on any row in the episode list opens the panel, which slides in from the right side of the window (below the command bar). The panel closes automatically when a different feed is selected in the sidebar.</p>
-          <p><em>Note:</em> Ctrl+click and Shift+click are reserved for multiple selection and do not open the panel.</p>
-        </section>
-        <section class="level3">
-          <h3 id="panel-contents">Panel contents</h3>
-          <ul>
-            <li><strong>Basic metadata:</strong> Publication date, declared duration, file size as indicated in the feed.</li>
-            <li><strong>Contextual actions:</strong> The available buttons vary according to the episode status: Download, Re-download, Forget download, Open Folder.</li>
-            <li><strong>Archive data</strong> (visible only if the episode has already been downloaded): Date and time of download, actual file size, bitrate, sample rate, filename on disk, SHA-256 checksum.</li>
-            <li><strong>Source link:</strong> The original URL of the audio file in the RSS feed, with a button to copy it to the clipboard.</li>
-            <li><strong>Episode notes:</strong> The episode's descriptive text extracted from the feed (show notes), presented in clean text format.</li>
-          </ul>
-          <hr>
-        </section>
-      </section>
-      <section class="level2">
-        <h2 id="310-the-archive-view">3.10 The Archive View</h2>
-        <p>The Archive View is accessible via the <strong>Archive</strong> tab in the sidebar. Unlike the episode list, which shows only the episodes of one feed at a time, the Archive View collects in a single table <strong>all episodes downloaded across the entire library</strong>, regardless of which podcast they belong to.</p>
-        <section class="level3">
-          <h3 id="features">Features</h3>
-          <ul>
-            <li><strong>Search:</strong> The search field filters by episode title or podcast name.</li>
-            <li><strong>Podcast filter:</strong> The dropdown menu allows you to limit the display to the episodes of a single podcast.</li>
-            <li><strong>Sorting:</strong> The table can be sorted by download date, publication date, file size and bitrate.</li>
-            <li><strong>Statistics:</strong> The Archive View header shows the total number of downloaded files, the number of distinct podcasts, and the total archive size in gigabytes.</li>
-            <li><strong>Show in folder:</strong> Hovering over a row reveals the button that opens the file manager at the file's location on disk.</li>
-          </ul>
-          <p>The Archive View updates automatically when each download completes.</p>
-          <hr>
-        </section>
-      </section>
-      <section class="level2">
-        <h2 id="311-the-command-palette-ctrlk">3.11 The Command Palette (Ctrl+K)</h2>
-        <p>The Command Palette is a quick-access tool that allows you to reach any main function of the software without using the mouse.</p>
-        <section class="level3">
-          <h3 id="opening-the-command-palette">Opening the Command Palette</h3>
-          <p>The <strong>Ctrl+K</strong> shortcut (from anywhere in the app, even during a download) opens an overlay with a central search field.</p>
-        </section>
-        <section class="level3">
-          <h3 id="navigation">Navigation</h3>
-          <ul>
-            <li><strong>Typing</strong> in the search field filters actions and feeds in real time.</li>
-            <li><strong>↑↓ arrows</strong> move the selection between results.</li>
-            <li><strong>Enter</strong> executes the selected action.</li>
-            <li><strong>Esc</strong> closes the palette without executing any action.</li>
-          </ul>
-        </section>
-        <section class="level3">
-          <h3 id="contents">Contents</h3>
-          <ul>
-            <li><strong>"Actions" group:</strong> Five fixed commands always available: <em>Open Settings</em>, <em>Sync All</em>, <em>Add Feed</em> (focuses the URL field), <em>Go to Archive</em>, <em>Go to Feeds</em>.</li>
-            <li><strong>"Feeds" group:</strong> When the search field is empty, shows the first feeds in the library. Typing filters feeds by title. Selecting a feed from the palette loads it directly into the main area.</li>
-            <li><strong>"Episodes (current feed)" group:</strong> As you type, the palette also searches the episode titles of the currently open feed. Selecting an episode filters the list to that title.</li>
-          </ul>
-          <hr>
-        </section>
-      </section>
-      <section class="level2">
-        <h2 id="312-the-system-tray-icon">3.12 The System Tray Icon</h2>
-        <p>When the main window is closed by clicking the X, FeedDownloader Pro does not terminate the process: it minimises to the system notification area (system tray, near the clock). This behaviour is intentional: downloads and the automatic new-episode check continue in the background whilst the window is not visible.</p>
-        <p><strong>Interacting with the tray icon:</strong></p>
+        <h2 id="36-commands-on-a-single-episode">3.6 Commands on a single episode</h2>
+        <p>Hover over a row and the commands for that episode appear on the right. They vary with its state.</p>
+        <p><strong>Always available</strong></p>
         <ul>
-          <li><strong>Clicking the icon:</strong> Shows or hides the main window.</li>
-          <li><strong>Context menu (right-click):</strong> Contains two entries — <strong>"Show"</strong> (brings the main window back to the foreground) and <strong>"Quit"</strong> (closes the programme and stops all active downloads).</li>
+          <li><strong>Copy title</strong>: copies the episode title to the clipboard.</li>
+          <li><strong>Tick box</strong>: used for multiple selection (section 3.4).</li>
         </ul>
-        <p><em>Practical note:</em> To run a large download without keeping the window open, start the batch, close the window, and leave the computer running. The archive will be available once the process completes.</p>
+        <p><strong>Episodes pending or in error</strong></p>
+        <ul>
+          <li><strong>Download</strong>: puts the episode in the queue.</li>
+        </ul>
+        <p><strong>Episodes already archived</strong></p>
+        <ul>
+          <li><strong>Forget download</strong>: returns the episode to pending without touching the file on disk.</li>
+          <li><strong>Open Folder</strong>: opens the file manager at the file’s location.</li>
+        </ul>
+        <p>
+          To fetch an archived episode again, go through the detail panel, where <strong>Re-download</strong> puts the
+          file back in the queue and overwrites the existing one.
+        </p>
+        <p>
+          A plain click on the row opens the detail panel (section 3.9). Ctrl+click and Shift+click are
+          reserved for multiple selection and open nothing.
+        </p>
         <hr>
-        <p><em>Go to Chapter 4 for a complete workflow from the first analysis to download.</em></p>
+      </section>
+      <section class="level2">
+        <h2 id="37-commands-on-the-whole-feed">3.7 Commands on the whole feed</h2>
+        <p>These commands sit in the feed header, above the filter bar, and act on many episodes at once.</p>
+        <p>
+          <strong>Download All</strong> queues every episode never downloaded among those <strong>currently visible</strong>: if a
+          filter is active, it acts only on those. Before it starts, the program asks for confirmation
+          ("Do you really want to download all N episodes?") and checks free space on the destination disk,
+          warning you if there is not enough. The download panel opens by itself.
+        </p>
+        <p><strong>Download Selected (N)</strong> appears when there is an active selection and downloads only that.</p>
+        <p>
+          <strong>Sync New</strong> re-reads the feed from the server and immediately queues any episodes that have just
+          appeared, without going through the list. The free-space check applies here too.
+        </p>
+        <p>
+          <strong>Export M3U</strong> produces an <code>.m3u</code> playlist with the local paths of that podcast’s downloaded
+          episodes and opens the save dialog. The button is always present: if nothing from that feed is on
+          disk yet, the program says so rather than creating an empty file.
+        </p>
+        <p><strong>Change Folder</strong>, the folder icon in the header, opens the destination folder picker.</p>
+        <p>To stop or suspend active downloads you use the download panel controls instead (section 3.8).</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="38-the-download-panel">3.8 The download panel</h2>
+        <p>This is where you watch and steer everything that is downloading.</p>
+        <section class="level3">
+          <h3 id="opening-and-closing-it">Opening and closing it</h3>
+          <p>
+            It opens by itself when a batch starts. Close it and the round button in the bottom right corner
+            brings it back. Closing the panel stops nothing.
+          </p>
+        </section>
+        <section class="level3">
+          <h3 id="how-it-is-laid-out">How it is laid out</h3>
+          <ul>
+            <li>
+              <strong>At the top</strong>, the counter of completed files against the total (<code>47 / 312</code>, say), a summary
+              of how many downloads are active and how many queued, and the × for closing the panel.
+            </li>
+            <li>
+              <strong>In the middle</strong>, the queue: one row per download, with the episode title, the podcast name,
+              the percentage, the current speed and a progress bar. If the server does not declare the file
+              size, the bar becomes indeterminate and the bytes received scroll in place of the percentage.
+              Each row carries <strong>Pause</strong> (which becomes <strong>Resume</strong> once the row is suspended) and <strong>Cancel
+download</strong>.
+            </li>
+            <li>
+              <strong>At the bottom</strong>, the commands that apply to the whole queue: <strong>Pause</strong>, which suspends every
+              transfer and turns into <strong>Resume</strong> while the label beside it reads <strong>Queue paused</strong>, and
+              <strong>Stop download</strong>, which halts everything and empties the queue.
+            </li>
+          </ul>
+        </section>
+        <section class="level3">
+          <h3 id="pausing-and-stopping-are-not-the-same-thing">Pausing and stopping are not the same thing</h3>
+          <p>
+            Pausing, whether a single episode or the entire queue, keeps the partial <code>.part</code> file: on resuming,
+            the transfer picks up where it left off. <strong>Stop download</strong> is final: it deletes the partial files,
+            empties the queue and returns the interrupted episodes to <strong>NEW</strong>. Files already completed stay in
+            the archive, naturally.
+          </p>
+        </section>
+        <section class="level3">
+          <h3 id="when-something-goes-wrong">When something goes wrong</h3>
+          <p>
+            At the end of the batch, if any downloads failed, an expandable summary appears at the bottom with
+            the missed episodes and each one’s error code. Beside it is <strong>Retry failed</strong>, which puts them all
+            back in the queue at once, saving you from hunting through the list.
+          </p>
+          <hr>
+        </section>
+      </section>
+      <section class="level2">
+        <h2 id="39-the-detail-panel">3.9 The detail panel</h2>
+        <p>
+          A plain click on a row opens the detail panel, which slides in from the right below the command
+          bar. It closes on its own when you move to another feed. Ctrl+click and Shift+click do not open it:
+          they belong to multiple selection.
+        </p>
+        <p>It contains:</p>
+        <ul>
+          <li><strong>Basic metadata</strong>: publication date, declared duration, size stated in the feed.</li>
+          <li>
+            <strong>Actions</strong>, which change with the episode’s state: Download, Re-download, Forget download,
+            Open Folder.
+          </li>
+          <li>
+            <strong>Archive data</strong>, only for episodes already downloaded: download date, real size, bitrate,
+            sample rate, file name on disk and the SHA-256 checksum recorded at download time.
+          </li>
+          <li><strong>Source link</strong>: the URL of the audio file in the feed, with a button to copy it.</li>
+          <li><strong>Episode notes</strong>: the descriptive text published in the feed, stripped of its HTML.</li>
+        </ul>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="310-the-archive-view">3.10 The Archive view</h2>
+        <p>
+          You reach it from the <strong>Archive</strong> tab in the sidebar. Where the episode list shows one feed at a
+          time, here every downloaded episode appears in a single table, whichever podcast it came from.
+        </p>
+        <ul>
+          <li>
+            <strong>Search</strong>: looks in the episode title, the podcast name and the date, both as you see it on
+            screen and in ISO form (<code>2026-08-18</code>).
+          </li>
+          <li><strong>Filter by podcast</strong>: a dropdown narrows the table to one show.</li>
+          <li><strong>Sorting</strong>: by download date, publication date, size or bitrate.</li>
+          <li>
+            <strong>Statistics</strong>: at the top, the number of files, the number of distinct podcasts and the space
+            used.
+          </li>
+          <li><strong>Show in folder</strong>: hover over a row to open the file manager at that file.</li>
+        </ul>
+        <p>The table refreshes itself as each download completes.</p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="311-the-command-palette-ctrlk">3.11 The command palette (Ctrl+K)</h2>
+        <p>
+          The palette reaches the main functions without a mouse. It opens with <strong>Ctrl+K</strong> from anywhere in
+          the program, including during a download, and presents a search field in the centre.
+        </p>
+        <p>
+          Type to filter, move with the <strong>↑↓ arrows</strong>, confirm with <strong>Enter</strong>, leave with <strong>Esc</strong> without
+          running anything.
+        </p>
+        <p>Results come in groups.</p>
+        <ul>
+          <li>
+            <strong>Quick actions</strong>: five commands that are always there — open settings, sync all feeds, add
+            feed (which puts the cursor in the URL field), open archive, go back to feeds.
+          </li>
+          <li>
+            <strong>Jump to feed</strong>: with the field empty it shows the first feeds in the library; as you type it
+            filters them by title. Choose one and it loads into the main area.
+          </li>
+          <li>
+            <strong>Episodes (current feed)</strong>: as you type, the palette also searches the episode titles of the
+            open feed. Choose one and the list is filtered on that title.
+          </li>
+        </ul>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="312-the-notification-area-icon">3.12 The notification area icon</h2>
+        <p>
+          Close the window with the × and the program does not quit: it shrinks into the notification area,
+          near the clock. This is deliberate, because downloads and the automatic check for new episodes
+          carry on with the window closed.
+        </p>
+        <p>
+          A click on the icon shows or hides the window. The right-click menu has two entries, in English
+          because the system provides them: <strong>Show</strong> brings the window back to the front, <strong>Quit</strong> closes the
+          program and stops any active downloads.
+        </p>
+        <p>In practice: for a large archive, start the batch, close the window and let the machine work.</p>
+        <hr>
+        <p><em>Chapter 4 walks through a complete run, from the first analysis to the archived file.</em></p>
       </section>
     </section>
   

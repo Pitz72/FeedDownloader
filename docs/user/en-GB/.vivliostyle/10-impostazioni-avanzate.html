@@ -1,47 +1,42 @@
 <!DOCTYPE html><html lang="en"><head>
     <meta charset="utf-8">
-    <title>Chapter 10: Advanced Settings</title>
+    <title>Chapter 10: Settings</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" href="book/theme.css">
   </head>
   <body>
     <section class="level1">
-      <h1 id="chapter-10-advanced-settings">Chapter 10: Advanced Settings</h1>
+      <h1 id="chapter-10-settings">Chapter 10: Settings</h1>
       <section class="level2">
-        <h2 id="101-overview-of-the-settings-panel">10.1 Overview of the Settings Panel</h2>
-        <p>The settings panel is accessible at any time via the gear icon (⚙) in the upper corner of the interface. Settings are organised into five thematic tabs: <strong>General</strong>, <strong>Download</strong>, <strong>Metadata</strong>, <strong>Archive</strong>, and <strong>Advanced</strong>. All changes are saved automatically: it is not necessary to confirm with a dedicated button.</p>
+        <h2 id="101-how-they-are-organised">10.1 How they are organised</h2>
+        <p>
+          The panel opens at any time from the cog icon at the top right, even while a download is running.
+          The entries are divided into five tabs, in this order: <strong>General</strong>, <strong>Download</strong>, <strong>Metadata</strong>,
+          <strong>Archive</strong>, <strong>Advanced</strong>. Every change is saved immediately: there is no confirm button because
+          none is needed.
+        </p>
+        <p>
+          This chapter follows the tabs one by one. Templates, sidecars and ID3 tags (the Metadata tab) are
+          covered in chapter 8; the health check, the CSV inventory and migration (the Archive tab) in
+          chapter 9.
+        </p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="102-download">10.2 Download</h2>
-        <p>This section contains the main controls for the download engine. Internal technical parameters (connection timeout, number of retries, stall detection) are fixed in the engine and do not require manual configuration.</p>
-        <section class="level3">
-          <h3 id="parallel-downloads">Parallel Downloads</h3>
-          <p>The number of simultaneous downloads. Selectable from three presets: <strong>1</strong>, <strong>3</strong>, and <strong>5</strong>. For guidelines on choosing the value, see Chapter 6.</p>
-          <p><strong>Default value:</strong> 3</p>
-        </section>
-        <section class="level3">
-          <h3 id="download-speed-limit">Download Speed Limit</h3>
-          <p>Allows you to limit the aggregate bandwidth used by all active downloads, to avoid interference with other network activities.</p>
-          <p><strong>Available values:</strong> <code>0</code> = unlimited (default); any positive value in KB/s. Example: <code>500</code> limits total consumption to approximately 4 Mbps.</p>
-        </section>
-        <section class="level3">
-          <h3 id="maximum-file-size">Maximum File Size</h3>
-          <p>Rejects downloads larger than the configured cap, in <strong>MB</strong>. It protects against anomalous enclosures (huge files declared by mistake, or servers sending content other than the expected audio). A file over the cap is marked as a definitive error, with no retry.</p>
-          <p><strong>Available values:</strong> <code>0</code> = unlimited (default); any positive value in MB.</p>
-          <hr>
-        </section>
-      </section>
-      <section class="level2">
-        <h2 id="103-general">10.3 General</h2>
+        <h2 id="102-general">10.2 General</h2>
         <section class="level3">
           <h3 id="language">Language</h3>
-          <p>FeedDownloader Pro is available in 2 languages: <strong>Italiano</strong> and <strong>English</strong>.</p>
-          <p>The language change is immediate: the interface updates without needing to restart the software. The application uses exclusively the dark "Obsidian Command" theme: no light theme or list density selector is available.</p>
+          <p>
+            The interface speaks <strong>English</strong> and <strong>Italian</strong>. The change is immediate, with no restart. The
+            program uses a single theme, dark: there is no light theme and no control over list density.
+          </p>
         </section>
         <section class="level3">
-          <h3 id="automatic-feed-refresh">Automatic Feed Refresh</h3>
-          <p>Allows all feeds to be automatically synchronised at regular intervals, without manual intervention. A check also runs at every application startup and when the connection returns after a period offline. Four presets are available:</p>
+          <h3 id="automatic-feed-refresh">Automatic feed refresh</h3>
+          <p>
+            Sets how often the program re-reads the feeds by itself. A check happens in any case at startup and
+            when the connection returns after an outage.
+          </p>
           <table>
             <thead>
               <tr>
@@ -51,100 +46,182 @@
             </thead>
             <tbody>
               <tr>
-                <td><strong>Disabled</strong></td>
-                <td>No periodic synchronisation (the startup check remains).</td>
+                <td>Disabled</td>
+                <td>No cyclical check; the one at startup remains.</td>
               </tr>
               <tr>
-                <td><strong>6 hours</strong> (default)</td>
-                <td>Full synchronisation every 6 hours.</td>
+                <td>6 hours (default)</td>
+                <td>A full re-read every six hours.</td>
               </tr>
               <tr>
-                <td><strong>12 hours</strong></td>
-                <td>Full synchronisation every 12 hours.</td>
+                <td>12 hours</td>
+                <td>Re-read every twelve hours.</td>
               </tr>
               <tr>
-                <td><strong>24 hours</strong></td>
-                <td>Full synchronisation every 24 hours.</td>
+                <td>24 hours</td>
+                <td>Re-read once a day.</td>
               </tr>
             </tbody>
           </table>
-          <p>The change is immediate and does not require restarting the software. If new episodes are found during the automatic synchronisation, a clickable operating system notification is sent: it brings the app to the foreground and, if it concerns a single podcast, opens that feed. Automatic synchronisation does not start downloads: it only signals the availability of new content. For a detailed description of the behaviour, see section 5.9.</p>
+          <p>
+            The change applies at once. If the check finds new episodes it sends a clickable system
+            notification, which brings the program to the front and opens the feed concerned when there is only
+            one. No download starts by itself: the notification is a signal and nothing more (section 5.9).
+          </p>
         </section>
         <section class="level3">
-          <h3 id="user-guide-and-whats-new">User Guide and What's New</h3>
-          <p>Also in the <strong>General</strong> tab you will find:</p>
-          <ul>
-            <li><strong>"User Guide":</strong> Opens the built-in documentation, with the <strong>"Open the full PDF manual"</strong> button to consult this manual.</li>
-            <li><strong>"What's new in this version":</strong> Opens the in-app changelog with the release notes of the installed version. The same window appears automatically on the first launch after an update.</li>
-          </ul>
-          <p><em>Note:</em> The episode list filter bar (text search, status, date, duration) is documented in section 3.4, as it is part of the episode list rather than a setting.</p>
+          <h3 id="guide-and-release-notes">Guide and release notes</h3>
+          <p>
+            The same tab holds two shortcuts: the <strong>user guide</strong>, which opens the built-in documentation and
+            from there the full PDF manual, and <strong>What's new in this version</strong>, which shows the release notes
+            for the installed version. The same window appears on its own at the first launch after an update.
+          </p>
           <hr>
         </section>
       </section>
       <section class="level2">
-        <h2 id="104-security-the-multi-level-anti-ssrf-system">10.4 Security: The Multi-Level Anti-SSRF System</h2>
-        <p>This section is documented for informational purposes: the security system operates in a completely automatic manner and does not require any configuration from the user.</p>
+        <h2 id="103-download">10.3 Download</h2>
         <p>
-          <strong>What is an SSRF attack?</strong>
-          SSRF (Server-Side Request Forgery) is a type of attack in which a malicious URL, instead of pointing to a public resource, points to internal network resources (such as the router administration panel, a NAS, or a local server). In the context of a downloader, a carefully crafted RSS feed could include audio URLs pointing to these internal resources.
+          This is where the engine controls live. The internal parameters (connection timeout, number of
+          retries, stall watching) are fixed and cannot be touched.
         </p>
-        <p><strong>The validation levels:</strong></p>
-        <ol>
-          <li>
-            <p><strong>URL syntactic validation:</strong> The URL is analysed to verify conformance with the standard.</p>
-          </li>
-          <li>
-            <p><strong>Protocol validation:</strong> Only <code>http://</code> and <code>https://</code> protocols are accepted. Protocols such as <code>file://</code>, <code>ftp://</code>, <code>data:</code>, <code>javascript:</code> are rejected immediately.</p>
-          </li>
-          <li>
-            <p><strong>Blocking of well-known internal hostnames:</strong> Names such as <code>localhost</code> and literal loopback addresses are rejected.</p>
-          </li>
-          <li>
-            <p><strong>Blocking of private and reserved IP addresses:</strong> All IP addresses belonging to private or reserved ranges are blocked, including:</p>
-            <ul>
-              <li><code>10.0.0.0/8</code>, <code>172.16.0.0/12</code>, <code>192.168.0.0/16</code> (RFC 1918 private networks)</li>
-              <li><code>127.0.0.0/8</code> (loopback)</li>
-              <li><code>169.254.0.0/16</code> (link-local)</li>
-              <li><code>::1/128</code> (IPv6 loopback)</li>
-              <li><code>fc00::/7</code> (IPv6 unique local)</li>
-              <li>Any address pointing to the local host.</li>
-            </ul>
-          </li>
-          <li>
-            <p><strong>Re-validation at connection time:</strong> The DNS-resolved IP address is checked again on every connection and every redirect. This neutralises DNS-based evasion techniques (a public domain resolving to a private address, or a redirect towards an internal resource).</p>
-          </li>
-        </ol>
-        <p><em>Note for corporate environments:</em> If the corporate network includes internal podcast servers reachable via private IP addresses, the anti-SSRF system will block these URLs. In this case, contact support for a custom configuration that includes specific IP address ranges in the internal whitelist.</p>
+        <section class="level3">
+          <h3 id="download-path">Download Path</h3>
+          <p>
+            The folder everything ends up in, in the <strong>Storage</strong> section. You choose it with the icon beside
+            the field, which opens the system picker, and it does the same job as the folder icon in the
+            command bar.
+          </p>
+        </section>
+        <section class="level3">
+          <h3 id="parallel-downloads">Parallel Downloads</h3>
+          <p>
+            How many transfers at once: <strong>1</strong>, <strong>3</strong> or <strong>5</strong>. The default is 3. For guidance on choosing, see
+            chapter 6.
+          </p>
+        </section>
+        <section class="level3">
+          <h3 id="download-speed-limit">Download Speed Limit</h3>
+          <p>
+            Caps the total bandwidth the downloads use, so they do not take the whole line. The value is in
+            KB/s; <code>0</code> means no limit and is the default. To give a sense of scale: <code>500</code> keeps consumption
+            around 4 Mbps.
+          </p>
+        </section>
+        <section class="level3">
+          <h3 id="maximum-file-size">Maximum File Size</h3>
+          <p>
+            Rejects files larger than the stated value, expressed in MB; <code>0</code> means no limit. It guards against
+            anomalies: sizes declared in error, or servers that send something quite other than audio. A file
+            over the threshold becomes a definitive error, with no further attempts. When the server declares
+            the size, the refusal comes before a single byte is written; when it does not, the transfer is
+            stopped as soon as it passes the cap.
+          </p>
+          <hr>
+        </section>
+      </section>
+      <section class="level2">
+        <h2 id="104-metadata">10.4 Metadata</h2>
+        <p>
+          This tab holds the <strong>File Naming Template</strong> with its preview, the <strong>Sidecar .json Files</strong> switch
+          and the ID3 tagging switch, which changes its label with its state. They are described in
+          chapter 8.
+        </p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="105-advanced">10.5 Advanced</h2>
+        <h2 id="105-archive">10.5 Archive</h2>
+        <p>
+          This gathers four groups: the archive statistics, <strong>Data &amp; Portability</strong> with OPML import and
+          export and the CSV inventory, the <strong>Archive Health Check</strong> with checksum repair, and <strong>Migrate
+Archive</strong> for moving the files to another disk. All in chapter 9, except OPML which is in
+          chapter 5.
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="106-advanced">10.6 Advanced</h2>
         <section class="level3">
           <h3 id="updates">Updates</h3>
-          <p>FeedDownloader Pro includes an integrated, <strong>consent-based</strong> update system: no download and no installation ever happen automatically.</p>
-          <p><strong>Automatic check on startup:</strong> In the installed version (package), the software automatically checks for the availability of new updates shortly after startup, by querying the releases repository. If a new version is available, the persistent <strong>"Update available"</strong> indicator appears in the top bar, along with a system notification — but <strong>nothing is downloaded</strong>.</p>
-          <p><strong>Manual check:</strong> The <strong>"Check for Updates"</strong> button in the <strong>Advanced</strong> tab forces an immediate check at any time.</p>
-          <p><strong>Consent-based download:</strong> The package download starts only when you press <strong>"Download"</strong> in the top-bar indicator, or <strong>"Download update"</strong> in the Settings. Once the download completes, the <strong>"Restart &amp; Install"</strong> button appears: installation, too, requires an explicit user action.</p>
-          <p><strong>States displayed during the process:</strong></p>
-          <ul>
-            <li><strong>Checking for updates...</strong> — the software is querying the releases repository.</li>
-            <li><strong>You have the latest version</strong> — the installed version is the most recent.</li>
-            <li><strong>Update available: vX.Y.Z</strong> — waiting for download consent.</li>
-            <li><strong>Downloading update... N%</strong> — download in progress (started by the user).</li>
-            <li><strong>Update downloaded — restart to install</strong> — the package is ready for installation.</li>
-          </ul>
+          <p>The update system works <strong>by consent</strong>: nothing downloads and nothing installs on its own.</p>
+          <p>
+            At startup the installed version queries the releases repository. If it finds a new version, the
+            <strong>Update available</strong> banner appears in the top bar along with a system notification, but the
+            package <strong>is not downloaded</strong>. The <strong>Check for Updates</strong> button forces the check whenever you want.
+          </p>
+          <p>
+            The download begins when you press <strong>Download</strong> on the banner or <strong>Download update</strong> here in the
+            settings. Once the package is ready, <strong>Restart &amp; Install</strong> appears, and that does not fire by
+            itself either: installation happens when you decide, never when you quit the program.
+          </p>
+          <p>
+            The states you will see, in order: <em>Checking for updates...</em>, then <em>You have the latest version</em> or
+            <em>Update available: vX.Y.Z</em>, then <em>Downloading update... N%</em> and finally <em>Update downloaded —
+restart to install</em>.
+          </p>
         </section>
         <section class="level3">
           <h3 id="maintenance">Maintenance</h3>
-          <p>The <strong>"Clean temporary files"</strong> button removes orphaned <code>.part</code> files left in the destination folder by past interrupted downloads. The function is unavailable while downloads are running (their <code>.part</code> files are in use). On completion, the number of removed files is shown.</p>
+          <p>
+            <strong>Clean temporary files</strong> removes orphaned <code>.part</code> files left in the destination folder by
+            interrupted sessions. It does not work while downloads are active, because those files are in use:
+            in that case the program says so rather than proceeding. At the end it reports how many files it
+            removed.
+          </p>
         </section>
         <section class="level3">
-          <h3 id="danger-zone-reset-download-history">Danger Zone: Reset Download History</h3>
-          <p>The <strong>"Reset Download History"</strong> button clears the download history recorded in the database (the "tick marks" of downloaded episodes). The software requires explicit confirmation before proceeding. Audio files on disk are <strong>not</strong> deleted: after the reset, episodes will appear as not downloaded again.</p>
-          <p><em>When to use it:</em> Only when you intend to start from an empty history, for example after migrating to a new system or to remove data from a test cycle.</p>
+          <h3 id="danger-zone">Danger Zone</h3>
+          <p>
+            <strong>Reset Download History</strong> clears the download history from the database, that is the memory of
+            what has already been fetched. The program asks for confirmation. The audio files on disk <strong>stay
+where they are</strong>: after the reset the episodes go back to showing as pending, and a fresh download
+            would overwrite them.
+          </p>
+          <p>
+            There is one case where it makes sense: when you want to start again with a clean history, for
+            example after moving everything to another system or at the end of a run of tests.
+          </p>
           <hr>
-          <p><em>Go to Chapter 11 for troubleshooting the most common problems.</em></p>
         </section>
+      </section>
+      <section class="level2">
+        <h2 id="107-how-addresses-are-filtered-for-information">10.7 How addresses are filtered (for information)</h2>
+        <p>This section explains something the program does by itself and that cannot be configured.</p>
+        <p>
+          A feed is content arriving from outside, and the addresses it contains could point at resources on
+          your local network rather than at a public audio file: the router panel, a NAS, an internal
+          service. This is the family of attacks called SSRF. An archiver that blindly follows the addresses
+          in a feed becomes the instrument by which somebody knocks on your own doors.
+        </p>
+        <p>Every address therefore passes through five filters:</p>
+        <ol>
+          <li><strong>Syntax</strong>: it must be a valid URL.</li>
+          <li>
+            <strong>Protocol</strong>: only <code>http://</code> and <code>https://</code>. Things like <code>file://</code>, <code>ftp://</code>, <code>data:</code> or
+            <code>javascript:</code> are turned away immediately.
+          </li>
+          <li><strong>Internal names</strong>: <code>localhost</code> and the loopback names are refused.</li>
+          <li>
+            <strong>Private and reserved addresses</strong>: the RFC 1918 networks (<code>10.0.0.0/8</code>, <code>172.16.0.0/12</code>,
+            <code>192.168.0.0/16</code>), loopback <code>127.0.0.0/8</code>, link-local <code>169.254.0.0/16</code>, and for IPv6 <code>::1</code> and
+            <code>fc00::/7</code>.
+          </li>
+          <li>
+            <strong>Verification at connection time</strong>: the IP address the name resolved to is re-checked on every
+            connection and every redirect. This is the filter that closes the cleverer loopholes, namely a
+            public domain resolving to a private address, or a redirect that halfway along points inside
+            the network.
+          </li>
+        </ol>
+        <p>
+          <em>A declared limitation.</em> If your network has an internal podcast server reachable at a private
+          address, those filters will block it, and there is no way to make an exception: there is no
+          allow-list to configure. This is deliberate, because a configurable exception is exactly what a
+          hostile feed would try to exploit. Content like that needs a different route — downloading it with
+          another tool and importing it as local files, for instance.
+        </p>
+        <hr>
+        <p><em>Chapter 11 collects the most common problems and how to get out of them.</em></p>
       </section>
     </section>
   

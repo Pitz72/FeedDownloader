@@ -12,8 +12,8 @@
 
 &nbsp;
 
-> *"Digital content is fragile. A domain expires, a CDN shuts down, a platform closes.
-> The only copy that will never disappear is the one you saved yourself."*
+> *"Digital content is fragile: a domain lapses, a hosting service shuts down, and years of
+> publishing go with it. The only copy left is the one you saved."*
 
 &nbsp;
 
@@ -23,28 +23,29 @@
 
 **Edition:** August 2026
 **Compatibility:** Windows 10/11 · Linux (Ubuntu 22.04+)
-**Language:** English (British)
+**Language:** English
 
 ---
 
 &nbsp;
 
-## Table of Contents
+## Table of contents
 
 | Chapter | Title | Page |
 |---------|-------|------|
-| 1 | Introduction and Philosophy | — |
-| 2 | Installation and First Launch | — |
-| 3 | Interface Tour | — |
-| 4 | Your First Archive: Step-by-Step Guide | — |
-| 5 | Feed Management | — |
-| 6 | The Download Engine | — |
-| 7 | NAS, Network Drives and SMB Paths | — |
-| 8 | File Organisation, Templates and Metadata | — |
-| 9 | Integrity, Statistics and Archiving | — |
-| 10 | Advanced Settings | — |
+| 1 | Introduction and philosophy | — |
+| 2 | Installation and first launch | — |
+| 3 | A tour of the interface | — |
+| 4 | Your first archive, step by step | — |
+| 5 | Managing feeds | — |
+| 6 | The download engine | — |
+| 7 | NAS, network drives and SMB paths | — |
+| 8 | File organisation, templates and metadata | — |
+| 9 | Integrity, statistics and archiving | — |
+| 10 | Settings | — |
 | 11 | Troubleshooting | — |
 
 ---
 
-*This manual is distributed in Markdown and PDF format as part of the Runtime FeedDownloader Pro distribution package. Unauthorised reproduction is prohibited.*
+*Runtime FeedDownloader Pro is free software. This manual, distributed in Markdown and PDF, comes
+with the program and may be copied and redistributed freely.*

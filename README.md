@@ -2,7 +2,7 @@
 
 > **Il modo più potente per archiviare i tuoi podcast.**
 
-![Version](https://img.shields.io/badge/version-1.4.2-blue)
+![Version](https://img.shields.io/badge/version-1.5.0-blue)
 ![Build](https://github.com/Ecosystem-Runtime/FeedDownloader/actions/workflows/build.yml/badge.svg)
 ![Electron](https://img.shields.io/badge/Electron-43-47848F?logo=electron)
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)
@@ -14,43 +14,48 @@
 
 **Runtime FeedDownloader Pro** è un'applicazione desktop per l'archiviazione massiva di podcast RSS. Scarica, organizza e cataloga episodi da qualsiasi feed RSS con resilienza di rete, download paralleli configurabili e un'interfaccia moderna.
 
-### ✨ Caratteristiche Principali
+### ✨ Caratteristiche principali
 
-- 📚 **Libreria Feed Permanente** — Barra laterale ridimensionabile con tutti i feed salvati, badge "N nuovi episodi", ricerca e ordinamento A–Z (v1.1.x–v1.2.3)
-- 🗂️ **Vista Archivio** — Tab dedicata per consultare e cercare l'intero archivio di episodi scaricati (v1.1.22)
-- 📥 **Pannello Download** — Drawer laterale con coda, velocità, tempo stimato e log errori per ogni batch; FAB minimizzato (v1.2.3)
-- 📝 **Dettaglio Episodio** — Click su un episodio apre un pannello con metadati completi, dati archivio (checksum, bitrate) e show notes (v1.2.2)
-- ⌨️ **Palette Comandi (Ctrl+K)** — Accesso rapido a tutte le azioni principali e ai feed salvati (v1.2.4)
-- 🔁 **Aggiornamento Automatico Feed** — Timer in background (6/12/24h) con notifica OS per i nuovi episodi (v1.2.0)
-- ☑️ **Selezione Multipla** — Ctrl+click / Shift+click per scaricare interi intervalli di episodi (v1.1.18)
-- 🎶 **Export Playlist M3U** — Genera playlist compatibili con qualsiasi player audio locale (v1.1.21)
-- ⚡ **Velocità e Tempo Stimato** — Visualizzati inline per ogni download attivo (v1.1.19)
-- 🔄 **Sync All con progresso per-feed** — Ogni feed mostra spinner/✓/✗ durante la sincronizzazione globale (v1.2.2)
-- 🚀 **Auto-Update** — Aggiornamenti automatici integrati tramite GitHub (v0.7.5)
-- 🔌 **Supporto NAS/SMB** — Validazione automatica e timeout per percorsi di rete (v0.7.5)
-- 🛡️ **Integrità Dati** — Checksum SHA-256 e metadati audio (bitrate/Hz) post-download (v0.7.4)
-- 📂 **Migrazione Archivio** — Sposta l'intera libreria in un nuovo percorso con un click (v0.6.10)
-- 🧠 **Smart Truncate** — Prevenzione automatica dei limiti `MAX_PATH` di Windows
-- 💾 **Download Resilienti** — Timeout 30s/60s, retry con backoff esponenziale, file `.part`, protezione disco pieno
-- 🔒 **URL Validation** — Protezione anti-SSRF a 5 livelli
-- 🩺 **Health Check** — Ripristino automatico degli episodi mancanti su disco (v0.7.6)
-- ⚙️ **Concorrenza Configurabile** — 1, 3 o 5 download paralleli
-- 🧪 **Test Suite** — ~189 test automatici con Vitest
-- 🌍 **8 Lingue** — IT, EN, FR, DE, ES, PT, RU, ZH
-- 📂 **OPML / CSV** — Importa, esporta e cataloga
+**Feed e libreria**
+- **Libreria permanente** — barra laterale ridimensionabile, ricerca, ordinamento A–Z; i feed restano fra le sessioni
+- **Badge DA SCARICARE** — quanti episodi mancano all'archivio, riconosciuti per GUID e non per conteggio (v1.3.12)
+- **Feed paginati RFC 5005** — segue i link `rel="next"` e ricompone il catalogo, fino a 20 pagine (v1.3.12)
+- **Aggiornamento automatico** — all'avvio, ogni 6/12/24 ore e al ritorno della connessione, con notifica di sistema cliccabile (v1.4.0, v1.5.0)
 
-### 🌐 Documentation
+**Download**
+- **Batch con coda gestita** — 1, 3 o 5 trasferimenti paralleli, selezione multipla, annullamento singolo
+- **Pausa e Riprendi** — singolo download o intera coda, senza perdere l'avanzamento: la ripresa usa HTTP Range + If-Range (v1.5.0)
+- **Riprova falliti** — rimette in coda in un clic tutti gli episodi in errore di un lotto (v1.5.0)
+- **Limiti configurabili** — velocità complessiva e dimensione massima per file (v1.5.0)
+- **Trasferimenti resilienti** — timeout 30s, stall detection 60s, 3 tentativi con backoff, `Retry-After` rispettato, file `.part`
 
-| Lingua | Guida |
-|--------|-------|
-| 🇮🇹 Italiano | [README_MASTER.md](README_MASTER.md) |
-| 🇬🇧 English | [README_EN.md](README_EN.md) |
-| 🇫🇷 Français | [README_FR.md](README_FR.md) |
-| 🇩🇪 Deutsch | [README_DE.md](README_DE.md) |
-| 🇪🇸 Español | [README_ES.md](README_ES.md) |
-| 🇵🇹 Português | [README_PT.md](README_PT.md) |
-| 🇷🇺 Русский | [README_RU.md](README_RU.md) |
-| 🇨🇳 中文 | [README_CN.md](README_CN.md) |
+**Integrità**
+- **SHA-256 su ogni file**, con bitrate e sample rate estratti dal file stesso (v0.7.4)
+- **Health Check** — verifica presenza e ricalcola le impronte, segnalando i file alterati (v1.4.1)
+- **Ripara archivio** — ritrova per checksum i file rinominati a mano e li riaggancia (v1.5.0)
+- **Ripristino guidato del database** dal backup automatico in caso di corruzione (v1.5.0)
+- **Rifiuto dei contenuti non audio** quando il server risponde con una pagina web (v1.5.0)
+
+**Interfaccia**
+- **Palette comandi (Ctrl+K)** — azioni, feed e ricerca fra gli episodi del feed aperto (v1.2.4, v1.5.0)
+- **Pannello download** e **pannello di dettaglio episodio** con metadati e dati d'archivio
+- **Vista Archivio**, **export M3U**, **riduzione nell'area di notifica**, **changelog in-app**
+
+**Sistema**
+- **Aggiornamenti col consenso** — nessun download né installazione automatici (v1.5.0)
+- **Anti-SSRF a 5 livelli**, con ri-verifica dell'IP a ogni connessione e redirect
+- **NAS/SMB** con validazione a timeout, senza bloccare l'interfaccia
+- **394 test automatici** con Vitest, gate bloccante in CI
+- **Due lingue**: italiano e inglese
+
+### 🌐 Documentazione
+
+| Lingua | Guida in-app | Manuale completo |
+|--------|--------------|------------------|
+| 🇮🇹 Italiano | [README_MASTER.md](README_MASTER.md) | [docs/user/manual-it](docs/user/manual-it/) |
+| 🇬🇧 English | [README_EN.md](README_EN.md) | [docs/user/en-GB](docs/user/en-GB/) |
+
+I PDF dei manuali sono pubblicati nella cartella `manuals/` della [repo delle release](https://github.com/Ecosystem-Runtime/FeedDownloader-Releases) e si aprono anche dall'app.
 
 ### 📋 Changelog
 
@@ -121,4 +126,4 @@ npm run release
 
 ---
 
-*Creato con ❤️ da [Runtime](https://github.com/runtime)*
+*Creato da [Ecosystem Runtime](https://github.com/Ecosystem-Runtime) · software gratuito*

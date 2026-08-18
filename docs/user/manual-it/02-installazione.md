@@ -1,79 +1,117 @@
-# Capitolo 2: Installazione e Primo Avvio
+# Capitolo 2: Installazione e primo avvio
 
-## 2.1 Requisiti di Sistema
+## 2.1 Requisiti di sistema
 
-Runtime FeedDownloader Pro è un'applicazione desktop basata su tecnologia Electron. È autonoma e non richiede l'installazione di runtime aggiuntivi (Node.js, .NET, Java): tutto il necessario è incluso nel pacchetto di installazione.
+Runtime FeedDownloader Pro è un’applicazione desktop costruita su Electron. È autonoma: non richiede
+Node.js, .NET o Java installati sulla macchina, perché tutto il necessario viaggia nel pacchetto.
 
-**Requisiti minimi:**
+**Requisiti minimi**
 
-| Sistema Operativo | Versione Minima | Architettura |
+| Sistema operativo | Versione minima | Architettura |
 |-------------------|-----------------|--------------|
-| Windows | 10 (build 1903) o Windows 11 | 64-bit (x64) |
-| Linux | Ubuntu 22.04 LTS, Debian 11, Fedora 36 o distribuzioni equivalenti | 64-bit (x64) |
+| Windows | 10 (build 1903) o Windows 11 | 64 bit (x64) |
+| Linux | Ubuntu 22.04 LTS, Debian 11, Fedora 36 o equivalenti | 64 bit (x64) |
 
-**Requisiti hardware consigliati:**
-*   **RAM:** 4 GB (8 GB raccomandati per archivi di grandi dimensioni con più thread attivi)
-*   **Spazio disco:** 200 MB per l'installazione del programma, più lo spazio necessario per l'archivio audio
-*   **Connessione:** Banda larga (almeno 10 Mbps per utilizzare i download paralleli in modo efficace)
+**Hardware consigliato**
 
-*Nota per gli utenti Linux:* Il software è distribuito in formato `.AppImage` (autocontenuto, utilizzabile su qualsiasi distribuzione moderna con librerie glibc aggiornate, senza procedura di installazione tradizionale) e in formato `.deb` per le distribuzioni basate su Debian/Ubuntu.
+*   **Memoria:** 4 GB, meglio 8 GB per archivi grandi con più download in parallelo
+*   **Disco:** 200 MB per il programma, più lo spazio dell’archivio audio
+*   **Rete:** banda larga, almeno 10 Mbps perché i download paralleli abbiano senso
 
-*Nota su macOS:* Le build ufficiali per macOS non sono distribuite. Il codice è compatibile con Electron su macOS, ma l'eventuale compilazione è a carico dell'utente e non è supportata.
+*Nota per Linux.* Il software è distribuito come `.AppImage` (autocontenuto, funziona su qualsiasi
+distribuzione recente senza installazione) e come `.deb` per le distribuzioni derivate da
+Debian e Ubuntu.
+
+*Nota su macOS.* Non esistono build ufficiali per macOS e non sono previste. Il codice sorgente è
+compilabile anche su Mac, ma la compilazione è a carico di chi la esegue e non è supportata.
 
 ---
 
 ## 2.2 Installazione su Windows
 
-1.  Scaricare il file di installazione `Runtime-FeedDownloader-Pro-1.5.0.exe` dalla pagina delle release ufficiale.
-2.  Fare doppio clic sul file scaricato per avviare il programma di installazione.
-3.  Se Windows mostra un avviso **"Windows ha protetto il PC"** (SmartScreen), cliccare su **"Ulteriori informazioni"** e poi su **"Esegui comunque"**. Questo avviso è standard per i software distribuiti al di fuori del Microsoft Store che non hanno ancora raggiunto una soglia sufficiente di adozione per il sistema di reputazione di Windows.
-4.  Seguire le istruzioni a schermo: accettare il contratto di licenza, scegliere la cartella di installazione e cliccare su **"Installa"**.
-5.  Al termine, saranno disponibili un collegamento sul **Desktop** e una voce nel menu **Start**.
+1.  Scaricare `Runtime-FeedDownloader-Pro-1.5.0.exe` dalla pagina delle release.
+2.  Fare doppio clic sul file scaricato.
+3.  Se compare l’avviso **Windows ha protetto il PC** (SmartScreen), premere **Ulteriori
+    informazioni** e poi **Esegui comunque**. L’avviso è normale per i programmi distribuiti fuori
+    dal Microsoft Store e privi di firma commerciale: riguarda la reputazione del file, non il suo
+    contenuto.
+4.  Scegliere la cartella di installazione e premere **Installa**.
+5.  Al termine trovi il collegamento sul desktop e la voce nel menu Start.
 
-**Percorsi di installazione e dati:**
-Il programma viene installato in `C:\Program Files\Runtime FeedDownloader Pro\`. Il database viene salvato separatamente in `C:\Users\[TuoNome]\AppData\Roaming\Runtime FeedDownloader Pro\`. Questa separazione garantisce che la disinstallazione del programma non intacchi i dati dell'archivio.
+**Dove finiscono i file.** L’installazione è per singolo utente e non richiede privilegi di
+amministratore: il programma va in `C:\Users\[TuoNome]\AppData\Local\Programs\Runtime FeedDownloader Pro\`,
+salvo diversa scelta nella schermata di installazione. Il database vive altrove, in
+`C:\Users\[TuoNome]\AppData\Roaming\Runtime FeedDownloader Pro\`, così disinstallare il programma non
+tocca l’archivio.
 
 ---
 
 ## 2.3 Installazione su Linux
 
-1.  Scaricare il file `Runtime-FeedDownloader-Pro-1.5.0.AppImage` (oppure il pacchetto `.deb` per Debian/Ubuntu).
-2.  Rendere il file `.AppImage` eseguibile. Le modalità disponibili sono:
-    *   **Tramite interfaccia grafica:** clic destro sul file → Proprietà → scheda Permessi → spunta "Consenti l'esecuzione del file come programma".
-    *   **Tramite terminale:** `chmod +x Runtime-FeedDownloader-Pro-1.5.0.AppImage`
-3.  Avviare il file con un doppio clic oppure da terminale: `./Runtime-FeedDownloader-Pro-1.5.0.AppImage`
+1.  Scaricare `Runtime-FeedDownloader-Pro-1.5.0.AppImage`, oppure il pacchetto `.deb` per
+    Debian e Ubuntu.
+2.  Rendere eseguibile l’AppImage, in uno dei due modi:
+    *   da interfaccia grafica: clic destro sul file → Proprietà → Permessi → spuntare l’esecuzione
+        come programma;
+    *   da terminale: `chmod +x Runtime-FeedDownloader-Pro-1.5.0.AppImage`
+3.  Avviarlo con un doppio clic o da terminale:
+    `./Runtime-FeedDownloader-Pro-1.5.0.AppImage`
 
-Per il pacchetto `.deb`: installare con `sudo dpkg -i Runtime-FeedDownloader-Pro-1.5.0.deb` (o con il gestore pacchetti grafico della distribuzione).
+Per il pacchetto Debian: `sudo dpkg -i Runtime-FeedDownloader-Pro-1.5.0.deb`, oppure il gestore
+pacchetti grafico della distribuzione.
 
-**Integrazione con il desktop (opzionale):**
-Per aggiungere FeedDownloader Pro al launcher e al menu delle applicazioni, è possibile usare **AppImageLauncher** (disponibile nei repository della maggior parte delle distribuzioni), che integra automaticamente i file AppImage nel sistema.
+**Integrazione con il desktop.** Per avere l’icona nel menu delle applicazioni si può usare
+**AppImageLauncher**, presente nei repository della maggior parte delle distribuzioni, che registra
+gli AppImage nel sistema.
 
-*Nota per ambienti sandbox:* Su distribuzioni con **Flatpak** o ambienti con restrizioni di accesso al filesystem, il software potrebbe non raggiungere i percorsi di rete SMB. In tal caso, verificare che il filesystem di rete sia montato e accessibile dal gestore file prima di avviare il programma.
+*Nota per gli ambienti sandbox.* Con **Flatpak** o altri ambienti che limitano l’accesso al
+filesystem, il programma potrebbe non vedere i percorsi di rete SMB. In quel caso conviene
+verificare che la condivisione sia montata e raggiungibile dal gestore file prima di avviare
+l’applicazione.
 
 ---
 
-## 2.4 Il Primo Avvio
+## 2.4 Il primo avvio
 
-Alla prima apertura, il software è immediatamente operativo. Non è richiesta alcuna configurazione iniziale, né la creazione di un account o l'inserimento di una licenza. L'interfaccia si presenta con la barra di inserimento URL al centro e la lista degli episodi vuota.
+All’avvio compare una breve schermata di presentazione con il nome del programma e due pulsanti,
+**Avvia Applicazione** e **Salta**: il secondo porta subito all’interfaccia, il primo fa lo stesso
+al termine dell’animazione. La schermata torna a ogni apertura del programma.
 
-**File creati al primo avvio:**
-Il programma genera automaticamente nella cartella dati utente il file:
-*   `feeddownloader.sqlite` — Il database SQLite principale. Contiene l'intera cronologia dei download, i metadati degli episodi, le preferenze utente (lingua, download paralleli, cartella di destinazione, ecc.) e lo stato dell'archivio. **Questo file non deve essere cancellato.**
+Poi il software è già operativo. Non serve alcuna configurazione, nessun account, nessun codice di
+licenza. L’interfaccia si presenta con la barra di inserimento URL in alto e la lista degli episodi
+vuota.
+
+**File creati al primo avvio.** Nella cartella dati dell’utente compare un solo file:
+
+*   `feeddownloader.sqlite`, il database. Contiene la cronologia dei download, i metadati degli
+    episodi, l’elenco dei feed e le preferenze (cartella di destinazione, download paralleli, limiti
+    di velocità e dimensione, intervallo di aggiornamento). **Questo file non va cancellato.**
+
+La lingua dell’interfaccia fa eccezione: viene ricordata dal programma insieme alle preferenze
+grafiche, non dentro il database, e si sceglie da **Impostazioni → Generale**.
 
 ---
 
 ## 2.5 Aggiornamenti
 
-Il sistema di aggiornamento funziona **sempre con il consenso dell'utente**, in tre passaggi:
+Gli aggiornamenti richiedono sempre il consenso esplicito. Il percorso è in tre passi.
 
-1.  All'avvio (e su richiesta manuale con **Impostazioni → Avanzate → Controlla Aggiornamenti**) il software verifica se esiste una nuova versione. Se disponibile, appare un indicatore persistente **"Aggiornamento disponibile"** nella barra superiore dell'interfaccia.
-2.  Il download del pacchetto parte **solo** premendo il pulsante **"Scarica"** dell'indicatore (o **"Scarica aggiornamento"** nelle Impostazioni). Nessun download viene avviato automaticamente.
-3.  A download completato, l'indicatore diventa **"Aggiornamento pronto"**: premere **"Riavvia e installa"** per applicare l'aggiornamento. Anche l'installazione non avviene mai in automatico.
+1.  All’avvio, e su richiesta da **Impostazioni → Avanzate → Controlla Aggiornamenti**, il programma
+    verifica se esiste una versione più recente. Se la trova, nella barra superiore compare
+    l’indicatore **Aggiornamento disponibile**, che resta lì finché non si interviene (si può
+    chiudere con la × e ricompare al riavvio o al controllo successivo).
+2.  Lo scaricamento parte **solo** premendo **Scarica** sull’indicatore, oppure **Scarica
+    aggiornamento** nelle Impostazioni. Nulla viene scaricato di iniziativa del programma.
+3.  A scaricamento completato l’indicatore diventa **Aggiornamento pronto**: premendo **Riavvia e
+    installa** il programma si chiude, applica l’aggiornamento e riparte. Nemmeno l’installazione
+    avviene da sola, e non scatta alla chiusura dell’applicazione.
 
-I dati dell'archivio non vengono modificati durante un aggiornamento: vengono sostituiti esclusivamente i file del programma. Al primo avvio dopo l'aggiornamento, la finestra **"Novità di questa versione"** riepiloga le modifiche introdotte.
+L’aggiornamento sostituisce i file del programma e non tocca l’archivio. Al primo avvio della nuova
+versione, la finestra **Novità di questa versione** riepiloga cosa è cambiato.
 
-*Nota:* Prima di aggiornare a una versione major (ad esempio da 1.4.x a 1.5.x), si consiglia di eseguire una copia manuale del file `feeddownloader.sqlite` in una posizione sicura.
+*Consiglio.* Prima di un salto di versione importante (per esempio da 1.4.x a 1.5.x), vale la pena
+copiare `feeddownloader.sqlite` in un posto sicuro.
 
 ---
 
-*Vai al Capitolo 3 per una descrizione dettagliata degli elementi dell'interfaccia.*
+*Il capitolo 3 descrive l’interfaccia elemento per elemento.*

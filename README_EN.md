@@ -1,101 +1,121 @@
 # Runtime FeedDownloader Pro
 
-Version 1.4.2
+Version 1.5.0
 
-The most powerful way to archive your podcasts.
+## What it is
 
-## What is it
+A tool for archiving podcasts properly: it downloads whole catalogues from RSS feeds and keeps them
+in order, with proof of what was stored. It is not a player, it is an archiver. It knows what you
+already have, never downloads the same file twice, resumes interrupted transfers and records a
+cryptographic fingerprint of every file.
 
-Runtime FeedDownloader Pro is a professional tool designed for archivists, publishers, and enthusiasts who need to download entire podcast catalogs for offline preservation.
-Unlike standard players, this software is optimized for mass downloading (Batch), network resilience, and structured file system organization.
+The program is free and may be redistributed freely.
 
-## Key Features
+## What it does
 
-### Feed management
+### Feeds
 
-* **Permanent Feed Library:** Manage multiple podcasts at once with a resizable sidebar, search and A–Z sorting; feeds are saved across sessions.
-* **"To Download" Badge:** Numeric indicator on each feed showing how many episodes are not yet in your archive.
-* **New Episode Detection:** Based on episode GUIDs, not simple episode counts — notifications stay reliable even with "rolling window" podcasts that remove old episodes.
-* **Paginated Feeds (RFC 5005):** Automatically follows links to subsequent feed pages, rebuilding the full catalog even when the provider (Apple Podcasts, Libsyn, Blubrry…) only publishes recent episodes on the first page.
-* **Sync All with per-feed progress:** Refreshes all feeds in parallel; each thumbnail shows its own status in real time.
-* **Automatic Feed Refresh:** Background timer (6/12/24h) with OS notifications for new episodes.
+* **Permanent library.** Feeds stay saved between sessions, with search, sorting and a resizable
+  sidebar.
+* **NOT DOWNLOADED badge.** For each feed, how many episodes are still missing from your archive.
+* **Reliable detection.** New episodes are recognised by their GUIDs rather than by counting, so it
+  works with rolling-window podcasts that drop older instalments.
+* **Paginated feeds (RFC 5005).** The program follows the links to further pages and rebuilds the
+  catalogue, up to twenty pages.
+* **Sync All.** Refreshes the whole library in parallel, showing the state on each cover.
+* **Automatic checks.** At startup, on a regular interval (6, 12 or 24 hours) and whenever the
+  connection comes back. When new episodes appear you get a system notification: clicking it opens
+  the feed in question.
 
-### Downloads and queue
+### Downloads
 
-* **Batch Download:** Download hundreds of episodes with one click, with intelligent queue management and configurable concurrency (1, 3, or 5 parallel downloads).
-* **Speed Limit:** Configurable maximum download bandwidth in Settings (0 = unlimited).
-* **Download Panel:** Side drawer with queue, speed (KB/s), estimated time, and error log for each batch. Floating button to reopen it without losing your downloads.
-* **Speed and Estimated Time:** Shown inline for each active download in the episode row.
-* **Single Cancellation:** Cancel one download from the queue without stopping the others.
-* **Re-download Episode:** Re-download an episode already present in the archive.
-* **Multiple Selection:** Ctrl+click / Shift+click to select ranges of episodes and download them together.
+* **Batches.** Hundreds of episodes in one command, a managed queue, one to five transfers at once.
+* **Pause and Resume.** A single download or the whole queue can be suspended without losing
+  anything: the partial file stays and the transfer picks up where it stopped.
+* **Retry failed.** At the end of a batch, one command re-queues every episode that went wrong.
+* **Cancel one.** Drop a single download from the queue without disturbing the others.
+* **Multiple selection.** Ctrl+click and Shift+click to pick ranges.
+* **Caps.** Maximum overall speed and maximum size per file, both configurable (0 = no limit).
 
-### Interface and navigation
+### Interface
 
-* **Modern "Electric Azure on Deep Dark" Design:** Fully redesigned dark interface, fast and readable.
-* **Command Palette (Ctrl+K):** Quick access to all main actions and saved feeds without using the mouse.
-* **Episode Detail Panel:** Clicking an episode opens a panel with full metadata, archive data, and show notes.
-* **Episode Sorting:** Sort the list by date, title, or duration, in addition to the original feed order.
-* **Archive View:** Dedicated tab to browse, search, and sort your entire archive of downloaded episodes.
-* **M3U Playlist Export:** Generates local playlists compatible with any audio player.
-* **Guided Onboarding:** First-launch hints to get you started right away.
+* **Command palette (Ctrl+K).** Actions, feeds and episodes of the open feed, without the mouse.
+* **Detail panel.** One click on an episode opens metadata, archive data and show notes.
+* **Archive view.** Every downloaded episode in a single table, searchable and sortable.
+* **Export M3U.** Local playlists for any audio player.
+* **Minimise to the notification area.** Close the window and the work carries on in the background.
+* **Release notes in the app.** They are readable from the settings, and appear by themselves on the
+  first run after an update.
 
-### Resilience and integrity
+### Integrity
 
-* **"Database-First" Engine:** The system remembers what you've downloaded regardless of files on disk (SQLite).
-* **Resilient Downloads:** Connection timeout (30s) and stall detection (60s), automatic retries with exponential backoff, anti-corruption `.part` files.
-* **Data Integrity:** Automatic SHA-256 calculation and audio metadata extraction (bitrate, sample rate) post-download.
-* **Health Check:** Automatic restoration of episodes missing on disk with database resynchronization.
+* **Database-first.** The program remembers what it downloaded even when files move (SQLite).
+* **Robust transfers.** A 30-second connection timeout, a 60-second stall watchdog, three attempts
+  with growing back-off, and `.part` files that make resuming possible.
+* **SHA-256 fingerprint** computed for every file and recorded, along with bitrate and sample rate.
+* **Archive health check.** Finds the files that went missing and re-hashes those still present,
+  flagging anything that no longer matches.
+* **Repair archive.** Finds manually renamed files by checksum and re-links them to the archive,
+  without downloading anything again.
+* **Database restore.** If the database gets damaged, on the next run the program offers to recover
+  feeds, archive and history from the backup it set aside.
+* **Non-audio responses refused.** When a server answers with a web page instead of the file, the
+  download is rejected rather than saved as rubbish.
 
-### Organization and portability
+### Organisation
 
-* **Real Extension:** Detects and saves the file's actual format (`.m4a`, `.ogg`, `.opus`, `.flac`…) instead of always forcing `.mp3`.
-* **ID3 Tags with Cover Art:** Automatically writes ID3 tags into `.mp3` files, prioritizing the episode-specific cover art when available.
-* **Rename Templates:** Customizable tokens (`{{title}}`, `{{date}}`, `{{podcast}}`) for organized file names.
-* **Data Portability:** Import and export your feeds via the OPML standard. Generate detailed CSV reports of your archive.
-* **Archive Migration:** Move the entire library to a new path/disk with automatic DB update.
-* **NAS/SMB Support:** Native validation and timeout (8s) for network paths, with no UI freezes.
+* **Real extensions.** `.m4a`, `.ogg`, `.opus` and `.flac` keep their own extension instead of being
+  forced into `.mp3`.
+* **ID3 tags with cover art**, preferring the episode image when the feed provides one.
+* **Naming template.** Tokens `{title}`, `{podcast}`, `{date}`, `{year}`, `{month}`, `{day}`.
+* **Sidecar `.json` files** beside each audio file, when you need the metadata outside the database.
+* **OPML and CSV.** Import and export the feed list, export the full archive inventory.
+* **Migration.** Move the whole library to another disk while keeping the archive in step.
+* **NAS and SMB.** Network paths are checked with an eight-second limit, and the interface never
+  freezes.
 
-### System and security
+### System
 
-* **Auto-Update with Notification:** Automatic updates via GitHub Releases, with a system notification when an update is available and when it is ready to install.
-* **URL Security:** Anti-SSRF validation at the connection level — blocks dangerous protocols, private IPs, reserved addresses, and hostile redirects, for every feed page.
-* **Smart Truncate:** Automatically renames files to avoid path length errors on Windows.
-* **Performance:** Virtualized list — handles feeds with thousands of episodes without slowdowns.
-* **Integrated Help:** User guide available directly within the application.
+* **Updates with consent.** The program reports a new version but downloads nothing on its own:
+  first **Download**, then **Restart & Install**. Nothing is installed on exit.
+* **Address defences.** Every URL goes through anti-SSRF checks: HTTP and HTTPS only, no internal or
+  reserved addresses, and the resolved IP is verified again on every connection and redirect.
+* **Safe filenames.** Forbidden characters are removed and paths shortened so Windows limits are
+  never hit.
+* **Virtualised lists.** Even with thousands of episodes the window stays smooth.
+* **Full PDF manual**, reachable from the in-app guide.
 
-## Multilingual Certification
+## Languages
 
-The software fully supports **8 languages**: Italiano (IT), English (EN), Français (FR), Deutsch (DE), Español (ES), Português (PT), Русский (RU), 中文 (ZH). The interface, system notifications, and documentation are available in all languages.
+Interface, notifications and manuals are available in **Italian** and **English**.
 
-## Quick Instructions
+## Getting started
 
-1. **Analyze:** Paste the RSS feed URL into the main bar and press "Analyze". The feed is added to the sidebar for future access.
-2. **Choose Folder:** In Settings → Archive, set the folder where files will be saved. The path is always visible in the sidebar footer.
-3. **Download:** Use the "Download All" button for the entire catalog, or select episodes with Ctrl+click and use "Download Selected".
-4. **Monitor:** The Download Panel opens automatically with the queue, speed, and estimated time for each file.
-5. **Manage:** Use Ctrl+K for the Command Palette, or Settings (⚙) for concurrency, speed limit, templates, OPML, and archive statistics.
+1. **Analyze.** Paste the RSS address into the top bar and press **Analyze**. The feed joins the
+   library.
+2. **Pick a folder.** Use the folder icon in the command bar, or **Settings → Download**. The path
+   stays visible at the bottom of the sidebar.
+3. **Download.** **Download All** for the whole catalogue (it acts on the episodes currently
+   visible, so filters matter), or select with Ctrl+click and use **Download Selected**.
+4. **Watch.** The download panel opens by itself: queue, percentages, speeds and the pause controls.
+5. **Tune.** Ctrl+K for the palette, the gear icon for parallel downloads, caps, template, OPML and
+   archive statistics.
 
-## System Requirements
+## Requirements
 
-The software is Cross-Platform and runs natively on:
+* **Windows** 10 or 11, 64-bit, `.exe` installer
+* **Modern Linux** (Ubuntu 22.04+, Debian 11+, Fedora 36+), `.AppImage` or `.deb`
+* **macOS**: not supported. The source builds on a Mac, but there are no official packages and
+  building it is your own responsibility.
+* An internet connection
 
-* **Windows**: 10/11 (64-bit) — NSIS installer (`.exe`)
-* **Linux**: Modern distributions (Ubuntu 20.04+, Debian 11+, Fedora 34+) — `.AppImage` or `.deb`
-* **macOS**: 11.0 (Big Sur) or higher — supported by the code, but macOS packages are not currently distributed
-* Active Internet connection
+## Where to get it
 
-## Download
+Packages live on
+[GitHub Releases](https://github.com/Ecosystem-Runtime/FeedDownloader-Releases/releases) and are
+produced automatically by the build pipeline.
 
-Official packages are available on [GitHub Releases](https://github.com/Ecosystem-Runtime/FeedDownloader-Releases/releases), built via GitHub Actions.
+**SmartScreen warning (Windows).** On first run Windows may show "Windows protected your PC",
+because the program carries no commercial signature. Continue with **More info** → **Run anyway**.
 
-| Platform | Format | Notes |
-|---|---|---|
-| Windows 10/11 | `.exe` (NSIS installer) | Unsigned software — see SmartScreen note |
-| Linux | `.AppImage` / `.deb` | No signing required |
-
-**Windows — SmartScreen warning:** On first launch, Windows Defender may show a "Windows protected your PC — Unknown Publisher" screen. The software is safe. Click **More info** → **Run anyway**.
-
-**macOS:** `.dmg` packages are not currently published; you can build the app from source.
-
-*Developed with Electron & React technology to ensure performance and stability.*
+*Built with Electron and React.*

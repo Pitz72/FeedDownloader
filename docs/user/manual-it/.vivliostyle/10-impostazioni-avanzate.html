@@ -1,47 +1,42 @@
 <!DOCTYPE html><html lang="it"><head>
     <meta charset="utf-8">
-    <title>Capitolo 10: Impostazioni Avanzate</title>
+    <title>Capitolo 10: Le impostazioni</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" href="book/theme.css">
   </head>
   <body>
     <section class="level1">
-      <h1 id="capitolo-10-impostazioni-avanzate">Capitolo 10: Impostazioni Avanzate</h1>
+      <h1 id="capitolo-10-le-impostazioni">Capitolo 10: Le impostazioni</h1>
       <section class="level2">
-        <h2 id="101-panoramica-del-pannello-impostazioni">10.1 Panoramica del Pannello Impostazioni</h2>
-        <p>Il pannello delle impostazioni è accessibile in qualsiasi momento tramite l'icona dell'ingranaggio (⚙) nell'angolo superiore dell'interfaccia. Le impostazioni sono organizzate in cinque schede tematiche: <strong>Generale</strong>, <strong>Download</strong>, <strong>Metadati</strong>, <strong>Archivio</strong> e <strong>Avanzate</strong>. Tutte le modifiche vengono salvate automaticamente: non è necessario confermare con un pulsante dedicato.</p>
+        <h2 id="101-come-sono-organizzate">10.1 Come sono organizzate</h2>
+        <p>
+          Il pannello si apre in qualsiasi momento con l’icona dell’ingranaggio in alto a destra, anche
+          mentre un download è in corso. Le voci sono divise in cinque schede, nell’ordine: <strong>Generale</strong>,
+          <strong>Download</strong>, <strong>Metadati</strong>, <strong>Archivio</strong>, <strong>Avanzate</strong>. Ogni modifica viene salvata subito: non
+          esiste un pulsante di conferma perché non serve.
+        </p>
+        <p>
+          Questo capitolo segue le schede una per una. Template, sidecar e tag ID3 (scheda Metadati) sono
+          trattati nel capitolo 8; controllo dell’archivio, inventario CSV e migrazione (scheda Archivio) nel
+          capitolo 9.
+        </p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="102-download">10.2 Download</h2>
-        <p>Questa sezione contiene i controlli principali del motore di download. I parametri tecnici interni (timeout di connessione, numero di retry, stall detection) sono fissi nel motore e non richiedono configurazione manuale.</p>
-        <section class="level3">
-          <h3 id="download-paralleli">Download Paralleli</h3>
-          <p>Il numero di download simultanei. Selezionabile tra tre preset: <strong>1</strong>, <strong>3</strong> e <strong>5</strong>. Per le linee guida sulla scelta del valore, vedi il Capitolo 6.</p>
-          <p><strong>Valore predefinito:</strong> 3</p>
-        </section>
-        <section class="level3">
-          <h3 id="limite-velocità-download">Limite Velocità Download</h3>
-          <p>Consente di limitare la banda aggregata utilizzata da tutti i download attivi, per evitare interferenze con altre attività di rete.</p>
-          <p><strong>Valori disponibili:</strong> <code>0</code> = illimitato (predefinito); qualsiasi valore positivo in KB/s. Esempio: <code>500</code> limita il consumo totale a circa 4 Mbps.</p>
-        </section>
-        <section class="level3">
-          <h3 id="dimensione-massima-file">Dimensione Massima File</h3>
-          <p>Rifiuta i download più grandi del limite impostato, in <strong>MB</strong>. Protegge da enclosure anomale (file enormi dichiarati per errore, o server che inviano contenuti diversi dall'audio previsto). Un file oltre il limite viene marcato come errore definitivo, senza retry.</p>
-          <p><strong>Valori disponibili:</strong> <code>0</code> = illimitato (predefinito); qualsiasi valore positivo in MB.</p>
-          <hr>
-        </section>
-      </section>
-      <section class="level2">
-        <h2 id="103-generale">10.3 Generale</h2>
+        <h2 id="102-generale">10.2 Generale</h2>
         <section class="level3">
           <h3 id="lingua">Lingua</h3>
-          <p>FeedDownloader Pro è disponibile in 2 lingue: <strong>Italiano</strong> e <strong>English</strong>.</p>
-          <p>Il cambio di lingua è immediato: l'interfaccia si aggiorna senza necessità di riavviare il software. L'applicazione utilizza esclusivamente il tema scuro "Obsidian Command": non è disponibile un tema chiaro né un selettore di densità della lista.</p>
+          <p>
+            L’interfaccia parla <strong>italiano</strong> e <strong>inglese</strong>. Il cambio è immediato, senza riavviare. Il programma
+            usa un solo tema, scuro: non c’è un tema chiaro né un controllo della densità delle liste.
+          </p>
         </section>
         <section class="level3">
-          <h3 id="aggiornamento-automatico-feed">Aggiornamento Automatico Feed</h3>
-          <p>Consente di sincronizzare automaticamente tutti i feed a intervalli regolari, senza intervento manuale. Un controllo viene comunque eseguito a ogni avvio dell'applicazione e al ritorno della connessione dopo un periodo offline. Sono disponibili quattro preset:</p>
+          <h3 id="aggiornamento-automatico-dei-feed">Aggiornamento automatico dei feed</h3>
+          <p>
+            Stabilisce ogni quanto il programma rilegge i feed da solo. Un controllo avviene comunque all’avvio
+            e al ritorno della connessione dopo un’interruzione.
+          </p>
           <table>
             <thead>
               <tr>
@@ -51,99 +46,184 @@
             </thead>
             <tbody>
               <tr>
-                <td><strong>Disattivato</strong></td>
-                <td>Nessuna sincronizzazione ciclica (resta il controllo all'avvio).</td>
+                <td>Disattivato</td>
+                <td>Nessun controllo ciclico; resta quello all’avvio.</td>
               </tr>
               <tr>
-                <td><strong>6 ore</strong> (predefinito)</td>
-                <td>Sincronizzazione completa ogni 6 ore.</td>
+                <td>6 ore (predefinito)</td>
+                <td>Rilettura completa ogni sei ore.</td>
               </tr>
               <tr>
-                <td><strong>12 ore</strong></td>
-                <td>Sincronizzazione completa ogni 12 ore.</td>
+                <td>12 ore</td>
+                <td>Rilettura ogni dodici ore.</td>
               </tr>
               <tr>
-                <td><strong>24 ore</strong></td>
-                <td>Sincronizzazione completa ogni 24 ore.</td>
+                <td>24 ore</td>
+                <td>Rilettura una volta al giorno.</td>
               </tr>
             </tbody>
           </table>
-          <p>Il cambio è immediato e non richiede il riavvio del software. Se durante la sincronizzazione automatica vengono trovati nuovi episodi, viene inviata una notifica del sistema operativo, cliccabile: porta l'app in primo piano e, se riguarda un solo podcast, apre quel feed. La sincronizzazione automatica non avvia download: segnala soltanto la disponibilità di nuovi contenuti. Per una descrizione dettagliata del comportamento, vedi la sezione 5.9.</p>
+          <p>
+            La modifica vale subito. Se il controllo trova episodi nuovi manda una notifica di sistema
+            cliccabile, che porta in primo piano il programma e apre il feed interessato quando è uno solo.
+            Nessun download parte da sé: la notifica segnala e basta (sezione 5.9).
+          </p>
         </section>
         <section class="level3">
-          <h3 id="guida-utente-e-novità">Guida Utente e Novità</h3>
-          <p>Sempre nella scheda <strong>Generale</strong> sono disponibili:</p>
-          <ul>
-            <li><strong>"Guida Utente":</strong> Apre la documentazione integrata, con il pulsante <strong>"Apri il manuale completo in PDF"</strong> per consultare questo manuale.</li>
-            <li><strong>"Novità di questa versione":</strong> Apre il changelog in-app con le note di rilascio della versione installata. La stessa finestra appare automaticamente al primo avvio dopo un aggiornamento.</li>
-          </ul>
+          <h3 id="guida-e-novità">Guida e novità</h3>
+          <p>
+            Nella stessa scheda ci sono due scorciatoie: la <strong>guida utente</strong>, che apre la documentazione
+            integrata e da lì il manuale completo in PDF, e <strong>Novità di questa versione</strong>, che mostra le note di
+            rilascio della versione installata. La stessa finestra compare da sé al primo avvio dopo un
+            aggiornamento.
+          </p>
           <hr>
         </section>
       </section>
       <section class="level2">
-        <h2 id="104-sicurezza-il-sistema-anti-ssrf-multilivello">10.4 Sicurezza: Il Sistema Anti-SSRF Multilivello</h2>
-        <p>Questa sezione è documentata a titolo informativo: il sistema di sicurezza opera in modo completamente automatico e non richiede configurazione da parte dell'utente.</p>
+        <h2 id="103-download">10.3 Download</h2>
         <p>
-          <strong>Cos'è un attacco SSRF?</strong>
-          SSRF (Server-Side Request Forgery) è un tipo di attacco in cui un URL malevolo, invece di puntare a una risorsa pubblica, punta a risorse interne della rete (come il pannello di amministrazione del router, un NAS o un server locale). Nel contesto di un downloader, un feed RSS costruito ad arte potrebbe includere URL audio che puntano a queste risorse interne.
+          Qui stanno i comandi del motore. I parametri interni (timeout di connessione, numero di tentativi,
+          sorveglianza degli stalli) sono fissi e non si toccano.
         </p>
-        <p><strong>I livelli di validazione:</strong></p>
-        <ol>
-          <li>
-            <p><strong>Validazione sintattica dell'URL:</strong> L'URL viene analizzato per verificare la conformità allo standard.</p>
-          </li>
-          <li>
-            <p><strong>Validazione del protocollo:</strong> Sono accettati solo i protocolli <code>http://</code> e <code>https://</code>. Protocolli come <code>file://</code>, <code>ftp://</code>, <code>data:</code>, <code>javascript:</code> vengono rifiutati immediatamente.</p>
-          </li>
-          <li>
-            <p><strong>Blocco degli hostname interni noti:</strong> Nomi come <code>localhost</code> e gli indirizzi di loopback letterali vengono rifiutati.</p>
-          </li>
-          <li>
-            <p><strong>Blocco degli indirizzi IP privati e riservati:</strong> Vengono bloccati tutti gli indirizzi IP appartenenti a intervalli privati o riservati, inclusi:</p>
-            <ul>
-              <li><code>10.0.0.0/8</code>, <code>172.16.0.0/12</code>, <code>192.168.0.0/16</code> (reti private RFC 1918)</li>
-              <li><code>127.0.0.0/8</code> (loopback)</li>
-              <li><code>169.254.0.0/16</code> (link-local)</li>
-              <li><code>::1/128</code> (loopback IPv6)</li>
-              <li><code>fc00::/7</code> (unique local IPv6)</li>
-              <li>Qualsiasi indirizzo che punti all'host locale.</li>
-            </ul>
-          </li>
-          <li>
-            <p><strong>Ri-validazione alla connessione:</strong> L'indirizzo IP risolto via DNS viene verificato di nuovo a ogni connessione e a ogni redirect. Questo neutralizza le tecniche di elusione basate su DNS (un dominio pubblico che risolve verso un indirizzo privato, o un redirect verso una risorsa interna).</p>
-          </li>
-        </ol>
-        <p><em>Nota per ambienti aziendali:</em> Se la rete aziendale include server di podcast interni raggiungibili tramite indirizzi IP privati, il sistema anti-SSRF bloccherà questi URL. In tal caso, contattare il supporto per una configurazione personalizzata che includa specifici intervalli di indirizzi IP nella whitelist interna.</p>
+        <section class="level3">
+          <h3 id="percorso-download">Percorso Download</h3>
+          <p>
+            La cartella dove finisce tutto, nella sezione <strong>Archiviazione</strong>. Si sceglie con l’icona accanto al
+            campo, che apre il selettore di sistema, ed è la stessa cosa che fa l’icona cartella nella barra di
+            comando.
+          </p>
+        </section>
+        <section class="level3">
+          <h3 id="download-paralleli">Download Paralleli</h3>
+          <p>
+            Quanti trasferimenti insieme: <strong>1</strong>, <strong>3</strong> o <strong>5</strong>. Il predefinito è 3. Per orientarsi nella scelta,
+            si veda il capitolo 6.
+          </p>
+        </section>
+        <section class="level3">
+          <h3 id="limite-velocità-download">Limite Velocità Download</h3>
+          <p>
+            Limita la banda complessiva usata dai download, per non prendersi tutta la linea. Il valore è in
+            KB/s; <code>0</code> significa nessun limite ed è il predefinito. Per dare un’idea: <code>500</code> tiene il consumo
+            intorno ai 4 Mbps.
+          </p>
+        </section>
+        <section class="level3">
+          <h3 id="dimensione-massima-file">Dimensione Massima File</h3>
+          <p>
+            Rifiuta i file più grandi del valore indicato, espresso in MB; <code>0</code> significa nessun limite. Serve
+            contro le anomalie: dimensioni dichiarate per errore, o server che al posto dell’audio spediscono
+            tutt’altro. Il file oltre soglia diventa un errore definitivo, senza tentativi ulteriori. Quando il
+            server dichiara la dimensione, il rifiuto arriva prima di scrivere un byte; quando non la dichiara,
+            il trasferimento viene interrotto appena supera il tetto.
+          </p>
+          <hr>
+        </section>
+      </section>
+      <section class="level2">
+        <h2 id="104-metadati">10.4 Metadati</h2>
+        <p>
+          Contiene il <strong>Template Nome File</strong> con la sua anteprima, l’interruttore dei <strong>File Sidecar .json</strong> e
+          quello del <strong>tagging ID3</strong>, che cambia etichetta a seconda dello stato. Sono descritti nel
+          capitolo 8.
+        </p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="105-avanzate">10.5 Avanzate</h2>
+        <h2 id="105-archivio">10.5 Archivio</h2>
+        <p>
+          Raccoglie quattro gruppi: le statistiche dell’archivio, <strong>Dati &amp; Portabilità</strong> con importazione ed
+          esportazione OPML e l’inventario CSV, l’<strong>Health Check Archivio</strong> con la riparazione per checksum, e
+          <strong>Migra Archivio</strong> per spostare i file su un altro disco. Tutto nel capitolo 9, tranne l’OPML che sta
+          nel capitolo 5.
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="106-avanzate">10.6 Avanzate</h2>
         <section class="level3">
           <h3 id="aggiornamenti">Aggiornamenti</h3>
-          <p>FeedDownloader Pro include un sistema di aggiornamento integrato <strong>basato sul consenso</strong>: nessun download e nessuna installazione avvengono automaticamente.</p>
-          <p><strong>Verifica automatica all'avvio:</strong> Nella versione installata (pacchetto), il software controlla automaticamente la disponibilità di nuovi aggiornamenti poco dopo l'avvio, interrogando il repository delle release. Se una nuova versione è disponibile, appare l'indicatore persistente <strong>"Aggiornamento disponibile"</strong> nella barra superiore e una notifica di sistema — ma <strong>non viene scaricato nulla</strong>.</p>
-          <p><strong>Verifica manuale:</strong> Il pulsante <strong>"Controlla Aggiornamenti"</strong> nella scheda <strong>Avanzate</strong> forza una verifica immediata in qualsiasi momento.</p>
-          <p><strong>Download col consenso:</strong> Il download del pacchetto parte solo premendo <strong>"Scarica"</strong> nell'indicatore della barra superiore, oppure <strong>"Scarica aggiornamento"</strong> nelle Impostazioni. A download completato appare il pulsante <strong>"Riavvia e Installa"</strong>: anche l'installazione richiede un'azione esplicita dell'utente.</p>
-          <p><strong>Stati visualizzati durante il processo:</strong></p>
-          <ul>
-            <li><strong>Ricerca aggiornamenti...</strong> — il software sta interrogando il repository delle release.</li>
-            <li><strong>Hai già la versione più recente</strong> — la versione installata è la più recente.</li>
-            <li><strong>Aggiornamento disponibile: vX.Y.Z</strong> — in attesa del consenso al download.</li>
-            <li><strong>Download aggiornamento... N%</strong> — download in corso (avviato dall'utente).</li>
-            <li><strong>Aggiornamento scaricato — riavvia per installare</strong> — il pacchetto è pronto per l'installazione.</li>
-          </ul>
+          <p>Il sistema di aggiornamento funziona <strong>col consenso</strong>: niente si scarica e niente si installa da sé.</p>
+          <p>
+            All’avvio, nella versione installata, il programma interroga il repository delle release. Se trova
+            una versione nuova compaiono l’indicatore <strong>Aggiornamento disponibile</strong> nella barra superiore e una
+            notifica di sistema, ma il pacchetto <strong>non viene scaricato</strong>. Il pulsante <strong>Controlla Aggiornamenti</strong>
+            forza la verifica quando vuoi tu.
+          </p>
+          <p>
+            Lo scaricamento parte premendo <strong>Scarica</strong> sull’indicatore o <strong>Scarica aggiornamento</strong> qui nelle
+            impostazioni. A pacchetto pronto compare <strong>Riavvia e Installa</strong>, e nemmeno quello scatta da solo:
+            l’installazione avviene quando lo decidi, mai alla chiusura del programma.
+          </p>
+          <p>
+            Gli stati che vedrai, nell’ordine: <em>Ricerca aggiornamenti…</em>, poi <em>Hai già la versione più recente</em>
+            oppure <em>Aggiornamento disponibile: vX.Y.Z</em>, quindi <em>Download aggiornamento… N%</em> e infine
+            <em>Aggiornamento scaricato — riavvia per installare</em>.
+          </p>
         </section>
         <section class="level3">
           <h3 id="manutenzione">Manutenzione</h3>
-          <p>Il pulsante <strong>"Pulisci file temporanei"</strong> rimuove i file <code>.part</code> orfani rimasti nella cartella di destinazione da download interrotti in passato. La funzione non è disponibile mentre ci sono download in corso (i loro <code>.part</code> sono in uso). Al termine viene mostrato il numero di file rimossi.</p>
+          <p>
+            <strong>Pulisci file temporanei</strong> elimina i <code>.part</code> orfani rimasti nella cartella di destinazione da
+            sessioni interrotte. Non funziona mentre ci sono download attivi, perché quei file sono in uso: in
+            quel caso il programma lo dice invece di procedere. Alla fine riporta quanti file ha rimosso.
+          </p>
         </section>
         <section class="level3">
-          <h3 id="zona-pericolo-resetta-storico-download">Zona Pericolo: Resetta Storico Download</h3>
-          <p>Il pulsante <strong>"Resetta Storico Download"</strong> cancella la cronologia dei download registrata nel database (i "segni di spunta" degli episodi scaricati). Il software richiede una conferma esplicita prima di procedere. I file audio sul disco <strong>non</strong> vengono eliminati: dopo il reset, gli episodi appariranno di nuovo come da scaricare.</p>
-          <p><em>Quando utilizzarlo:</em> Esclusivamente quando si intende ripartire da una cronologia vuota, ad esempio dopo una migrazione su un nuovo sistema o per rimuovere i dati di un ciclo di test.</p>
+          <h3 id="zona-pericolo">Zona Pericolo</h3>
+          <p>
+            <strong>Resetta Storico Download</strong> cancella dal database la cronologia dei download, cioè la memoria di
+            cosa è già stato preso. Il programma chiede conferma. I file audio sul disco <strong>restano dove sono</strong>:
+            dopo il reset gli episodi tornano a mostrarsi come da scaricare, e un nuovo download li
+            sovrascriverebbe.
+          </p>
+          <p>
+            Ha senso in un caso solo: quando si vuole ripartire con una cronologia pulita, per esempio dopo aver
+            spostato tutto su un altro sistema o al termine di una serie di prove.
+          </p>
           <hr>
-          <p><em>Vai al Capitolo 11 per la risoluzione dei problemi più comuni.</em></p>
         </section>
+      </section>
+      <section class="level2">
+        <h2 id="107-come-vengono-filtrati-gli-indirizzi-informativo">10.7 Come vengono filtrati gli indirizzi (informativo)</h2>
+        <p>Questa sezione spiega qualcosa che il programma fa da solo e che non è configurabile.</p>
+        <p>
+          Un feed è contenuto che arriva dall’esterno, e gli indirizzi che contiene potrebbero puntare a
+          risorse della tua rete locale invece che a un file audio pubblico: il pannello del router, un NAS,
+          un servizio interno. È la famiglia di attacchi chiamata SSRF. Un archiviatore che segue ciecamente
+          gli indirizzi di un feed diventa lo strumento con cui qualcuno bussa alle porte di casa tua.
+        </p>
+        <p>Ogni indirizzo passa quindi cinque filtri:</p>
+        <ol>
+          <li><strong>Sintassi</strong>: deve essere un URL valido.</li>
+          <li>
+            <strong>Protocollo</strong>: solo <code>http://</code> e <code>https://</code>. Roba come <code>file://</code>, <code>ftp://</code>, <code>data:</code> o
+            <code>javascript:</code> viene respinta subito.
+          </li>
+          <li><strong>Nomi interni</strong>: <code>localhost</code> e i nomi di loopback vengono rifiutati.</li>
+          <li>
+            <strong>Indirizzi privati e riservati</strong>: le reti RFC 1918 (<code>10.0.0.0/8</code>, <code>172.16.0.0/12</code>,
+            <code>192.168.0.0/16</code>), il loopback <code>127.0.0.0/8</code>, il link-local <code>169.254.0.0/16</code>, e per IPv6 <code>::1</code>
+            e <code>fc00::/7</code>.
+          </li>
+          <li>
+            <strong>Verifica al momento della connessione</strong>: l’indirizzo IP a cui il nome è stato risolto viene
+            ricontrollato a ogni connessione e a ogni redirezione. È il filtro che chiude le scappatoie più
+            astute, cioè un dominio pubblico che risolve verso un indirizzo privato o una redirezione che a
+            metà strada punta all’interno della rete.
+          </li>
+        </ol>
+        <p>
+          <em>Un limite dichiarato.</em> Se nella tua rete esiste un server di podcast interno raggiungibile a un
+          indirizzo privato, quei filtri lo bloccheranno, e non c’è modo di fare un’eccezione: non esiste una
+          lista di indirizzi consentiti da configurare. È una scelta deliberata, perché un’eccezione
+          configurabile è esattamente ciò che un feed ostile cercherebbe di sfruttare. Per quei contenuti
+          serve un percorso diverso, per esempio scaricarli con un altro strumento e importarli come file
+          locali.
+        </p>
+        <hr>
+        <p><em>Il capitolo 11 raccoglie i problemi più comuni e come uscirne.</em></p>
       </section>
     </section>
   

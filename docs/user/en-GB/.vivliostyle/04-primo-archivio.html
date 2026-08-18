@@ -1,136 +1,191 @@
 <!DOCTYPE html><html lang="en"><head>
     <meta charset="utf-8">
-    <title>Chapter 4: The First Archive — Step-by-Step Guide</title>
+    <title>Chapter 4: Your first archive, step by step</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" href="book/theme.css">
   </head>
   <body>
     <section class="level1">
-      <h1 id="chapter-4-the-first-archive--step-by-step-guide">Chapter 4: The First Archive — Step-by-Step Guide</h1>
+      <h1 id="chapter-4-your-first-archive-step-by-step">Chapter 4: Your first archive, step by step</h1>
       <section class="level2">
-        <h2 id="41-introduction-to-the-workflow">4.1 Introduction to the Workflow</h2>
-        <p>This chapter describes a complete workflow, from a podcast URL to an organised archive on disk. The reference scenario is the most common one: downloading the entire catalogue of a podcast for the first time.</p>
-        <p>It is recommended to read the chapter from beginning to end at least once. Once familiar with the steps, starting a new archive takes less than a minute.</p>
-        <hr>
-      </section>
-      <section class="level2">
-        <h2 id="42-phase-1-finding-the-rss-url">4.2 Phase 1: Finding the RSS URL</h2>
-        <p>The starting point is the RSS feed URL of the podcast to archive. An RSS feed is a text file in XML format that podcast services publish to distribute the list of available episodes. Every podcast has an RSS feed.</p>
-        <p><strong>How to find the RSS URL:</strong></p>
-        <ul>
-          <li><strong>On the podcast's website:</strong> Look for an orange icon with radio waves, or the text "RSS", "Feed", "Subscribe", or "Podcast Feed". Clicking on the element generally opens the XML file in the browser: the URL displayed in the address bar is the one to use.</li>
-          <li><strong>From a podcast app:</strong> Applications such as Pocket Casts, Apple Podcasts, and similar often show the RSS link in the podcast information. On some apps the link is accessible via the "Share" function.</li>
-          <li><strong>From hosting services:</strong> If the podcast is hosted on Spreaker, Podbean, Buzzsprout, or equivalent platforms, the feed URL is usually available in the publisher panel or in the podcast's public information.</li>
-          <li><strong>From a search engine:</strong> Search for <code>[Podcast Name] RSS feed</code>. The first result often leads directly to the correct URL.</li>
-        </ul>
-        <p><em>How to recognise a valid RSS URL:</em> It generally ends with <code>.xml</code> or <code>.rss</code>, or contains words such as <code>feed</code>, <code>rss</code>, or <code>podcast</code> in the path. Examples: <code>https://www.example.com/feed.xml</code>, <code>https://feeds.spreaker.com/podcast/12345</code>, <code>https://anchor.fm/s/abc123/podcast/rss</code>.</p>
-        <hr>
-      </section>
-      <section class="level2">
-        <h2 id="43-phase-2-preparing-the-destination-folder">4.3 Phase 2: Preparing the Destination Folder</h2>
-        <p>Before analysing the feed, it is advisable to define the destination folder. It is recommended to create an organised structure from the outset.</p>
+        <h2 id="41-what-we-are-going-to-do">4.1 What we are going to do</h2>
         <p>
-          <strong>Recommended structure:</strong>
-          <code>D:\Podcast Archive\ ├── My Podcast\ ├── Technology Podcast\ └── Radio Talk Show\</code>
-        </p>
-        <p>Create the specific folder for the podcast to be archived (e.g. <code>D:\Podcast Archive\My Podcast\</code>). FeedDownloader Pro will save all files from that podcast into that folder, with names defined by the rename template (see Chapter 8).</p>
-        <p><strong>To set the destination folder in FeedDownloader Pro:</strong></p>
-        <ol>
-          <li>Open <strong>Settings → Archive</strong> and click the <strong>folder</strong> icon next to the destination path field.</li>
-          <li>Navigate to the created folder and select it.</li>
-          <li>The configured path is always visible in the footer of the left-hand sidebar; clicking it opens the folder directly in the file manager.</li>
-        </ol>
-        <p><em>Note:</em> For paths on NAS or network drives, consult Chapter 7 before proceeding. The configuration for network paths has some specificities described in that chapter.</p>
-        <hr>
-      </section>
-      <section class="level2">
-        <h2 id="44-phase-3-analysing-the-feed">4.4 Phase 3: Analysing the Feed</h2>
-        <p>With the URL ready and the destination folder set:</p>
-        <ol>
-          <li>Paste the RSS URL into the <strong>URL field</strong> at the top of the interface.</li>
-          <li>Click <strong>"Analyse"</strong> (or press <code>Enter</code>).</li>
-          <li>The list in the centre is populated with the episodes. For a podcast with 200–300 episodes, the operation typically takes 2–5 seconds. For very large archives (1,000+ episodes), up to 15–20 seconds may be required, as the feed's XML file can reach considerable sizes.</li>
-        </ol>
-        <p><strong>In the event of an analysis error:</strong></p>
-        <ul>
-          <li>Check that the URL is correct (no leading or trailing spaces, no missing characters).</li>
-          <li>Open the URL in the browser: if the browser returns an error or a blank page, the feed may be temporarily unavailable or the URL may have changed.</li>
-          <li>Some feeds require specific HTTP headers. In this case the software displays an error message with the HTTP code received (for example <code>403 Forbidden</code>).</li>
-        </ul>
-        <hr>
-      </section>
-      <section class="level2">
-        <h2 id="45-phase-4-reading-the-analysis-results">4.5 Phase 4: Reading the Analysis Results</h2>
-        <p>After the analysis, the list shows all episodes of the podcast.</p>
-        <p><strong>Items to verify:</strong></p>
-        <ul>
-          <li><strong>Total number of episodes:</strong> Visible in the list header or in the counter at the bottom. A podcast active for several years may have 300–500 episodes or more.</li>
-          <li><strong>Episodes in </strong>"Downloaded"<strong> status:</strong> If the podcast has been analysed previously, most episodes will appear in this status. The database already records these files as present in the archive.</li>
-          <li><strong>Episodes with missing data:</strong> It is possible that some episodes do not show duration or size. This indicates that the podcast producer did not include this information in the RSS file. The download proceeds correctly in any case.</li>
-        </ul>
-        <hr>
-      </section>
-      <section class="level2">
-        <h2 id="46-phase-5-starting-the-download">4.6 Phase 5: Starting the Download</h2>
-        <p>Two download modes are available.</p>
-        <p>
-          <strong>Mode A — Full download:</strong>
-          Click <strong>"Download All"</strong>. The software adds all episodes with the <strong>"NEW"</strong> tag to the queue and starts the downloads in parallel. The number of simultaneous downloads depends on the <strong>"Parallel Downloads"</strong> setting (see Chapter 10; the default value is 3).
+          This chapter follows a whole run: from a podcast’s address to a folder of tidy audio files on disk.
+          The scenario is the most common one — downloading a programme’s complete catalogue for the first
+          time.
         </p>
         <p>
-          <strong>Mode B — Selective download:</strong>
-          To download only certain episodes:
+          It is worth reading once from beginning to end. Once you have the hang of it, opening a new archive
+          takes under a minute.
         </p>
-        <ol>
-          <li>Select the episodes by holding <code>Ctrl</code> and clicking on each one.</li>
-          <li>To select a range, click on the first episode, hold <code>Shift</code>, and click on the last.</li>
-          <li>Click the <strong>"Download Selected (N)"</strong> button that appears in the feed header when at least one episode is selected.</li>
-        </ol>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="47-phase-6-monitoring-progress">4.7 Phase 6: Monitoring Progress</h2>
-        <p>During the download:</p>
+        <h2 id="42-finding-the-feed-address">4.2 Finding the feed address</h2>
+        <p>
+          Everything starts from the podcast’s RSS address. An RSS feed is a text file in XML format that the
+          publisher puts online to list the available episodes: every podcast has one, even when it is not
+          advertised.
+        </p>
+        <p>Where to look:</p>
         <ul>
-          <li><strong>Download Panel:</strong> Opens automatically on the right side of the window when the batch starts. It shows each queued episode with percentage, current speed, and estimated time to completion. For an archive of 200 episodes at an average of 64 kbps, the total data volume is approximately 2–3 GB.</li>
-          <li><strong>Status in the list:</strong> Each row updates in real time. Episodes in progress show an individual progress bar with the completed percentage.</li>
-          <li><strong>Background execution:</strong> It is not necessary to keep the window open. It can be closed (the programme continues to operate in the system tray) and reopened when the process has completed.</li>
+          <li>
+            <strong>On the podcast website.</strong> An orange icon with waves, or the words RSS, Feed, Subscribe,
+            Podcast Feed. Clicking it usually opens the XML file in the browser: the address in the bar is
+            the one you need.
+          </li>
+          <li>
+            <strong>In a listening app.</strong> Pocket Casts, Apple Podcasts and the like often show the RSS link in
+            the programme information, sometimes tucked under Share.
+          </li>
+          <li>
+            <strong>On the hosting platform.</strong> Spreaker, Podbean, Buzzsprout and similar services publish the
+            feed address on the podcast page or in the producer’s dashboard.
+          </li>
+          <li><strong>With a search engine.</strong> Searching <code>[podcast name] RSS feed</code> often gets you there first time.</li>
         </ul>
-        <p>The software automatically handles retries in the event of a network error, stall detection in the case of slow servers, and integrity verification upon completion of each file. If the computer enters sleep mode, downloads are interrupted and automatically resumed when the session is restored.</p>
+        <p>
+          A valid RSS address usually ends in <code>.xml</code> or <code>.rss</code>, or contains <code>feed</code>, <code>rss</code> or <code>podcast</code> in the
+          path. For example: <code>https://www.example.com/feed.xml</code>,
+          <code>https://feeds.spreaker.com/podcast/12345</code>, <code>https://anchor.fm/s/abc123/podcast/rss</code>.
+        </p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="48-phase-7-verifying-the-completed-archive">4.8 Phase 7: Verifying the Completed Archive</h2>
-        <p>When the Download Panel shows the batch as completed and all episodes appear in green status, the archive is ready.</p>
-        <p><strong>Recommended operations upon completion:</strong></p>
+        <h2 id="43-preparing-the-destination-folder">4.3 Preparing the destination folder</h2>
+        <p>
+          Before analysing the feed it is worth deciding where the files will go, and giving yourself a
+          structure from the start.
+        </p>
+        <pre class="language-text"><code class="language-text">D:\Podcast Archive\
+    ├── My Podcast\
+    ├── Technology Podcast\
+    └── Radio Talk Show\</code></pre>
+        <p>
+          The program creates the subfolder named after the podcast inside your chosen destination, and saves
+          the files there under the names the template decides (chapter 8).
+        </p>
+        <p>To set the destination:</p>
         <ol>
           <li>
-            <p><strong>Check for errors:</strong> If some episodes show <strong>"Error"</strong> status (red), click them to open the Episode Detail Panel and read the error code. Alternatively, consult the error summary section at the bottom of the Download Panel. The most common cause is <code>404 Not Found</code>, which indicates the file was removed from the podcast server before the download.</p>
+            Press the <strong>folder</strong> icon in the command bar at the top, or open <strong>Settings → Download</strong> and
+            use the icon next to <strong>Download Path</strong>.
           </li>
-          <li>
-            <p><strong>Export a CSV summary:</strong> Go to <strong>Settings → Archive → Export CSV</strong>. The generated file lists all downloaded episodes with SHA-256 hashes, sizes, and metadata (see Chapter 9).</p>
-          </li>
-          <li>
-            <p><strong>Verify files on disk:</strong> Open the destination folder in the file manager. Audio files are organised according to the configured rename template (see Chapter 8). The presence of <code>.part</code> files indicates interrupted or paused downloads: re-queueing the same episodes resumes the transfer from where it stopped. Orphaned <code>.part</code> files can be removed via <strong>Settings → Advanced → Clean temporary files</strong>.</p>
-          </li>
+          <li>Choose the folder and confirm.</li>
+          <li>The path stays visible at the bottom of the sidebar; a click opens it in the file manager.</li>
         </ol>
+        <p>
+          <em>If the archive lives on a NAS or a network drive</em>, read chapter 7 before going further: those
+          paths need a little more care.
+        </p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="49-updating-the-archive-in-future">4.9 Updating the Archive in Future</h2>
-        <p>The Database-First system simplifies archive updates. The procedure depends on whether the feed is already in the library or not.</p>
-        <p><strong>Feed already in the sidebar:</strong></p>
+        <h2 id="44-analysing-the-feed">4.4 Analysing the feed</h2>
+        <p>With the address ready and the folder set:</p>
         <ol>
-          <li>Click the feed in the sidebar to select it.</li>
-          <li>Hover over the entry and click the sync icon, or use the <strong>"Sync All"</strong> button to refresh the whole library in parallel.</li>
-          <li>New episodes appear with the <strong>"NEW"</strong> tag (and the feed shows the <strong>"TO DOWNLOAD"</strong> badge in the sidebar); those already present remain <strong>"ARCHIVED"</strong>.</li>
-          <li>Click <strong>"Download All"</strong> to download only the new episodes.</li>
+          <li>Paste the address into the <strong>URL field</strong> at the top.</li>
+          <li>Press <strong>Analyze</strong>, or simply <code>Enter</code>.</li>
+          <li>
+            The list fills up. A podcast of 200 or 300 episodes takes a few seconds; catalogues past the
+            thousand mark can need fifteen or twenty, because the XML file to read is big.
+          </li>
         </ol>
-        <p><strong>Feed not yet in the library:</strong></p>
-        <p>Paste the RSS URL into the URL field at the top of the interface and click <strong>"Analyse"</strong>: the feed is added to the library and the list is populated with the current status.</p>
-        <p>The system never downloads the same episode twice. The automatic new-episode check is enabled by default every 6 hours (see Chapter 10 and section 5.9).</p>
+        <p>
+          If the analysis fails, in order of likelihood: the address contains a stray space or character; the
+          feed is temporarily unreachable, which is worth testing in a browser; the server answers with an
+          HTTP code that the program reports in the error message, typically <code>403 Forbidden</code> for feeds that
+          demand particular headers.
+        </p>
         <hr>
-        <p><em>Go to Chapter 5 to learn more about feed management and OPML features.</em></p>
+      </section>
+      <section class="level2">
+        <h2 id="45-reading-the-results">4.5 Reading the results</h2>
+        <p>Once the analysis is done, the list shows the catalogue.</p>
+        <p>
+          Three things are worth a look. The <strong>episode count</strong>, at the top of the list: a programme running
+          for a few years easily has a few hundred. The episodes already <strong>ARCHIVED</strong>, if the feed had been
+          worked through before: the database knows those and will not fetch them again. And the episodes
+          <strong>without duration or size</strong>, which simply do not declare them in the feed: they download the same
+          as any other, with no consequences.
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="46-starting-the-download">4.6 Starting the download</h2>
+        <p>There are two routes.</p>
+        <p>
+          <strong>The whole catalogue.</strong> Press <strong>Download All</strong>: the program asks for confirmation, checks free
+          space and queues every episode never downloaded. Note one useful detail: it acts on the episodes
+          <strong>visible at that moment</strong>, so with a filter active it downloads only those. Downloads run in
+          parallel, three at a time unless <strong>Parallel Downloads</strong> says otherwise (chapter 10).
+        </p>
+        <p>
+          <strong>A few episodes only.</strong> Select them with <code>Ctrl</code> and a click on each, or with <code>Shift</code> for a range,
+          and press <strong>Download Selected (N)</strong> in the feed header.
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="47-following-progress">4.7 Following progress</h2>
+        <p>
+          The <strong>download panel</strong> opens by itself on the right and shows each episode with its percentage,
+          speed and estimated time. As an order of magnitude: two hundred episodes at 64 kbps take between
+          two and three gigabytes.
+        </p>
+        <p>
+          The rows in the list update in real time. There is no need to keep the window open: close it and
+          the program stays in the notification area and carries on working.
+        </p>
+        <p>
+          During the batch the software handles retries after network errors, stalls and the verification of
+          each completed file by itself. If the computer suspends, transfers are cut off: on waking, stall
+          detection closes the frozen transfers and the retry cycle usually recovers, but any episode that
+          had already used up its three attempts ends in error. Put those back in the queue with <strong>Retry
+failed</strong>.
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="48-checking-the-archive">4.8 Checking the archive</h2>
+        <p>When the panel declares the batch complete, three things remain.</p>
+        <p>
+          <strong>Check the errors.</strong> The summary at the bottom of the download panel lists the missed episodes
+          with their codes. The most frequent is <code>EPISODE_NOT_FOUND</code>, meaning a file pulled from the server
+          before we could get it. To requeue every failure in one go there is <strong>Retry failed</strong>.
+        </p>
+        <p>
+          <strong>Export the inventory.</strong> <strong>Settings → Archive → Export Inventory (CSV)</strong> gives you the full list
+          of archived episodes with SHA-256 checksums, sizes and metadata (chapter 9).
+        </p>
+        <p>
+          <strong>Take a look at the disk.</strong> The files sit in the destination folder, named according to the
+          template (chapter 8). If you find <code>.part</code> files, those transfers were interrupted or suspended:
+          requeue the same episodes and they resume from where they stopped. Orphaned ones can be cleared
+          from <strong>Settings → Advanced → Clean temporary files</strong>.
+        </p>
+        <hr>
+      </section>
+      <section class="level2">
+        <h2 id="49-keeping-the-archive-up-to-date">4.9 Keeping the archive up to date</h2>
+        <p>This is where the database-first design earns its keep: the program always knows what it holds.</p>
+        <p>
+          For a feed already in the library, select it and press the sync icon, or use <strong>Sync All</strong> for the
+          whole library. New episodes appear with the <strong>NEW</strong> tag and the feed shows the <strong>TO DOWNLOAD</strong>
+          badge in the sidebar; the ones you already have stay <strong>ARCHIVED</strong>. At that point <strong>Download All</strong>
+          takes only the new ones. Alternatively, <strong>Sync New</strong> does both at once: it re-reads the feed and
+          immediately queues what is missing.
+        </p>
+        <p>
+          For a feed not yet in the library, paste the address into the URL field and press <strong>Analyze</strong>: it
+          joins the library and the list shows straight away what is missing.
+        </p>
+        <p>
+          The same episode is never downloaded twice. The automatic check for new episodes runs every six
+          hours out of the box (chapter 10 and section 5.9).
+        </p>
+        <hr>
+        <p><em>Chapter 5 goes into feed management and OPML files in detail.</em></p>
       </section>
     </section>
   
