@@ -3,8 +3,8 @@
 **Aperto:** 18 agosto 2026
 **Obiettivo:** ritirare FeedDownloader Pro dal mercato, spostarlo su `Pitz72` come repository pubblico
 sotto licenza MIT, con build automatiche per Windows e Linux.
-**Stato:** **FASI 1, 2, 3, 4 e 5 CHIUSE** (18/08). Il sito è **in produzione** e verificato sulla
-pagina live. Resta una sola coda, segnata in Fase 5: gli **screenshot** della landing. **Gumroad chiuso** dall'utente il 18/08 (verificato:
+**Stato:** **FASI 1, 2, 3, 4 e 5 CHIUSE** (18/08), **nessuna coda aperta**. Il sito è in
+produzione, screenshot compresi, e ogni voce è stata verificata sulla pagina live. **Gumroad chiuso** dall'utente il 18/08 (verificato:
 HTTP 404). **`Pitz72/FeedDownloader` è pubblico dal 18/08**, licenza MIT riconosciuta da GitHub, e
 la **release `v1.5.0` è pubblicata lì**, la prima da progetto aperto.
 Il sito è passato da «acquista» a «scarica» (rilascio v0.6.8) e **entrambe le repo ponte sono
@@ -302,9 +302,15 @@ dalla configurazione di publish e deve già puntare alla destinazione definitiva
       loro indirizzi e un'anteprima OG in cache avrebbe continuato a servire la vecchia «R». I 33
       bundle JS di build vecchie restano: non fanno danno, e cancellarli può rompere una pagina
       aperta da prima del deploy.
-- [ ] ⚠️ **Screenshot della landing** — `screen-splash.webp` mostra ancora il vecchio marchio e
-      **otto bandiere di lingua**. Gli altri quattro (feed manager, dettaglio episodio, coda,
-      barra laterale) reggono. Vanno rifatti dalla v1.5.0 in esecuzione.
+- [x] ✅ **Screenshot della landing rifatti** — rilascio **v0.6.9** del sito. Erano di maggio; il
+      peggiore, `screen-splash`, aveva il vecchio marchio e **otto bandiere di lingua**. Ripresi
+      **pilotando la v1.5.0 installata dal protocollo DevTools** (`--remote-debugging-port`), con
+      viewport fisso a **1600×1000** per tutti e cinque: le proporzioni sono ora uniformi, prima
+      andavano da `1280×248` a `349×643` e la galleria le stirava ognuna a modo suo. Dati veri
+      della libreria (31 feed) e, per la coda, **tre download realmente in corso** con velocità e
+      tempo residuo, compresi i comandi Pausa e Ferma introdotti dalla v1.5.0; i trasferimenti sono
+      stati fermati subito dopo lo scatto e **nessun file è rimasto sul disco** (verificato: nessun
+      `.part` nell'archivio). Caricati in produzione, i cinque vecchi cancellati dal server (404).
 - [x] ⛔ **Repo ponte cancellate.** Fatto il 18/08, **dopo** lo spostamento di `OPEN_MANUAL_PDF`
       (Fase 3) e **dopo** la prima release pubblica, nell'ordine che questa voce imponeva.
       Cancellate **entrambe**: `Ecosystem-Runtime/FeedDownloader-Releases` e
