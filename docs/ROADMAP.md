@@ -1,9 +1,11 @@
 # Roadmap FeedDownloader Pro — Fonte di Verità
 
-**Versione di riferimento:** 1.5.0
-**Ultimo aggiornamento:** 18 agosto 2026 — release v1.5.0
+**Versione di riferimento:** 1.5.1
+**Ultimo aggiornamento:** 18 agosto 2026 — release v1.5.1
 
-> **Stato release:** **v1.5.0 pubblicata il 18 ago 2026 su `Pitz72/FeedDownloader`**, la prima
+> **Stato release:** **v1.5.1 pubblicata il 18 ago 2026 su `Pitz72/FeedDownloader`** — rifinitura
+> della schermata iniziale (via la finta riga di stato, blocco alzato) e banner in testata al
+> README. La **v1.5.0**, del giorno prima, è stata la prima release
 > da progetto aperto (licenza MIT, sorgente pubblico). Da questa versione le release escono
 > sulla repo del progetto e non più sulla repo ponte, che va in dismissione
 > ([PIANO-APERTURA.md](PIANO-APERTURA.md), Fase 5). Contenuto della v1.5.0: pausa/riprendi dei

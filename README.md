@@ -5,7 +5,7 @@
 
   **Il modo più potente per archiviare i tuoi podcast.**
 
-  ![Version](https://img.shields.io/badge/Version-1.5.0-38bdf8?style=for-the-badge)
+  ![Version](https://img.shields.io/badge/Version-1.5.1-38bdf8?style=for-the-badge)
   ![License](https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge)
   ![Platform](https://img.shields.io/badge/Platform-Win%20%7C%20Linux-emerald?style=for-the-badge)
   ![Stack](https://img.shields.io/badge/Stack-Electron%20%7C%20React%20%7C%20SQLite-475569?style=for-the-badge)

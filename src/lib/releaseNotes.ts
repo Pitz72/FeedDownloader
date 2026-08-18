@@ -10,6 +10,18 @@
 export type ReleaseNotesLang = 'it' | 'en';
 
 export const RELEASE_NOTES: Record<string, Record<ReleaseNotesLang, string[]>> = {
+    '1.5.1': {
+        it: [
+            'La schermata iniziale perde la finta riga di stato in alto a sinistra: non diceva niente di vero.',
+            'Marchio, titolo e pulsanti della schermata iniziale sono stati alzati: non finiscono più addosso ai crediti.',
+            'Il README della repo pubblica si apre ora con il banner del programma.',
+        ],
+        en: [
+            'The intro screen loses the fake status line in the top left: it never said anything true.',
+            'The intro screen’s mark, title and buttons sit higher: they no longer crowd the credits line.',
+            'The public repository’s README now opens with the program’s banner.',
+        ],
+    },
     '1.5.0': {
         it: [
             'Il programma è libero: licenza MIT, sorgente pubblico su GitHub, nessun acquisto.',
