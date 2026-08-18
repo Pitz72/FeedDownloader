@@ -201,13 +201,19 @@ dalla configurazione di publish e deve già puntare alla destinazione definitiva
       descrizione dell'auto-updater, ferma a «scarica in background»: dalla v1.5.0 `autoDownload` è
       spento. Corrette in `scripts/README.md` e `branding/README.md` le note che davano
       `resources/icon.png` come privo di alfa.
-- [x] **Auto-update dalla 1.4.2 installata.** Verificato leggendo l'`app-update.yml` dell'app
-      installata: punta ancora a `Ecosystem-Runtime/FeedDownloader-Releases`, perché quel file è
-      cablato nel pacchetto al momento della build. Una release solo sulla repo pubblica sarebbe
-      quindi **invisibile** a chi ha la 1.4.2. **Decisione dell'utente: pubblicare la v1.5.0 anche
-      sulla ponte**, con gli stessi identici asset. È l'ultimo compito della ponte: chi si aggiorna
-      passa a un pacchetto il cui `app-update.yml` punta già alla repo pubblica, e da lì in avanti
-      la ponte non serve più a nessuno.
+- [x] **Asset verificati.** Scaricati i tre installer dalla release pubblicata e ricalcolato lo
+      **SHA-512** di ciascuno: coincide con quello dichiarato in `latest.yml` e `latest-linux.yml`.
+      I metadati di aggiornamento sono quindi coerenti con i file effettivamente pubblicati.
+- [x] **Auto-update dalla 1.4.2 installata: non applicabile, e va bene così.** L'`app-update.yml`
+      dell'app installata punta ancora a `Ecosystem-Runtime/FeedDownloader-Releases` — quel file
+      viene cablato nel pacchetto al momento della build, quindi una release solo sulla repo
+      pubblica è invisibile a chi ha la 1.4.2. Si era valutato di pubblicare la v1.5.0 **anche**
+      sulla ponte come suo ultimo compito. **Decisione dell'utente: non serve.** Il programma non
+      è mai stato acquistato da nessuno: l'unica installazione esistente è la sua, e si aggiorna
+      installando a mano l'`.exe` della release. Da quel momento il pacchetto punta alla repo
+      pubblica e la catena di aggiornamento è quella definitiva; la prima release successiva alla
+      v1.5.0 la collauderà sul campo. **Conseguenza per la Fase 5:** nessuna installazione dipende
+      più dalle repo ponte, che si possono cancellare senza finestra di migrazione.
 
 ---
 
@@ -265,8 +271,10 @@ dalla configurazione di publish e deve già puntare alla destinazione definitiva
       nessun link Gumroad, nessuna card bundle che includa questo prodotto.
 - [ ] 🔴 **Attenzione: le repo ponte sono due.** Oltre a `Ecosystem-Runtime/FeedDownloader-Releases`
       esiste `Pitz72/FeedDownloader-Releases`, **pubblica**, con le release `v1.0.0` (11 asset) e
-      `v1.2.4` (6 asset): è il bridge di prima della migrazione di maggio. È da lì che si aggiornano
-      le installazioni vecchie, quindi va trattata a parte e non cancellata alla leggera.
+      `v1.2.4` (6 asset): è il bridge di prima della migrazione di maggio. In teoria è da lì che si
+      aggiornano le installazioni vecchie — ma **nessuna esiste**: il programma non è mai stato
+      acquistato, e l'unica installazione al mondo è quella dell'autore (Fase 3, 18/08). Il vincolo
+      cade: entrambe le ponti si possono cancellare, con il solito `git clone --mirror` prima.
 - [ ] ⛔ **Cancellare la repo ponte solo dopo** aver spostato `OPEN_MANUAL_PDF` (Fase 3) e dopo la
       prima release pubblica. Backup `git clone --mirror` prima di procedere: i PDF stanno in git, gli
       installer delle release no.
