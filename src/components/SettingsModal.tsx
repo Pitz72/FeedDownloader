@@ -893,6 +893,39 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, s
                                                     </button>
                                                 </div>
 
+                                                {/* Progetto: licenza, paternità, credito ai modelli e sostegno.
+                                                    Sta nelle Avanzate accanto agli aggiornamenti, dove si guarda
+                                                    quando si vuol sapere «che cos'è questo programma». */}
+                                                <div className="space-y-3" style={{ borderTop: '1px solid rgba(65,71,85,0.15)', paddingTop: '1.5rem' }}>
+                                                    <h3 style={sectionHeading('var(--color-primary)')}>
+                                                        <Icon name="favorite" size={14} />
+                                                        {t('settings.project', 'Il progetto')}
+                                                    </h3>
+                                                    <p className="text-xs" style={{ color: 'var(--color-on-surface-variant)', lineHeight: 1.7 }}>
+                                                        {t('credits.license', 'Software libero · licenza MIT')}<br />
+                                                        {t('credits.author', 'di Simone Pizzi — Runtime Radio')}<br />
+                                                        {t('credits.llm', 'scritto con l’ausilio di modelli linguistici (Gemini, Claude)')}
+                                                    </p>
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => window.api.openExternal('https://simonepizzi.runtimeradio.it/contatti')}
+                                                            className="hover-bg-container flex-1 flex items-center justify-center gap-2 p-2 rounded-lg text-xs transition-all"
+                                                            style={{ ...rowCardStyle, display: 'flex', justifyContent: 'center', color: 'var(--color-on-surface-variant)' }}
+                                                        >
+                                                            <Icon name="mail" size={14} style={{ color: 'var(--color-primary)' }} />
+                                                            {t('settings.contacts', 'Contatti')}
+                                                        </button>
+                                                        <button
+                                                            onClick={() => window.api.openExternal('https://www.paypal.com/paypalme/runtimeradio')}
+                                                            className="hover-bg-container flex-1 flex items-center justify-center gap-2 p-2 rounded-lg text-xs transition-all"
+                                                            style={{ ...rowCardStyle, display: 'flex', justifyContent: 'center', color: 'var(--color-on-surface-variant)' }}
+                                                        >
+                                                            <Icon name="volunteer_activism" size={14} style={{ color: 'var(--color-primary)' }} />
+                                                            {t('settings.donate', 'Offrimi un caffè')}
+                                                        </button>
+                                                    </div>
+                                                </div>
+
                                                 {/* Danger Zone */}
                                                 <div className="space-y-3" style={{ borderTop: '1px solid rgba(65,71,85,0.15)', paddingTop: '1.5rem' }}>
                                                 <h3 style={sectionHeading('var(--color-error)')}>{t('settings.danger_zone')}</h3>

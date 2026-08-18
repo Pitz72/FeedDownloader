@@ -107,6 +107,16 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onComplete }) => {
                 {Array.from({ length: 12 }).map((_, i) => <span key={i} />)}
             </div>
 
+            {/* Apertura del sorgente: licenza, paternità e credito ai modelli che
+                hanno scritto il codice. Sta qui perché è la prima cosa che si vede. */}
+            <div className="intro-credits">
+                <span>{t('credits.license', 'Software libero · licenza MIT')}</span>
+                <span className="sep" aria-hidden="true">·</span>
+                <span>{t('credits.author', 'di Simone Pizzi — Runtime Radio')}</span>
+                <span className="sep" aria-hidden="true">·</span>
+                <span>{t('credits.llm', 'scritto con l’ausilio di modelli linguistici (Gemini, Claude)')}</span>
+            </div>
+
             {/* Skip */}
             <button type="button" className="intro-skip" onClick={onComplete}>
                 {t('app.skip', 'Salta')} →

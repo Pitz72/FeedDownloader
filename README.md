@@ -14,6 +14,10 @@
 
 **Runtime FeedDownloader Pro** è un'applicazione desktop per l'archiviazione massiva di podcast RSS. Scarica, organizza e cataloga episodi da qualsiasi feed RSS con resilienza di rete, download paralleli configurabili e un'interfaccia moderna.
 
+Nasce nel 2026 come strumento interno di [Runtime Radio](https://runtimeradio.com) per conservare cataloghi di podcast prima che spariscano dai server di chi li pubblica. È stato distribuito come prodotto commerciale fino all'agosto 2026, quando è stato ritirato dalla vendita e aperto sotto licenza MIT.
+
+> **Stato del progetto.** Funzionalmente completo e in produzione. Non ci sono sviluppi pianificati: viene mantenuto per correzioni. Le pull request sono benvenute — vedi [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ### ✨ Caratteristiche principali
 
 **Feed e libreria**
@@ -126,4 +130,38 @@ npm run release
 
 ---
 
-*Creato da [Ecosystem Runtime](https://github.com/Ecosystem-Runtime) · software gratuito*
+## Sostenere il progetto
+
+Il programma è gratuito e lo resterà. Se ti è utile e vuoi dare una mano:
+
+### 👉 **[simonepizzi.runtimeradio.it/contatti](https://simonepizzi.runtimeradio.it/contatti)**
+
+Per una donazione diretta: **[paypal.me/runtimeradio](https://www.paypal.com/paypalme/runtimeradio)**
+
+---
+
+## Privacy
+
+L'applicazione funziona in locale. Contatta esclusivamente i server dei feed che aggiungi tu, gli indirizzi degli allegati audio che quei feed dichiarano e GitHub per il controllo degli aggiornamenti. Nessuna telemetria, nessun analytics, nessun account. L'archivio e il database restano sul tuo disco.
+
+---
+
+## Come è stato scritto
+
+Questo programma è stato scritto facendo un **uso massiccio di modelli linguistici di grandi dimensioni**: Google **Gemini**, dalla 2.5 alla 3.1, e Anthropic **Claude**, da Sonnet 4.6 a Opus 5. Gran parte del codice che leggi l'hanno prodotta loro, ed è giusto che sia dichiarato apertamente.
+
+Tutto il resto è di **Simone Pizzi**: il concetto, la visione, la direzione progettuale, la definizione minuziosa di ogni dettaglio funzionale e la caccia ostinata ai bug. Ogni comportamento del programma — dalla ripresa dei trasferimenti con `If-Range` alla riparazione dell'archivio per checksum, dal rilevamento dei nuovi episodi via GUID al modo in cui un aggiornamento chiede il permesso prima di scaricarsi — è una decisione progettuale presa, verificata sul campo e corretta a mano fino a farla funzionare.
+
+I modelli hanno scritto il codice. Le decisioni, dalla prima all'ultima, sono state sue.
+
+Lo stesso vale per la documentazione: manuali, guide e note tecniche sono stati redatti con questo metodo e revisionati riga per riga contro il codice.
+
+---
+
+## Licenza
+
+Rilasciato sotto licenza **MIT** — vedi [LICENSE](LICENSE).
+
+Sviluppato da **Simone Pizzi** per **[Runtime Radio](https://runtimeradio.com)**.
+
+Fino ad agosto 2026 il progetto è stato distribuito commercialmente. Quella fase è chiusa: il software è ora liberamente utilizzabile, modificabile e ridistribuibile secondo i termini MIT.

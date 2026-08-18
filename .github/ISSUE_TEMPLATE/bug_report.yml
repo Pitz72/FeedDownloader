@@ -1,0 +1,71 @@
+name: Segnalazione bug
+description: Qualcosa non funziona come dovrebbe / Report a bug
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Grazie per la segnalazione. Italiano o inglese, indifferentemente.
+
+        ⚠️ **Vulnerabilità di sicurezza: non aprire una issue.** Scrivi a info@runtimeradio.it — vedi [SECURITY.md](../blob/main/SECURITY.md).
+
+  - type: textarea
+    id: cosa
+    attributes:
+      label: Cosa succede
+      description: Cosa ti aspettavi e cosa è successo invece.
+    validations:
+      required: true
+
+  - type: textarea
+    id: riproduzione
+    attributes:
+      label: Come riprodurlo
+      placeholder: |
+        1. Analizzo il feed …
+        2. Premo …
+        3. Osservo …
+    validations:
+      required: true
+
+  - type: input
+    id: versione
+    attributes:
+      label: Versione dell'applicazione
+      description: La trovi in Impostazioni → Avanzate, sotto Aggiornamenti.
+      placeholder: "1.5.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Sistema operativo
+      options:
+        - Windows
+        - Linux (AppImage)
+        - Linux (.deb)
+        - Altro
+    validations:
+      required: true
+
+  - type: input
+    id: feed
+    attributes:
+      label: Indirizzo del feed
+      description: |
+        Se il problema riguarda un feed specifico e l'indirizzo è pubblico, incollalo:
+        molti problemi dipendono da come quel feed è fatto. Se è privato o contiene
+        credenziali, lascia vuoto e descrivilo a parole.
+      placeholder: "https://esempio.it/feed.xml"
+
+  - type: textarea
+    id: dettagli
+    attributes:
+      label: Messaggi di errore
+      description: |
+        Il codice di errore mostrato nel riepilogo del pannello download, oppure il testo
+        dell'avviso comparso a schermo.
+
+        Attenzione a non incollare indirizzi di feed che contengono utente e password.
+      render: text

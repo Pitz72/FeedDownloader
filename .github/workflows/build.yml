@@ -13,6 +13,12 @@ on:
         default: 'true'
         type: choice
         options: ['true', 'false']
+  pull_request:
+    branches: [master]
+
+# NOTA: nessun trigger su push. La build non parte mai da sola: si lancia a mano
+# con workflow_dispatch. Su pull request gira soltanto il job `verify`, che
+# controlla lint, tipi e test ma non produce installer e non pubblica nulla.
 
 # Least privilege: no job here needs write access to THIS repo. The build jobs
 # only checkout + build, and the release job publishes to the separate bridge
@@ -61,6 +67,7 @@ jobs:
 
   build-linux:
     needs: verify
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -104,6 +111,7 @@ jobs:
 
   build-windows:
     needs: verify
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -139,7 +147,7 @@ jobs:
   release:
     needs: [build-linux, build-windows]
     runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.publish_release == 'true' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.publish_release == 'true' }}
     steps:
       - uses: actions/checkout@v4
 

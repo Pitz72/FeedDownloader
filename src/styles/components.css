@@ -2124,3 +2124,23 @@
   opacity: 0; animation: introFadeIn 0.5s 0.4s ease-out forwards;
 }
 .intro-skip:hover { color: var(--azure-soft); border-color: var(--azure-soft); }
+
+/* Licenza, paternità e credito ai modelli, in fondo alla schermata iniziale.
+   Il contrasto è tenuto sopra 4.5:1 su fondo scuro: è un'informazione da
+   leggere, non una filigrana. */
+.intro-credits {
+  position: absolute; bottom: 40px; left: 60px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  max-width: min(60vw, 640px);
+  font-family: var(--font-mono); font-size: 10px; line-height: 1.5;
+  letter-spacing: 0.06em;
+  color: var(--fg-2);
+  z-index: 200;
+  opacity: 0; animation: introFadeIn 0.5s 0.6s ease-out forwards;
+}
+.intro-credits .sep { color: var(--fg-4); }
+
+@media (max-width: 720px) {
+  .intro-credits { left: 24px; right: 24px; bottom: 84px; max-width: none; }
+  .intro-skip { right: 24px; bottom: 32px; }
+}

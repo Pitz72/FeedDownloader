@@ -1272,6 +1272,37 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         }
     });
 
+    // ── Open a project link in the browser (v1.5.0) ───────
+    // Deliberately not a generic "open this URL": the renderer passes a URL, but
+    // only https on a closed list of project hosts is honoured. Anything else is
+    // refused, so a compromised renderer can't turn this into a launcher.
+    ipcMain.handle(CH.OPEN_EXTERNAL, async (_, rawUrl: unknown): Promise<boolean> => {
+        const ALLOWED_HOSTS = new Set([
+            'simonepizzi.runtimeradio.it',
+            'runtimeradio.com',
+            'www.paypal.com',
+            'github.com',
+        ]);
+        if (typeof rawUrl !== 'string') return false;
+        let parsed: URL;
+        try {
+            parsed = new URL(rawUrl);
+        } catch {
+            return false;
+        }
+        if (parsed.protocol !== 'https:' || !ALLOWED_HOSTS.has(parsed.hostname)) {
+            console.warn('[OpenExternal] refused:', rawUrl);
+            return false;
+        }
+        try {
+            await shell.openExternal(parsed.toString());
+            return true;
+        } catch (e) {
+            console.error('[OpenExternal] failed', e);
+            return false;
+        }
+    });
+
     // ── Maintenance: clean orphaned .part temp files ──────
     ipcMain.handle(CH.CLEAN_PART_FILES, async (): Promise<number> => {
         // Refuse while downloads are in flight — a live .part would be deleted

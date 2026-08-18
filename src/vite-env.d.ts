@@ -97,6 +97,8 @@ declare global {
             consumeWhatsNew: () => Promise<{ shouldShow: boolean; previousVersion: string | null; currentVersion: string }>;
             // B1 — open bundled PDF manual for a language
             openManualPdf: (lang: string) => Promise<boolean>;
+            // v1.5.0 — apre un indirizzo del progetto nel browser
+            openExternal: (url: string) => Promise<boolean>;
             // Maintenance — clean orphaned .part files
             cleanPartFiles: () => Promise<number>;
         };

@@ -169,6 +169,9 @@ contextBridge.exposeInMainWorld('api', {
   // B1 — open the bundled PDF manual for a language
   openManualPdf: (lang: string): Promise<boolean> => ipcRenderer.invoke(CH.OPEN_MANUAL_PDF, lang),
 
+  // v1.5.0 — apre un indirizzo del progetto nel browser (host consentiti nel main)
+  openExternal: (url: string): Promise<boolean> => ipcRenderer.invoke(CH.OPEN_EXTERNAL, url),
+
   // Maintenance — delete orphaned .part temp files, returns how many were removed
   cleanPartFiles: (): Promise<number> => ipcRenderer.invoke(CH.CLEAN_PART_FILES),
 })

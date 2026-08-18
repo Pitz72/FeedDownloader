@@ -271,6 +271,10 @@ export const IPC_CHANNELS = {
     CONSUME_WHATS_NEW: 'consume-whats-new',
     // B1 — open the bundled PDF manual for the current language
     OPEN_MANUAL_PDF: 'open-manual-pdf',
+    // v1.5.0 — apre nel browser un indirizzo del progetto (contatti, donazioni,
+    // repository). Il main accetta solo una lista chiusa di host: il renderer non
+    // può far aprire un URL arbitrario.
+    OPEN_EXTERNAL: 'open-external',
     // Maintenance (v1.4.0) — remove orphaned .part temp files
     CLEAN_PART_FILES: 'clean-part-files',
 } as const;

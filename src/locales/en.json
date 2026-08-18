@@ -286,7 +286,10 @@
           "clean_parts_done": "Temporary files removed: {{n}}",
           "migrate_busy": "Migration unavailable while downloads are active",
           "migrate_nested": "The new folder can't be inside the current one",
-          "default_path": "Default"
+          "default_path": "Default",
+          "project": "The project",
+          "contacts": "Contact",
+          "donate": "Buy me a coffee"
      },
      "onboarding": {
           "kicker": "Welcome to FeedDownloader Pro",
@@ -360,5 +363,10 @@
           "title": "What's new in this version",
           "empty": "No release notes available for this version.",
           "footer": "Runtime FeedDownloader · release notes"
+     },
+     "credits": {
+          "license": "Free software · MIT licence",
+          "author": "by Simone Pizzi — Runtime Radio",
+          "llm": "written with the help of large language models (Gemini, Claude)"
      }
 }
