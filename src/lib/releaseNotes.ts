@@ -10,6 +10,32 @@
 export type ReleaseNotesLang = 'it' | 'en';
 
 export const RELEASE_NOTES: Record<string, Record<ReleaseNotesLang, string[]>> = {
+    '1.5.0': {
+        it: [
+            'I download si mettono in pausa e riprendono da dove erano: singolarmente o tutta la coda insieme.',
+            'I download falliti si riprovano con un solo pulsante, senza rifare la selezione.',
+            'L’Health Check ora ripara: ritrova i file rinominati a mano tramite l’impronta SHA-256 e li riaggancia.',
+            'Se il database si danneggia, al riavvio l’app propone di recuperare feed, archivio e cronologia dal backup.',
+            'Un indirizzo che risponde con una pagina web non viene più salvato come audio.',
+            'Nuovo limite di dimensione per file nelle Impostazioni (0 = illimitato).',
+            'La notifica sui nuovi episodi è cliccabile e apre il podcast interessato.',
+            'Ctrl+K cerca anche tra gli episodi del feed aperto.',
+            'Gli aggiornamenti chiedono il permesso: prima «Scarica», poi «Riavvia e installa». Niente download automatici.',
+            'Icona nuova ovunque: finestra, tray, installer.',
+        ],
+        en: [
+            'Downloads can pause and resume right where they left off — one at a time or the whole queue.',
+            'Failed downloads retry with a single button, no need to reselect anything.',
+            'Health Check now repairs: manually renamed files are found again via their SHA-256 fingerprint and re-linked.',
+            'If the database gets damaged, on restart the app offers to recover feeds, archive and history from the backup.',
+            'A link that answers with a web page is no longer saved as audio.',
+            'New per-file size cap in Settings (0 = unlimited).',
+            'The new-episodes notification is clickable and opens the podcast in question.',
+            'Ctrl+K also searches the open feed’s episodes.',
+            'Updates ask permission: first “Download”, then “Restart & install”. No silent downloads.',
+            'New icon everywhere: window, tray, installer.',
+        ],
+    },
     '1.4.2': {
         it: [
             'L’app ora parla due lingue: italiano e inglese. Le altre sei sono state rimosse.',
