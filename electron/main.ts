@@ -1,5 +1,5 @@
 import { app, BrowserWindow, Tray, Menu, screen, shell, dialog } from 'electron'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import path from 'node:path'
 import { registerIpcHandlers, initServices, cleanup } from './ipc'
 
@@ -153,9 +153,15 @@ function createWindow() {
     openExternal(url);
     return { action: 'deny' };
   });
+  // The app is a single fixed document. Allow navigation only to that exact
+  // document (the dev server URL in development, or index.html in production) —
+  // NOT to any file:// URL, which would otherwise let a file:// link inside feed
+  // content load a local page in-app with the preload (and window.api) attached.
+  const appDocumentUrl = VITE_DEV_SERVER_URL ?? pathToFileURL(path.join(RENDERER_DIST, 'index.html')).href;
+  const appDocumentBase = appDocumentUrl.replace(/[?#].*$/, '');
   win.webContents.on('will-navigate', (event, url) => {
-    const base = VITE_DEV_SERVER_URL ?? 'file://';
-    if (!url.startsWith(base)) {
+    // Strip hash/query so in-document anchors don't count as navigation away.
+    if (url.replace(/[?#].*$/, '') !== appDocumentBase) {
       event.preventDefault();
       openExternal(url);
     }

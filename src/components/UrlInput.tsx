@@ -9,6 +9,7 @@ export const UrlInput: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const setCurrentFeed = useStore((state: AppState) => state.setCurrentFeed);
+  const setStorePath = useStore((state: AppState) => state.setDownloadPath);
   const toast = useToast();
   const { t } = useTranslation();
   // S9: only the latest parseFeed request may update state (stale responses are dropped)
@@ -64,10 +65,23 @@ export const UrlInput: React.FC = () => {
 
   const handleChooseFolder = async () => {
     const path = await window.api.chooseFolder();
-    if (path) {
-      await window.api.setDownloadPath(path);
-      toast.show(t('toast.folder_selected', { path }), 'success');
+    if (!path) return;
+    // Validate writability like SettingsModal does — a non-writable network path
+    // chosen here used to be accepted silently.
+    const validation = await window.api.validatePath(path).catch(() => null);
+    if (validation && !validation.ok) {
+      toast.show(t('toast.path_not_writable', 'La cartella selezionata non è scrivibile'), 'error');
+      return;
     }
+    const ok = await window.api.setDownloadPath(path);
+    if (!ok) {
+      toast.show(t('toast.path_not_writable', 'La cartella selezionata non è scrivibile'), 'error');
+      return;
+    }
+    // Keep the store (and therefore the sidebar path pill) in sync — this was
+    // missing, so the UI showed the old folder until the next restart.
+    setStorePath(path);
+    toast.show(t('toast.folder_selected', { path }), 'success');
   };
 
   return (

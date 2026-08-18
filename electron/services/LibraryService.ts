@@ -85,12 +85,12 @@ export class LibraryService {
         return this.db.isDownloaded(guid, feedUrl);
     }
 
-    removeDownloadedEpisode(guid: string): void {
-        this.db.removeDownloadedEpisode(guid);
+    removeDownloadedEpisode(guid: string, feedUrl?: string): void {
+        this.db.removeDownloadedEpisode(guid, feedUrl);
     }
 
-    removeMissingFiles(guids: string[]): void {
-        this.db.removeMissingFiles(guids);
+    removeMissingFiles(items: Array<string | { guid: string; feedUrl?: string }>): void {
+        this.db.removeMissingFiles(items);
     }
 
     resetDownloadHistory(): void {
@@ -117,6 +117,10 @@ export class LibraryService {
 
     getArchiveByPodcast(podcastTitle: string): ArchiveEntry[] {
         return this.db.getArchiveByPodcast(podcastTitle);
+    }
+
+    getArchiveFilename(podcastTitle: string, title: string): string | null {
+        return this.db.getArchiveFilename(podcastTitle, title);
     }
 
     getArchiveStats(): ArchiveStats {

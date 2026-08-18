@@ -50,16 +50,21 @@ export class FeedService {
     const conditionalHeaders: Record<string, string> = {};
     if (conditional?.etag) conditionalHeaders['If-None-Match'] = conditional.etag;
     if (conditional?.lastModified) conditionalHeaders['If-Modified-Since'] = conditional.lastModified;
+    const hasConditional = Object.keys(conditionalHeaders).length > 0;
 
+    const MAX_FEED_BYTES = 15 * 1024 * 1024;
     const response = await axios.get(url, {
       timeout: 15000,
       // L4: raw bytes, decoded below with the declared charset
       responseType: 'arraybuffer',
       // M4: bound the response size — a feed is small; this stops a hostile or
       // misbehaving server from streaming an unbounded body into memory.
-      maxContentLength: 15 * 1024 * 1024,
-      maxBodyLength: 15 * 1024 * 1024,
-      validateStatus: (s) => (s >= 200 && s < 300) || s === 304,
+      maxContentLength: MAX_FEED_BYTES,
+      maxBodyLength: MAX_FEED_BYTES,
+      // Only honour a 304 when we actually sent a conditional request — a server
+      // answering 304 to an unconditional GET is misbehaving, and treating it as
+      // "not modified" (returning null) would surface as a confusing parse error.
+      validateStatus: (s) => (s >= 200 && s < 300) || (s === 304 && hasConditional),
       ...SAFE_AXIOS_CONFIG, // SSRF: validate resolved IP on every hop
       headers: {
         'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*',
@@ -68,6 +73,15 @@ export class FeedService {
     });
 
     if (response.status === 304) return null;
+
+    // Defense-in-depth against a decompression bomb: axios' maxContentLength is
+    // enforced on the response stream, but re-check the decoded buffer so an
+    // over-large body (however it slipped through) can't be turned into a giant
+    // string in decodeBody.
+    const rawLen = (response.data as ArrayBuffer | Buffer)?.byteLength ?? 0;
+    if (rawLen > MAX_FEED_BYTES) {
+      throw new Error('INVALID_FEED_TYPE: Feed body exceeds the maximum allowed size.');
+    }
 
     const contentType = String(response.headers['content-type'] || '');
     const xml = this.decodeBody(response.data, contentType);
@@ -106,13 +120,20 @@ export class FeedService {
    * validated URL, or null if there is no next page or it fails validation.
    */
   private extractNextPageUrl(xml: string, baseUrl: string): string | null {
+    // RFC 5005 next-links live at the channel/feed level, so only scan the head
+    // of the document (before the first <item>/<entry>). Scanning the whole body
+    // would match a `rel="next"` link embedded in an item's HTML show notes and
+    // trigger a spurious fetch of an arbitrary page.
+    const firstItem = xml.search(/<(?:item|entry)[\s>]/i);
+    const scope = firstItem === -1 ? xml : xml.slice(0, firstItem);
+
     // Match both atom:link and link variants, with rel and href in either order.
     const pattern =
       /<(?:atom:)?link\s[^>]*?rel\s*=\s*["']next["'][^>]*?href\s*=\s*["']([^"']+)["'][^>]*?\/?>/i;
     const patternReversed =
       /<(?:atom:)?link\s[^>]*?href\s*=\s*["']([^"']+)["'][^>]*?rel\s*=\s*["']next["'][^>]*?\/?>/i;
 
-    const raw = xml.match(pattern)?.[1] ?? xml.match(patternReversed)?.[1];
+    const raw = scope.match(pattern)?.[1] ?? scope.match(patternReversed)?.[1];
     if (!raw) return null;
 
     // Resolve relative hrefs against the page that contained them.

@@ -157,7 +157,10 @@
           "copy_failed": "复制失败",
           "sync_complete": "同步完成",
           "sync_all_failed": "同步失败：没有更新任何订阅",
-          "sync_partial": "{{ok}} 个订阅已更新，{{failed}} 个失败"
+          "sync_partial": "{{ok}} 个订阅已更新，{{failed}} 个失败",
+          "sync_offline": "您已离线：无法同步",
+          "import_canceled": "已取消导入",
+          "path_not_writable": "所选文件夹不可写入"
      },
      "confirm": {
           "mass_download": "您确定要下载全部 {{count}} 集吗？",
@@ -260,7 +263,10 @@
           "clean_parts": "清理临时文件",
           "clean_parts_desc": "删除以往中断下载遗留的 .part 临时文件。",
           "clean_parts_busy": "请等待当前下载完成。",
-          "clean_parts_done": "已删除临时文件：{{n}}"
+          "clean_parts_done": "已删除临时文件：{{n}}",
+          "migrate_busy": "下载进行中无法迁移",
+          "migrate_nested": "新文件夹不能位于当前文件夹内",
+          "default_path": "默认"
      },
      "onboarding": {
           "kicker": "欢迎使用 FeedDownloader Pro",

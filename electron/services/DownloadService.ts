@@ -106,7 +106,14 @@ export class DownloadService {
                 // so 404 → EPISODE_NOT_FOUND is reachable (axios default rejects ≥400).
                 validateStatus: () => true,
                 ...SAFE_AXIOS_CONFIG, // SSRF: validate resolved IP on every hop
-                ...(resumedBytes > 0 ? { headers: { Range: `bytes=${resumedBytes}-`, 'If-Range': resumeValidator! } } : {}),
+                headers: {
+                    // Request the file uncompressed: a server that transfer-encodes
+                    // the audio (gzip) would make the decompressed byte count differ
+                    // from Content-Length, tripping the size check on every attempt
+                    // (INTEGRITY_CHECK_FAILED) and corrupting the resume validator.
+                    'Accept-Encoding': 'identity',
+                    ...(resumedBytes > 0 ? { Range: `bytes=${resumedBytes}-`, 'If-Range': resumeValidator! } : {}),
+                },
             });
 
             // ── Status handling ──────────────────────────────────
@@ -273,6 +280,12 @@ export class DownloadService {
                 });
 
                 writer!.on('error', async (err: NodeJS.ErrnoException) => {
+                    // Tear down the response stream too — otherwise it stays in
+                    // flowing mode (the progress/stall 'data' listeners keep it
+                    // resumed) and keeps downloading the whole body to nowhere while
+                    // the retry loop already opened a fresh request.
+                    response.data?.destroy?.();
+                    throttle?.destroy?.();
                     await removeTemp();
                     if (err.code === 'ENOSPC') fail(new Error('DISK_FULL'));
                     else fail(err);

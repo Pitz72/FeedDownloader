@@ -9,6 +9,8 @@ export function formatBytes(bytes: number | undefined | null, locale?: string): 
     if (bytes == null) return '—';
     if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toLocaleString(locale, { maximumFractionDigits: 1 })} GB`;
     if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toLocaleString(locale, { maximumFractionDigits: 1 })} MB`;
+    // Below 1 KB, show bytes rather than rounding to a misleading "0 KB".
+    if (bytes < 1024) return `${Math.round(bytes).toLocaleString(locale)} B`;
     return `${(bytes / 1024).toLocaleString(locale, { maximumFractionDigits: 0 })} KB`;
 }
 

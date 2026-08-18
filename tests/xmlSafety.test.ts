@@ -89,6 +89,18 @@ describe('hasDangerousDoctype', () => {
             const xml = '<!DOCTYPE r [<!ELEMENT r (#PCDATA)><!ENTITY x "y">]><r/>';
             expect(hasDangerousDoctype(xml)).toBe(true);
         });
+
+        it('should flag an entity when a comment fakes an early root element', () => {
+            // The comment holds a `<a>` that used to be mistaken for the root
+            // element, moving the ENTITY "past" it and evading detection.
+            const xml = '<!DOCTYPE r [<!--<a>--><!ENTITY lol "lol">]><r>&lol;</r>';
+            expect(hasDangerousDoctype(xml)).toBe(true);
+        });
+
+        it('should still ignore a DOCTYPE-like string hidden inside a comment', () => {
+            const xml = '<!-- <!DOCTYPE r [<!ENTITY x "y">]> --><rss><channel/></rss>';
+            expect(hasDangerousDoctype(xml)).toBe(false);
+        });
     });
 
     // ── Benign documents ──────────────────────────────────────

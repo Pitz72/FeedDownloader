@@ -219,6 +219,31 @@ describe('BatchTracker', () => {
         expect(rb?.total).toBe(3);
     });
 
+    // ── Seal-time completion (fixes the "finished within the seal window" leak) ──
+    it('should fire the seal callback when every download finishes before sealing', () => {
+        const done: { total: number }[] = [];
+        const t = new BatchTracker((r) => done.push(r));
+        const g = t.track();
+        // Completes before the seal fires → returns null (still unsealed)…
+        expect(t.complete(g)).toBeNull();
+        // …then the seal timer must close the already-complete batch itself.
+        vi.advanceTimersByTime(200);
+        expect(done).toHaveLength(1);
+        expect(done[0].total).toBe(1);
+        expect(t.active).toBe(false);
+    });
+
+    it('should NOT fire the seal callback when the batch is not yet complete at seal time', () => {
+        const done: { total: number }[] = [];
+        const t = new BatchTracker((r) => done.push(r));
+        const g = t.track();
+        t.track();
+        t.complete(g); // 1 of 2
+        vi.advanceTimersByTime(200); // sealed but 1 < 2
+        expect(done).toHaveLength(0);
+        expect(t.active).toBe(true);
+    });
+
     it('should keep failures isolated per generation', () => {
         const a = tracker.track();
         tracker.track();

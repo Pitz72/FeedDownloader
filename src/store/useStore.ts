@@ -202,7 +202,13 @@ export const useStore = create<AppState>((set) => ({
 
     // N1 — auto-update status
     updateStatus: { type: 'idle' },
-    setUpdateStatus: (status) => set({ updateStatus: status, updateBannerDismissed: false }),
+    setUpdateStatus: (status) => set((state) => ({
+        updateStatus: status,
+        // Only un-dismiss the banner when the KIND of news changes. Otherwise
+        // every 'downloading' percent tick is a fresh setUpdateStatus call that
+        // would resurrect a banner the user just closed mid-download.
+        updateBannerDismissed: status.type === state.updateStatus.type ? state.updateBannerDismissed : false,
+    })),
     updateBannerDismissed: false,
     setUpdateBannerDismissed: (dismissed) => set({ updateBannerDismissed: dismissed }),
 }));

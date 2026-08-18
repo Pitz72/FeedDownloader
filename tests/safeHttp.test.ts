@@ -215,6 +215,25 @@ describe('safeHttp', () => {
         });
     });
 
+    // ── isPrivateIp: other IPv6 embedding schemes carrying a private IPv4 ──
+    describe('isPrivateIp should unwrap 6to4 / NAT64 / IPv4-compatible embeddings', () => {
+        it('should block IPv4-compatible ::127.0.0.1 (loopback)', () => {
+            expect(isPrivateIp('::127.0.0.1')).toBe(true);
+        });
+        it('should block 6to4 wrapping a private IPv4 (2002:c0a8:0101::)', () => {
+            expect(isPrivateIp('2002:c0a8:0101::')).toBe(true); // 192.168.1.1
+        });
+        it('should block NAT64 wrapping loopback (64:ff9b::7f00:1)', () => {
+            expect(isPrivateIp('64:ff9b::7f00:1')).toBe(true); // 127.0.0.1
+        });
+        it('should allow 6to4 wrapping a public IPv4 (2002:0808:0808::)', () => {
+            expect(isPrivateIp('2002:0808:0808::')).toBe(false); // 8.8.8.8
+        });
+        it('should allow NAT64 wrapping a public IPv4 (64:ff9b::0808:0808)', () => {
+            expect(isPrivateIp('64:ff9b::0808:0808')).toBe(false); // 8.8.8.8
+        });
+    });
+
     // ── isPrivateIp: non-IP / malformed input ─────────────────
     describe('isPrivateIp should treat non-IP strings as not-private (agent re-checks after DNS)', () => {
         it('should return false for a hostname', () => {

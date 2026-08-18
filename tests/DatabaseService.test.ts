@@ -114,6 +114,24 @@ describe('DatabaseService', () => {
             expect(db.getArchive()).toEqual([]);
         });
 
+        it('should scope removeDownloadedEpisode by feedUrl (S6 composite key)', () => {
+            // Two feeds share the GUID "1" — removing it from feed A must not touch B.
+            db.recordDownload({ guid: '1', podcastTitle: 'A', title: 'EA', pubDate: '', downloadedAt: '', feedUrl: 'fa' });
+            db.recordDownload({ guid: '1', podcastTitle: 'B', title: 'EB', pubDate: '', downloadedAt: '', feedUrl: 'fb' });
+            db.removeDownloadedEpisode('1', 'fa');
+            expect(db.isDownloaded('1', 'fa')).toBe(false);
+            expect(db.isDownloaded('1', 'fb')).toBe(true);
+            expect(db.getArchive().map(r => r.feedUrl)).toEqual(['fb']);
+        });
+
+        it('should scope removeMissingFiles by feedUrl when composite keys are given', () => {
+            db.recordDownload({ guid: '1', podcastTitle: 'A', title: 'EA', pubDate: '', downloadedAt: '', feedUrl: 'fa' });
+            db.recordDownload({ guid: '1', podcastTitle: 'B', title: 'EB', pubDate: '', downloadedAt: '', feedUrl: 'fb' });
+            db.removeMissingFiles([{ guid: '1', feedUrl: 'fa' }]);
+            expect(db.isDownloaded('1', 'fa')).toBe(false);
+            expect(db.isDownloaded('1', 'fb')).toBe(true);
+        });
+
         it('should reset all download history and archive', () => {
             db.markAsDownloaded('guid-1');
             db.markAsDownloaded('guid-2');

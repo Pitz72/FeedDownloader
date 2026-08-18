@@ -25,13 +25,25 @@ interface WorkerMessage {
   error?: string;
 }
 
-const REQUEST_TIMEOUT_MS = 60_000;
+// A legitimate parse of a large RFC 5005 feed can take a while: up to
+// FeedService.MAX_PAGES (20) pages at a 15s HTTP timeout each. The old 60s cap
+// mistook such a slow-but-progressing parse for a hung worker and fell back
+// in-process — fetching the whole feed a SECOND time on the main thread. Cover
+// the realistic worst case so only a genuinely stuck worker trips the fallback.
+const REQUEST_TIMEOUT_MS = 5 * 60_000;
+
+// After this many consecutive fork/immediate-crash failures with no successful
+// parse in between, stop trying to spawn the worker and parse in-process for the
+// rest of the session — otherwise a worker that dies on startup (missing bundle,
+// bad ABI) would be re-forked on every single parse.
+const MAX_CONSECUTIVE_CRASHES = 3;
 
 export class FeedParserPool {
   private child: UtilityProcess | null = null;
   private nextId = 1;
   private pending = new Map<number, { settle: (r: Settle) => void; timer: ReturnType<typeof setTimeout> }>();
   private disabled = false;
+  private crashCount = 0;
   private readonly fallback = new FeedService();
 
   constructor(private readonly workerPath: string) {}
@@ -39,11 +51,21 @@ export class FeedParserPool {
   private ensureChild(): UtilityProcess | null {
     if (this.disabled) return null;
     if (this.child) return this.child;
+    if (this.crashCount >= MAX_CONSECUTIVE_CRASHES) {
+      if (!this.disabled) {
+        console.error(`[FeedParserPool] Worker crashed ${this.crashCount}× — falling back to in-process parsing for this session.`);
+        this.disabled = true;
+      }
+      return null;
+    }
     try {
       const child = utilityProcess.fork(this.workerPath, [], { serviceName: 'feed-parser' });
       child.on('message', (msg: WorkerMessage) => this.handleMessage(msg));
       child.on('exit', () => {
         this.child = null;
+        // A crash while requests were in flight counts toward the crash budget;
+        // a clean idle exit (no pending work) does not.
+        if (this.pending.size > 0) this.crashCount++;
         // Any in-flight requests can't be answered — mark them as infra failures
         // so their callers fall back in-process.
         for (const [, p] of this.pending) {
@@ -66,6 +88,7 @@ export class FeedParserPool {
     if (!entry) return;
     clearTimeout(entry.timer);
     this.pending.delete(msg.id);
+    this.crashCount = 0; // the worker answered — it's healthy again
     if (msg.ok) entry.settle({ kind: 'ok', feed: msg.feed });
     else entry.settle({ kind: 'parse-error', error: msg.error ?? 'FAILED_TO_PARSE' });
   }
@@ -102,11 +125,18 @@ export class FeedParserPool {
   }
 
   dispose(): void {
+    this.disabled = true; // don't re-fork after shutdown began
     if (this.child) {
       try { this.child.kill(); } catch { /* already gone */ }
       this.child = null;
     }
-    for (const [, p] of this.pending) clearTimeout(p.timer);
+    // Settle (not just drop) any in-flight requests, otherwise a parse awaiting
+    // the worker at shutdown would hang forever — the exit handler that would
+    // have settled them finds an already-cleared map.
+    for (const [, p] of this.pending) {
+      clearTimeout(p.timer);
+      p.settle({ kind: 'infra' });
+    }
     this.pending.clear();
   }
 }

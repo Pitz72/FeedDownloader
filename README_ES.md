@@ -1,6 +1,6 @@
 # Runtime FeedDownloader Pro
 
-Versión 1.3.13
+Versión 1.4.1
 
 La forma más potente de archivar tus podcasts.
 

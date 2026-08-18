@@ -6,7 +6,7 @@ import type { FeedEntry } from '../../shared/types';
 import { CoverImage } from './CoverImage';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 
-const isMac = document.documentElement.dataset.platform === 'darwin';
+const isMac = window.api?.platform === 'darwin';
 
 type ActionItem = {
     kind: 'action';

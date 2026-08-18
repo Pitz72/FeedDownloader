@@ -51,7 +51,23 @@ export class DatabaseService {
             // to start. Move the damaged DB aside (never delete user data) and
             // start over with an empty one. In-memory DBs (tests) can't recover.
             if (resolvedPath === ':memory:') throw err;
-            console.error('[DB] Failed to open database, attempting recovery:', err);
+
+            // Only genuine corruption justifies moving the DB aside. A transient
+            // or environmental failure (disk full during a migration ALTER, the
+            // WAL locked by an antivirus scan, a momentary permission error) must
+            // propagate untouched — renaming a HEALTHY database would silently
+            // reset the user's whole library the next time there's free space.
+            const code = (err as { code?: string }).code ?? '';
+            const message = (err as Error).message ?? '';
+            const isCorruption =
+                /^SQLITE_(CORRUPT|NOTADB)/.test(code) ||
+                /malformed|file is not a database|not a database/i.test(message);
+            if (!isCorruption) {
+                console.error('[DB] Database open/init failed (non-corruption) — not recovering:', err);
+                throw err;
+            }
+
+            console.error('[DB] Database file is corrupt, attempting recovery:', err);
             const stamp = new Date().toISOString().replace(/[:.]/g, '-');
             for (const suffix of ['', '-wal', '-shm']) {
                 const file = resolvedPath + suffix;
@@ -401,27 +417,52 @@ export class DatabaseService {
         return !!row;
     }
 
-    removeDownloadedEpisode(guid: string): void {
-        const removeDownload = this.db.prepare('DELETE FROM downloads WHERE guid = ?');
-        const removeArchive = this.db.prepare('DELETE FROM archive WHERE guid = ?');
-
+    /**
+     * Remove an episode from history + archive. When `feedUrl` is given the delete
+     * is scoped to that feed (plus legacy feedUrl='' rows that match any feed), so
+     * an episode whose GUID collides with another feed's — the very reason S6
+     * introduced the composite key — isn't silently wiped from both. Without a
+     * feedUrl the delete falls back to guid-only (legacy callers / tests).
+     */
+    removeDownloadedEpisode(guid: string, feedUrl?: string): void {
         const transaction = this.db.transaction(() => {
-            removeDownload.run(guid);
-            removeArchive.run(guid);
+            if (feedUrl !== undefined) {
+                this.db.prepare("DELETE FROM downloads WHERE guid = ? AND feedUrl IN (?, '')").run(guid, feedUrl);
+                this.db.prepare("DELETE FROM archive WHERE guid = ? AND feedUrl IN (?, '')").run(guid, feedUrl);
+            } else {
+                this.db.prepare('DELETE FROM downloads WHERE guid = ?').run(guid);
+                this.db.prepare('DELETE FROM archive WHERE guid = ?').run(guid);
+            }
         });
         transaction();
     }
 
-    removeMissingFiles(guids: string[]): void {
+    removeMissingFiles(items: Array<string | { guid: string; feedUrl?: string }>): void {
         // M15: validate the renderer-supplied list and chunk it — a single
         // IN (...) with tens of thousands of placeholders exceeds SQLite's
         // variable limit and throws.
-        const valid = guids.filter((g): g is string => typeof g === 'string' && g.length > 0);
-        if (valid.length === 0) return;
+        // S6: entries carrying a feedUrl are deleted with the composite key so a
+        // shared GUID isn't removed across feeds; bare-guid entries keep the
+        // legacy chunked behaviour.
+        const normalized = items
+            .map(it => (typeof it === 'string' ? { guid: it } : it))
+            .filter((it): it is { guid: string; feedUrl?: string } =>
+                !!it && typeof it.guid === 'string' && it.guid.length > 0);
+        if (normalized.length === 0) return;
+
+        const scoped = normalized.filter(v => typeof v.feedUrl === 'string' && v.feedUrl.length > 0);
+        const guidOnly = normalized
+            .filter(v => !(typeof v.feedUrl === 'string' && v.feedUrl.length > 0))
+            .map(v => v.guid);
+
         const CHUNK = 500;
         const transaction = this.db.transaction(() => {
-            for (let i = 0; i < valid.length; i += CHUNK) {
-                const chunk = valid.slice(i, i + CHUNK);
+            for (const v of scoped) {
+                this.db.prepare("DELETE FROM downloads WHERE guid = ? AND feedUrl IN (?, '')").run(v.guid, v.feedUrl);
+                this.db.prepare("DELETE FROM archive WHERE guid = ? AND feedUrl IN (?, '')").run(v.guid, v.feedUrl);
+            }
+            for (let i = 0; i < guidOnly.length; i += CHUNK) {
+                const chunk = guidOnly.slice(i, i + CHUNK);
                 const placeholders = chunk.map(() => '?').join(',');
                 this.db.prepare(`DELETE FROM downloads WHERE guid IN (${placeholders})`).run(...chunk);
                 this.db.prepare(`DELETE FROM archive WHERE guid IN (${placeholders})`).run(...chunk);
@@ -512,6 +553,22 @@ export class DatabaseService {
         return (this.db.prepare(
             `SELECT ${DatabaseService.ARCHIVE_COLUMNS} FROM archive ORDER BY downloadedAt DESC`
         ).all() as ArchiveRow[]).map(r => this.rowToArchiveEntry(r));
+    }
+
+    /**
+     * The real on-disk filename recorded for a downloaded episode, matched by
+     * podcast + episode title (most recent download wins). Used by "Show in
+     * folder" so it reveals the actual file even when the naming template changed
+     * or a collision suffix (`_2`) was applied after download — recomputing the
+     * name from the current template would point at a non-existent path.
+     */
+    getArchiveFilename(podcastTitle: string, title: string): string | null {
+        const row = this.db.prepare(
+            `SELECT filename FROM archive
+             WHERE podcastTitle = ? AND title = ? AND filename IS NOT NULL
+             ORDER BY downloadedAt DESC LIMIT 1`
+        ).get(podcastTitle, title) as { filename: string | null } | undefined;
+        return row?.filename ?? null;
     }
 
     getArchiveByPodcast(podcastTitle: string): ArchiveEntry[] {

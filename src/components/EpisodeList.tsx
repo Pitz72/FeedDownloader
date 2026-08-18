@@ -443,9 +443,15 @@ export const EpisodeList: React.FC = () => {
         }).then((result) => {
             // S3: the main process refused a second task for an URL already in
             // queue — consume it so the batch counter still reaches its total.
-            if (result?.status === 'duplicate') incrementBatch(url);
+            if (result?.status === 'duplicate') {
+                incrementBatch(url);
+                return;
+            }
+            // Show "download started" only once the task was actually queued —
+            // firing it before the promise resolved announced a start even for a
+            // duplicate that was refused.
+            if (!silent) toast.show(t('toast.download_started'), 'info');
         }).catch(() => { });
-        if (!silent) toast.show(t('toast.download_started'), 'info');
     }, [currentFeed, incrementBatch, t, toast]);
 
     const handleResetStatus = useCallback(async (guid: string) => {
@@ -455,11 +461,14 @@ export const EpisodeList: React.FC = () => {
             message: t('confirm.reset_status'),
             onConfirm: async () => {
                 setConfirmState(prev => ({ ...prev, isOpen: false }));
-                await window.api.removeDownloadedEpisode(guid);
+                // Pass the feed URL so history/archive removal is scoped to THIS
+                // feed — an episode whose GUID collides with another feed's must
+                // not be wiped from both (S6 composite key).
+                await window.api.removeDownloadedEpisode(guid, currentFeed?.url);
                 toast.show(t('toast.status_reset'), 'success');
             }
         });
-    }, [t, toast]);
+    }, [t, toast, currentFeed]);
 
     // Row click: simple click → detail panel (G4); Ctrl/Shift → multi-selection (F4)
     const handleRowClick = useCallback((episode: Episode, index: number, e: React.MouseEvent) => {
@@ -509,9 +518,13 @@ export const EpisodeList: React.FC = () => {
     }, []); // stable — reads only refs
 
     const handleDownloadSelected = useCallback(() => {
-        // S3: skip episodes whose enclosure URL is already queued/downloading
+        // S3: skip episodes whose enclosure URL is already queued/downloading.
+        // Select from the FULL episode list, not the currently-visible (filtered)
+        // one: the "Download · N" badge counts every selected episode, so narrowing
+        // the filters after selecting must not silently drop the hidden ones.
         const inFlight = new Set(useStore.getState().queueItems.map(q => q.url));
-        const toDownload = filteredEpisodesRef.current.filter(ep => {
+        const allEpisodes = useStore.getState().currentFeed?.episodes ?? filteredEpisodesRef.current;
+        const toDownload = allEpisodes.filter(ep => {
             const url = getEnclosureUrl(ep);
             const guid = ep.guid || url || '';
             return guid && selectedGuids.has(guid) && !downloadedSet.has(guid) && !(url && inFlight.has(url));
@@ -631,11 +644,19 @@ export const EpisodeList: React.FC = () => {
 
     const handleChangeFolder = async () => {
         const path = await window.api.chooseFolder();
-        if (path) {
-            await window.api.setDownloadPath(path);
-            setDownloadPath(path);
-            toast.show(t('toast.folder_selected', { path }), 'success');
+        if (!path) return;
+        const validation = await window.api.validatePath(path).catch(() => null);
+        if (validation && !validation.ok) {
+            toast.show(t('toast.path_not_writable', 'La cartella selezionata non è scrivibile'), 'error');
+            return;
         }
+        const ok = await window.api.setDownloadPath(path);
+        if (!ok) {
+            toast.show(t('toast.path_not_writable', 'La cartella selezionata non è scrivibile'), 'error');
+            return;
+        }
+        setDownloadPath(path);
+        toast.show(t('toast.folder_selected', { path }), 'success');
     };
 
     const handleExportM3U = async () => {

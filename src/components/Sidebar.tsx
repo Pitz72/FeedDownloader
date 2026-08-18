@@ -128,6 +128,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen, width }) => {
 
   const handleSyncAll = useCallback(async () => {
     if (isSyncingAll) return;
+    if (feeds.length === 0) return;
+    // Don't fan out N doomed requests (and N error toasts) while offline.
+    if (!isOnline) {
+      toast.show(t('toast.sync_offline', 'Sei offline: sincronizzazione non disponibile'), 'error');
+      return;
+    }
     const initial = new Map<string, 'syncing' | 'done' | 'error'>();
     feeds.forEach(f => initial.set(f.url, 'syncing'));
     setSyncStatuses(new Map(initial));
@@ -136,7 +142,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen, width }) => {
       feeds.map(async (feed) => {
         try {
           const parsed = await window.api.parseFeed(feed.url);
-          if (currentFeed?.url === feed.url) {
+          // S9: read the CURRENT feed fresh from the store — the captured
+          // `currentFeed` is stale, so if the user navigated to another feed while
+          // the sync was in flight, the old closure value would yank them back to
+          // the feed they were viewing when Sync All started. Also respect a
+          // pending manual selection (latestRequestRef) so we don't clobber it.
+          const stillViewing = useStore.getState().currentFeed?.url === feed.url;
+          const noPendingOtherSelection = !latestRequestRef.current || latestRequestRef.current === feed.url;
+          if (stillViewing && noPendingOtherSelection) {
             setCurrentFeed({ ...parsed, url: feed.url });
           }
           setSyncStatuses(prev => new Map(prev).set(feed.url, 'done'));
@@ -161,7 +174,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsOpen, width }) => {
       );
     }
     setTimeout(() => setSyncStatuses(new Map()), 2500);
-  }, [isSyncingAll, feeds, currentFeed, setCurrentFeed, toast, t]);
+  }, [isSyncingAll, feeds, isOnline, setCurrentFeed, toast, t]);
 
   useEffect(() => {
     const onSyncAll = () => handleSyncAll();

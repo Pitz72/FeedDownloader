@@ -44,6 +44,39 @@ function isPrivateIpv4(ip: string): boolean {
     return false;
 }
 
+/** Expand any IPv6 literal to its 8 hextets (handles `::` and an embedded IPv4
+ *  tail), or null if malformed. */
+function expandIpv6(addr: string): number[] | null {
+    let s = addr;
+    let tail: number[] = [];
+    const v4 = s.match(/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/);
+    if (v4) {
+        const o = ipv4Octets(v4[1]);
+        if (!o) return null;
+        tail = [(o[0] << 8) | o[1], (o[2] << 8) | o[3]];
+        s = s.slice(0, v4.index); // keeps the trailing ':' / '::'
+    }
+    const hasDouble = s.includes('::');
+    const [headStr, tailStr = ''] = s.split('::');
+    const head = headStr ? headStr.split(':').filter(Boolean).map(h => parseInt(h, 16)) : [];
+    const mid = tailStr ? tailStr.split(':').filter(Boolean).map(h => parseInt(h, 16)) : [];
+    let hextets: number[];
+    if (hasDouble) {
+        const missing = 8 - (head.length + mid.length + tail.length);
+        if (missing < 0) return null;
+        hextets = [...head, ...Array(missing).fill(0), ...mid, ...tail];
+    } else {
+        hextets = [...head, ...mid, ...tail];
+    }
+    if (hextets.length !== 8 || hextets.some(h => !Number.isInteger(h) || h < 0 || h > 0xffff)) return null;
+    return hextets;
+}
+
+/** Format two IPv6 hextets as the dotted-decimal IPv4 they encode. */
+function hextetsToIpv4(a: number, b: number): string {
+    return `${(a >> 8) & 0xff}.${a & 0xff}.${(b >> 8) & 0xff}.${b & 0xff}`;
+}
+
 /**
  * True if the given address is a private, loopback, link-local or otherwise
  * non-routable IP. Accepts any notation `net.isIP` understands and unwraps
@@ -62,6 +95,21 @@ export function isPrivateIp(ip: string): boolean {
         if (addr === '::1' || addr === '::') return true;          // loopback / unspecified
         if (addr.startsWith('fc') || addr.startsWith('fd')) return true; // fc00::/7 ULA
         if (/^fe[89ab]/.test(addr)) return true;                    // fe80::/10 link-local
+
+        // Reject transition/embedding schemes that carry an IPv4 address which
+        // itself is private/reserved — otherwise a hostname resolving to e.g.
+        // `::7f00:1` (IPv4-compatible ::127.0.0.1), 6to4 `2002:7f00:1::`, or NAT64
+        // `64:ff9b::7f00:1` would tunnel to an internal target.
+        const h = expandIpv6(addr);
+        if (h) {
+            const embeddedIsPrivate = (a: number, b: number) => isPrivateIpv4(hextetsToIpv4(a, b));
+            // IPv4-mapped / IPv4-compatible: ::/96 or ::ffff:0:0/96 (last 32 bits)
+            if (h[0] === 0 && h[1] === 0 && h[2] === 0 && h[3] === 0 && h[4] === 0 && (h[5] === 0 || h[5] === 0xffff)) {
+                return embeddedIsPrivate(h[6], h[7]);
+            }
+            if (h[0] === 0x2002) return embeddedIsPrivate(h[1], h[2]);          // 6to4 2002::/16
+            if (h[0] === 0x0064 && h[1] === 0xff9b) return embeddedIsPrivate(h[6], h[7]); // NAT64 64:ff9b::/96
+        }
         return false;
     }
     // Not a literal IP — caller relies on the agent lookup to resolve & re-check.

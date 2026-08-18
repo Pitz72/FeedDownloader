@@ -14,6 +14,11 @@ if (document.readyState === 'loading') {
 
 // --------- Expose API to the Renderer process ---------
 contextBridge.exposeInMainWorld('api', {
+  // Synchronous platform tag. The renderer used to read
+  // document.documentElement.dataset.platform, which the async ESM preload only
+  // sets at DOMContentLoaded — module-level reads in the renderer could run first
+  // and see undefined (wrong ⌘/Ctrl labels, missing macOS traffic-light padding).
+  platform: process.platform as NodeJS.Platform,
   parseFeed: (url: string): Promise<Feed> => ipcRenderer.invoke(CH.PARSE_FEED, url),
   getFeeds: (): Promise<FeedEntry[]> => ipcRenderer.invoke(CH.GET_FEEDS),
   addFeed: (feed: FeedEntry): Promise<FeedEntry[]> => ipcRenderer.invoke(CH.ADD_FEED, feed),
@@ -32,10 +37,10 @@ contextBridge.exposeInMainWorld('api', {
   cancelDownload: (taskId: string): Promise<boolean> => ipcRenderer.invoke(CH.CANCEL_DOWNLOAD, taskId),
   showInFolder: (podcastTitle: string, title: string, enclosureUrl?: string, pubDate?: string): Promise<void> =>
     ipcRenderer.invoke(CH.SHOW_IN_FOLDER, { podcastTitle, title, enclosureUrl, pubDate }),
-  removeDownloadedEpisode: (guid: string): Promise<boolean> => ipcRenderer.invoke(CH.REMOVE_HISTORY_ITEM, guid),
+  removeDownloadedEpisode: (guid: string, feedUrl?: string): Promise<boolean> => ipcRenderer.invoke(CH.REMOVE_HISTORY_ITEM, { guid, feedUrl }),
   resetDownloadHistory: (): Promise<boolean> => ipcRenderer.invoke(CH.RESET_HISTORY),
   getHelpContent: (lang: string): Promise<string> => ipcRenderer.invoke(CH.GET_HELP_CONTENT, lang),
-  importOPML: (): Promise<{ count: number }> => ipcRenderer.invoke(CH.IMPORT_OPML),
+  importOPML: (): Promise<{ count: number; canceled?: boolean }> => ipcRenderer.invoke(CH.IMPORT_OPML),
   exportOPML: (): Promise<boolean> => ipcRenderer.invoke(CH.EXPORT_OPML),
   exportArchiveCSV: (): Promise<boolean> => ipcRenderer.invoke(CH.EXPORT_ARCHIVE_CSV),
 
@@ -84,8 +89,8 @@ contextBridge.exposeInMainWorld('api', {
 
   // Health Check
   runHealthCheck: (): Promise<HealthCheckResult> => ipcRenderer.invoke(CH.RUN_HEALTH_CHECK),
-  // Mark missing files as not downloaded
-  markMissingNotDownloaded: (guids: string[]): Promise<boolean> => ipcRenderer.invoke(CH.MARK_MISSING_NOT_DOWNLOADED, guids),
+  // Mark missing files as not downloaded (feed-scoped where feedUrl is known)
+  markMissingNotDownloaded: (items: Array<string | { guid: string; feedUrl?: string }>): Promise<boolean> => ipcRenderer.invoke(CH.MARK_MISSING_NOT_DOWNLOADED, items),
 
   // ID3 Tagging
   getId3Enabled: (): Promise<boolean> => ipcRenderer.invoke(CH.GET_ID3_ENABLED),

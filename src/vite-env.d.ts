@@ -7,6 +7,7 @@ declare global {
     const __APP_VERSION__: string;
     interface Window {
         api: {
+            platform: NodeJS.Platform;
             parseFeed: (url: string) => Promise<Feed>;
             getFeeds: () => Promise<FeedEntry[]>;
             addFeed: (feed: FeedEntry) => Promise<FeedEntry[]>;
@@ -20,10 +21,10 @@ declare global {
             stopBatch: () => Promise<boolean>;
             cancelDownload: (taskId: string) => Promise<boolean>;
             showInFolder: (podcastTitle: string, title: string, enclosureUrl?: string, pubDate?: string) => Promise<void>;
-            removeDownloadedEpisode: (guid: string) => Promise<boolean>;
+            removeDownloadedEpisode: (guid: string, feedUrl?: string) => Promise<boolean>;
             resetDownloadHistory: () => Promise<boolean>;
             getHelpContent: (lang: string) => Promise<string>;
-            importOPML: () => Promise<{ count: number }>;
+            importOPML: () => Promise<{ count: number; canceled?: boolean }>;
             exportOPML: () => Promise<boolean>;
             exportArchiveCSV: () => Promise<boolean>;
             // Push events
@@ -46,8 +47,8 @@ declare global {
             setSidecarEnabled: (enabled: boolean) => Promise<boolean>;
             // Health Check
             runHealthCheck: () => Promise<HealthCheckResult>;
-            // Mark missing as not downloaded
-            markMissingNotDownloaded: (guids: string[]) => Promise<boolean>;
+            // Mark missing as not downloaded (feed-scoped where feedUrl is known)
+            markMissingNotDownloaded: (items: Array<string | { guid: string; feedUrl?: string }>) => Promise<boolean>;
             // ID3 Tagging
             getId3Enabled: () => Promise<boolean>;
             setId3Enabled: (enabled: boolean) => Promise<boolean>;

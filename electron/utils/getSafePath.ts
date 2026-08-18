@@ -37,5 +37,11 @@ export function getSafePath(
         sanitizedTitle = sanitizedTitle.substring(0, available);
     }
 
+    // L8 (post-truncation): truncation can re-create a Windows-reserved name
+    // (e.g. "CONsole" → "CON") or leave a trailing dot/space, both of which are
+    // invalid on Windows. Re-sanitise the truncated title and fall back if it
+    // collapses to empty.
+    sanitizedTitle = sanitize(sanitizedTitle) || 'episode';
+
     return path.join(folderPath, `${sanitizedTitle}${ext}`);
 }

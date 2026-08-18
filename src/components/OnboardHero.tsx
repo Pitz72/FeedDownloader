@@ -1,6 +1,6 @@
 import { Trans, useTranslation } from 'react-i18next';
 
-const isMac = document.documentElement.dataset.platform === 'darwin';
+const isMac = window.api?.platform === 'darwin';
 
 export function OnboardHero() {
   const { t } = useTranslation();

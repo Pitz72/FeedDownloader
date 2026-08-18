@@ -160,7 +160,10 @@
           "copy_failed": "Kopieren fehlgeschlagen",
           "sync_complete": "Synchronisierung abgeschlossen",
           "sync_all_failed": "Synchronisierung fehlgeschlagen: keine Feeds aktualisiert",
-          "sync_partial": "{{ok}} Feeds aktualisiert, {{failed}} fehlgeschlagen"
+          "sync_partial": "{{ok}} Feeds aktualisiert, {{failed}} fehlgeschlagen",
+          "sync_offline": "Sie sind offline: Synchronisierung nicht verfügbar",
+          "import_canceled": "Import abgebrochen",
+          "path_not_writable": "Der gewählte Ordner ist nicht beschreibbar"
      },
      "confirm": {
           "mass_download": "Möchten Sie wirklich alle {{count}} Episoden herunterladen?",
@@ -265,7 +268,10 @@
           "clean_parts": "Temporäre Dateien bereinigen",
           "clean_parts_desc": "Entfernt übrig gebliebene .part-Dateien aus früheren abgebrochenen Downloads.",
           "clean_parts_busy": "Warten Sie, bis die laufenden Downloads abgeschlossen sind.",
-          "clean_parts_done": "Entfernte temporäre Dateien: {{n}}"
+          "clean_parts_done": "Entfernte temporäre Dateien: {{n}}",
+          "migrate_busy": "Migration während aktiver Downloads nicht verfügbar",
+          "migrate_nested": "Der neue Ordner darf nicht im aktuellen liegen",
+          "default_path": "Standard"
      },
      "onboarding": {
           "kicker": "Willkommen bei FeedDownloader Pro",

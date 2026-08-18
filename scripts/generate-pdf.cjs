@@ -307,7 +307,11 @@ async function main() {
 
   try {
     console.log('Running md-to-pdf...');
-    execSync('npx --yes md-to-pdf --config-file "' + configPath + '" "' + combinedPath + '"', { stdio: 'inherit' });
+    // Pin the version rather than pulling "latest" on every run: an unpinned
+    // `npx md-to-pdf` is a supply-chain surface and makes the build irreproducible.
+    // (The current manual pipeline is Vivliostyle — see scripts/build-book.cjs;
+    // this script is kept for the single-file IT manual.)
+    execSync('npx --yes md-to-pdf@5.2.5 --config-file "' + configPath + '" "' + combinedPath + '"', { stdio: 'inherit' });
     console.log('PDF generated successfully at docs/user/manual-it/manuale-completo.pdf');
   } catch (err) {
     console.error('Error generating PDF:', err.message);

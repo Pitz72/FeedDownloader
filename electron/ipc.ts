@@ -6,7 +6,7 @@ import { LibraryService } from './services/LibraryService';
 import { fileURLToPath } from 'node:url';
 import { DownloadService } from './services/DownloadService';
 import { QueueService } from './services/QueueService';
-import { BatchTracker } from './services/BatchTracker';
+import { BatchTracker, type BatchResult } from './services/BatchTracker';
 import { getSafePath } from './utils/getSafePath';
 import { writeId3Tags } from './utils/writeId3Tags';
 import { extractExtension } from './utils/extractExtension';
@@ -67,8 +67,45 @@ function pushEvent(win: BrowserWindow, channel: string, data?: unknown) {
     }
 }
 
-// Track batch for OS notification (race-condition-safe via debounce seal)
-const batchTracker = new BatchTracker();
+// The active window, so the batch-completion emitter (which can also fire from
+// BatchTracker's seal timer, outside any handler) can reach the renderer.
+let mainWindowRef: BrowserWindow | null = null;
+
+/**
+ * Emit the end-of-batch OS notification + BATCH_COMPLETED event. Called both from
+ * a download's finally (normal path) and from BatchTracker's seal timer when the
+ * whole batch finished within the seal window (otherwise that batch would never
+ * be reported — the seal-completion bug).
+ */
+function emitBatchComplete(result: BatchResult): void {
+    if (!mainWindowRef) return;
+    const finishedTotal = result.total;
+    const failed = result.failed;
+    const failedCount = failed.length;
+    const okCount = finishedTotal - failedCount;
+    if (Notification.isSupported()) {
+        const notificationBodies: Record<string, string> = {
+            en: failedCount > 0 ? `Download complete: ${okCount} downloaded, ${failedCount} failed.` : `Download complete: ${finishedTotal} files downloaded.`,
+            it: failedCount > 0 ? `Download completato: ${okCount} scaricati, ${failedCount} errori.` : `Download completato: ${finishedTotal} file scaricati.`,
+            fr: failedCount > 0 ? `Téléchargement terminé : ${okCount} téléchargés, ${failedCount} erreurs.` : `Téléchargement terminé : ${finishedTotal} fichiers téléchargés.`,
+            de: failedCount > 0 ? `Download abgeschlossen: ${okCount} geladen, ${failedCount} Fehler.` : `Download abgeschlossen: ${finishedTotal} Dateien heruntergeladen.`,
+            es: failedCount > 0 ? `Descarga completa: ${okCount} descargados, ${failedCount} errores.` : `Descarga completada: ${finishedTotal} archivos descargados.`,
+            pt: failedCount > 0 ? `Download concluído: ${okCount} descarregados, ${failedCount} erros.` : `Download concluído: ${finishedTotal} ficheiros descarregados.`,
+            ru: failedCount > 0 ? `Загрузка завершена: ${okCount} скачано, ${failedCount} ошибок.` : `Загрузка завершена: ${finishedTotal} файлов скачано.`,
+            zh: failedCount > 0 ? `下载完成：${okCount} 个成功，${failedCount} 个失败。` : `下载完成：已下载 ${finishedTotal} 个文件。`,
+        };
+        new Notification({
+            title: 'Runtime FeedDownloader Pro',
+            body: notificationBodies[uiLocale] ?? notificationBodies['en'],
+            icon: path.join(process.env.VITE_PUBLIC || '', 'logo.png'),
+        }).show();
+    }
+    pushEvent(mainWindowRef, CH.BATCH_COMPLETED, { total: finishedTotal, failed: [...failed] });
+}
+
+// Track batch for OS notification (race-condition-safe via debounce seal).
+// The callback closes a batch that completes entirely within the seal window.
+const batchTracker = new BatchTracker(emitBatchComplete);
 
 // Track AbortControllers for in-flight downloads — keyed by taskId
 const activeDownloads = new Map<string, AbortController>();
@@ -83,6 +120,28 @@ const cancelledTaskIds = new Set<string>();
 // Reserving the chosen path here (synchronously) makes every in-flight target —
 // and therefore its `.part` — unique. Released in the task's finally / cancel path.
 const reservedTargets = new Set<string>();
+
+// M1 (case-folding): NTFS/APFS default to case-insensitive matching, so two
+// targets differing only in case ("Intro" vs "INTRO") resolve to the same file.
+// Fold the reservation key on those platforms so the collision check still fires.
+const foldTargetKey = (p: string): string =>
+    (process.platform === 'win32' || process.platform === 'darwin') ? p.toLowerCase() : p;
+const isTargetReserved = (p: string): boolean => reservedTargets.has(foldTargetKey(p));
+const reserveTarget = (p: string): void => { reservedTargets.add(foldTargetKey(p)); };
+const releaseTarget = (p: string): void => { reservedTargets.delete(foldTargetKey(p)); };
+
+// S3 / TOCTOU: enclosure URLs claimed synchronously the moment a download is
+// accepted — before the first await — so two rapid invocations (double click,
+// overlapping batches) can't both slip past the duplicate check while the task
+// is still being set up. Released alongside the reserved path.
+const inFlightUrls = new Set<string>();
+
+// taskId → the target path (and url) that task reserved. Lets CANCEL_DOWNLOAD
+// release a pending task's claims immediately (so an instant re-download isn't
+// spuriously deduped or suffixed `_2`), while the task's own finally only frees
+// what it still owns — guarded by identity so it can't free a claim a later
+// re-download has already taken over.
+const taskTargets = new Map<string, { url: string; target: string }>();
 
 function pushQueueUpdated(win: BrowserWindow) {
     pushEvent(win, CH.QUEUE_UPDATED, Array.from(queueItems.values()));
@@ -123,6 +182,19 @@ function pruneFeedCaches(now: number): void {
     }
 }
 
+/** Run `worker` over `items` with at most `limit` in flight at once (bounded
+ *  fan-out). Never rejects — mirrors Promise.allSettled semantics per item. */
+async function runWithConcurrency<T>(items: T[], limit: number, worker: (item: T) => Promise<void>): Promise<void> {
+    let cursor = 0;
+    const runners = Array.from({ length: Math.min(limit, items.length) }, async () => {
+        while (cursor < items.length) {
+            const item = items[cursor++];
+            try { await worker(item); } catch { /* per-item failure is swallowed */ }
+        }
+    });
+    await Promise.all(runners);
+}
+
 // UI locale synced from renderer for localized OS notifications
 let uiLocale = 'en';
 
@@ -149,7 +221,13 @@ async function runBackgroundRefresh(win: BrowserWindow) {
     let totalNew = 0;
     const feedsWithNew: string[] = [];
 
-    await Promise.allSettled(feeds.map(async (feedEntry) => {
+    // Bound the fan-out: a large (OPML-imported) library would otherwise open
+    // hundreds/thousands of simultaneous fetches on the single feed-parser worker,
+    // spiking memory/sockets and overflowing the worker's request timeout — which
+    // then dumps every overflowed parse back onto the main thread in-process,
+    // recreating exactly the stall M9 removed.
+    const REFRESH_CONCURRENCY = 5;
+    await runWithConcurrency(feeds, REFRESH_CONCURRENCY, async (feedEntry) => {
         try {
             // Invalidate cache to force a fresh HTTP fetch
             feedCache.delete(feedEntry.url);
@@ -215,7 +293,12 @@ async function runBackgroundRefresh(win: BrowserWindow) {
         } catch {
             // silently skip feeds that fail in background
         }
-    }));
+    });
+
+    // Keep the in-memory feed cache bounded — the refresh populates it for every
+    // feed, but only PARSE_FEED used to prune, so a large library grew it past the
+    // B7 cap on every cycle.
+    pruneFeedCaches(Date.now());
 
     if (isShuttingDown) return;
 
@@ -312,6 +395,9 @@ export function cleanup() {
 }
 
 export function registerIpcHandlers(mainWindow: BrowserWindow) {
+    // Expose the window to the module-scope batch-completion emitter (which can
+    // also fire from BatchTracker's seal timer, outside any handler).
+    mainWindowRef = mainWindow;
 
     // N1: assigned by the auto-update block below; invoked when the renderer
     // first reports its UI locale, so the boot update check (and any OS
@@ -376,6 +462,12 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     });
 
     ipcMain.handle(CH.ADD_FEED, async (_, feed: FeedEntry) => {
+        // Defense-in-depth: reject a feed whose URL fails the same SSRF/protocol
+        // pre-check applied everywhere else, so a bad URL can't be persisted (and
+        // later fetched) even if the renderer skipped its own validation.
+        if (!feed || typeof feed.url !== 'string' || !validateUrl(feed.url).valid) {
+            throw new Error('INVALID_FEED_URL');
+        }
         libraryService.addFeed(feed);
         const feeds = libraryService.getFeeds();
         pushEvent(mainWindow, CH.FEEDS_UPDATED, feeds);
@@ -397,8 +489,13 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         return libraryService.getDownloadedEpisodes(feedUrl);
     });
 
-    ipcMain.handle(CH.REMOVE_HISTORY_ITEM, async (_, guid: string) => {
-        libraryService.removeDownloadedEpisode(guid);
+    ipcMain.handle(CH.REMOVE_HISTORY_ITEM, async (_, payload: string | { guid: string; feedUrl?: string }) => {
+        // Back-compat: older callers pass a bare guid string; the current renderer
+        // passes { guid, feedUrl } so the delete is scoped to the right feed (S6).
+        const guid = typeof payload === 'string' ? payload : String(payload?.guid ?? '');
+        const feedUrl = typeof payload === 'object' && typeof payload?.feedUrl === 'string' ? payload.feedUrl : undefined;
+        if (!guid) return false;
+        libraryService.removeDownloadedEpisode(guid, feedUrl);
         pushEvent(mainWindow, CH.DOWNLOADS_UPDATED);
         return true;
     });
@@ -431,80 +528,111 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         // enclosure URL so the download is still recorded in history/archive.
         const effectiveGuid = guid || url;
 
-        // S3: the same episode queued twice (double click, overlapping batches)
-        // would produce a duplicate file with a `_2` suffix and a second archive
-        // row. One in-flight task per enclosure URL.
+        // S3 / TOCTOU: reject a second copy of the same enclosure URL. The claim
+        // MUST be taken synchronously — before the first `await` below — otherwise
+        // two rapid calls both pass the check and register only afterwards (once
+        // via `fs.ensureDir` yields), producing a duplicate `_2` file and a second
+        // archive row. `inFlightUrls` closes that window; `queueItems` still covers
+        // tasks already executing.
+        if (inFlightUrls.has(url)) {
+            return { status: 'duplicate' };
+        }
         for (const item of queueItems.values()) {
             if (item.url === url) {
                 return { status: 'duplicate' };
             }
         }
-
-        let baseDir = libraryService.getDownloadPath();
-        if (!baseDir) {
-            baseDir = path.join(app.getPath('documents'), 'FeedDownloader', 'downloads');
-        }
-
-        const ext = extractExtension(url);
-        const namingTemplate = libraryService.getNamingTemplate();
-        const resolvedName = applyTemplate(namingTemplate, {
-            title,
-            podcast: podcastTitle,
-            pubDate: pubDate,
-        });
-        const baseSafePath = getSafePath(baseDir, podcastTitle, resolvedName, ext);
-        const targetDir = path.dirname(baseSafePath);
-        await fs.ensureDir(targetDir);
-
-        // Collision check: avoid both a completed file already on disk AND a path
-        // already claimed by another in-flight download (M1). existsSync keeps the
-        // whole selection synchronous, so reserving the result is atomic — no two
-        // concurrent handlers can settle on the same path.
-        let targetFile = baseSafePath;
-        {
-            const { dir, name, ext: fileExt } = path.parse(baseSafePath);
-            let i = 1;
-            while (reservedTargets.has(targetFile) || fs.existsSync(targetFile)) {
-                i++;
-                targetFile = path.join(dir, `${name}_${i}${fileExt}`);
-            }
-        }
-        reservedTargets.add(targetFile);
-
-        const batchGen = batchTracker.track();
+        inFlightUrls.add(url);
 
         const taskId = crypto.randomUUID();
         const controller = new AbortController();
-        activeDownloads.set(taskId, controller);
+        let targetFile = '';
+        let batchGen = -1;
+        try {
+            let baseDir = libraryService.getDownloadPath();
+            if (!baseDir) {
+                baseDir = path.join(app.getPath('documents'), 'FeedDownloader', 'downloads');
+            }
 
-        // Register task as pending in the queue
-        queueItems.set(taskId, { taskId, title, podcastTitle, url, status: 'pending' });
-        pushQueueUpdated(mainWindow);
+            const ext = extractExtension(url);
+            const namingTemplate = libraryService.getNamingTemplate();
+            const resolvedName = applyTemplate(namingTemplate, {
+                title,
+                podcast: podcastTitle,
+                pubDate: pubDate,
+            });
+            const baseSafePath = getSafePath(baseDir, podcastTitle, resolvedName, ext);
+            const targetDir = path.dirname(baseSafePath);
+            await fs.ensureDir(targetDir);
+
+            // Collision check: avoid both a completed file already on disk AND a path
+            // already claimed by another in-flight download (M1). existsSync keeps the
+            // whole selection synchronous, so reserving the result is atomic — no two
+            // concurrent handlers can settle on the same path.
+            targetFile = baseSafePath;
+            {
+                const { dir, name, ext: fileExt } = path.parse(baseSafePath);
+                let i = 1;
+                while (isTargetReserved(targetFile) || fs.existsSync(targetFile)) {
+                    i++;
+                    targetFile = path.join(dir, `${name}_${i}${fileExt}`);
+                }
+            }
+            reserveTarget(targetFile);
+            taskTargets.set(taskId, { url, target: targetFile });
+
+            batchGen = batchTracker.track();
+            activeDownloads.set(taskId, controller);
+
+            // Register task as pending in the queue
+            queueItems.set(taskId, { taskId, title, podcastTitle, url, status: 'pending' });
+            pushQueueUpdated(mainWindow);
+        } catch (setupErr) {
+            // Setup failed before the task was queued (e.g. ensureDir on an
+            // unwritable path). Release every claim taken so far so nothing leaks.
+            inFlightUrls.delete(url);
+            if (targetFile) releaseTarget(targetFile);
+            taskTargets.delete(taskId);
+            activeDownloads.delete(taskId);
+            queueItems.delete(taskId);
+            throw setupErr;
+        }
 
         queueService.add(async () => {
-            // Task was cancelled before its queue slot opened
-            if (cancelledTaskIds.has(taskId)) {
-                cancelledTaskIds.delete(taskId);
-                queueItems.delete(taskId);
-                reservedTargets.delete(targetFile); // M1: release the claimed path
-                pushQueueUpdated(mainWindow);
-                // M32: `cancelled` advances the batch counter in the renderer
-                // without painting the row as completed/archived
-                pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded: 0, total: 0, cancelled: true });
-                return; // finally still runs → batchTracker.complete()
-            }
-
-            // Mark as downloading
-            const item = queueItems.get(taskId);
-            if (item) {
-                queueItems.set(taskId, { ...item, status: 'downloading' });
-                pushQueueUpdated(mainWindow);
-            }
-
             try {
+                // Task was cancelled before its queue slot opened. Returning here
+                // still runs the finally below (release claims + settle the batch),
+                // which the old early-return-before-try did NOT — leaving the batch
+                // counter and the AbortController leaked forever.
+                if (cancelledTaskIds.has(taskId)) {
+                    cancelledTaskIds.delete(taskId);
+                    queueItems.delete(taskId);
+                    pushQueueUpdated(mainWindow);
+                    // M32: `cancelled` advances the batch counter in the renderer
+                    // without painting the row as completed/archived
+                    pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded: 0, total: 0, cancelled: true });
+                    return;
+                }
+
+                // Mark as downloading
+                const item = queueItems.get(taskId);
+                if (item) {
+                    queueItems.set(taskId, { ...item, status: 'downloading' });
+                    pushQueueUpdated(mainWindow);
+                }
+
                 const speedLimitKBps = libraryService.getSpeedLimit();
+                // Throttle progress pushes to ~10 Hz: on a fast link the raw
+                // per-chunk rate is hundreds of IPC messages/sec, each triggering a
+                // store write in the renderer. The terminal states below are always
+                // sent in full.
+                let lastProgressTs = 0;
                 await downloadService.downloadFile(url, targetFile, (loaded, total) => {
-                    pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded, total });
+                    const now = Date.now();
+                    if (now - lastProgressTs >= 100 || (total > 0 && loaded >= total)) {
+                        lastProgressTs = now;
+                        pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded, total });
+                    }
                 }, speedLimitKBps, 3, controller.signal);
 
                 let fileSize: number | undefined;
@@ -578,10 +706,15 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                 const isAborted = errMsg === 'DOWNLOAD_ABORTED';
 
                 if (isAborted) {
-                    // For individual cancels (not STOP_BATCH) trigger incrementBatch in renderer
-                    if (batchTracker.active) {
-                        pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded: 0, total: 0, cancelled: true }); // M32
-                    }
+                    // Always emit the terminal `cancelled` event — for individual
+                    // cancels it advances the batch counter (M32), and for STOP_BATCH
+                    // it is what clears the row. The old `if (batchTracker.active)`
+                    // guard suppressed it after STOP_BATCH called reset(), leaving the
+                    // aborted rows stuck on a frozen spinner (the S11 race). IPC
+                    // ordering guarantees it arrives after the last progress tick.
+                    queueItems.delete(taskId);
+                    pushQueueUpdated(mainWindow);
+                    pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded: 0, total: 0, cancelled: true });
                 } else {
                     console.error('Download error:', error);
                     queueItems.delete(taskId);
@@ -595,31 +728,18 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                 }
             } finally {
                 activeDownloads.delete(taskId);
-                reservedTargets.delete(targetFile); // M1: release the claimed path
+                // Release the URL/path claims only if this task still owns them — a
+                // CANCEL of a pending task may have already released and handed them
+                // to a re-download (same url/path, different taskId).
+                const owned = taskTargets.get(taskId);
+                if (owned && owned.target === targetFile) {
+                    taskTargets.delete(taskId);
+                    inFlightUrls.delete(url);       // S3: release the URL claim
+                    releaseTarget(targetFile);      // M1: release the claimed path
+                }
                 const batchResult = batchTracker.complete(batchGen);
                 if (batchResult !== null) {
-                    const finishedTotal = batchResult.total;
-                    const failed = batchResult.failed;
-                    const failedCount = failed.length;
-                    const okCount = finishedTotal - failedCount;
-                    if (Notification.isSupported()) {
-                        const notificationBodies: Record<string, string> = {
-                            en: failedCount > 0 ? `Download complete: ${okCount} downloaded, ${failedCount} failed.` : `Download complete: ${finishedTotal} files downloaded.`,
-                            it: failedCount > 0 ? `Download completato: ${okCount} scaricati, ${failedCount} errori.` : `Download completato: ${finishedTotal} file scaricati.`,
-                            fr: failedCount > 0 ? `Téléchargement terminé : ${okCount} téléchargés, ${failedCount} erreurs.` : `Téléchargement terminé : ${finishedTotal} fichiers téléchargés.`,
-                            de: failedCount > 0 ? `Download abgeschlossen: ${okCount} geladen, ${failedCount} Fehler.` : `Download abgeschlossen: ${finishedTotal} Dateien heruntergeladen.`,
-                            es: failedCount > 0 ? `Descarga completa: ${okCount} descargados, ${failedCount} errores.` : `Descarga completada: ${finishedTotal} archivos descargados.`,
-                            pt: failedCount > 0 ? `Download concluído: ${okCount} descarregados, ${failedCount} erros.` : `Download concluído: ${finishedTotal} ficheiros descarregados.`,
-                            ru: failedCount > 0 ? `Загрузка завершена: ${okCount} скачано, ${failedCount} ошибок.` : `Загрузка завершена: ${finishedTotal} файлов скачано.`,
-                            zh: failedCount > 0 ? `下载完成：${okCount} 个成功，${failedCount} 个失败。` : `下载完成：已下载 ${finishedTotal} 个文件。`,
-                        };
-                        new Notification({
-                            title: 'Runtime FeedDownloader Pro',
-                            body: notificationBodies[uiLocale] ?? notificationBodies['en'],
-                            icon: path.join(process.env.VITE_PUBLIC || '', 'logo.png'),
-                        }).show();
-                    }
-                    pushEvent(mainWindow, CH.BATCH_COMPLETED, { total: finishedTotal, failed: [...failed] });
+                    emitBatchComplete(batchResult);
                 }
             }
         });
@@ -637,8 +757,18 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         pushQueueUpdated(mainWindow);
 
         if (item.status === 'pending') {
-            // Mark for skipping when the task's queue slot opens
+            // Mark for skipping when the task's queue slot opens, and release its
+            // URL/path claims NOW so an immediate re-download of the same episode
+            // isn't rejected as a duplicate or forced into a spurious `_2` suffix.
+            // The skipped task's finally will find the claim already gone and leave
+            // it alone.
             cancelledTaskIds.add(taskId);
+            const owned = taskTargets.get(taskId);
+            if (owned) {
+                taskTargets.delete(taskId);
+                inFlightUrls.delete(owned.url);
+                releaseTarget(owned.target);
+            }
         } else if (item.status === 'downloading') {
             const controller = activeDownloads.get(taskId);
             if (controller) controller.abort();
@@ -656,9 +786,11 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         queueItems.clear();
         cancelledTaskIds.clear();
         // Pending tasks discarded by queueService.clear() never run their
-        // finally block, so their reserved paths would leak and force spurious
-        // `_2` suffixes on every future download of the same episodes.
+        // finally block, so their reserved paths/URLs would leak and force spurious
+        // `_2` suffixes (and false duplicates) on every future download.
         reservedTargets.clear();
+        inFlightUrls.clear();
+        taskTargets.clear();
         pushQueueUpdated(mainWindow);
         return true;
     });
@@ -669,7 +801,9 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
             properties: ['openFile'],
             filters: [{ name: 'OPML/XML', extensions: ['opml', 'xml'] }]
         });
-        if (result.canceled || result.filePaths.length === 0) return { count: 0 };
+        // Distinguish "user cancelled the dialog" from "imported 0 feeds" so the
+        // renderer doesn't show an error toast for a plain cancel.
+        if (result.canceled || result.filePaths.length === 0) return { count: 0, canceled: true };
 
         try {
             // L7: cap the OPML size before reading it into memory. A feed list is
@@ -737,6 +871,13 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     });
 
     ipcMain.handle(CH.SET_DOWNLOAD_PATH, async (_, downloadPath: string) => {
+        // Defense-in-depth (L18): only accept a non-empty ABSOLUTE path. The
+        // download folder is normally chosen via the native dialog; refusing
+        // relative/garbage input stops a compromised renderer from repointing it
+        // (and, through OPEN_FOLDER's "within base" check, widening that reach).
+        if (typeof downloadPath !== 'string' || !downloadPath.trim() || !path.isAbsolute(downloadPath)) {
+            return false;
+        }
         libraryService.setDownloadPath(downloadPath);
         return true;
     });
@@ -771,10 +912,20 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         if (!baseDir) {
             baseDir = path.join(app.getPath('documents'), 'FeedDownloader', 'downloads');
         }
-        const ext = enclosureUrl ? extractExtension(enclosureUrl) : '.mp3';
-        const namingTemplate = libraryService.getNamingTemplate();
-        const resolvedName = applyTemplate(namingTemplate, { title, podcast: podcastTitle, pubDate });
-        const safePath = getSafePath(baseDir, podcastTitle, resolvedName, ext);
+
+        // Prefer the real filename recorded in the archive — recomputing the name
+        // from the current template misses a changed template or a `_2` collision
+        // suffix, and would reveal a path that doesn't exist.
+        const recordedName = libraryService.getArchiveFilename(podcastTitle, title);
+        let safePath: string;
+        if (recordedName) {
+            safePath = path.join(baseDir, sanitize(podcastTitle), recordedName);
+        } else {
+            const ext = enclosureUrl ? extractExtension(enclosureUrl) : '.mp3';
+            const namingTemplate = libraryService.getNamingTemplate();
+            const resolvedName = applyTemplate(namingTemplate, { title, podcast: podcastTitle, pubDate });
+            safePath = getSafePath(baseDir, podcastTitle, resolvedName, ext);
+        }
 
         shell.showItemInFolder(safePath);
     });
@@ -1019,13 +1170,13 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         let missing = 0;
         let corrupted = 0;
         let totalSizeBytes = 0;
-        const missingFiles: { guid: string; title: string; podcast: string; filename: string }[] = [];
-        const corruptedFiles: { guid: string; title: string; podcast: string; filename: string }[] = [];
+        const missingFiles: { guid: string; feedUrl?: string; title: string; podcast: string; filename: string }[] = [];
+        const corruptedFiles: { guid: string; feedUrl?: string; title: string; podcast: string; filename: string }[] = [];
 
         for (const entry of entries) {
             if (!entry.filename) {
                 missing++;
-                missingFiles.push({ guid: entry.guid, title: entry.title, podcast: entry.podcastTitle, filename: '(no filename)' });
+                missingFiles.push({ guid: entry.guid, feedUrl: entry.feedUrl, title: entry.title, podcast: entry.podcastTitle, filename: '(no filename)' });
                 continue;
             }
             const fullPath = path.join(baseDir, sanitize(entry.podcastTitle), entry.filename);
@@ -1041,12 +1192,12 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                     const actual = await sha256File(fullPath).catch(() => null);
                     if (actual && actual !== entry.checksum) {
                         corrupted++;
-                        corruptedFiles.push({ guid: entry.guid, title: entry.title, podcast: entry.podcastTitle, filename: entry.filename });
+                        corruptedFiles.push({ guid: entry.guid, feedUrl: entry.feedUrl, title: entry.title, podcast: entry.podcastTitle, filename: entry.filename });
                     }
                 }
             } catch {
                 missing++;
-                missingFiles.push({ guid: entry.guid, title: entry.title, podcast: entry.podcastTitle, filename: entry.filename });
+                missingFiles.push({ guid: entry.guid, feedUrl: entry.feedUrl, title: entry.title, podcast: entry.podcastTitle, filename: entry.filename });
             }
         }
 
@@ -1063,10 +1214,13 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     });
 
     // ── Mark Missing as Not Downloaded ──────────────────────
-    ipcMain.handle(CH.MARK_MISSING_NOT_DOWNLOADED, async (_, guids: unknown): Promise<boolean> => {
-        // M15: never hand an unvalidated payload to a DELETE
-        if (!Array.isArray(guids)) return false;
-        libraryService.removeMissingFiles(guids.filter((g): g is string => typeof g === 'string'));
+    ipcMain.handle(CH.MARK_MISSING_NOT_DOWNLOADED, async (_, items: unknown): Promise<boolean> => {
+        // M15: never hand an unvalidated payload to a DELETE. Accept either bare
+        // guid strings (legacy) or { guid, feedUrl } objects (S6: feed-scoped).
+        if (!Array.isArray(items)) return false;
+        const cleaned = items.filter((it): it is string | { guid: string; feedUrl?: string } =>
+            typeof it === 'string' || (!!it && typeof it === 'object' && typeof (it as { guid?: unknown }).guid === 'string'));
+        libraryService.removeMissingFiles(cleaned);
         pushEvent(mainWindow, CH.DOWNLOADS_UPDATED);
         return true;
     });
@@ -1114,6 +1268,11 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
             }).show();
         };
 
+        // Set once an update is fully downloaded, so INSTALL_UPDATE can't quit and
+        // relaunch into a half-downloaded (or absent) package if the renderer asks
+        // out of turn.
+        let updateDownloaded = false;
+
         if (!autoUpdaterListenersBound) {
             autoUpdaterListenersBound = true;
             autoUpdater.on('checking-for-update', () => pushUpdateStatus({ type: 'checking' }));
@@ -1124,6 +1283,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
             autoUpdater.on('update-not-available', () => pushUpdateStatus({ type: 'not-available' }));
             autoUpdater.on('download-progress', (progress: { percent: number }) => pushUpdateStatus({ type: 'downloading', percent: Math.round(progress.percent) }));
             autoUpdater.on('update-downloaded', () => {
+                updateDownloaded = true;
                 pushUpdateStatus({ type: 'ready' });
                 notifyUpdate('ready');
             });
@@ -1160,7 +1320,11 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         });
 
         ipcMain.handle(CH.INSTALL_UPDATE, () => {
+            // Only install when a package has actually been downloaded — guards
+            // against an out-of-order renderer call quitting into nothing.
+            if (!updateDownloaded) return false;
             autoUpdater.quitAndInstall();
+            return true;
         });
     }
 
@@ -1241,14 +1405,35 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         const currentPath = libraryService.getDownloadPath();
 
         if (!currentPath || !newPath) {
-            return { moved: 0, errors: 0, newPath: newPath || '' };
+            return { moved: 0, errors: 0, newPath: newPath || '', pathChanged: false };
         }
         if (currentPath === newPath) {
-            return { moved: 0, errors: 0, newPath };
+            return { moved: 0, errors: 0, newPath, pathChanged: false };
         }
+
+        // Refuse while downloads are in flight: their `.part` writers point into
+        // the old folder, so moving it mid-write produces partial/failed moves.
+        if (activeDownloads.size > 0 || queueItems.size > 0) {
+            return { moved: 0, errors: 0, newPath, pathChanged: false, refused: 'busy' };
+        }
+
+        // Refuse when one path is nested inside the other: `fs.move` of
+        // currentPath/folder into newPath (a descendant of currentPath, or the
+        // reverse) fails with "cannot move into itself" and would leave the DB
+        // pointing at a half-migrated tree.
+        const resolvedCurrent = path.resolve(currentPath);
+        const resolvedNew = path.resolve(newPath);
+        const relToCurrent = path.relative(resolvedCurrent, resolvedNew);
+        const relToNew = path.relative(resolvedNew, resolvedCurrent);
+        const isNested = (rel: string) => rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
+        if (isNested(relToCurrent) || isNested(relToNew)) {
+            return { moved: 0, errors: 0, newPath, pathChanged: false, refused: 'nested-path' };
+        }
+
         if (!(await fs.pathExists(currentPath))) {
+            // Nothing on disk to move — just re-point.
             libraryService.setDownloadPath(newPath);
-            return { moved: 0, errors: 0, newPath };
+            return { moved: 0, errors: 0, newPath, pathChanged: true };
         }
 
         await fs.ensureDir(newPath);
@@ -1282,8 +1467,14 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
             }
         }
 
-        // Update download path in DB
-        libraryService.setDownloadPath(newPath);
+        // Only re-point the download path if the move actually got somewhere.
+        // If every folder failed (unwritable destination, disk full), leaving the
+        // path on currentPath keeps the still-present files valid instead of
+        // reporting the whole library as "missing".
+        const pathChanged = moved > 0 || total === 0;
+        if (pathChanged) {
+            libraryService.setDownloadPath(newPath);
+        }
 
         // Final progress signal
         pushEvent(mainWindow, CH.MIGRATION_PROGRESS, {
@@ -1292,6 +1483,6 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
             currentFolder: '',
         } as MigrationProgress);
 
-        return { moved, errors, newPath };
+        return { moved, errors, newPath, pathChanged };
     });
 }

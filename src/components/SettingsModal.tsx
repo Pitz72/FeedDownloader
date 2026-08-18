@@ -6,16 +6,19 @@ import { HelpModal } from './HelpModal';
 import { useStore, AppState } from '../store/useStore';
 import { useToast } from '../context/ToastContext';
 import { useFocusTrap } from '../hooks/useFocusTrap';
-import type { ArchiveStats, MigrationProgress, UpdateStatus } from '../../shared/types';
+import type { ArchiveStats, MigrationProgress } from '../../shared/types';
 
 interface SettingsModalProps {
     isOpen: boolean;
     onClose: () => void;
+    /** When another modal (changelog, command palette) is stacked on top, this
+     *  is true so Escape closes only that top modal, not Settings underneath. */
+    suppressEscape?: boolean;
 }
 
 type NavCategory = 'general' | 'download' | 'metadata' | 'archive' | 'advanced';
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
+export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, suppressEscape = false }) => {
     const { t, i18n } = useTranslation();
     const toast = useToast();
     const [downloadPath, setDownloadPath] = useState('');
@@ -35,31 +38,42 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     const [activeCategory, setActiveCategory] = useState<NavCategory>('general');
     const [autoRefreshInterval, setAutoRefreshInterval] = useState<number>(0);
     const [migrationProgress, setMigrationProgress] = useState<{ moved: number; total: number } | null>(null);
-    const [updateStatus, setUpdateStatus] = useState<UpdateStatus>({ type: 'idle' });
+    // Read update status from the shared store, not a private copy: the App-level
+    // subscription (N1) captures events fired during the IntroScreen, before this
+    // modal ever mounts — a local subscription here would miss them and show
+    // "idle" while the topbar banner already says an update is ready.
+    const updateStatus = useStore((state: AppState) => state.updateStatus);
+    const setUpdateStatus = useStore((state: AppState) => state.setUpdateStatus);
     const isBatchDownloading = useStore((state: AppState) => state.isBatchDownloading);
     const setStorePath = useStore((state: AppState) => state.setDownloadPath);
     const closeButtonRef = useRef<HTMLButtonElement>(null);
     // Disable the outer trap while the nested Help modal is open — it runs its own.
     const trapRef = useFocusTrap<HTMLDivElement>(isOpen && !isHelpOpen);
 
+    // Track migration progress for the whole lifetime of the (always-mounted)
+    // modal, not only while it's open — otherwise closing Settings mid-migration
+    // tears down the listener, the migration keeps running invisibly, and on
+    // reopen the button looks idle again and a second concurrent migration could
+    // be started over the first.
     useEffect(() => {
-        if (!isOpen) return;
         const unsub = window.api.onMigrationProgress((_e, data: MigrationProgress) => {
-            setMigrationProgress({ moved: data.moved, total: data.total });
+            setMigrationProgress(data.total > 0 && data.moved >= data.total
+                ? null // final signal: migration finished
+                : { moved: data.moved, total: data.total });
         });
         return unsub;
-    }, [isOpen]);
+    }, []);
 
     // M24: close on Escape (same pattern as ConfirmModal/HelpModal).
     // When the HelpModal is open, Escape is handled there — skip to avoid closing both.
     useEffect(() => {
         if (!isOpen) return;
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'Escape' && !isHelpOpen) onClose();
+            if (e.key === 'Escape' && !isHelpOpen && !suppressEscape) onClose();
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isOpen, isHelpOpen, onClose]);
+    }, [isOpen, isHelpOpen, suppressEscape, onClose]);
 
     // M24: initial focus on the close button when the modal opens
     useEffect(() => {
@@ -73,18 +87,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         if (!isOpen) setIsHelpOpen(false);
     }, [isOpen]);
 
-    useEffect(() => {
-        const unsub = window.api.onUpdateStatus((_e, status: UpdateStatus) => {
-            setUpdateStatus(status);
-        });
-        return unsub;
-    }, []);
 
     const loadSettings = useCallback(async () => {
         setIsLoadingSettings(true);
         try {
             const path = await window.api.getDownloadPath();
-            setDownloadPath(path || 'Default');
+            setDownloadPath(path || t('settings.default_path', 'Predefinito'));
             const conc = await window.api.getConcurrency();
             setConcurrency(conc);
             const stats = await window.api.getArchiveStats();
@@ -134,6 +142,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     };
 
     const handleMigrateArchive = async () => {
+        // Guard against starting a second migration over one already running
+        // (possible after closing/reopening Settings mid-migration).
+        if (migrationProgress) return;
         const currentPath = await window.api.getDownloadPath();
         if (!currentPath) {
             toast.show(t('settings.migrate_no_path'), 'error');
@@ -148,8 +159,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         setMigrationProgress({ moved: 0, total: 0 });
         try {
             const result = await window.api.migrateArchive(newPath);
-            setDownloadPath(newPath);
-            setStorePath(newPath);
+            if (result.refused === 'busy') {
+                toast.show(t('settings.migrate_busy'), 'error');
+                return;
+            }
+            if (result.refused === 'nested-path') {
+                toast.show(t('settings.migrate_nested'), 'error');
+                return;
+            }
+            // Only reflect the new folder in the UI if the DB was actually
+            // re-pointed — otherwise the sidebar would show a path the files
+            // aren't in.
+            if (result.pathChanged) {
+                setDownloadPath(newPath);
+                setStorePath(newPath);
+            }
             const msg = result.errors > 0
                 ? t('settings.migrate_done_errors', { moved: result.moved, errors: result.errors })
                 : t('settings.migrate_done', { moved: result.moved });
@@ -617,8 +641,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                                         onClick={async () => {
                                                                             setIsMarkingMissing(true);
                                                                             try {
-                                                                                const guids = healthResult.missingFiles.map(f => f.guid);
-                                                                                await window.api.markMissingNotDownloaded(guids);
+                                                                                const items = healthResult.missingFiles.map(f => ({ guid: f.guid, feedUrl: f.feedUrl }));
+                                                                                await window.api.markMissingNotDownloaded(items);
                                                                                 setHealthResult(prev => prev ? { ...prev, missing: 0, missingFiles: [], total: prev.present } : null);
                                                                                 toast.show(t('settings.health_mark_success'), 'success');
                                                                             } finally {
@@ -680,7 +704,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                     ) : (
                                                         <button
                                                             onClick={handleMigrateArchive}
-                                                            disabled={isBatchDownloading}
+                                                            disabled={isBatchDownloading || migrationProgress !== null}
                                                             className="hover-secondary-tinted w-full flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                                             style={{ background: 'rgba(125,1,177,0.1)', border: '1px solid rgba(233,179,255,0.2)', color: 'var(--color-secondary)', fontFamily: 'var(--font-label)' }}
                                                         >
@@ -695,7 +719,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                                                     <h3 style={sectionHeading('var(--color-primary)')}>{t('settings.data')}</h3>
                                                     <div className="grid grid-cols-1 gap-2">
                                                         {[
-                                                            { onClick: async () => { const res = await window.api.importOPML(); if (res && res.count > 0) { toast.show(t('settings.import_success', { count: res.count }), 'success'); } else { toast.show(t('settings.import_error'), 'error'); } }, icon: 'upload', iconColor: 'var(--color-primary)', label: t('settings.import_opml') },
+                                                            { onClick: async () => { const res = await window.api.importOPML(); if (res?.canceled) { return; } if (res && res.count > 0) { toast.show(t('settings.import_success', { count: res.count }), 'success'); } else { toast.show(t('settings.import_error'), 'error'); } }, icon: 'upload', iconColor: 'var(--color-primary)', label: t('settings.import_opml') },
                                                             { onClick: async () => { const ok = await window.api.exportOPML(); if (ok) toast.show(t('settings.export_success'), 'success'); }, icon: 'download', iconColor: 'var(--color-primary)', label: t('settings.export_opml') },
                                                             { onClick: async () => { const ok = await window.api.exportArchiveCSV(); if (ok) toast.show(t('settings.export_success'), 'success'); }, icon: 'table_chart', iconColor: 'var(--color-secondary)', label: t('settings.export_csv') },
                                                         ].map((btn, i) => (

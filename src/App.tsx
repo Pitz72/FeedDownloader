@@ -20,7 +20,10 @@ const SIDEBAR_MIN = 240;
 const SIDEBAR_MAX = 640;
 const SIDEBAR_DEFAULT = 360;
 
-const isMac = document.documentElement.dataset.platform === 'darwin';
+// Read the platform from the preload's synchronous `platform` field, not from
+// document.documentElement.dataset.platform which the async ESM preload only sets
+// at DOMContentLoaded — a module-level read could otherwise run first and miss it.
+const isMac = window.api?.platform === 'darwin';
 
 function AppContent() {
   const updateDownload = useStore((state: AppState) => state.updateDownload);
@@ -44,10 +47,12 @@ function AppContent() {
         incrementBatch(data.url);
       }
       if (data.error) {
-        if (data.notFound) {
-          toast.show(t('toast.episode_not_found'), 'error');
-        } else {
-          toast.show(t('toast.download_error'), 'error');
+        // Don't flood the screen with one toast per failure during a batch — a
+        // 100-episode batch that fails en masse would stack dozens. The Download
+        // Panel's failures section and the single BATCH_COMPLETED summary cover
+        // batch errors; only surface an individual toast for a lone download.
+        if (!useStore.getState().isBatchDownloading) {
+          toast.show(t(data.notFound ? 'toast.episode_not_found' : 'toast.download_error'), 'error');
         }
       }
     });
@@ -96,9 +101,16 @@ function AppContent() {
           }
         }
       } else if (key === 's') {
-        // M23: sync all feeds (Sidebar listens to this event)
-        e.preventDefault();
-        window.dispatchEvent(new CustomEvent('feeddownloader:syncall'));
+        // M23: sync all feeds (Sidebar listens to this event) — but not while the
+        // user is typing in a field, where Ctrl+S reads as "save".
+        const target = e.target as HTMLElement | null;
+        const isEditable = !!target && (
+          target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable
+        );
+        if (!isEditable) {
+          e.preventDefault();
+          window.dispatchEvent(new CustomEvent('feeddownloader:syncall'));
+        }
       } else if (key === 'a') {
         // M23: toggle archive view — but keep native select-all inside editable fields
         const target = e.target as HTMLElement | null;
@@ -266,8 +278,13 @@ function AppContent() {
         role="separator"
       />
 
-      {/* Settings modal — root level */}
-      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+      {/* Settings modal — root level. Escape is suppressed while a modal stacked
+          on top (changelog / command palette) is open, so it closes only that. */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        suppressEscape={isChangelogOpen || isCommandPaletteOpen}
+      />
 
       {/* Changelog modal — root level */}
       <ChangelogModal isOpen={isChangelogOpen} onClose={() => setIsChangelogOpen(false)} />

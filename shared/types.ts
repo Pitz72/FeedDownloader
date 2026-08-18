@@ -93,9 +93,9 @@ export interface HealthCheckResult {
     /** L10: present files whose stored SHA-256 no longer matches the file on disk. */
     corrupted: number;
     totalSizeBytes: number;
-    missingFiles: { guid: string; title: string; podcast: string; filename: string }[];
+    missingFiles: { guid: string; feedUrl?: string; title: string; podcast: string; filename: string }[];
     /** L10: files that exist but fail the SHA-256 re-check (silent corruption / tampering). */
-    corruptedFiles: { guid: string; title: string; podcast: string; filename: string }[];
+    corruptedFiles: { guid: string; feedUrl?: string; title: string; podcast: string; filename: string }[];
 }
 
 export interface DownloadRequest {
@@ -143,6 +143,12 @@ export interface MigrationResult {
     moved: number;
     errors: number;
     newPath: string;
+    /** True only when the download path was actually re-pointed to newPath.
+     *  False when the migration was refused or moved nothing, so the renderer
+     *  must NOT show newPath as the active folder. */
+    pathChanged: boolean;
+    /** Set when the migration was refused up front, before moving anything. */
+    refused?: 'busy' | 'nested-path';
 }
 
 export interface MigrationProgress {

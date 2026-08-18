@@ -14,8 +14,11 @@ on:
         type: choice
         options: ['true', 'false']
 
+# Least privilege: no job here needs write access to THIS repo. The build jobs
+# only checkout + build, and the release job publishes to the separate bridge
+# repo using the RELEASE_TOKEN PAT (not GITHUB_TOKEN). Read is enough for all.
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   # L5: quality gate — lint + type-check (renderer + main) AND the test suite
@@ -162,7 +165,10 @@ jobs:
           path: artifacts/windows
 
       - name: Publish release to bridge repo
-        uses: softprops/action-gh-release@v2
+        # Pinned to a full commit SHA (v2 → 2.6.2) rather than the mutable v2 tag:
+        # this step receives the RELEASE_TOKEN PAT, so a hijacked tag of this
+        # action could otherwise exfiltrate it. Bump deliberately when updating.
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
           repository: Ecosystem-Runtime/FeedDownloader-Releases
           token: ${{ secrets.RELEASE_TOKEN }}

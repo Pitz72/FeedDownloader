@@ -43,6 +43,15 @@ export class BatchTracker {
     /** Debounce window in ms — time to wait after last track() before sealing */
     private readonly SEAL_DELAY_MS = 200;
 
+    /**
+     * Fired when a generation becomes complete *at seal time* — i.e. every
+     * download finished before the seal window elapsed, so the last complete()
+     * ran while still unsealed and returned null. Without this the batch would
+     * never emit BATCH_COMPLETED and the generation would leak. The result is
+     * the same object complete() returns on the normal path.
+     */
+    constructor(private readonly onSealedComplete?: (result: BatchResult) => void) {}
+
     private get current(): Generation | null {
         return this.currentId !== null ? this.generations.get(this.currentId) ?? null : null;
     }
@@ -69,7 +78,17 @@ export class BatchTracker {
         const sealingId = gen.id;
         gen.sealTimer = setTimeout(() => {
             const g = this.generations.get(sealingId);
-            if (g) { g.sealed = true; g.sealTimer = null; }
+            if (!g) return;
+            g.sealed = true;
+            g.sealTimer = null;
+            // If every download already finished before the seal fired, complete()
+            // returned null each time (still unsealed) — so close the batch here.
+            if (g.completed >= g.total) {
+                const result: BatchResult = { total: g.total, failed: g.failed };
+                this.generations.delete(g.id);
+                if (this.currentId === g.id) this.currentId = null;
+                this.onSealedComplete?.(result);
+            }
         }, this.SEAL_DELAY_MS);
 
         return gen.id;
