@@ -4,11 +4,10 @@
 
 ![Version](https://img.shields.io/badge/version-1.4.2-blue)
 ![Build](https://github.com/Ecosystem-Runtime/FeedDownloader/actions/workflows/build.yml/badge.svg)
-![Electron](https://img.shields.io/badge/Electron-30-47848F?logo=electron)
+![Electron](https://img.shields.io/badge/Electron-43-47848F?logo=electron)
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)
 ![Windows](https://img.shields.io/badge/Windows-0078D6?logo=windows&logoColor=white)
-![macOS](https://img.shields.io/badge/macOS-000000?logo=apple&logoColor=white)
 ![Linux](https://img.shields.io/badge/Linux-FCC624?logo=linux&logoColor=black)
 
 ## Panoramica
@@ -64,7 +63,18 @@ La cronologia completa delle versioni si trova in [`docs/changelog/`](docs/chang
 | Windows 10/11 | NSIS Installer (`.exe`) | [GitHub Releases](https://github.com/Ecosystem-Runtime/FeedDownloader-Releases/releases) |
 | Linux | AppImage / `.deb` | [GitHub Releases](https://github.com/Ecosystem-Runtime/FeedDownloader-Releases/releases) |
 
-I build sono prodotti da GitHub Actions con trigger manuale (workflow dispatch). macOS non è attualmente distribuito tramite CI.
+I build sono prodotti da GitHub Actions con trigger manuale (workflow dispatch).
+
+> **macOS non è supportato** (decisione definitiva, agosto 2026): nessun build ufficiale
+> viene distribuito né lo sarà. Chi vuole usare l'app su macOS può **auto-compilarla**
+> dai sorgenti (`npm install && npm run build` su un Mac aggiunge da sé il target,
+> ma senza firma, notarizzazione né supporto). Le piattaforme di distribuzione sono
+> Windows e Linux, come per le altre app desktop Runtime (standard Titan).
+>
+> **Code-signing (limite noto L6):** i binari Windows/Linux non sono firmati con un
+> certificato commerciale — SmartScreen può mostrare un avviso al primo avvio.
+> La firma richiede un certificato OV/EV a pagamento con verifica d'identità;
+> la valutazione resta aperta ma non è pianificata per la v1.5.0.
 
 ## Quick Start (sviluppo)
 
@@ -86,9 +96,9 @@ npm run release
 
 | Layer | Tecnologia |
 |-------|-----------|
-| Desktop | Electron 30 |
+| Desktop | Electron 43 |
 | UI | React 18 + TypeScript |
-| Build | Vite 5 |
+| Build | Vite 7 |
 | Stile | Tailwind CSS v4 |
 | Animazioni | Framer Motion |
 | Stato | Zustand 5 |
@@ -103,8 +113,8 @@ npm run release
 | Piattaforma | Requisito minimo |
 |---|---|
 | Windows | 10 / 11 (64-bit) |
-| macOS | 11.0 Big Sur o superiore |
 | Linux | Ubuntu 20.04+, Debian 11+, Fedora 34+ (o equivalente) |
+| macOS | *non supportato* — solo auto-compilazione dai sorgenti |
 
 - **RAM:** 4 GB (raccomandato)
 - **Disco:** Spazio sufficiente per gli archivi podcast
