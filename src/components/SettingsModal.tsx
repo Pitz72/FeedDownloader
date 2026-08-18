@@ -29,6 +29,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, s
     const [sidecarEnabled, setSidecarEnabled] = useState(false);
     const [id3Enabled, setId3Enabled] = useState(false);
     const [speedLimit, setSpeedLimit] = useState<number>(0);
+    const [fileSizeLimit, setFileSizeLimit] = useState<number>(0);
     const [archiveStats, setArchiveStats] = useState<ArchiveStats | null>(null);
     const [healthResult, setHealthResult] = useState<import('../../shared/types').HealthCheckResult | null>(null);
     const [isHealthChecking, setIsHealthChecking] = useState(false);
@@ -106,6 +107,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, s
             setId3Enabled(id3);
             const sl = await window.api.getSpeedLimit();
             setSpeedLimit(sl);
+            const fsl = await window.api.getFileSizeLimit();
+            setFileSizeLimit(fsl);
             const ar = await window.api.getAutoRefreshInterval();
             setAutoRefreshInterval(ar);
         } catch {
@@ -202,6 +205,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, s
         const clamped = Math.max(0, Math.floor(value));
         setSpeedLimit(clamped);
         await window.api.setSpeedLimit(clamped);
+    };
+
+    const handleFileSizeLimitChange = async (value: number) => {
+        const clamped = Math.max(0, Math.floor(value));
+        setFileSizeLimit(clamped);
+        await window.api.setFileSizeLimit(clamped);
     };
 
     const changeLanguage = (lang: string) => {
@@ -485,6 +494,28 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, s
                                                         />
                                                         <span className="text-sm" style={{ color: 'var(--color-on-surface-variant)' }}>
                                                             {speedLimit === 0 ? t('settings.speed_unlimited') : 'KB/s'}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                {/* File Size Cap (v1.5.0) */}
+                                                <div className="space-y-2">
+                                                    <label className="block text-sm" style={{ color: 'var(--color-on-surface-variant)' }}>
+                                                        {t('settings.file_size_limit')}
+                                                    </label>
+                                                    <p className="text-xs" style={{ color: 'var(--color-on-surface-variant)', opacity: 0.65 }}>{t('settings.file_size_limit_desc')}</p>
+                                                    <div className="flex items-center gap-3">
+                                                        <input
+                                                            type="number"
+                                                            min={0}
+                                                            max={102400}
+                                                            value={fileSizeLimit}
+                                                            onChange={(e) => handleFileSizeLimitChange(parseInt(e.target.value) || 0)}
+                                                            className="w-32"
+                                                            style={inputStyle}
+                                                        />
+                                                        <span className="text-sm" style={{ color: 'var(--color-on-surface-variant)' }}>
+                                                            {fileSizeLimit === 0 ? t('settings.speed_unlimited') : 'MB'}
                                                         </span>
                                                     </div>
                                                 </div>

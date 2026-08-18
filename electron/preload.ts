@@ -107,6 +107,17 @@ contextBridge.exposeInMainWorld('api', {
   getSpeedLimit: (): Promise<number> => ipcRenderer.invoke(CH.GET_SPEED_LIMIT),
   setSpeedLimit: (kbps: number): Promise<boolean> => ipcRenderer.invoke(CH.SET_SPEED_LIMIT, kbps),
 
+  // File Size Cap (v1.5.0) — MB, 0 = unlimited
+  getFileSizeLimit: (): Promise<number> => ipcRenderer.invoke(CH.GET_FILE_SIZE_LIMIT),
+  setFileSizeLimit: (mb: number): Promise<boolean> => ipcRenderer.invoke(CH.SET_FILE_SIZE_LIMIT, mb),
+
+  // v1.5.0 — clicking the new-episodes OS notification asks the renderer to open a feed
+  onOpenFeed: (callback: (event: Electron.IpcRendererEvent, feedUrl: string) => void) => {
+    const subscription = (_event: Electron.IpcRendererEvent, feedUrl: string) => callback(_event, feedUrl);
+    ipcRenderer.on(CH.OPEN_FEED, subscription);
+    return () => ipcRenderer.removeListener(CH.OPEN_FEED, subscription);
+  },
+
   // Disk Space
   checkDiskSpace: (dirPath: string): Promise<DiskSpaceInfo | null> => ipcRenderer.invoke(CH.CHECK_DISK_SPACE, dirPath),
 

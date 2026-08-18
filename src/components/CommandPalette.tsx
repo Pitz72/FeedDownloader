@@ -25,7 +25,15 @@ type FeedItem = {
     image?: string;
 };
 
-type ResultItem = ActionItem | FeedItem;
+// v1.5.0 — episodes of the currently open feed, searchable from the palette
+type EpisodeItem = {
+    kind: 'episode';
+    key: string;
+    title: string;
+    pubDate?: string;
+};
+
+type ResultItem = ActionItem | FeedItem | EpisodeItem;
 
 interface CommandPaletteProps {
     onClose: () => void;
@@ -62,6 +70,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose, onOpenS
 
     const setViewMode = useStore((s: AppState) => s.setViewMode);
     const setCurrentFeed = useStore((s: AppState) => s.setCurrentFeed);
+    const currentFeed = useStore((s: AppState) => s.currentFeed);
 
     useEffect(() => {
         window.api.getFeeds().then(setFeeds).catch(() => {});
@@ -175,9 +184,30 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose, onOpenS
         }));
     }, [q, feeds]);
 
+    // v1.5.0 — the placeholder has always promised "episodio": search the open
+    // feed's episodes by title and hand the query off to the list filter.
+    const filteredEpisodes: EpisodeItem[] = useMemo(() => {
+        if (!q || !currentFeed?.episodes?.length) return [];
+        return currentFeed.episodes
+            .filter(ep => (ep.title || '').toLowerCase().includes(q))
+            .slice(0, 8)
+            .map((ep, i) => ({
+                kind: 'episode' as const,
+                key: ep.guid || ep.enclosure?.url || `${ep.title}-${i}`,
+                title: ep.title || '—',
+                pubDate: ep.pubDate,
+            }));
+    }, [q, currentFeed]);
+
+    const handleSelectEpisode = useCallback((item: EpisodeItem) => {
+        setViewMode('feeds');
+        window.dispatchEvent(new CustomEvent('feeddownloader:search-episode', { detail: { query: item.title } }));
+        onClose();
+    }, [setViewMode, onClose]);
+
     const allResults: ResultItem[] = useMemo(
-        () => [...filteredActions, ...filteredFeeds],
-        [filteredActions, filteredFeeds]
+        () => [...filteredActions, ...filteredFeeds, ...filteredEpisodes],
+        [filteredActions, filteredFeeds, filteredEpisodes]
     );
 
     useEffect(() => { setActiveIdx(0); }, [allResults.length]);
@@ -197,6 +227,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose, onOpenS
                 if (!item) return;
                 if (item.kind === 'action') {
                     item.onSelect();
+                } else if (item.kind === 'episode') {
+                    handleSelectEpisode(item);
                 } else {
                     const feed = feeds.find(f => f.url === item.url);
                     if (feed) handleSelectFeed(feed);
@@ -205,7 +237,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose, onOpenS
         };
         window.addEventListener('keydown', onKeyDown);
         return () => window.removeEventListener('keydown', onKeyDown);
-    }, [allResults, activeIdx, feeds, handleSelectFeed, onClose]);
+    }, [allResults, activeIdx, feeds, handleSelectFeed, handleSelectEpisode, onClose]);
 
     useEffect(() => {
         const el = listRef.current?.querySelector(`[data-idx="${activeIdx}"]`) as HTMLElement | null;
@@ -311,6 +343,33 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose, onOpenS
                                             )}
                                         </span>
                                         <div className="text">{item.title}</div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
+                    {filteredEpisodes.length > 0 && (
+                        <div className="palette-section">
+                            <p className="palette-section-label">{t('cmd.group_episodes', 'Episodi (feed corrente)')}</p>
+                            {filteredEpisodes.map((item, i) => {
+                                const globalIdx = filteredActions.length + filteredFeeds.length + i;
+                                return (
+                                    <button
+                                        type="button"
+                                        key={item.key}
+                                        data-idx={globalIdx}
+                                        onClick={() => handleSelectEpisode(item)}
+                                        onMouseEnter={() => setActiveIdx(globalIdx)}
+                                        className={`palette-item ${activeIdx === globalIdx ? 'active' : ''}`}
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                            <circle cx="12" cy="12" r="10"/>
+                                            <polygon points="10 8 16 12 10 16" fill="currentColor" stroke="none"/>
+                                        </svg>
+                                        <div className="text">
+                                            {item.title}
+                                            {item.pubDate && <small>{new Date(item.pubDate).toLocaleDateString()}</small>}
+                                        </div>
                                     </button>
                                 );
                             })}

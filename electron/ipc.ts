@@ -292,7 +292,7 @@ async function runBackgroundRefresh(win: BrowserWindow) {
     if (feeds.length === 0) return;
 
     let totalNew = 0;
-    const feedsWithNew: string[] = [];
+    const feedsWithNew: { title: string; url: string }[] = [];
 
     // Bound the fan-out: a large (OPML-imported) library would otherwise open
     // hundreds/thousands of simultaneous fetches on the single feed-parser worker,
@@ -340,7 +340,7 @@ async function runBackgroundRefresh(win: BrowserWindow) {
                 const newGuids = new Set(currentGuids.filter(g => !known.has(g)));
                 if (newGuids.size > 0) {
                     totalNew += newGuids.size;
-                    feedsWithNew.push(feedEntry.title);
+                    feedsWithNew.push({ title: feedEntry.title, url: feedEntry.url });
                 }
                 // Record all current GUIDs as known for future comparisons
                 libraryService.markGuidsAsKnown(feedEntry.url, currentGuids);
@@ -385,11 +385,22 @@ async function runBackgroundRefresh(win: BrowserWindow) {
                 ? `1 nuovo episodio trovato in ${fp} podcast.`
                 : `${totalNew} nuovi episodi trovati in ${fp} podcast.`,
         };
-        new Notification({
+        const notification = new Notification({
             title: 'Runtime FeedDownloader Pro',
             body: notifBodies[uiLocale] ?? notifBodies['en'],
             icon: path.join(process.env.VITE_PUBLIC || '', 'logo.png'),
-        }).show();
+        });
+        // v1.5.0: the notification is actionable — clicking it brings the app to
+        // the front and, when the news is about a single podcast, opens that feed.
+        const singleFeedUrl = feedsWithNew.length === 1 ? feedsWithNew[0].url : null;
+        notification.on('click', () => {
+            if (!win || win.isDestroyed()) return;
+            if (!win.isVisible()) win.show();
+            if (win.isMinimized()) win.restore();
+            win.focus();
+            if (singleFeedUrl) pushEvent(win, CH.OPEN_FEED, singleFeedUrl);
+        });
+        notification.show();
     }
 }
 
@@ -704,6 +715,8 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                 }
 
                 const speedLimitKBps = libraryService.getSpeedLimit();
+                // v1.5.0 — configurable per-file cap, same infrastructure as the speed limit
+                const maxSizeBytes = libraryService.getFileSizeLimitMB() * 1024 * 1024;
                 // Throttle progress pushes to ~10 Hz: on a fast link the raw
                 // per-chunk rate is hundreds of IPC messages/sec, each triggering a
                 // store write in the renderer. The terminal states below are always
@@ -717,7 +730,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                         lastProgressTs = now;
                         pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded, total });
                     }
-                }, speedLimitKBps, 3, signal);
+                }, speedLimitKBps, 3, signal, maxSizeBytes);
 
                 let fileSize: number | undefined;
                 let checksum: string | undefined;
@@ -1360,6 +1373,18 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
     ipcMain.handle(CH.SET_SPEED_LIMIT, async (_, kbps: number) => {
         libraryService.setSpeedLimit(kbps);
+        return true;
+    });
+
+    // ── File Size Cap (v1.5.0) ────────────────────────────────
+    ipcMain.handle(CH.GET_FILE_SIZE_LIMIT, async () => {
+        return libraryService.getFileSizeLimitMB();
+    });
+
+    ipcMain.handle(CH.SET_FILE_SIZE_LIMIT, async (_, mb: number) => {
+        // L13-style guard: a malformed value must clamp, not poison the setting
+        const clean = Number.isFinite(mb) && mb >= 0 ? Math.floor(mb) : 0;
+        libraryService.setFileSizeLimitMB(clean);
         return true;
     });
 

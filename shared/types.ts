@@ -235,6 +235,11 @@ export const IPC_CHANNELS = {
     // Speed Throttle (v0.6.5)
     GET_SPEED_LIMIT: 'get-speed-limit',
     SET_SPEED_LIMIT: 'set-speed-limit',
+    // File Size Cap (v1.5.0) — MB, 0 = unlimited
+    GET_FILE_SIZE_LIMIT: 'get-file-size-limit',
+    SET_FILE_SIZE_LIMIT: 'set-file-size-limit',
+    // v1.5.0 — push: clicking the new-episodes OS notification opens this feed
+    OPEN_FEED: 'open-feed',
     // Disk Space (v0.6.9)
     CHECK_DISK_SPACE: 'check-disk-space',
     // Archive Migration (v0.6.10)

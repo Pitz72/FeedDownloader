@@ -12,6 +12,8 @@ const ERROR_CODE_MAP: Record<string, string> = {
     DISK_FULL:              'progress.error_disk_full',
     INTEGRITY_CHECK_FAILED: 'progress.error_integrity',
     PERMISSION_DENIED:      'progress.error_permission',
+    INVALID_CONTENT_TYPE:   'progress.error_content_type',
+    FILE_TOO_LARGE:         'progress.error_too_large',
 };
 
 function formatEta(seconds: number): string {

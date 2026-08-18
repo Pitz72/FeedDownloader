@@ -17,10 +17,10 @@ const isPauseSignal = (signal?: AbortSignal): boolean =>
     !!signal?.aborted && PAUSE_REASONS.has(signal.reason as string);
 
 export class DownloadService {
-    async downloadFile(url: string, outputPath: string, onProgress: (loaded: number, total: number) => void, speedLimitKBps?: number, attempts = 3, signal?: AbortSignal) {
+    async downloadFile(url: string, outputPath: string, onProgress: (loaded: number, total: number) => void, speedLimitKBps?: number, attempts = 3, signal?: AbortSignal, maxSizeBytes?: number) {
         for (let i = 0; i < attempts; i++) {
             try {
-                await this.attemptDownload(url, outputPath, onProgress, speedLimitKBps, signal);
+                await this.attemptDownload(url, outputPath, onProgress, speedLimitKBps, signal, maxSizeBytes);
                 return; // Success
             } catch (error: unknown) {
                 const err = error as { code?: string; message?: string; retryAfterMs?: number };
@@ -42,6 +42,14 @@ export class DownloadService {
                 if (err.code === 'EPERM' || err.code === 'EACCES') throw new Error("PERMISSION_DENIED: Access denied to write file.");
                 if (err.message === 'DISK_FULL') throw error;
                 if (err.message === 'EPISODE_NOT_FOUND') throw error;
+                // v1.5.0: both are permanent verdicts about THIS enclosure — the
+                // server sends HTML instead of audio, or the file exceeds the
+                // configured cap. Retrying cannot change either.
+                if (err.message === 'INVALID_CONTENT_TYPE' || err.message === 'FILE_TOO_LARGE') {
+                    await fs.remove(`${outputPath}.part`).catch(() => { });
+                    await fs.remove(`${outputPath}.part.meta`).catch(() => { });
+                    throw error;
+                }
                 // M3: timeouts and stalls are typically transient (a 60s network
                 // gap) — they now go through the retry loop and, since the .part
                 // is kept, the next attempt resumes instead of restarting.
@@ -68,7 +76,7 @@ export class DownloadService {
         }
     }
 
-    private async attemptDownload(url: string, outputPath: string, onProgress: (loaded: number, total: number) => void, speedLimitKBps?: number, signal?: AbortSignal) {
+    private async attemptDownload(url: string, outputPath: string, onProgress: (loaded: number, total: number) => void, speedLimitKBps?: number, signal?: AbortSignal, maxSizeBytes?: number) {
         const tempPath = `${outputPath}.part`;
         // S1: resuming blindly can splice bytes of a *changed* remote file onto a
         // stale prefix — silent audio corruption. The validator (ETag or
@@ -152,6 +160,17 @@ export class DownloadService {
                 throw httpError; // retryable transient
             }
 
+            // v1.5.0: an enclosure that serves a markup page (error page, consent
+            // wall, dead link behind a CDN) must never be saved as audio. Only
+            // clearly-textual types are rejected — plenty of hosts legitimately
+            // serve audio as application/octet-stream or with no type at all.
+            const contentType = String(response.headers['content-type'] ?? '').toLowerCase();
+            if (/^(text\/html|application\/xhtml|text\/xml|application\/xml)/.test(contentType)) {
+                response.data?.destroy?.();
+                await removeTemp();
+                throw new Error('INVALID_CONTENT_TYPE');
+            }
+
             const isResuming = resumedBytes > 0 && status === 206;
 
             // server ignored Range, or If-Range detected a changed file (200 not
@@ -180,6 +199,15 @@ export class DownloadService {
             const totalBytes = isResuming
                 ? (rangeTotal ? parseInt(rangeTotal) : (contentLength ? resumedBytes + parseInt(contentLength) : 0))
                 : (contentLength ? parseInt(contentLength) : 0);
+
+            // v1.5.0: configurable size cap. When the server declares the size,
+            // reject before writing a byte; without a declared size the guard
+            // below (in the data handler) enforces it while streaming.
+            if (maxSizeBytes && maxSizeBytes > 0 && totalBytes > maxSizeBytes) {
+                response.data?.destroy?.();
+                await removeTemp();
+                throw new Error('FILE_TOO_LARGE');
+            }
 
             let loaded = resumedBytes; // Start progress counter from resume offset
 
@@ -250,6 +278,15 @@ export class DownloadService {
                 const progressSource: NodeJS.EventEmitter = throttle ?? response.data;
                 progressSource.on('data', (chunk: Buffer) => {
                     loaded += chunk.length;
+                    // v1.5.0: streaming size cap for servers that send no
+                    // Content-Length — stop as soon as the cap is crossed.
+                    if (maxSizeBytes && maxSizeBytes > 0 && loaded > maxSizeBytes) {
+                        response.data?.destroy?.();
+                        writer?.destroy?.();
+                        throttle?.destroy?.();
+                        fail(new Error('FILE_TOO_LARGE'));
+                        return;
+                    }
                     onProgress(loaded, totalBytes);
                 });
 

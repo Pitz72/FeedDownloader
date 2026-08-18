@@ -278,6 +278,67 @@ describe('DownloadService', () => {
         expect(fs.rename).toHaveBeenCalled();
     });
 
+    // ── Content-Type guard (v1.5.0) ──────────────────────────────
+    it('rejects a text/html response as INVALID_CONTENT_TYPE without retrying', async () => {
+        const dataStream = createMockDataStream([]);
+        (axios as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+            status: 200,
+            headers: { 'content-type': 'text/html; charset=utf-8', 'content-length': '512' },
+            data: dataStream,
+        });
+
+        await expect(
+            service.downloadFile('https://cdn.com/ep.mp3', '/tmp/ep.mp3', vi.fn())
+        ).rejects.toThrow('INVALID_CONTENT_TYPE');
+        expect(axios).toHaveBeenCalledTimes(1); // permanent verdict — no retry
+        expect(fs.remove).toHaveBeenCalledWith('/tmp/ep.mp3.part');
+    });
+
+    it('accepts application/octet-stream (hosts often mislabel audio)', async () => {
+        const chunk = Buffer.from('audio bytes');
+        const dataStream = createMockDataStream([chunk]);
+        (axios as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+            status: 200,
+            headers: { 'content-type': 'application/octet-stream', 'content-length': String(chunk.length) },
+            data: dataStream,
+        });
+
+        const p = service.downloadFile('https://cdn.com/ep.mp3', '/tmp/ep.mp3', vi.fn());
+        await new Promise(r => setTimeout(r, 20));
+        mockWriter.emit('finish');
+        await p;
+        expect(fs.rename).toHaveBeenCalled();
+    });
+
+    // ── File size cap (v1.5.0) ───────────────────────────────────
+    it('rejects a declared Content-Length above the cap as FILE_TOO_LARGE, no retry', async () => {
+        const dataStream = createMockDataStream([]);
+        (axios as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+            status: 200,
+            headers: { 'content-length': String(10 * 1024 * 1024) }, // 10 MB
+            data: dataStream,
+        });
+
+        await expect(
+            service.downloadFile('https://cdn.com/ep.mp3', '/tmp/ep.mp3', vi.fn(), undefined, 3, undefined, 5 * 1024 * 1024)
+        ).rejects.toThrow('FILE_TOO_LARGE');
+        expect(axios).toHaveBeenCalledTimes(1);
+        expect(fs.remove).toHaveBeenCalledWith('/tmp/ep.mp3.part');
+    });
+
+    it('enforces the cap while streaming when the server sends no Content-Length', async () => {
+        const dataStream = createMockDataStream([Buffer.alloc(600), Buffer.alloc(600)]);
+        (axios as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+            status: 200,
+            headers: {}, // no content-length
+            data: dataStream,
+        });
+
+        await expect(
+            service.downloadFile('https://cdn.com/ep.mp3', '/tmp/ep.mp3', vi.fn(), undefined, 3, undefined, 1000)
+        ).rejects.toThrow('FILE_TOO_LARGE');
+    });
+
     // ── Pause/Resume (v1.5.0) ────────────────────────────────────
     // Helper: a stream that starts but never finishes, so the abort can land mid-flight.
     function createHangingDataStream() {

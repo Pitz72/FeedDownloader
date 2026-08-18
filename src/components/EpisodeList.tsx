@@ -294,6 +294,18 @@ export const EpisodeList: React.FC = () => {
 
     const [isSyncing, setIsSyncing] = useState(false);
 
+    // v1.5.0 — the Command Palette hands an episode search off to the list
+    // filter: same matching pipeline, one source of truth for what's shown.
+    useEffect(() => {
+        const onSearchEpisode = (e: Event) => {
+            const query = (e as CustomEvent<{ query?: string }>).detail?.query ?? '';
+            setSearchQuery(query);
+            setTimeout(() => document.getElementById('episode-filter-input')?.focus(), 120);
+        };
+        window.addEventListener('feeddownloader:search-episode', onSearchEpisode);
+        return () => window.removeEventListener('feeddownloader:search-episode', onSearchEpisode);
+    }, []);
+
     // G4 — Episode detail panel
     const [detailEpisode, setDetailEpisode] = useState<Episode | null>(null);
     const detailUrl = detailEpisode ? getEnclosureUrl(detailEpisode) : null;

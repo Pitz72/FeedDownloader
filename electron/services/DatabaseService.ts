@@ -715,6 +715,16 @@ export class DatabaseService {
         this.setSetting('speedLimitKBps', String(Math.max(0, Math.floor(kbps))));
     }
 
+    // v1.5.0 — per-file size cap in MB (0 = unlimited), same shape as the speed limit
+    getFileSizeLimitMB(): number {
+        const parsed = parseInt(this.getSetting('fileSizeLimitMB') ?? '', 10);
+        return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+    }
+
+    setFileSizeLimitMB(mb: number): void {
+        this.setSetting('fileSizeLimitMB', String(Math.max(0, Math.floor(mb))));
+    }
+
     getAutoRefreshInterval(): number {
         const val = this.getSetting('autoRefreshInterval');
         const parsed = val ? parseInt(val, 10) : 0;

@@ -62,6 +62,11 @@ declare global {
             // Speed Throttle
             getSpeedLimit: () => Promise<number>;
             setSpeedLimit: (kbps: number) => Promise<boolean>;
+            // File Size Cap (v1.5.0) — MB, 0 = unlimited
+            getFileSizeLimit: () => Promise<number>;
+            setFileSizeLimit: (mb: number) => Promise<boolean>;
+            // v1.5.0 — open-feed push from the new-episodes notification
+            onOpenFeed: (callback: (event: Electron.IpcRendererEvent, feedUrl: string) => void) => () => void;
             // Disk Space
             checkDiskSpace: (dirPath: string) => Promise<DiskSpaceInfo | null>;
             // Archive Migration

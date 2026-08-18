@@ -187,6 +187,10 @@ export class LibraryService {
     getSpeedLimit(): number { return this.db.getSpeedLimit(); }
     setSpeedLimit(kbps: number): void { this.db.setSpeedLimit(kbps); }
 
+    // v1.5.0 — per-file size cap (MB, 0 = unlimited)
+    getFileSizeLimitMB(): number { return this.db.getFileSizeLimitMB(); }
+    setFileSizeLimitMB(mb: number): void { this.db.setFileSizeLimitMB(mb); }
+
     getAutoRefreshInterval(): number { return this.db.getAutoRefreshInterval(); }
     setAutoRefreshInterval(hours: number): void { this.db.setAutoRefreshInterval(hours); }
     /** N2: false when the user has never chosen an interval → seed a default. */

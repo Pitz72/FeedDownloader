@@ -75,6 +75,20 @@ function AppContent() {
     return () => removeListener();
   }, [setBatchFailed]);
 
+  // v1.5.0 — clicking the new-episodes OS notification opens the feed it's about
+  useEffect(() => {
+    const removeListener = window.api.onOpenFeed((_event, feedUrl) => {
+      window.api.parseFeed(feedUrl)
+        .then(parsed => {
+          const { setCurrentFeed, setViewMode } = useStore.getState();
+          setCurrentFeed({ ...parsed, url: feedUrl });
+          setViewMode('feeds');
+        })
+        .catch(() => { /* feed temporarily unreachable — the app is focused anyway */ });
+    });
+    return () => removeListener();
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!(e.ctrlKey || e.metaKey)) return;
