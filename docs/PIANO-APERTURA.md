@@ -206,6 +206,12 @@ dalla configurazione di publish e deve già puntare alla destinazione definitiva
 - [x] **Asset verificati.** Scaricati i tre installer dalla release pubblicata e ricalcolato lo
       **SHA-512** di ciascuno: coincide con quello dichiarato in `latest.yml` e `latest-linux.yml`.
       I metadati di aggiornamento sono quindi coerenti con i file effettivamente pubblicati.
+- [x] ✅ **AUTO-UPDATE COLLAUDATO SUL CAMPO (18/08).** Con la **v1.5.1**, prima release dopo
+      l'apertura, l'installazione v1.5.0 ha visto l'aggiornamento su `Pitz72/FeedDownloader`, l'ha
+      scaricato e installato. È la prova che la catena definitiva regge: nessuna repo ponte, il
+      `GITHUB_TOKEN` integrato al posto del PAT, e il download che risolve (il bug storico del 404
+      da `artifactName` con gli spazi resta chiuso). La voce qui sotto spiega perché non era
+      collaudabile con la v1.5.0 stessa.
 - [x] **Auto-update dalla 1.4.2 installata: non applicabile, e va bene così.** L'`app-update.yml`
       dell'app installata punta ancora a `Ecosystem-Runtime/FeedDownloader-Releases` — quel file
       viene cablato nel pacchetto al momento della build, quindi una release solo sulla repo
