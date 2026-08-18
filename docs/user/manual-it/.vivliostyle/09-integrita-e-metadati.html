@@ -20,12 +20,11 @@
         <ol>
           <li>Calcola l'hash SHA-256 del file al termine del download.</li>
           <li>Salva l'hash nel database, insieme al percorso del file e alla data di calcolo.</li>
-          <li>Se il feed RSS include un hash di riferimento (alcuni feed moderni includono il campo <code>&lt;podcast:integrity&gt;</code>), lo confronta con quello calcolato. In caso di discrepanza, il file viene marcato come <strong>"Corrotto"</strong> e reinserito in coda per un nuovo download.</li>
         </ol>
         <p><strong>Utilizzi pratici:</strong></p>
         <ul>
-          <li>È possibile verificare in qualsiasi momento futuro che un file non sia stato modificato, corrotto o sostituito: basta ricalcolare l'hash e confrontarlo con quello registrato nel database.</li>
-          <li>Dopo lo spostamento dei file su un nuovo disco o una migrazione, il <strong>Health Check</strong> (vedi la sezione 9.4) consente di verificare che tutti i file siano ancora presenti.</li>
+          <li>Il <strong>Health Check</strong> (vedi la sezione 9.4) ricalcola l'hash di ogni file presente e lo confronta con quello registrato: qualsiasi modifica, corruzione o sostituzione successiva al download viene rilevata.</li>
+          <li>La funzione <strong>"Ripara archivio (ricerca per checksum)"</strong> usa lo stesso hash per ritrovare i file rinominati a mano (vedi la sezione 9.4).</li>
           <li>In contesti professionali, l'hash SHA-256 costituisce un riferimento verificabile dell'integrità del contenuto al momento del download.</li>
         </ul>
         <hr>
@@ -65,12 +64,17 @@
       </section>
       <section class="level2">
         <h2 id="94-health-check-verifica-dellintegrità-dellarchivio">9.4 Health Check: Verifica dell'Integrità dell'Archivio</h2>
-        <p>Nel tempo, un archivio può subire modifiche esterne al software: file spostati o eliminati direttamente dal filesystem. Il <strong>Health Check</strong> verifica lo stato dell'archivio rispetto a quanto registrato nel database.</p>
+        <p>Nel tempo, un archivio può subire modifiche esterne al software: file spostati, rinominati, eliminati o corrotti direttamente dal filesystem. Il <strong>Health Check</strong> verifica lo stato dell'archivio rispetto a quanto registrato nel database.</p>
         <p>
           <strong>Come eseguire il Health Check:</strong>
-          Andare in <strong>Impostazioni → Archivio → Health Check</strong> e cliccare su <strong>"Avvia Verifica"</strong>.
+          Andare in <strong>Impostazioni → Archivio → Health Check Archivio</strong> e cliccare su <strong>"Avvia Verifica"</strong>.
         </p>
-        <p>Il processo analizza ogni file registrato nel database e verifica che il file esista ancora nel percorso registrato. Al termine, viene mostrato un riepilogo con tre indicatori:</p>
+        <p>Il processo esegue due controlli su ogni file registrato nel database:</p>
+        <ol>
+          <li><strong>Presenza:</strong> verifica che il file esista ancora nel percorso registrato.</li>
+          <li><strong>Integrità reale:</strong> per i file presenti, ricalcola l'hash SHA-256 e lo confronta con quello registrato al momento del download. Un file modificato o danneggiato viene segnalato come <strong>corrotto</strong> ("checksum non corrispondente"), con l'invito a riscaricare gli episodi interessati.</li>
+        </ol>
+        <p>Al termine, viene mostrato un riepilogo con quattro indicatori:</p>
         <table>
           <thead>
             <tr>
@@ -80,21 +84,28 @@
           </thead>
           <tbody>
             <tr>
-              <td><strong>Totale</strong></td>
+              <td><strong>Nel DB</strong></td>
               <td>Numero totale di episodi nel database</td>
             </tr>
             <tr>
-              <td><strong>Presenti</strong></td>
+              <td><strong>Su disco</strong></td>
               <td>File che esistono nel percorso registrato</td>
             </tr>
             <tr>
               <td><strong>Mancanti</strong></td>
               <td>File non trovati nel percorso registrato</td>
             </tr>
+            <tr>
+              <td><strong>Spazio occupato</strong></td>
+              <td>Spazio disco totale dei file presenti</td>
+            </tr>
           </tbody>
         </table>
-        <p>La schermata mostra anche lo <strong>spazio disco totale</strong> occupato dai file presenti.</p>
-        <p>In presenza di file mancanti, il software elenca i primi 5 con il nome del podcast e il nome del file. Per recuperare un file mancante, utilizzare la funzione <strong>"Forza Re-Download"</strong> disponibile dal menu contestuale dell'episodio nella lista principale.</p>
+        <p>In presenza di file mancanti, il software elenca i primi 5 con il nome del podcast e il nome del file, e offre due azioni:</p>
+        <ul>
+          <li><strong>"Ripara archivio (ricerca per checksum)":</strong> Cerca nelle cartelle dei podcast eventuali file <strong>rinominati a mano</strong>: ogni file candidato viene identificato tramite l'hash SHA-256 registrato e, in caso di corrispondenza, viene riagganciato al database con il nuovo nome — senza riscaricare nulla. Al termine viene mostrato il riepilogo <em>"N file riagganciati, M non ritrovati"</em>.</li>
+          <li><strong>"Segna come non scaricati":</strong> Rimuove dal registro i file davvero mancanti, che tornano così con il tag <strong>"NUOVO"</strong> nella lista episodi e possono essere riscaricati con i normali controlli (pulsante <strong>"Scarica"</strong> o <strong>"Scarica Tutto"</strong>).</li>
+        </ul>
         <hr>
       </section>
       <section class="level2">
@@ -180,7 +191,7 @@
           <li>Al termine viene mostrato un riepilogo: numero di file spostati ed eventuali errori.</li>
         </ol>
         <p><em>Attenzione:</em> La migrazione sposta i file dalla cartella corrente a quella nuova. I file vengono rimossi dalla posizione originale. Verificare che il disco di destinazione disponga di spazio sufficiente prima di avviare l'operazione.</p>
-        <p><em>Spostamento su un nuovo computer:</em> Copiare sia la cartella dei file audio sia il file <code>feeddownloader.db</code> (dalla cartella dati utente descritta nel Capitolo 2). Sul nuovo computer, installare FeedDownloader Pro, copiare il database nella cartella dati utente e utilizzare la funzione di migrazione se il percorso dell'archivio è cambiato.</p>
+        <p><em>Spostamento su un nuovo computer:</em> Copiare sia la cartella dei file audio sia il file <code>feeddownloader.sqlite</code> (dalla cartella dati utente descritta nel Capitolo 2). Sul nuovo computer, installare FeedDownloader Pro, copiare il database nella cartella dati utente e utilizzare la funzione di migrazione se il percorso dell'archivio è cambiato.</p>
         <hr>
         <p><em>Vai al Capitolo 10 per le impostazioni avanzate del software.</em></p>
       </section>

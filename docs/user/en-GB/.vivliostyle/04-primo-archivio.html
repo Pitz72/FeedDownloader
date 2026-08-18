@@ -75,7 +75,7 @@
         <p>Two download modes are available.</p>
         <p>
           <strong>Mode A — Full download:</strong>
-          Click <strong>"Download All"</strong>. The software adds all episodes in <strong>"To Download"</strong> status to the queue and starts the downloads in parallel. The number of simultaneous downloads depends on the thread setting (see Chapter 10; the default value is 3).
+          Click <strong>"Download All"</strong>. The software adds all episodes with the <strong>"NEW"</strong> tag to the queue and starts the downloads in parallel. The number of simultaneous downloads depends on the <strong>"Parallel Downloads"</strong> setting (see Chapter 10; the default value is 3).
         </p>
         <p>
           <strong>Mode B — Selective download:</strong>
@@ -111,7 +111,7 @@
             <p><strong>Export a CSV summary:</strong> Go to <strong>Settings → Archive → Export CSV</strong>. The generated file lists all downloaded episodes with SHA-256 hashes, sizes, and metadata (see Chapter 9).</p>
           </li>
           <li>
-            <p><strong>Verify files on disk:</strong> Open the destination folder in the file manager. Audio files are organised according to the configured rename template (see Chapter 8). The presence of <code>.part</code> files indicates interrupted downloads, which will be completed the next time the batch is started.</p>
+            <p><strong>Verify files on disk:</strong> Open the destination folder in the file manager. Audio files are organised according to the configured rename template (see Chapter 8). The presence of <code>.part</code> files indicates interrupted or paused downloads: re-queueing the same episodes resumes the transfer from where it stopped. Orphaned <code>.part</code> files can be removed via <strong>Settings → Advanced → Clean temporary files</strong>.</p>
           </li>
         </ol>
         <hr>
@@ -123,12 +123,12 @@
         <ol>
           <li>Click the feed in the sidebar to select it.</li>
           <li>Hover over the entry and click the sync icon, or use the <strong>"Sync All"</strong> button to refresh the whole library in parallel.</li>
-          <li>New episodes appear as <strong>"To Download"</strong>; those already present remain as <strong>"Downloaded"</strong>.</li>
+          <li>New episodes appear with the <strong>"NEW"</strong> tag (and the feed shows the <strong>"TO DOWNLOAD"</strong> badge in the sidebar); those already present remain <strong>"ARCHIVED"</strong>.</li>
           <li>Click <strong>"Download All"</strong> to download only the new episodes.</li>
         </ol>
         <p><strong>Feed not yet in the library:</strong></p>
         <p>Paste the RSS URL into the URL field at the top of the interface and click <strong>"Analyse"</strong>: the feed is added to the library and the list is populated with the current status.</p>
-        <p>The system never downloads the same episode twice. Periodic automatic refresh can also be configured (see Chapter 10 and section 5.9).</p>
+        <p>The system never downloads the same episode twice. The automatic new-episode check is enabled by default every 6 hours (see Chapter 10 and section 5.9).</p>
         <hr>
         <p><em>Go to Chapter 5 to learn more about feed management and OPML features.</em></p>
       </section>

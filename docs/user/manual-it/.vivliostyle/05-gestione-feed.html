@@ -41,7 +41,7 @@
         <p>FeedDownloader Pro mantiene una <strong>libreria permanente dei feed</strong>. Ogni feed analizzato viene salvato nella barra laterale e rimane disponibile tra le sessioni, senza necessità di reinserire l'URL ad ogni avvio.</p>
         <section class="level3">
           <h3 id="visualizzazione">Visualizzazione</h3>
-          <p>Ogni elemento della libreria mostra: la copertina del podcast (thumbnail), il titolo, la data dell'ultima sincronizzazione con il server e un badge numerico che indica quanti episodi sono stati pubblicati dopo l'ultimo download. Il badge scompare non appena tutti i nuovi episodi vengono scaricati.</p>
+          <p>Ogni elemento della libreria mostra: la copertina del podcast (thumbnail), il titolo, la data dell'ultima sincronizzazione con il server e il badge <strong>"DA SCARICARE"</strong> (es. <code>3 DA SCARICARE</code>), che indica quanti episodi nuovi sono stati rilevati tramite il loro identificatore univoco (GUID). Il badge scompare non appena tutti i nuovi episodi vengono scaricati.</p>
           <p>Cliccando su un feed nella barra laterale, la lista degli episodi si aggiorna immediatamente nell'area principale.</p>
         </section>
         <section class="level3">
@@ -90,7 +90,8 @@
         <h2 id="57-feed-di-grandi-dimensioni">5.7 Feed di Grandi Dimensioni</h2>
         <p>Alcuni podcast storici o archivi di produzione radiofonica possono avere feed con migliaia di episodi e file RSS di dimensioni considerevoli. In questi casi:</p>
         <ul>
-          <li><strong>L'analisi iniziale richiede più tempo:</strong> Un feed con 2.000 episodi può richiedere 15–30 secondi per il download e il parsing. Questo comportamento è atteso.</li>
+          <li><strong>Paginazione RFC 5005:</strong> Molte piattaforme pubblicano nel feed solo gli episodi più recenti e suddividono l'archivio storico in più pagine collegate tra loro (standard RFC 5005, link <code>rel="next"</code>). FeedDownloader Pro segue automaticamente questi collegamenti e ricompone l'intero catalogo in un'unica lista, senza intervento dell'utente. Ogni link di paginazione è sottoposto agli stessi controlli di sicurezza degli URL inseriti manualmente.</li>
+          <li><strong>L'analisi iniziale richiede più tempo:</strong> Un feed con 2.000 episodi (o suddiviso in molte pagine) può richiedere 15–30 secondi per il download e il parsing. Questo comportamento è atteso.</li>
           <li><strong>Virtualizzazione della lista:</strong> Con migliaia di voci, la lista carica solo le righe visibili a schermo per mantenere l'interfaccia reattiva.</li>
           <li><strong>Stima dello spazio necessario:</strong> Con 2.000 episodi a circa 50 MB ciascuno, il volume totale è di circa 100 GB. Verificare la disponibilità di spazio sufficiente prima di procedere.</li>
         </ul>
@@ -107,7 +108,7 @@
           <h3 id="sincronizzare-i-feed">Sincronizzare i feed</h3>
           <ul>
             <li><strong>Sincronizzazione individuale:</strong> Passare il mouse su un elemento feed nella barra laterale per visualizzare l'icona di sincronizzazione. Cliccandola, il software rilegge quel feed dal server e aggiorna la lista con gli eventuali nuovi episodi.</li>
-            <li><strong>Sincronizza tutti:</strong> Il pulsante "Sincronizza tutti" aggiorna tutti i feed in parallelo con un'unica operazione. Durante il processo, ogni thumbnail nella barra laterale mostra il proprio stato in tempo reale. Al termine, eventuali nuovi episodi vengono evidenziati con il badge episodi nuovi.</li>
+            <li><strong>Sincronizza Tutti:</strong> Il pulsante <strong>"Sincronizza Tutti"</strong> aggiorna tutti i feed in parallelo con un'unica operazione. Durante il processo, ogni thumbnail nella barra laterale mostra il proprio stato in tempo reale. Al termine, eventuali nuovi episodi vengono evidenziati con il badge <strong>"DA SCARICARE"</strong>.</li>
           </ul>
           <p>Per l'aggiornamento automatico programmato senza intervento manuale, vedi la sezione 5.9.</p>
           <hr>
@@ -115,10 +116,15 @@
       </section>
       <section class="level2">
         <h2 id="59-aggiornamento-automatico-dei-feed">5.9 Aggiornamento Automatico dei Feed</h2>
-        <p>FeedDownloader Pro può sincronizzare automaticamente tutti i feed a intervalli regolari, in background, senza richiedere alcuna azione da parte dell'utente.</p>
+        <p>FeedDownloader Pro sincronizza automaticamente tutti i feed in background, senza richiedere alcuna azione da parte dell'utente. Il controllo avviene:</p>
+        <ul>
+          <li><strong>all'avvio</strong> dell'applicazione (pochi secondi dopo l'apertura);</li>
+          <li><strong>a intervalli regolari</strong> (impostazione "Aggiornamento Automatico Feed");</li>
+          <li><strong>al ritorno della connessione</strong>, dopo un periodo offline.</li>
+        </ul>
         <section class="level3">
           <h3 id="configurazione">Configurazione</h3>
-          <p>L'impostazione si trova in <strong>Impostazioni → Generale → Aggiornamento automatico feed</strong>. Sono disponibili quattro opzioni:</p>
+          <p>L'impostazione si trova in <strong>Impostazioni → Generale → Aggiornamento Automatico Feed</strong>. Sono disponibili quattro opzioni:</p>
           <table>
             <thead>
               <tr>
@@ -128,20 +134,20 @@
             </thead>
             <tbody>
               <tr>
-                <td><strong>Disattivato</strong> (predefinito)</td>
-                <td>Nessuna sincronizzazione automatica.</td>
+                <td><strong>Disattivato</strong></td>
+                <td>Nessuna sincronizzazione ciclica (resta il controllo all'avvio).</td>
               </tr>
               <tr>
-                <td><strong>Ogni 6 ore</strong></td>
-                <td>Il software sincronizza tutti i feed ogni 6 ore dall'avvio.</td>
+                <td><strong>6 ore</strong> (predefinito)</td>
+                <td>Il software sincronizza tutti i feed ogni 6 ore.</td>
               </tr>
               <tr>
-                <td><strong>Ogni 12 ore</strong></td>
-                <td>Il software sincronizza tutti i feed ogni 12 ore dall'avvio.</td>
+                <td><strong>12 ore</strong></td>
+                <td>Il software sincronizza tutti i feed ogni 12 ore.</td>
               </tr>
               <tr>
-                <td><strong>Ogni 24 ore</strong></td>
-                <td>Il software sincronizza tutti i feed una volta ogni 24 ore dall'avvio.</td>
+                <td><strong>24 ore</strong></td>
+                <td>Il software sincronizza tutti i feed una volta ogni 24 ore.</td>
               </tr>
             </tbody>
           </table>
@@ -149,8 +155,8 @@
         </section>
         <section class="level3">
           <h3 id="comportamento">Comportamento</h3>
-          <p>L'aggiornamento automatico <strong>non avvia download</strong>: si limita a verificare se sono stati pubblicati nuovi episodi. Se durante la sincronizzazione automatica vengono trovati nuovi episodi su uno o più feed, il sistema invia una <strong>notifica del sistema operativo</strong> con il riepilogo dei contenuti trovati (disponibile in tutte e 8 le lingue supportate).</p>
-          <p>Per scaricare i nuovi episodi segnalati, aprire il software e usare i normali controlli del batch.</p>
+          <p>L'aggiornamento automatico <strong>non avvia download</strong>: si limita a verificare se sono stati pubblicati nuovi episodi. Se vengono trovati nuovi episodi su uno o più feed, il sistema invia una <strong>notifica del sistema operativo</strong> con il riepilogo dei contenuti trovati (in italiano o in inglese, secondo la lingua dell'interfaccia). La notifica è <strong>cliccabile</strong>: porta l'applicazione in primo piano e, se i nuovi episodi riguardano un solo podcast, apre direttamente quel feed.</p>
+          <p>Per scaricare i nuovi episodi segnalati, usare i normali controlli del batch.</p>
           <hr>
           <p><em>Vai al Capitolo 6 per una descrizione dettagliata del motore di download.</em></p>
         </section>

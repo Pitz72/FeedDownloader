@@ -10,7 +10,7 @@
       <section class="level2">
         <h2 id="111-how-to-use-this-chapter">11.1 How to Use This Chapter</h2>
         <p>This chapter collects the most common problems reported by users, with the most likely causes and step-by-step solutions. Each problem is described in the way it manifests in the interface, not in internal technical terms.</p>
-        <p>If the problem is not in this list, consult the log files in the <code>logs/</code> folder (see Chapter 10) and contact support attaching the log from the session in which the problem occurred.</p>
+        <p>If the problem is not in this list, contact support describing the steps that reproduce it and the error message displayed.</p>
         <hr>
       </section>
       <section class="level2">
@@ -34,14 +34,15 @@
           <ul>
             <li><strong>The feed contains no episodes.</strong> Open the URL in the browser and verify that the XML document contains <code>&lt;item&gt;</code> or <code>&lt;entry&gt;</code> tags. If they are not present, the podcast has not yet published any episodes.</li>
             <li><strong>The feed uses a non-standard format.</strong> FeedDownloader Pro supports RSS 2.0 and Atom 1.0. Some feeds produced by proprietary platforms may have an unconventional structure. In this case, the software displays a specific warning in the analysis message.</li>
-            <li><strong>All episodes are already in the database.</strong> If the feed has been analysed previously, episodes appear with <strong>"Downloaded"</strong> status (muted green). Scroll through the list and check for this status indicator.</li>
+            <li><strong>All episodes are already in the database.</strong> If the feed has been analysed previously, episodes appear with the <strong>"ARCHIVED"</strong> tag. Scroll through the list and check for this indicator, or use the <strong>"Downloaded"</strong> status filter.</li>
           </ul>
           <hr>
         </section>
         <section class="level3">
           <h3 id="problem-the-feed-shows-only-the-last-n-episodes-and-not-the-full-historical-catalogue">Problem: The feed shows only the last N episodes and not the full historical catalogue</h3>
           <p><strong>How it manifests:</strong> You analyse a podcast with hundreds of known episodes, but the list shows only 50 or 100.</p>
-          <p><strong>Cause:</strong> This limit is imposed by the podcast publisher or its hosting platform, not by FeedDownloader Pro. Many platforms limit the RSS feed to the last 50–100 episodes to reduce the load on their servers. The software downloads exactly the data that the feed makes available.</p>
+          <p><strong>Cause:</strong> This limit is imposed by the podcast publisher or its hosting platform, not by FeedDownloader Pro. Many platforms limit the RSS feed to the last 50–100 episodes to reduce the load on their servers.</p>
+          <p><strong>What the software already does:</strong> If the platform publishes the historical archive in multiple linked pages following the <strong>RFC 5005</strong> standard (<code>rel="next"</code> links), FeedDownloader Pro follows them automatically and reassembles the entire catalogue. The limit only arises when the feed offers no pagination at all.</p>
           <p><strong>Possible alternatives:</strong></p>
           <ul>
             <li>Check whether the podcast offers a "full feed" as an alternative URL (some platforms make this available).</li>
@@ -91,10 +92,11 @@
           <p><strong>Cause:</strong> This should not occur thanks to the <code>.part</code> file mechanism and size verification. If it does happen, the original file on the server may already be corrupted (a publisher issue), or a disk write error occurred.</p>
           <p><strong>Solution:</strong></p>
           <ol>
-            <li>Right-click on the episode in the list → <strong>"Force Re-Download"</strong>.</li>
+            <li>Hover over the episode in the list and click <strong>"Re-download"</strong> (also available in the Detail Panel).</li>
             <li>If the re-downloaded file is still corrupted, the problem lies with the source file on the podcast server. Verify this by opening the file URL directly in the browser.</li>
-            <li>Run a Health Check (see Chapter 9) to verify whether other files in the archive have problems.</li>
+            <li>Run a Health Check (see Chapter 9): the SHA-256 verification flags every file in the archive whose content no longer matches what was recorded at download time.</li>
           </ol>
+          <p><em>Note:</em> Since v1.5.0 the software also rejects non-audio enclosures: if the server sends a web page instead of the file, the download fails with the message <em>"The server sent a web page, not audio"</em> instead of saving an unusable file.</p>
           <hr>
         </section>
       </section>
@@ -133,7 +135,7 @@
           <p><strong>How it manifests:</strong> Clicks take 1–2 seconds to respond, scrolling through the list is jerky, the programme appears slow.</p>
           <p><strong>Likely causes:</strong></p>
           <ul>
-            <li><strong>Large database.</strong> With tens of thousands of episodes in the database, some operations may slow down. Consider using <strong>Reset Database</strong> (<strong>Settings → Advanced</strong>) only if the archive contains many episodes in error status or data that you do not intend to recover.</li>
+            <li><strong>Large database.</strong> With tens of thousands of episodes in the database, some operations may slow down. Consider using <strong>"Reset Download History"</strong> (<strong>Settings → Advanced</strong>) only if the archive contains many episodes in error status or data that you do not intend to recover.</li>
             <li><strong>High number of threads on hardware with limited RAM.</strong> With 5 active threads on a system with less than 4 GB of RAM, the process may be slow. Reduce threads to 1 or 3.</li>
             <li><strong>Antivirus scanning <code>.part</code> files in real time.</strong> Some security software intercepts every disk write operation, slowing downloads. Add the destination folder to the antivirus exclusions.</li>
           </ul>
@@ -144,8 +146,8 @@
           <p><strong>How it manifests:</strong> The programme is started, the process briefly appears in the Task Manager but then disappears without the interface being displayed.</p>
           <p><strong>Solutions:</strong></p>
           <ol>
-            <li><strong>Check the logs.</strong> Access the <code>%APPDATA%\FeedDownloaderPro\logs\</code> folder (Windows) or <code>~/.config/FeedDownloaderPro/logs/</code> (Linux). Open the most recent log file with a text editor: the last line should indicate the cause of the problem.</li>
-            <li><strong>Corrupted database.</strong> If the log indicates a SQLite error on startup, the <code>feeddownloader.db</code> file may be corrupted. Replace it with a backup (see Chapter 9). If no backup is available, rename it to <code>feeddownloader.db.bak</code>: the software will create a new empty database on the next startup (with loss of history).</li>
+            <li><strong>Corrupted database — automatic recovery.</strong> If the <code>feeddownloader.sqlite</code> file turns out to be corrupted at startup, the software automatically sets it aside by renaming it <code>feeddownloader.sqlite.corrupt-[date]</code> and starts with a fresh database: the application launches anyway.</li>
+            <li><strong>Guided restore.</strong> On the first launch after a recovery (current database empty and a <code>.corrupt-*</code> backup present), the software shows the dialogue <em>"A backup of a damaged database was found."</em> with the <strong>"Attempt restore"</strong> and <strong>"Ignore"</strong> buttons. Choosing to restore recovers feeds, archive and history from the backup as far as possible; audio files are untouched and the backup is not modified. A summary then reports how many feeds and episodes were recovered.</li>
             <li><strong>Reinstall the software.</strong> Uninstall FeedDownloader Pro and install the most recent version. The database and settings are not deleted by the uninstallation.</li>
           </ol>
           <hr>
@@ -155,9 +157,10 @@
           <p><strong>How it manifests:</strong> The database has been accidentally deleted, is corrupted, or a reset was performed without a prior backup.</p>
           <p><strong>Recovery possibilities:</strong></p>
           <ul>
-            <li><strong>With a backup available:</strong> Copy the backup <code>feeddownloader.db</code> file to the application's user data folder, with the programme closed (see Chapter 2 for the user data folder path).</li>
-            <li><strong>Without a backup:</strong> The audio files on disk are still present: only the software's memory has been lost. It is possible to partially reconstruct the archive by re-analysing the feeds: episodes whose files are already present on disk will be recognised by the system and will not be re-downloaded.</li>
-            <li><strong>Prevention:</strong> Periodically make a manual copy of the <code>feeddownloader.db</code> file to a safe location, or export the feed list in OPML format (see Chapter 5) as a configuration backup. It is advisable to perform this backup before any migration or software update.</li>
+            <li><strong>With a backup available:</strong> Copy the backup <code>feeddownloader.sqlite</code> file to the application's user data folder, with the programme closed (see Chapter 2 for the user data folder path).</li>
+            <li><strong>After a corruption:</strong> Check for <code>feeddownloader.sqlite.corrupt-[date]</code> files in the user data folder: if the current database is empty, the software automatically offers the guided restore at startup (see the previous problem).</li>
+            <li><strong>Without a backup:</strong> The audio files on disk are still present: only the software's memory has been lost. The <strong>"Repair archive (checksum search)"</strong> function cannot help here (the hashes were in the lost database), but missing episodes can be re-downloaded or re-catalogued by analysing the feeds again.</li>
+            <li><strong>Prevention:</strong> Periodically make a manual copy of the <code>feeddownloader.sqlite</code> file to a safe location, or export the feed list in OPML format (see Chapter 5) as a configuration backup. It is advisable to perform this backup before any migration or software update.</li>
           </ul>
           <hr>
           <p><em>This is the final chapter of the Runtime FeedDownloader Pro Advanced User Manual.</em></p>

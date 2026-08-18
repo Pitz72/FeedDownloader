@@ -75,7 +75,7 @@
         <p>Sono disponibili due modalità di download.</p>
         <p>
           <strong>Modalità A — Download completo:</strong>
-          Cliccare su <strong>"Scarica Tutto"</strong>. Il software aggiunge alla coda tutti gli episodi in stato <strong>"Da Scaricare"</strong> e avvia i download in parallelo. Il numero di download simultanei dipende dall'impostazione dei thread (vedi il Capitolo 10; il valore predefinito è 3).
+          Cliccare su <strong>"Scarica Tutto"</strong>. Il software aggiunge alla coda tutti gli episodi con tag <strong>"NUOVO"</strong> e avvia i download in parallelo. Il numero di download simultanei dipende dall'impostazione <strong>"Download Paralleli"</strong> (vedi il Capitolo 10; il valore predefinito è 3).
         </p>
         <p>
           <strong>Modalità B — Download selettivo:</strong>
@@ -111,7 +111,7 @@
             <p><strong>Esportare un riepilogo CSV:</strong> Andare in <strong>Impostazioni → Archivio → Esporta CSV</strong>. Il file generato elenca tutti gli episodi scaricati con hash SHA-256, dimensioni e metadati (vedi il Capitolo 9).</p>
           </li>
           <li>
-            <p><strong>Verificare i file sul disco:</strong> Aprire la cartella di destinazione nel gestore file. I file audio sono organizzati secondo il template di rinomina configurato (vedi il Capitolo 8). La presenza di file <code>.part</code> indica download interrotti, che verranno completati all'avvio successivo del batch.</p>
+            <p><strong>Verificare i file sul disco:</strong> Aprire la cartella di destinazione nel gestore file. I file audio sono organizzati secondo il template di rinomina configurato (vedi il Capitolo 8). La presenza di file <code>.part</code> indica download interrotti o in pausa: rimettendo in coda gli stessi episodi, il trasferimento riprende dal punto raggiunto. I file <code>.part</code> ormai orfani si eliminano con <strong>Impostazioni → Avanzate → Pulisci file temporanei</strong>.</p>
           </li>
         </ol>
         <hr>
@@ -122,13 +122,13 @@
         <p><strong>Feed già nella barra laterale:</strong></p>
         <ol>
           <li>Cliccare sul feed nella barra laterale per selezionarlo.</li>
-          <li>Passare il mouse sull'elemento e cliccare l'icona di sincronizzazione, oppure usare il pulsante <strong>"Sincronizza tutti"</strong> per aggiornare l'intera libreria in parallelo.</li>
-          <li>Gli episodi nuovi compaiono in stato <strong>"Da Scaricare"</strong>; quelli già presenti restano in <strong>"Scaricato"</strong>.</li>
+          <li>Passare il mouse sull'elemento e cliccare l'icona di sincronizzazione, oppure usare il pulsante <strong>"Sincronizza Tutti"</strong> per aggiornare l'intera libreria in parallelo.</li>
+          <li>Gli episodi nuovi compaiono con il tag <strong>"NUOVO"</strong> (e il feed mostra il badge <strong>"DA SCARICARE"</strong> nella barra laterale); quelli già presenti restano <strong>"ARCHIVIATO"</strong>.</li>
           <li>Cliccare su <strong>"Scarica Tutto"</strong> per scaricare i soli episodi nuovi.</li>
         </ol>
         <p><strong>Feed non ancora in libreria:</strong></p>
         <p>Incollare l'URL RSS nel campo URL in cima all'interfaccia e cliccare <strong>"Analizza"</strong>: il feed viene aggiunto alla libreria e la lista viene popolata con lo stato corrente.</p>
-        <p>Il sistema non scarica mai due volte lo stesso episodio. È possibile anche configurare un aggiornamento automatico periodico (vedi il Capitolo 10 e la sezione 5.9).</p>
+        <p>Il sistema non scarica mai due volte lo stesso episodio. Il controllo automatico dei nuovi episodi è attivo per impostazione predefinita ogni 6 ore (vedi il Capitolo 10 e la sezione 5.9).</p>
         <hr>
         <p><em>Vai al Capitolo 5 per approfondire la gestione dei feed e le funzionalità OPML.</em></p>
       </section>

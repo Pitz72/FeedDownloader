@@ -16,14 +16,19 @@
         <h2 id="102-download">10.2 Download</h2>
         <p>Questa sezione contiene i controlli principali del motore di download. I parametri tecnici interni (timeout di connessione, numero di retry, stall detection) sono fissi nel motore e non richiedono configurazione manuale.</p>
         <section class="level3">
-          <h3 id="thread-paralleli">Thread Paralleli</h3>
+          <h3 id="download-paralleli">Download Paralleli</h3>
           <p>Il numero di download simultanei. Selezionabile tra tre preset: <strong>1</strong>, <strong>3</strong> e <strong>5</strong>. Per le linee guida sulla scelta del valore, vedi il Capitolo 6.</p>
           <p><strong>Valore predefinito:</strong> 3</p>
         </section>
         <section class="level3">
-          <h3 id="limite-di-velocità">Limite di Velocità</h3>
+          <h3 id="limite-velocità-download">Limite Velocità Download</h3>
           <p>Consente di limitare la banda aggregata utilizzata da tutti i download attivi, per evitare interferenze con altre attività di rete.</p>
-          <p><strong>Valori disponibili:</strong> <code>0</code> = nessun limite (predefinito); qualsiasi valore positivo in KB/s. Esempio: <code>500</code> limita il consumo totale a circa 4 Mbps.</p>
+          <p><strong>Valori disponibili:</strong> <code>0</code> = illimitato (predefinito); qualsiasi valore positivo in KB/s. Esempio: <code>500</code> limita il consumo totale a circa 4 Mbps.</p>
+        </section>
+        <section class="level3">
+          <h3 id="dimensione-massima-file">Dimensione Massima File</h3>
+          <p>Rifiuta i download più grandi del limite impostato, in <strong>MB</strong>. Protegge da enclosure anomale (file enormi dichiarati per errore, o server che inviano contenuti diversi dall'audio previsto). Un file oltre il limite viene marcato come errore definitivo, senza retry.</p>
+          <p><strong>Valori disponibili:</strong> <code>0</code> = illimitato (predefinito); qualsiasi valore positivo in MB.</p>
           <hr>
         </section>
       </section>
@@ -31,12 +36,12 @@
         <h2 id="103-generale">10.3 Generale</h2>
         <section class="level3">
           <h3 id="lingua">Lingua</h3>
-          <p>FeedDownloader Pro è disponibile in 8 lingue: Italiano, English, Deutsch, Español, Français, Português, Русский, 中文.</p>
+          <p>FeedDownloader Pro è disponibile in 2 lingue: <strong>Italiano</strong> e <strong>English</strong>.</p>
           <p>Il cambio di lingua è immediato: l'interfaccia si aggiorna senza necessità di riavviare il software. L'applicazione utilizza esclusivamente il tema scuro "Obsidian Command": non è disponibile un tema chiaro né un selettore di densità della lista.</p>
         </section>
         <section class="level3">
-          <h3 id="aggiornamento-automatico-dei-feed">Aggiornamento Automatico dei Feed</h3>
-          <p>Consente di sincronizzare automaticamente tutti i feed a intervalli regolari, senza intervento manuale. Sono disponibili quattro preset:</p>
+          <h3 id="aggiornamento-automatico-feed">Aggiornamento Automatico Feed</h3>
+          <p>Consente di sincronizzare automaticamente tutti i feed a intervalli regolari, senza intervento manuale. Un controllo viene comunque eseguito a ogni avvio dell'applicazione e al ritorno della connessione dopo un periodo offline. Sono disponibili quattro preset:</p>
           <table>
             <thead>
               <tr>
@@ -46,44 +51,52 @@
             </thead>
             <tbody>
               <tr>
-                <td><strong>Disattivato</strong> (predefinito)</td>
-                <td>Nessuna sincronizzazione automatica.</td>
+                <td><strong>Disattivato</strong></td>
+                <td>Nessuna sincronizzazione ciclica (resta il controllo all'avvio).</td>
               </tr>
               <tr>
-                <td><strong>Ogni 6 ore</strong></td>
-                <td>Sincronizzazione completa ogni 6 ore dall'avvio.</td>
+                <td><strong>6 ore</strong> (predefinito)</td>
+                <td>Sincronizzazione completa ogni 6 ore.</td>
               </tr>
               <tr>
-                <td><strong>Ogni 12 ore</strong></td>
-                <td>Sincronizzazione completa ogni 12 ore dall'avvio.</td>
+                <td><strong>12 ore</strong></td>
+                <td>Sincronizzazione completa ogni 12 ore.</td>
               </tr>
               <tr>
-                <td><strong>Ogni 24 ore</strong></td>
-                <td>Sincronizzazione completa ogni 24 ore dall'avvio.</td>
+                <td><strong>24 ore</strong></td>
+                <td>Sincronizzazione completa ogni 24 ore.</td>
               </tr>
             </tbody>
           </table>
-          <p>Il cambio è immediato e non richiede il riavvio del software. Se durante la sincronizzazione automatica vengono trovati nuovi episodi, viene inviata una notifica del sistema operativo. La sincronizzazione automatica non avvia download: segnala soltanto la disponibilità di nuovi contenuti. Per una descrizione dettagliata del comportamento, vedi la sezione 5.9.</p>
+          <p>Il cambio è immediato e non richiede il riavvio del software. Se durante la sincronizzazione automatica vengono trovati nuovi episodi, viene inviata una notifica del sistema operativo, cliccabile: porta l'app in primo piano e, se riguarda un solo podcast, apre quel feed. La sincronizzazione automatica non avvia download: segnala soltanto la disponibilità di nuovi contenuti. Per una descrizione dettagliata del comportamento, vedi la sezione 5.9.</p>
+        </section>
+        <section class="level3">
+          <h3 id="guida-utente-e-novità">Guida Utente e Novità</h3>
+          <p>Sempre nella scheda <strong>Generale</strong> sono disponibili:</p>
+          <ul>
+            <li><strong>"Guida Utente":</strong> Apre la documentazione integrata, con il pulsante <strong>"Apri il manuale completo in PDF"</strong> per consultare questo manuale.</li>
+            <li><strong>"Novità di questa versione":</strong> Apre il changelog in-app con le note di rilascio della versione installata. La stessa finestra appare automaticamente al primo avvio dopo un aggiornamento.</li>
+          </ul>
           <hr>
         </section>
       </section>
       <section class="level2">
-        <h2 id="104-sicurezza-il-sistema-anti-ssrf-a-5-livelli">10.4 Sicurezza: Il Sistema Anti-SSRF a 5 Livelli</h2>
+        <h2 id="104-sicurezza-il-sistema-anti-ssrf-multilivello">10.4 Sicurezza: Il Sistema Anti-SSRF Multilivello</h2>
         <p>Questa sezione è documentata a titolo informativo: il sistema di sicurezza opera in modo completamente automatico e non richiede configurazione da parte dell'utente.</p>
         <p>
           <strong>Cos'è un attacco SSRF?</strong>
           SSRF (Server-Side Request Forgery) è un tipo di attacco in cui un URL malevolo, invece di puntare a una risorsa pubblica, punta a risorse interne della rete (come il pannello di amministrazione del router, un NAS o un server locale). Nel contesto di un downloader, un feed RSS costruito ad arte potrebbe includere URL audio che puntano a queste risorse interne.
         </p>
-        <p><strong>I 5 livelli di validazione:</strong></p>
+        <p><strong>I livelli di validazione:</strong></p>
         <ol>
+          <li>
+            <p><strong>Validazione sintattica dell'URL:</strong> L'URL viene analizzato per verificare la conformità allo standard.</p>
+          </li>
           <li>
             <p><strong>Validazione del protocollo:</strong> Sono accettati solo i protocolli <code>http://</code> e <code>https://</code>. Protocolli come <code>file://</code>, <code>ftp://</code>, <code>data:</code>, <code>javascript:</code> vengono rifiutati immediatamente.</p>
           </li>
           <li>
-            <p><strong>Validazione sintattica dell'URL:</strong> L'URL viene analizzato per verificare la conformità allo standard RFC 3986.</p>
-          </li>
-          <li>
-            <p><strong>Risoluzione DNS con ispezione dell'IP:</strong> Il dominio nell'URL viene risolto in un indirizzo IP. Se la risoluzione fallisce, l'URL viene rifiutato. Se la risoluzione ha successo, l'indirizzo IP risultante viene verificato al livello successivo.</p>
+            <p><strong>Blocco degli hostname interni noti:</strong> Nomi come <code>localhost</code> e gli indirizzi di loopback letterali vengono rifiutati.</p>
           </li>
           <li>
             <p><strong>Blocco degli indirizzi IP privati e riservati:</strong> Vengono bloccati tutti gli indirizzi IP appartenenti a intervalli privati o riservati, inclusi:</p>
@@ -97,7 +110,7 @@
             </ul>
           </li>
           <li>
-            <p><strong>Blocco delle porte non standard:</strong> Sono accettate solo le porte 80 e 443. Gli URL con porte non standard (es. <code>:8080</code>, <code>:3000</code>, <code>:22</code>) vengono rifiutati.</p>
+            <p><strong>Ri-validazione alla connessione:</strong> L'indirizzo IP risolto via DNS viene verificato di nuovo a ogni connessione e a ogni redirect. Questo neutralizza le tecniche di elusione basate su DNS (un dominio pubblico che risolve verso un indirizzo privato, o un redirect verso una risorsa interna).</p>
           </li>
         </ol>
         <p><em>Nota per ambienti aziendali:</em> Se la rete aziendale include server di podcast interni raggiungibili tramite indirizzi IP privati, il sistema anti-SSRF bloccherà questi URL. In tal caso, contattare il supporto per una configurazione personalizzata che includa specifici intervalli di indirizzi IP nella whitelist interna.</p>
@@ -107,22 +120,27 @@
         <h2 id="105-avanzate">10.5 Avanzate</h2>
         <section class="level3">
           <h3 id="aggiornamenti">Aggiornamenti</h3>
-          <p>FeedDownloader Pro include un sistema di aggiornamento automatico integrato.</p>
-          <p><strong>Verifica automatica all'avvio:</strong> Nella versione installata (pacchetto), il software controlla automaticamente la disponibilità di nuovi aggiornamenti 3 secondi dopo l'avvio, interrogando il repository GitHub. Se una nuova versione è disponibile, il download inizia in background senza richiedere alcuna azione.</p>
+          <p>FeedDownloader Pro include un sistema di aggiornamento integrato <strong>basato sul consenso</strong>: nessun download e nessuna installazione avvengono automaticamente.</p>
+          <p><strong>Verifica automatica all'avvio:</strong> Nella versione installata (pacchetto), il software controlla automaticamente la disponibilità di nuovi aggiornamenti poco dopo l'avvio, interrogando il repository delle release. Se una nuova versione è disponibile, appare l'indicatore persistente <strong>"Aggiornamento disponibile"</strong> nella barra superiore e una notifica di sistema — ma <strong>non viene scaricato nulla</strong>.</p>
           <p><strong>Verifica manuale:</strong> Il pulsante <strong>"Controlla Aggiornamenti"</strong> nella scheda <strong>Avanzate</strong> forza una verifica immediata in qualsiasi momento.</p>
-          <p>Se una nuova versione è disponibile, il software la scarica in background e mostra il pulsante <strong>"Installa e Riavvia"</strong>. L'installazione non viene mai avviata automaticamente: la decisione spetta sempre all'utente.</p>
+          <p><strong>Download col consenso:</strong> Il download del pacchetto parte solo premendo <strong>"Scarica"</strong> nell'indicatore della barra superiore, oppure <strong>"Scarica aggiornamento"</strong> nelle Impostazioni. A download completato appare il pulsante <strong>"Riavvia e Installa"</strong>: anche l'installazione richiede un'azione esplicita dell'utente.</p>
           <p><strong>Stati visualizzati durante il processo:</strong></p>
           <ul>
-            <li><strong>Verifica in corso…</strong> — il software sta interrogando il repository GitHub.</li>
-            <li><strong>Sei aggiornato</strong> — la versione installata è la più recente.</li>
-            <li><strong>Nuova versione disponibile (vX.Y.Z)</strong> — download in corso in background.</li>
-            <li><strong>Aggiornamento pronto</strong> — il pacchetto è stato scaricato ed è pronto per l'installazione.</li>
+            <li><strong>Ricerca aggiornamenti...</strong> — il software sta interrogando il repository delle release.</li>
+            <li><strong>Hai già la versione più recente</strong> — la versione installata è la più recente.</li>
+            <li><strong>Aggiornamento disponibile: vX.Y.Z</strong> — in attesa del consenso al download.</li>
+            <li><strong>Download aggiornamento... N%</strong> — download in corso (avviato dall'utente).</li>
+            <li><strong>Aggiornamento scaricato — riavvia per installare</strong> — il pacchetto è pronto per l'installazione.</li>
           </ul>
         </section>
         <section class="level3">
-          <h3 id="reset-database">Reset Database</h3>
-          <p>Elimina completamente il database e ricomincia con un archivio vuoto. <strong>Questa operazione è irreversibile.</strong> Il software richiede una doppia conferma esplicita prima di procedere. I file audio sul disco non vengono eliminati: viene azzerata esclusivamente la memoria interna del software (cronologia dei download, metadati, statistiche).</p>
-          <p><em>Quando utilizzarlo:</em> Esclusivamente quando si intende ripartire da un archivio completamente vuoto, ad esempio dopo una migrazione su un nuovo sistema o per rimuovere i dati di un ciclo di test.</p>
+          <h3 id="manutenzione">Manutenzione</h3>
+          <p>Il pulsante <strong>"Pulisci file temporanei"</strong> rimuove i file <code>.part</code> orfani rimasti nella cartella di destinazione da download interrotti in passato. La funzione non è disponibile mentre ci sono download in corso (i loro <code>.part</code> sono in uso). Al termine viene mostrato il numero di file rimossi.</p>
+        </section>
+        <section class="level3">
+          <h3 id="zona-pericolo-resetta-storico-download">Zona Pericolo: Resetta Storico Download</h3>
+          <p>Il pulsante <strong>"Resetta Storico Download"</strong> cancella la cronologia dei download registrata nel database (i "segni di spunta" degli episodi scaricati). Il software richiede una conferma esplicita prima di procedere. I file audio sul disco <strong>non</strong> vengono eliminati: dopo il reset, gli episodi appariranno di nuovo come da scaricare.</p>
+          <p><em>Quando utilizzarlo:</em> Esclusivamente quando si intende ripartire da una cronologia vuota, ad esempio dopo una migrazione su un nuovo sistema o per rimuovere i dati di un ciclo di test.</p>
           <hr>
           <p><em>Vai al Capitolo 11 per la risoluzione dei problemi più comuni.</em></p>
         </section>

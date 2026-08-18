@@ -41,7 +41,7 @@
         <p>FeedDownloader Pro maintains a <strong>permanent feed library</strong>. Each analysed feed is saved in the sidebar and remains available between sessions, with no need to re-enter the URL at every launch.</p>
         <section class="level3">
           <h3 id="display">Display</h3>
-          <p>Each item in the library shows: the podcast cover art (thumbnail), the title, the date of the last synchronisation with the server, and a numerical badge indicating how many episodes have been published since the last download. The badge disappears as soon as all the new episodes have been downloaded.</p>
+          <p>Each item in the library shows: the podcast cover art (thumbnail), the title, the date of the last synchronisation with the server, and the <strong>"TO DOWNLOAD"</strong> badge (e.g. <code>3 TO DOWNLOAD</code>), indicating how many new episodes have been detected via their unique identifier (GUID). The badge disappears as soon as all the new episodes have been downloaded.</p>
           <p>Clicking on a feed in the sidebar immediately updates the episode list in the main area.</p>
         </section>
         <section class="level3">
@@ -90,7 +90,8 @@
         <h2 id="57-large-feeds">5.7 Large Feeds</h2>
         <p>Some historical podcasts or radio production archives can have feeds with thousands of episodes and RSS files of considerable size. In these cases:</p>
         <ul>
-          <li><strong>The initial analysis takes longer:</strong> A feed with 2,000 episodes may require 15–30 seconds for download and parsing. This behaviour is expected.</li>
+          <li><strong>RFC 5005 pagination:</strong> Many platforms publish only the most recent episodes in the feed and split the historical archive into multiple linked pages (RFC 5005 standard, <code>rel="next"</code> links). FeedDownloader Pro follows these links automatically and reassembles the entire catalogue into a single list, with no user intervention. Every pagination link is subject to the same security checks as manually entered URLs.</li>
+          <li><strong>The initial analysis takes longer:</strong> A feed with 2,000 episodes (or split across many pages) may require 15–30 seconds for download and parsing. This behaviour is expected.</li>
           <li><strong>List virtualisation:</strong> With thousands of entries, the list loads only the rows visible on screen to keep the interface responsive.</li>
           <li><strong>Estimating required space:</strong> With 2,000 episodes at approximately 50 MB each, the total volume is approximately 100 GB. Verify that sufficient space is available before proceeding.</li>
         </ul>
@@ -107,7 +108,7 @@
           <h3 id="synchronising-feeds">Synchronising feeds</h3>
           <ul>
             <li><strong>Individual synchronisation:</strong> Hover the mouse over a feed entry in the sidebar to display the sync icon. Clicking it makes the software re-read that feed from the server and update the list with any new episodes.</li>
-            <li><strong>Sync All:</strong> The "Sync All" button refreshes all feeds in parallel in a single operation. During the process, each thumbnail in the sidebar shows its own status in real time. On completion, any new episodes are highlighted with the new-episodes badge.</li>
+            <li><strong>Sync All:</strong> The <strong>"Sync All"</strong> button refreshes all feeds in parallel in a single operation. During the process, each thumbnail in the sidebar shows its own status in real time. On completion, any new episodes are highlighted with the <strong>"TO DOWNLOAD"</strong> badge.</li>
           </ul>
           <p>For scheduled automatic refresh without manual intervention, see section 5.9.</p>
           <hr>
@@ -115,10 +116,15 @@
       </section>
       <section class="level2">
         <h2 id="59-automatic-feed-refresh">5.9 Automatic Feed Refresh</h2>
-        <p>FeedDownloader Pro can automatically synchronise all feeds at regular intervals, in the background, without requiring any action from the user.</p>
+        <p>FeedDownloader Pro synchronises all feeds automatically in the background, without requiring any action from the user. The check runs:</p>
+        <ul>
+          <li><strong>at startup</strong> (a few seconds after the application opens);</li>
+          <li><strong>at regular intervals</strong> (the "Automatic Feed Refresh" setting);</li>
+          <li><strong>when the connection returns</strong> after a period offline.</li>
+        </ul>
         <section class="level3">
           <h3 id="configuration">Configuration</h3>
-          <p>The setting is found in <strong>Settings → General → Automatic feed refresh</strong>. Four options are available:</p>
+          <p>The setting is found in <strong>Settings → General → Automatic Feed Refresh</strong>. Four options are available:</p>
           <table>
             <thead>
               <tr>
@@ -128,20 +134,20 @@
             </thead>
             <tbody>
               <tr>
-                <td><strong>Disabled</strong> (default)</td>
-                <td>No automatic synchronisation.</td>
+                <td><strong>Disabled</strong></td>
+                <td>No periodic synchronisation (the startup check remains).</td>
               </tr>
               <tr>
-                <td><strong>Every 6 hours</strong></td>
-                <td>The software synchronises all feeds every 6 hours from startup.</td>
+                <td><strong>6 hours</strong> (default)</td>
+                <td>The software synchronises all feeds every 6 hours.</td>
               </tr>
               <tr>
-                <td><strong>Every 12 hours</strong></td>
-                <td>The software synchronises all feeds every 12 hours from startup.</td>
+                <td><strong>12 hours</strong></td>
+                <td>The software synchronises all feeds every 12 hours.</td>
               </tr>
               <tr>
-                <td><strong>Every 24 hours</strong></td>
-                <td>The software synchronises all feeds once every 24 hours from startup.</td>
+                <td><strong>24 hours</strong></td>
+                <td>The software synchronises all feeds once every 24 hours.</td>
               </tr>
             </tbody>
           </table>
@@ -149,8 +155,8 @@
         </section>
         <section class="level3">
           <h3 id="behaviour">Behaviour</h3>
-          <p>Automatic refresh <strong>does not start downloads</strong>: it only checks whether new episodes have been published. If during the automatic synchronisation new episodes are found on one or more feeds, the system sends an <strong>operating system notification</strong> with a summary of the content found (available in all 8 supported languages).</p>
-          <p>To download the reported new episodes, open the software and use the normal batch controls.</p>
+          <p>Automatic refresh <strong>does not start downloads</strong>: it only checks whether new episodes have been published. If new episodes are found on one or more feeds, the system sends an <strong>operating system notification</strong> with a summary of the content found (in Italian or English, following the interface language). The notification is <strong>clickable</strong>: it brings the application to the foreground and, if the new episodes belong to a single podcast, opens that feed directly.</p>
+          <p>To download the reported new episodes, use the normal batch controls.</p>
           <hr>
           <p><em>Go to Chapter 6 for a detailed description of the download engine.</em></p>
         </section>

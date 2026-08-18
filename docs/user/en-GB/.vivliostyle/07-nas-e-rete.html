@@ -41,8 +41,8 @@
           If the NAS is already mapped as a network drive in Windows (e.g. <code>Z:</code> → <code>\\MYNAS\Podcast</code>), it is possible to select <code>Z:\Archive</code> as the destination folder. FeedDownloader Pro automatically recognises that this is a network path and activates validation.
         </p>
         <p>
-          <strong>Method 3 — macOS and Linux (mount point):</strong>
-          On macOS and Linux, SMB network paths are presented as normal folders in the filesystem after mounting (e.g. <code>/Volumes/MYNAS/Podcast</code> on macOS, <code>/mnt/nas/podcast</code> on Linux). These paths can be used directly as the destination folder.
+          <strong>Method 3 — Linux (mount point):</strong>
+          On Linux, SMB network paths are presented as normal folders in the filesystem after mounting (e.g. <code>/mnt/nas/podcast</code>). These paths can be used directly as the destination folder.
         </p>
         <hr>
       </section>
@@ -56,10 +56,6 @@
           <li>The credentials are saved in the <strong>Windows Credential Manager</strong> (<code>Control Panel → Credential Manager → Windows Credentials</code>).</li>
           <li>FeedDownloader Pro, like any other application, will access the NAS without requiring further credentials.</li>
         </ol>
-        <p>
-          <strong>On macOS:</strong>
-          SMB credentials are requested when mounting the share (from Finder: <strong>Go → Connect to Server</strong> → <code>smb://192.168.1.100/ShareName</code>). macOS stores them in the Keychain.
-        </p>
         <p>
           <strong>On Linux:</strong>
           Mount the share with credentials in the <code>fstab</code> file or via a graphical tool such as GNOME Files. Alternatively, use <code>smbclient</code> or <code>mount -t cifs</code> from the terminal.
@@ -75,7 +71,7 @@
         </p>
         <p>
           <strong>2. Is the NAS reachable from the network?</strong>
-          From the Command Prompt (Windows) or Terminal (macOS/Linux):
+          From the Command Prompt (Windows) or Terminal (Linux):
           <code>ping 192.168.1.100</code>
           Replace with the NAS IP address. If the command receives a reply, basic network connectivity is working.
         </p>
@@ -99,7 +95,7 @@
         <p><strong>Operational guidance:</strong></p>
         <ul>
           <li><strong>Use a wired (Ethernet) connection:</strong> Wi-Fi introduces latency and instability in network write operations. For large archives, a wired Gigabit Ethernet connection offers significantly better performance.</li>
-          <li><strong>Reduce parallel threads:</strong> Simultaneously writing many files to a NAS can saturate its I/O. Using 2–3 parallel threads often yields better results than using the maximum available number.</li>
+          <li><strong>Reduce parallel downloads:</strong> Simultaneously writing many files to a NAS can saturate its I/O. A "Parallel Downloads" value of 1–3 often yields better results than using the maximum available number.</li>
           <li><strong>Avoid overlapping with NAS backups:</strong> If the NAS runs automatic backups, avoid starting batch downloads during the same time windows, as competition for the disk's I/O slows down both operations.</li>
           <li><strong>Use a local cache:</strong> For very large archives, it is possible to download first to a fast local drive and move the files to the NAS once the download is complete.</li>
         </ul>

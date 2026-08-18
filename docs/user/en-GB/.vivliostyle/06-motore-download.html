@@ -51,8 +51,8 @@
           </tbody>
         </table>
         <p>
-          <strong>How to change the number of threads:</strong>
-          Go to <strong>Settings → Download → Parallel Threads</strong> and select one of the three available presets: <strong>1</strong>, <strong>3</strong>, or <strong>5</strong>. The change is applied immediately to the current queue.
+          <strong>How to change the number of simultaneous downloads:</strong>
+          Go to <strong>Settings → Download → Parallel Downloads</strong> and select one of the three available presets: <strong>1</strong>, <strong>3</strong>, or <strong>5</strong>. The change is applied immediately to the current queue.
         </p>
         <p><em>Note on servers with connection limits:</em> Some podcast hosting servers apply limits to the number of simultaneous connections per single IP address. If frequent <code>429 Too Many Requests</code> or <code>503 Service Unavailable</code> errors occur, reduce the number of threads to 1 or 2. The retry mechanism automatically handles failures, but reducing the load prevents the problem at its root.</p>
         <hr>
@@ -71,33 +71,28 @@
           <tbody>
             <tr>
               <td>1st failure</td>
-              <td>2 seconds</td>
+              <td>1 second</td>
             </tr>
             <tr>
               <td>2nd failure</td>
-              <td>4 seconds</td>
+              <td>2 seconds</td>
             </tr>
             <tr>
-              <td>3rd failure</td>
-              <td>8 seconds</td>
-            </tr>
-            <tr>
-              <td>4th failure</td>
-              <td>16 seconds</td>
-            </tr>
-            <tr>
-              <td>5th failure (last)</td>
+              <td>3rd failure (last)</td>
               <td>The episode is marked as a definitive <strong>"Error"</strong></td>
             </tr>
           </tbody>
         </table>
-        <p>If a server is temporarily overloaded, the system gives the server time to recover before retrying. Most transient errors are resolved within the second or third attempt.</p>
+        <p>If a server is temporarily overloaded, the system gives the server time to recover before retrying. If the server replies <code>429 Too Many Requests</code> with a <code>Retry-After</code> header, the wait requested by the server is honoured (up to a maximum of 60 seconds). Because the partial <code>.part</code> file is kept between attempts, each retry <strong>resumes from where it stopped</strong> instead of starting over.</p>
         <p><strong>Definitive errors (not subject to retry):</strong></p>
         <ul>
           <li><code>404 Not Found</code>: The file does not exist on the server. Further attempts are not useful.</li>
-          <li><code>403 Forbidden</code>: The server rejected the request due to lack of authorisation.</li>
+          <li><strong>Non-audio content:</strong> The server replied with a web page (HTML) instead of the audio file — typical of expired links redirecting to a courtesy page. The download is rejected with the message <em>"The server sent a web page, not audio"</em>.</li>
+          <li><strong>File over the size cap:</strong> The file exceeds the <strong>"Maximum File Size"</strong> value configured in the Settings (see Chapter 10).</li>
+          <li><strong>Disk full or access denied</strong> on the destination folder.</li>
           <li>SSRF validation errors: The URL did not pass the internal security checks.</li>
         </ul>
+        <p><strong>Retrying failed episodes:</strong> At the end of the batch, the <strong>"Retry failed"</strong> button in the errors section of the Download Panel re-queues all failed episodes in a single click.</p>
         <hr>
       </section>
       <section class="level2">
@@ -111,47 +106,49 @@
         </ul>
         <p>
           <strong>Detection:</strong>
-          Each active download is monitored by a watchdog process that records the bytes received every 10 seconds. If for <strong>60 consecutive seconds</strong> no new bytes arrive (or fewer than 1 KB arrive, a threshold that excludes TCP keep-alives), the download is considered stalled and:
+          Each active download is monitored by a watchdog. If no new bytes arrive for <strong>60 consecutive seconds</strong>, the download is considered stalled and:
         </p>
         <ol>
           <li>The connection is terminated.</li>
-          <li>The partial <code>.part</code> file is deleted.</li>
-          <li>The episode is re-queued with the normal retry cycle.</li>
+          <li>The partial <code>.part</code> file is <strong>kept</strong>.</li>
+          <li>The episode re-enters the normal retry cycle and, thanks to the partial file, the new attempt <strong>resumes from where it stopped</strong>.</li>
         </ol>
-        <p>The process is transparent to the user: a brief reset of the percentage is visible in the individual progress bar, followed by the download resuming. If the stall was caused by a transient condition, the new download starts normally. If the problem persists beyond the maximum attempts, the episode is marked as <strong>"Error"</strong>.</p>
+        <p>The process is transparent to the user. If the stall was caused by a transient condition, the download resumes normally. If the problem persists beyond the maximum attempts, the episode is marked as <strong>"Error"</strong>.</p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="65-part-files-the-anti-corruption-system">6.5 <code>.part</code> Files: The Anti-Corruption System</h2>
+        <h2 id="65-part-files-anti-corruption-and-resume">6.5 <code>.part</code> Files: Anti-Corruption and Resume</h2>
         <p>Every audio file is downloaded with the temporary <code>.part</code> extension during transfer. The file is renamed with the final extension (<code>.mp3</code>, <code>.m4a</code>, <code>.ogg</code>, etc.) <strong>only</strong> after:</p>
         <ol>
           <li>The transfer is 100% complete.</li>
           <li>The file size matches the size declared in the HTTP header (<code>Content-Length</code>), if available.</li>
           <li>The SHA-256 hash has been calculated and recorded in the database.</li>
         </ol>
-        <p>This mechanism guarantees that partial or corrupted audio files with a final extension are never present in the destination folder. In the event of a sudden programme interruption or computer shutdown, residual <code>.part</code> files will be found in the folder: the software will delete and re-download them in the next session.</p>
+        <p>This mechanism guarantees that partial or corrupted audio files with a final extension are never present in the destination folder.</p>
+        <p><strong>Resuming transfers:</strong> In the event of a pause, transient error or interruption, the <code>.part</code> file is kept together with a small <code>.part.meta</code> file recording the server's "validator" (ETag or Last-Modified). On the next attempt, the software requests only the missing bytes (HTTP <code>Range</code> request with <code>If-Range</code>): if the remote file has changed in the meantime, the server signals it and the download restarts from scratch, avoiding splicing fragments of different files together.</p>
+        <p><strong>Cleaning up leftovers:</strong> <code>.part</code> files orphaned by past sessions can be removed via <strong>Settings → Advanced → Maintenance → Clean temporary files</strong> (the function is only available while no downloads are running).</p>
         <p><em>Location of <code>.part</code> files:</em> In the same destination folder as completed files. These files must not be opened with an audio player: being partial, they would cause read errors.</p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="66-interrupting-and-resuming-sessions">6.6 Interrupting and Resuming Sessions</h2>
+        <h2 id="66-pausing-resuming-and-stopping">6.6 Pausing, Resuming and Stopping</h2>
         <p>
-          <strong>Stopping the Batch:</strong>
-          The <strong>"Stop"</strong> button (in the global progress bar) stops all active threads in an orderly fashion, clears the queue, and deletes partial <code>.part</code> files. Files already completed remain in the database. The next time the same feed is analysed, interrupted episodes will appear as <strong>"To Download"</strong>.
+          <strong>Pausing (non-destructive):</strong>
+          From the Download Panel you can suspend <strong>a single download</strong> (the <strong>"Pause"</strong> button on its row) or <strong>the entire queue</strong> (the <strong>"Pause"</strong> button in the header; the panel shows <strong>"Queue paused"</strong>). Pausing keeps the <code>.part</code> files: pressing <strong>"Resume"</strong> continues the transfer exactly from where it left off. A paused download keeps its place in the queue and in the batch.
         </p>
         <p>
-          <strong>Closing the programme during a download:</strong>
-          If the main window is closed (the programme continues in the system tray) or <strong>"Quit"</strong> is used from the tray menu during an active download, the software displays a warning with the number of downloads in progress and requests confirmation. If the user chooses to quit, active downloads are stopped in a controlled manner and <code>.part</code> files are retained.
+          <strong>Stopping the Batch (destructive):</strong>
+          The <strong>"Stop download"</strong> button in the Download Panel stops all active downloads in an orderly fashion, clears the queue, and deletes partial <code>.part</code> files. Files already completed remain in the database. Interrupted episodes will appear again with the <strong>"NEW"</strong> tag.
         </p>
         <p>
-          <strong>Resuming an interrupted session:</strong>
-          On startup, if FeedDownloader Pro detects episodes in <strong>"Queued"</strong> or <strong>"In Progress"</strong> status from the previous session in the database, it displays a notification: <em>"Found X pending downloads from the previous session. Would you like to resume them?"</em>. Upon confirmation, the batch resumes immediately.
+          <strong>Closing the window during a download:</strong>
+          Closing the main window with the X keeps the programme running in the system tray, and downloads continue in the background. The tray menu's <strong>"Quit"</strong> entry, instead, closes the programme for good, stopping active downloads; the <code>.part</code> files remain on disk, so re-queueing the same episodes in the next session resumes the transfer from where it stopped.
         </p>
         <hr>
       </section>
       <section class="level2">
         <h2 id="67-download-speed">6.7 Download Speed</h2>
-        <p>The speed displayed in the bottom bar is the <strong>aggregate sum</strong> of all active threads. With 3 active threads each downloading at 2 MB/s, the total speed displayed is approximately 6 MB/s.</p>
+        <p>The overall batch speed is the <strong>aggregate sum</strong> of all active downloads. With 3 active threads each downloading at 2 MB/s, the total speed displayed is approximately 6 MB/s.</p>
         <p><strong>Factors affecting speed:</strong></p>
         <ul>
           <li><strong>Connection bandwidth:</strong> The maximum available limit.</li>

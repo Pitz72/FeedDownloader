@@ -51,8 +51,8 @@
           </tbody>
         </table>
         <p>
-          <strong>Come modificare il numero di thread:</strong>
-          Andare in <strong>Impostazioni → Download → Thread Paralleli</strong> e selezionare uno dei tre preset disponibili: <strong>1</strong>, <strong>3</strong> o <strong>5</strong>. La modifica viene applicata immediatamente alla coda in corso.
+          <strong>Come modificare il numero di download simultanei:</strong>
+          Andare in <strong>Impostazioni → Download → Download Paralleli</strong> e selezionare uno dei tre preset disponibili: <strong>1</strong>, <strong>3</strong> o <strong>5</strong>. La modifica viene applicata immediatamente alla coda in corso.
         </p>
         <p><em>Nota sui server con limiti di connessione:</em> Alcuni server di hosting podcast applicano limitazioni al numero di connessioni simultanee per singolo indirizzo IP. In presenza di errori frequenti <code>429 Too Many Requests</code> o <code>503 Service Unavailable</code>, ridurre il numero di thread a 1 o 2. Il meccanismo di retry gestisce automaticamente i fallimenti, ma ridurre il carico previene il problema alla radice.</p>
         <hr>
@@ -71,33 +71,28 @@
           <tbody>
             <tr>
               <td>1° fallimento</td>
-              <td>2 secondi</td>
+              <td>1 secondo</td>
             </tr>
             <tr>
               <td>2° fallimento</td>
-              <td>4 secondi</td>
+              <td>2 secondi</td>
             </tr>
             <tr>
-              <td>3° fallimento</td>
-              <td>8 secondi</td>
-            </tr>
-            <tr>
-              <td>4° fallimento</td>
-              <td>16 secondi</td>
-            </tr>
-            <tr>
-              <td>5° fallimento (ultimo)</td>
+              <td>3° fallimento (ultimo)</td>
               <td>L'episodio viene marcato come <strong>"Errore"</strong> definitivo</td>
             </tr>
           </tbody>
         </table>
-        <p>Se un server è temporaneamente sovraccarico, il sistema dà al server il tempo di recuperare prima di riprovare. La maggior parte degli errori transienti si risolve entro il secondo o il terzo tentativo.</p>
+        <p>Se un server è temporaneamente sovraccarico, il sistema dà al server il tempo di recuperare prima di riprovare. In caso di risposta <code>429 Too Many Requests</code> con intestazione <code>Retry-After</code>, l'attesa indicata dal server viene rispettata (fino a un massimo di 60 secondi). Poiché il file parziale <code>.part</code> viene conservato tra un tentativo e l'altro, il retry <strong>riprende dal punto raggiunto</strong> invece di ricominciare da zero.</p>
         <p><strong>Errori definitivi (non soggetti a retry):</strong></p>
         <ul>
           <li><code>404 Not Found</code>: Il file non esiste sul server. Nuovi tentativi non sono utili.</li>
-          <li><code>403 Forbidden</code>: Il server ha rifiutato la richiesta per mancanza di autorizzazione.</li>
+          <li><strong>Contenuto non audio:</strong> Il server ha risposto con una pagina web (HTML) al posto del file audio — tipico di link scaduti che reindirizzano a una pagina di cortesia. Il download viene rifiutato con il messaggio <em>"Il server ha inviato una pagina web, non audio"</em>.</li>
+          <li><strong>File oltre il limite di dimensione:</strong> Il file supera il valore di <strong>"Dimensione Massima File"</strong> configurato nelle Impostazioni (vedi il Capitolo 10).</li>
+          <li><strong>Disco pieno o accesso negato</strong> alla cartella di destinazione.</li>
           <li>Errori di validazione SSRF: L'URL non ha superato i controlli di sicurezza interni.</li>
         </ul>
+        <p><strong>Riprovare gli episodi falliti:</strong> Al termine del batch, il pulsante <strong>"Riprova falliti"</strong> nella sezione errori del Pannello Download rimette in coda in un solo clic tutti gli episodi in errore.</p>
         <hr>
       </section>
       <section class="level2">
@@ -111,47 +106,49 @@
         </ul>
         <p>
           <strong>Rilevamento:</strong>
-          Ogni download attivo è monitorato da un processo watchdog che registra i byte ricevuti ogni 10 secondi. Se per <strong>60 secondi consecutivi</strong> non arrivano nuovi byte (o arrivano meno di 1 KB, soglia che esclude i keep-alive TCP), il download viene considerato bloccato e:
+          Ogni download attivo è monitorato da un watchdog. Se per <strong>60 secondi consecutivi</strong> non arrivano nuovi byte, il download viene considerato bloccato e:
         </p>
         <ol>
           <li>La connessione viene interrotta.</li>
-          <li>Il file <code>.part</code> parziale viene eliminato.</li>
-          <li>L'episodio viene reinserito in coda con il normale ciclo di retry.</li>
+          <li>Il file <code>.part</code> parziale viene <strong>conservato</strong>.</li>
+          <li>L'episodio rientra nel normale ciclo di retry e, grazie al file parziale, il nuovo tentativo <strong>riprende dal punto raggiunto</strong>.</li>
         </ol>
-        <p>Il processo è trasparente per l'utente: nella barra di avanzamento individuale è visibile un breve reset della percentuale, seguito dalla ripresa del download. Se il blocco era causato da una condizione transitoria, il nuovo download parte normalmente. Se il problema persiste oltre i tentativi massimi, l'episodio viene marcato come <strong>"Errore"</strong>.</p>
+        <p>Il processo è trasparente per l'utente. Se il blocco era causato da una condizione transitoria, il download riprende normalmente. Se il problema persiste oltre i tentativi massimi, l'episodio viene marcato come <strong>"Errore"</strong>.</p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="65-file-part-il-sistema-anti-corruzione">6.5 File <code>.part</code>: Il Sistema Anti-Corruzione</h2>
+        <h2 id="65-file-part-anti-corruzione-e-ripresa">6.5 File <code>.part</code>: Anti-Corruzione e Ripresa</h2>
         <p>Ogni file audio viene scaricato con l'estensione temporanea <code>.part</code> durante il trasferimento. Il file viene rinominato con l'estensione definitiva (<code>.mp3</code>, <code>.m4a</code>, <code>.ogg</code>, ecc.) <strong>solo</strong> dopo che:</p>
         <ol>
           <li>Il trasferimento è completato al 100%.</li>
           <li>La dimensione del file corrisponde a quella dichiarata nell'intestazione HTTP (<code>Content-Length</code>), se disponibile.</li>
           <li>L'hash SHA-256 è stato calcolato e registrato nel database.</li>
         </ol>
-        <p>Questo meccanismo garantisce che nella cartella di destinazione non siano mai presenti file audio parziali o corrotti con estensione definitiva. In caso di interruzione improvvisa del programma o di spegnimento del computer, nella cartella si troveranno file <code>.part</code> residui: il software li eliminerà e riscaricherà alla sessione successiva.</p>
+        <p>Questo meccanismo garantisce che nella cartella di destinazione non siano mai presenti file audio parziali o corrotti con estensione definitiva.</p>
+        <p><strong>Ripresa dei trasferimenti:</strong> In caso di pausa, errore transitorio o interruzione, il file <code>.part</code> viene conservato insieme a un piccolo file <code>.part.meta</code> che registra il "validatore" del server (ETag o Last-Modified). Al tentativo successivo, il software chiede al server solo i byte mancanti (richiesta HTTP <code>Range</code> con <code>If-Range</code>): se nel frattempo il file remoto è cambiato, il server lo segnala e il download riparte da zero, evitando di incollare frammenti di file diversi.</p>
+        <p><strong>Pulizia dei residui:</strong> I file <code>.part</code> rimasti orfani da sessioni passate si eliminano con <strong>Impostazioni → Avanzate → Manutenzione → Pulisci file temporanei</strong> (la funzione è disponibile solo a download fermi).</p>
         <p><em>Posizione dei file <code>.part</code>:</em> Nella stessa cartella di destinazione dei file completati. Questi file non devono essere aperti con un player audio: essendo parziali, causerebbero errori di lettura.</p>
         <hr>
       </section>
       <section class="level2">
-        <h2 id="66-interruzione-e-ripresa-delle-sessioni">6.6 Interruzione e Ripresa delle Sessioni</h2>
+        <h2 id="66-pausa-ripresa-e-interruzione">6.6 Pausa, Ripresa e Interruzione</h2>
         <p>
-          <strong>Fermare il Batch:</strong>
-          Il pulsante <strong>"Ferma"</strong> (nella barra di avanzamento globale) interrompe tutti i thread attivi in modo ordinato, svuota la coda ed elimina i file <code>.part</code> parziali. I file già completati rimangono nel database. Alla successiva analisi dello stesso feed, gli episodi interrotti appariranno come <strong>"Da Scaricare"</strong>.
+          <strong>Mettere in pausa (non distruttivo):</strong>
+          Dal Pannello Download è possibile sospendere <strong>un singolo download</strong> (pulsante <strong>"Metti in pausa"</strong> sulla riga) oppure <strong>l'intera coda</strong> (pulsante <strong>"Pausa"</strong> nell'intestazione; il pannello mostra <strong>"Coda in pausa"</strong>). La pausa conserva i file <code>.part</code>: premendo <strong>"Riprendi"</strong> il trasferimento continua esattamente dal punto in cui era arrivato. Un download in pausa mantiene il proprio posto nella coda e nel batch.
         </p>
         <p>
-          <strong>Chiusura del programma durante un download:</strong>
-          Se si chiude la finestra principale (il programma continua nel system tray) oppure si utilizza <strong>"Esci"</strong> dal menu del tray durante un download attivo, il software mostra un avviso con il numero di download in corso e richiede conferma. Scegliendo di uscire, i download attivi vengono interrotti in modo controllato e i file <code>.part</code> vengono mantenuti.
+          <strong>Fermare il Batch (distruttivo):</strong>
+          Il pulsante <strong>"Ferma download"</strong> nel Pannello Download interrompe tutti i download attivi in modo ordinato, svuota la coda ed elimina i file <code>.part</code> parziali. I file già completati rimangono nel database. Gli episodi interrotti appariranno nuovamente con il tag <strong>"NUOVO"</strong>.
         </p>
         <p>
-          <strong>Riprendere una sessione interrotta:</strong>
-          All'avvio, se FeedDownloader Pro rileva nel database episodi in stato <strong>"In Coda"</strong> o <strong>"In Corso"</strong> dalla sessione precedente, mostra una notifica: <em>"Trovati X download in sospeso dalla sessione precedente. Vuoi riprenderli?"</em>. Confermando, il batch riprende immediatamente.
+          <strong>Chiusura della finestra durante un download:</strong>
+          Chiudendo la finestra principale con la X, il programma continua a operare nel system tray e i download proseguono in background. La voce <strong>"Quit"</strong> del menu del tray chiude invece definitivamente il programma, interrompendo i download attivi; i file <code>.part</code> rimangono su disco, quindi rimettendo in coda gli stessi episodi alla sessione successiva il trasferimento riprende dal punto raggiunto.
         </p>
         <hr>
       </section>
       <section class="level2">
         <h2 id="67-velocità-di-download">6.7 Velocità di Download</h2>
-        <p>La velocità visualizzata nella barra inferiore è la <strong>somma aggregata</strong> di tutti i thread attivi. Con 3 thread attivi che scaricano ciascuno a 2 MB/s, la velocità totale visualizzata è di circa 6 MB/s.</p>
+        <p>La velocità complessiva del batch è la <strong>somma aggregata</strong> di tutti i download attivi. Con 3 thread attivi che scaricano ciascuno a 2 MB/s, la velocità totale visualizzata è di circa 6 MB/s.</p>
         <p><strong>Fattori che influenzano la velocità:</strong></p>
         <ul>
           <li><strong>Larghezza di banda della connessione:</strong> Il limite massimo disponibile.</li>
