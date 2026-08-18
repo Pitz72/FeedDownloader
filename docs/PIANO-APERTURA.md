@@ -3,7 +3,9 @@
 **Aperto:** 18 agosto 2026
 **Obiettivo:** ritirare FeedDownloader Pro dal mercato, spostarlo su `Pitz72` come repository pubblico
 sotto licenza MIT, con build automatiche per Windows e Linux.
-**Stato:** **FASE 1 CHIUSA** (18/08). Restano le fasi 2, 3, 4 e 5.
+**Stato:** **FASE 1 CHIUSA** (18/08). **Gumroad chiuso** dall'utente il 18/08 (voce della Fase 5 già spuntata,
+verificata: HTTP 404). ▶️ **Prossima: FASE 2**, ampliata su richiesta dell'utente con il titolo
+spezzato in copertina, il marchio vecchio nei PDF e il riordino del repository.
 
 > **Il modello è Titan.** Questa procedura ricalca `docs/PIANO-APERTURA.md` di *Runtime TelegramBot
 > Desktop Titan Edition*, che ha fatto la stessa transizione il 12–13 agosto 2026. Dove il contesto
@@ -82,19 +84,82 @@ non campionaria.
 
 ---
 
-## FASE 2 — Documentazione ✅ IN GRAN PARTE GIÀ FATTA, resta il colophon
+## FASE 2 — Documentazione, marchio e riordino del repository ◀️ PROSSIMA SESSIONE
 
 La revisione integrale dei manuali IT+EN è stata eseguita il 18/08 (commit `7481280`): 12 capitoli
 riscritti contro il codice, tre feature inesistenti rimosse, help in-app rifatto, riferimenti
-commerciali bonificati. **Resta solo da dichiarare la licenza ora che esiste.**
+commerciali bonificati. Restano quattro blocchi, aggiunti su richiesta dell'utente il 18/08 a fine
+sessione.
+
+### 2.1 — La licenza, ora che esiste
 
 - [ ] **Colophon dei manuali** — le copertine IT ed EN dicono oggi «software gratuito, ridistribuibile
       liberamente», formula scelta di proposito finché `LICENSE` non esisteva. Ora esiste: va scritto
       **MIT**, con il credito ai modelli come nel README.
 - [ ] **Guide rapide e file di benvenuto** — stessa riga di licenza.
-- [ ] Rigenerare i 2 PDF e ricaricarli (vedi Fase 3 per dove).
 - [ ] `docs/README.md` — indice aggiornato con `LICENSE`, `SECURITY.md`, `CONTRIBUTING.md` e questo
       piano.
+
+### 2.2 — Il titolo spezzato in copertina ⛔
+
+**Il difetto, e la sua causa.** Sulla copertina dei PDF il nome del prodotto va a capo con la
+sillabazione (`FeedDown-loader`). Non è un caso: `body { hyphens: auto; }` — riga 126 di
+`scripts/build-book.cjs`, riga 142 di `scripts/build-all-books.cjs` — viene **ereditato**
+dall'`h1` della copertina, che a 26pt non ci sta in larghezza.
+
+**Come lo vuole l'utente:** una parola per riga, tre righe.
+
+```
+RUNTIME
+FEEDDOWNLOADER
+PRO
+```
+
+- [ ] `section.cover h1 { hyphens: none; }` in **entrambi** gli script, perché la regola del `body`
+      arriva per ereditarietà e va spenta dove serve.
+- [ ] Titolo con interruzioni esplicite nel markup della copertina:
+      `<h1>Runtime<br>FeedDownloader<br>Pro</h1>`. È più robusto che sperare nella larghezza del
+      contenitore, e vale identico per l'inglese, perché il nome del prodotto non si traduce.
+- [ ] Verificare **a video** la copertina di entrambi i PDF: è un difetto tipografico, e i difetti
+      tipografici si vedono, non si deducono dal codice.
+
+### 2.3 — Il marchio: i PDF hanno ancora il logo vecchio 🔴
+
+**Misurato, non supposto.** Il logo di copertina dei manuali è `brand/RFDP_trasp.png`, **12 febbraio
+2026**, 1,5 MB. Il logo definitivo del progetto è `branding/feeddownloader-icon.svg` → 
+`resources/icon.png`, **13 luglio 2026**, 35 KB, ed è quello che l'applicazione usa da quando è stato
+cablato nel build (v1.5.0, commit `f86afc8`). **I due manuali PDF portano quindi un marchio che
+l'applicazione non usa più.**
+
+- [ ] Puntare `logoPath` dei due script (riga 16 di `build-book.cjs`, riga 23 di
+      `build-all-books.cjs`) al logo attuale, e verificare come rende su fondo blu notte: il PNG
+      dell'app è pensato per un'icona, non per una copertina, quindi va guardato prima di darlo per
+      buono.
+- [ ] Decidere che fare di `brand/` (3 PNG, ~3,3 MB, febbraio) e di
+      `branding/logo-candidates/` (gli scarti della selezione del logo: 2 JPEG, 1 PNG, 1 SVG). Sono
+      **tracciati** e finirebbero nel repository pubblico. Gli scarti non servono a nessuno; i sorgenti
+      del marchio buono (`branding/*.svg`) hanno senso restino.
+- [ ] Verificare che non sia rimasto **altro** marchio vecchio in giro: `public/logo.png` e
+      `public/icon.ico` sono già stati rigenerati dal logo nuovo il 18/08, ma `brand/banner.png`
+      (maggio) non è stato controllato.
+
+### 2.4 — Riordino del repository
+
+- [ ] **Eliminare `DISTRIBUZIONE/` e `gumroad/`.** Sono cartelle locali (già in `.gitignore`, quindi
+      mai finite in git) che servivano a impacchettare i pacchetti commerciali. Con Gumroad chiuso e
+      la distribuzione affidata alle release di GitHub non hanno più ragione di esistere. Dentro ci
+      sono ~700 MB fra installer 1.4.2, ZIP e PDF: tutto ricostruibile o già altrove.
+- [ ] Verificare che nessuno script o documento le citi ancora dopo l'eliminazione.
+- [ ] Passare in rassegna la radice del repository con l'occhio di chi ci arriva per la prima volta:
+      `PORTING/`, `MATERIALE/`, `screenshot/`, `downloads/` sono ignorati ma esistono sul disco, e
+      vanno tenuti solo se servono davvero a qualcosa.
+- [ ] `docs/` — chiudere i piani ormai eseguiti (`PIANO-REVISIONE-PRE-RELEASE.md`,
+      `PIANO-STANDARD-DISTRIBUZIONE-TITAN.md`) spostandoli in `docs/storico/`, come fa Titan.
+
+### 2.5 — Rigenerazione
+
+- [ ] Rigenerare i 2 PDF **dopo** 2.1, 2.2 e 2.3, non prima: sono tre modifiche alla stessa copertina.
+- [ ] Ricaricarli dove serve (vedi Fase 3: la destinazione cambia con lo spostamento della repo).
 
 ---
 
@@ -144,8 +209,10 @@ publish e deve già puntare alla destinazione definitiva. È lo stesso vincolo c
 
 ## FASE 5 — Dismissione della fase commerciale
 
-- [ ] **Gumroad** — ritirare il prodotto `feeddownloaderpro`. Al 18/08 risponde ancora HTTP 200,
-      mentre quello di Titan è già 404. È l'azione che rende vera tutta l'operazione.
+- [x] ✅ **Gumroad — chiuso dall'utente il 18/08.** Verificato: `pizzisimone.gumroad.com/l/feeddownloaderpro`
+      risponde **HTTP 404**. Controprova di non-regressione: `livemachinepro` risponde ancora **200**,
+      quindi la dismissione ha colpito questo prodotto e solo questo. È l'atto che rende vera tutta
+      l'operazione, ed è già fatto: da qui in avanti il software non è più in vendita da nessuna parte.
 - [ ] **Sito Ecosystem** — la scheda prodotto va portata da «acquista» a «scarica», come è stato
       fatto per Titan. Attenzione al vincolo già incontrato lì: le chiavi i18n commerciali sono
       **condivise** fra i prodotti, e Live Machine Pro resta a pagamento. Esiste già il flag
