@@ -7,6 +7,12 @@
     "name": "Simone Pizzi",
     "email": "info@runtimeradio.it"
   },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Pitz72/FeedDownloader.git"
+  },
+  "homepage": "https://github.com/Pitz72/FeedDownloader",
   "type": "module",
   "scripts": {
     "dev": "vite",

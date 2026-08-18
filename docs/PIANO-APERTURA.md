@@ -75,6 +75,9 @@ non campionaria.
 - [x] **Igiene dei branch** — eliminati `claude/flamboyant-lalande` (un solo commit, e toccava
       soltanto un artefatto di build) e il remoto `claude/great-visvesvaraya-fa3970` (interamente
       contenuto in `master`). Sulla repo pubblica sarebbero stati navigabili da chiunque.
+- [x] **`package.json`** — campo `license: MIT`, `repository` e `homepage` verso la destinazione
+      pubblica. Restano `private: true`, come in Titan: serve a impedire una pubblicazione
+      accidentale su npm, e non ha nulla a che vedere con la visibilità del repository.
 - [x] Gate verde: lint, `tsc` renderer, `tsc` main, 394 test.
 
 ---
