@@ -48,6 +48,63 @@ export function initServices(): { recovered: boolean } {
     return { recovered: libraryService.wasRecovered };
 }
 
+/**
+ * v1.5.0 — Guided DB restore. If a `.corrupt-<timestamp>` backup exists next to
+ * the database AND the active database is empty (the state the silent recovery
+ * leaves behind), offer to salvage feeds/archive/history from the newest backup.
+ * Called once per boot, after the window is ready; a no-op in every other state.
+ */
+export async function maybeOfferDbRestore(win: BrowserWindow): Promise<void> {
+    try {
+        const userData = app.getPath('userData');
+        const dbBase = 'feeddownloader.sqlite';
+        const backups = (await fs.readdir(userData).catch(() => [] as string[]))
+            .filter(f => f.startsWith(`${dbBase}.corrupt-`) && !f.endsWith('-wal') && !f.endsWith('-shm'))
+            .sort()   // ISO timestamp in the name → lexicographic = chronological
+            .reverse();
+        if (backups.length === 0) return;
+        if (!libraryService.isEmpty()) return;
+
+        const it = app.getLocale().toLowerCase().startsWith('it');
+        const { response } = await dialog.showMessageBox(win, {
+            type: 'question',
+            buttons: it ? ['Tenta ripristino', 'Ignora'] : ['Attempt restore', 'Ignore'],
+            defaultId: 0,
+            cancelId: 1,
+            title: 'Runtime FeedDownloader Pro',
+            message: it
+                ? 'Trovato un backup del database danneggiato.'
+                : 'A backup of a damaged database was found.',
+            detail: it
+                ? `Il database attuale è vuoto ed esiste un backup salvato durante un recupero precedente (${backups[0]}). Vuoi tentare di recuperare feed, archivio e cronologia? I file audio non vengono toccati e il backup non viene modificato.`
+                : `The current database is empty and a backup saved during a previous recovery exists (${backups[0]}). Attempt to recover feeds, archive and history? Audio files are untouched and the backup is not modified.`,
+        });
+        if (response !== 0) return;
+
+        const result = libraryService.salvageFromCorrupt(path.join(userData, backups[0]));
+        const recoveredAny = result.feeds + result.archive + result.downloads > 0;
+        if (recoveredAny) {
+            pushEvent(win, CH.FEEDS_UPDATED, libraryService.getFeeds());
+            pushEvent(win, CH.DOWNLOADS_UPDATED);
+        }
+        await dialog.showMessageBox(win, {
+            type: recoveredAny ? 'info' : 'warning',
+            title: 'Runtime FeedDownloader Pro',
+            message: recoveredAny
+                ? (it
+                    ? `Ripristino completato: ${result.feeds} feed, ${result.archive} episodi in archivio, ${result.downloads} download registrati.`
+                    : `Restore complete: ${result.feeds} feeds, ${result.archive} archive entries, ${result.downloads} recorded downloads.`)
+                : (it
+                    ? 'Nessun dato recuperabile dal backup danneggiato.'
+                    : 'No recoverable data was found in the damaged backup.'),
+        });
+    } catch (e) {
+        // A failed restore attempt must never break the boot — the app keeps
+        // running on the fresh (empty) database exactly as before.
+        console.error('[DB-Restore] Guided restore failed:', e);
+    }
+}
+
 // Stream a file through SHA-256 (constant memory) and return the hex digest.
 // Shared by the download-time integrity capture and the Health Check re-check (L10).
 function sha256File(filePath: string): Promise<string> {

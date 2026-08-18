@@ -98,6 +98,16 @@ export class LibraryService {
         this.db.updateArchiveFilename(guid, feedUrl, filename);
     }
 
+    // ── Guided DB restore (v1.5.0) ───────────────────────────
+
+    isEmpty(): boolean {
+        return this.db.isEmpty();
+    }
+
+    salvageFromCorrupt(corruptPath: string): { feeds: number; archive: number; downloads: number; knownEpisodes: number; settings: number } {
+        return this.db.salvageFromCorrupt(corruptPath);
+    }
+
     resetDownloadHistory(): void {
         this.db.resetDownloadHistory();
     }

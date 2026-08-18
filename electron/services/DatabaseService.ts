@@ -774,6 +774,101 @@ export class DatabaseService {
         this.db.prepare('DELETE FROM known_episodes WHERE feedUrl = ?').run(feedUrl);
     }
 
+    // ── Guided DB restore (v1.5.0) ───────────────────────────
+
+    /** True when the library holds no user data at all — the state a fresh DB
+     *  created by the corruption recovery is in. */
+    isEmpty(): boolean {
+        for (const table of ['feeds', 'archive', 'downloads']) {
+            const row = this.db.prepare(`SELECT COUNT(*) AS c FROM ${table}`).get() as { c: number };
+            if (row.c > 0) return false;
+        }
+        return true;
+    }
+
+    /**
+     * Best-effort salvage of a damaged database file into this (fresh) one.
+     * SQLite corruption is usually local: most tables/rows remain readable, so
+     * each table is read independently and every recoverable row is inserted
+     * with INSERT OR IGNORE. A table (or the whole file) that can't be read
+     * contributes zero rows instead of failing the restore. The source file is
+     * opened read-only and never modified.
+     */
+    salvageFromCorrupt(corruptPath: string): { feeds: number; archive: number; downloads: number; knownEpisodes: number; settings: number } {
+        const result = { feeds: 0, archive: 0, downloads: 0, knownEpisodes: 0, settings: 0 };
+        const src = new Database(corruptPath, { readonly: true });
+        try {
+            const readRows = (table: string): Record<string, unknown>[] => {
+                try {
+                    return src.prepare(`SELECT * FROM ${table}`).all() as Record<string, unknown>[];
+                } catch (e) {
+                    console.error(`[DB-Restore] Table "${table}" unreadable, skipping:`, e);
+                    return [];
+                }
+            };
+            const s = (v: unknown): string | null => (typeof v === 'string' ? v : null);
+            const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+
+            // Rows are inserted one by one (auto-commit), NOT in a transaction:
+            // a single poisoned row must cost only itself, not the whole table.
+            const insFeed = this.db.prepare(
+                `INSERT OR IGNORE INTO feeds (url, title, image, lastUpdated, episodeCount, httpEtag, httpLastModified, currentEpisodeGuids)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+            );
+            for (const r of readRows('feeds')) {
+                const url = s(r.url);
+                if (!url) continue;
+                try {
+                    result.feeds += insFeed.run(url, s(r.title) ?? '', s(r.image), s(r.lastUpdated),
+                        num(r.episodeCount), s(r.httpEtag), s(r.httpLastModified), s(r.currentEpisodeGuids)).changes;
+                } catch { /* poisoned row */ }
+            }
+
+            const insArchive = this.db.prepare(
+                `INSERT OR IGNORE INTO archive (guid, feedUrl, podcastTitle, title, pubDate, downloadedAt, filename, fileSize, checksum, bitrate, sampleRate)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+            );
+            for (const r of readRows('archive')) {
+                const guid = s(r.guid);
+                if (!guid) continue;
+                try {
+                    result.archive += insArchive.run(guid, s(r.feedUrl) ?? '', s(r.podcastTitle) ?? '', s(r.title) ?? '',
+                        s(r.pubDate) ?? '', s(r.downloadedAt) ?? '', s(r.filename),
+                        num(r.fileSize), s(r.checksum), num(r.bitrate), num(r.sampleRate)).changes;
+                } catch { /* poisoned row */ }
+            }
+
+            const insDownload = this.db.prepare('INSERT OR IGNORE INTO downloads (guid, feedUrl) VALUES (?, ?)');
+            for (const r of readRows('downloads')) {
+                const guid = s(r.guid);
+                if (!guid) continue;
+                try { result.downloads += insDownload.run(guid, s(r.feedUrl) ?? '').changes; } catch { /* poisoned row */ }
+            }
+
+            const insKnown = this.db.prepare('INSERT OR IGNORE INTO known_episodes (guid, feedUrl) VALUES (?, ?)');
+            for (const r of readRows('known_episodes')) {
+                const guid = s(r.guid);
+                const feedUrl = s(r.feedUrl);
+                if (!guid || !feedUrl) continue;
+                try { result.knownEpisodes += insKnown.run(guid, feedUrl).changes; } catch { /* poisoned row */ }
+            }
+
+            const insSetting = this.db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)');
+            for (const r of readRows('settings')) {
+                const key = s(r.key);
+                if (!key) continue;
+                try { result.settings += insSetting.run(key, s(r.value)).changes; } catch { /* poisoned row */ }
+            }
+
+            // M11-consistency: drop salvaged known_episodes rows whose feed didn't
+            // make it over, mirroring the boot-time orphan pruning.
+            this.db.prepare('DELETE FROM known_episodes WHERE feedUrl NOT IN (SELECT url FROM feeds)').run();
+        } finally {
+            try { src.close(); } catch { /* already closed */ }
+        }
+        return result;
+    }
+
     // ── Lifecycle ────────────────────────────────────────────
 
     close(): void {

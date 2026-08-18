@@ -1,7 +1,7 @@
 import { app, BrowserWindow, Tray, Menu, screen, shell, dialog } from 'electron'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import path from 'node:path'
-import { registerIpcHandlers, initServices, cleanup } from './ipc'
+import { registerIpcHandlers, initServices, cleanup, maybeOfferDbRestore } from './ipc'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -294,14 +294,14 @@ app.whenReady().then(() => {
     createTray();
   }
 
+  // v1.5.0 — Guided DB restore replaces the old silent-rename-plus-warning:
+  // whenever a .corrupt-* backup exists and the active DB is empty (either
+  // because recovery just ran, or from a previous session), the user is offered
+  // a salvage of feeds/archive/history. No-op in every other state.
+  win?.once('ready-to-show', () => {
+    void maybeOfferDbRestore(win!);
+  });
   if (dbRecovered) {
-    win?.once('ready-to-show', () => {
-      dialog.showMessageBox(win!, {
-        type: 'warning',
-        title: 'Runtime FeedDownloader Pro',
-        message: 'The application database was damaged and has been reset.',
-        detail: 'Your audio files are untouched. The damaged database was kept next to the new one with a ".corrupt-" suffix. Feeds and download history need to be re-added.',
-      }).catch(() => { });
-    });
+    console.warn('[DB] Database was recovered this boot — restore offer will follow.');
   }
 });

@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { DatabaseService } from '../electron/services/DatabaseService';
+import path from 'node:path';
+import os from 'node:os';
+import fs from 'node:fs';
 
 // Mock electron's app module to avoid needing the real Electron runtime
 vi.mock('electron', () => ({
@@ -190,6 +193,65 @@ describe('DatabaseService', () => {
                 db.updateArchiveFilename('g1', undefined, 'renamed.mp3');
                 expect(db.getArchive()[0].filename).toBe('renamed.mp3');
             });
+        });
+    });
+
+    // ── Guided DB restore (v1.5.0) ───────────────────────────
+    describe('Guided DB restore', () => {
+        it('isEmpty is true for a fresh DB and false once any data exists', () => {
+            expect(db.isEmpty()).toBe(true);
+            db.addFeed({ url: 'https://a.com/feed', title: 'A' });
+            expect(db.isEmpty()).toBe(false);
+        });
+
+        it('salvages feeds, archive, downloads and settings from another DB file', () => {
+            const tmp = path.join(os.tmpdir(), `fd-salvage-${Date.now()}-${Math.random().toString(36).slice(2)}.sqlite`);
+            const src = new DatabaseService(tmp);
+            try {
+                src.addFeed({ url: 'https://a.com/feed', title: 'Pod A', image: 'https://img/a.png' });
+                src.recordDownload({
+                    guid: 'g1', podcastTitle: 'Pod A', title: 'Ep 1', pubDate: '2026-01-01',
+                    downloadedAt: '2026-01-02', filename: 'ep1.mp3', feedUrl: 'https://a.com/feed',
+                    fileSize: 123, checksum: 'abc',
+                });
+                src.setDownloadPath('/some/path');
+                src.close();
+
+                const result = db.salvageFromCorrupt(tmp);
+                expect(result.feeds).toBe(1);
+                expect(result.archive).toBe(1);
+                expect(result.downloads).toBe(1);
+                expect(result.settings).toBeGreaterThanOrEqual(1);
+
+                expect(db.getFeeds()[0].url).toBe('https://a.com/feed');
+                const entry = db.getArchive()[0];
+                expect(entry.guid).toBe('g1');
+                expect(entry.filename).toBe('ep1.mp3');
+                expect(entry.checksum).toBe('abc');
+                expect(db.isEmpty()).toBe(false);
+            } finally {
+                for (const suffix of ['', '-wal', '-shm']) {
+                    try { fs.unlinkSync(tmp + suffix); } catch { /* not created */ }
+                }
+            }
+        });
+
+        it('does not overwrite rows already present in the target DB', () => {
+            const tmp = path.join(os.tmpdir(), `fd-salvage-${Date.now()}-${Math.random().toString(36).slice(2)}.sqlite`);
+            const src = new DatabaseService(tmp);
+            try {
+                src.addFeed({ url: 'https://a.com/feed', title: 'Old Title' });
+                src.close();
+
+                db.addFeed({ url: 'https://a.com/feed', title: 'Current Title' });
+                const result = db.salvageFromCorrupt(tmp);
+                expect(result.feeds).toBe(0); // INSERT OR IGNORE — existing row wins
+                expect(db.getFeeds()[0].title).toBe('Current Title');
+            } finally {
+                for (const suffix of ['', '-wal', '-shm']) {
+                    try { fs.unlinkSync(tmp + suffix); } catch { /* not created */ }
+                }
+            }
         });
     });
 
