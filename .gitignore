@@ -35,3 +35,6 @@ MATERIALE/
 screenshot/
 downloads/
 *handoff.zip
+
+# Cache di build Vivliostyle (rigenerate a ogni build dei PDF)
+docs/user/**/.vivliostyle/
