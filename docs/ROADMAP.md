@@ -1,9 +1,9 @@
 # Roadmap FeedDownloader Pro — Fonte di Verità
 
 **Versione di riferimento:** 1.6.1
-**Ultimo aggiornamento:** 24 ottobre 2026 — v1.6.1 su `master`, da rilasciare
+**Ultimo aggiornamento:** 24 ottobre 2026 — v1.6.1 pubblicata
 
-> **v1.6.1 (24 ott 2026, da rilasciare)** — correzione: la Verifica dell'archivio arrivava in
+> **v1.6.1 (24 ott 2026, pubblicata)** — correzione: la Verifica dell'archivio arrivava in
 > fondo e cancellava il risultato, quindi «Accetta i file attuali come riferimento», «Cerca i file
 > spostati» e «Segna i mancanti come da scaricare» non si raggiungevano. Dettagli in
 > [changelog/1.6.1.md](changelog/1.6.1.md).
