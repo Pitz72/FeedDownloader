@@ -2,7 +2,7 @@ import Database from 'better-sqlite3';
 import { app } from 'electron';
 import path from 'path';
 import fs from 'node:fs';
-import type { FeedEntry, ArchiveEntry, ArchiveStats } from '../../shared/types';
+import type { FeedEntry, ArchiveEntry, ArchiveStats, DownloadRequest } from '../../shared/types';
 
 /** Raw archive row as stored in SQLite — nullable columns, before mapping to ArchiveEntry. */
 interface ArchiveRow {
@@ -17,6 +17,7 @@ interface ArchiveRow {
     checksum: string | null;
     bitrate: number | null;
     sampleRate: number | null;
+    baseDir: string | null;
 }
 
 /**
@@ -153,6 +154,10 @@ export class DatabaseService {
             // is derived from these (minus what's downloaded), not from
             // episodeCount − downloaded, which mis-counts rolling-window feeds.
             'ALTER TABLE feeds ADD COLUMN currentEpisodeGuids TEXT',
+            // v1.6.0: per-feed automatic archiving of new episodes
+            'ALTER TABLE feeds ADD COLUMN autoDownload INTEGER NOT NULL DEFAULT 0',
+            // v1.6.0: the download folder each file was written to (see ArchiveEntry.baseDir)
+            'ALTER TABLE archive ADD COLUMN baseDir TEXT',
         ]) {
             try {
                 this.db.exec(sql);
@@ -162,6 +167,16 @@ export class DatabaseService {
         }
 
         this.migrateToCompositeKeys();
+
+        // v1.6.0: downloads still queued when the app quits (or crashes) — kept so
+        // a multi-hour batch survives a restart instead of being silently lost.
+        this.db.exec(`
+            CREATE TABLE IF NOT EXISTS pending_downloads (
+                url     TEXT PRIMARY KEY,
+                request TEXT NOT NULL,
+                addedAt TEXT NOT NULL
+            );
+        `);
 
         // M11: known_episodes was seeded for every parsed URL, even feeds only
         // "tried" and never added to the library — prune orphans once at boot.
@@ -218,11 +233,12 @@ export class DatabaseService {
                     checksum      TEXT,
                     bitrate       INTEGER,
                     sampleRate    INTEGER,
+                    baseDir       TEXT,
                     PRIMARY KEY (guid, feedUrl)
                 );
                 INSERT OR IGNORE INTO archive_new
-                    (guid, feedUrl, podcastTitle, title, pubDate, downloadedAt, filename, fileSize, checksum, bitrate, sampleRate)
-                    SELECT guid, COALESCE(feedUrl, ''), podcastTitle, title, pubDate, downloadedAt, filename, fileSize, checksum, bitrate, sampleRate
+                    (guid, feedUrl, podcastTitle, title, pubDate, downloadedAt, filename, fileSize, checksum, bitrate, sampleRate, baseDir)
+                    SELECT guid, COALESCE(feedUrl, ''), podcastTitle, title, pubDate, downloadedAt, filename, fileSize, checksum, bitrate, sampleRate, baseDir
                     FROM archive;
                 DROP TABLE archive;
                 ALTER TABLE archive_new RENAME TO archive;
@@ -235,37 +251,45 @@ export class DatabaseService {
     // ── Feeds ────────────────────────────────────────────────
 
     getFeeds(): FeedEntry[] {
-        const feeds = this.db.prepare(
-            'SELECT url, title, image, lastUpdated, episodeCount, currentEpisodeGuids FROM feeds ORDER BY rowid'
-        ).all() as (FeedEntry & { episodeCount: number | null; currentEpisodeGuids: string | null })[];
-
         // M10: badge = episodes in the CURRENT feed window that aren't downloaded.
         // The old "episodeCount − downloaded" formula broke for rolling-window
         // feeds: once old downloaded episodes drop out of the window, `downloaded`
         // exceeds `episodeCount` and the badge sticks at 0 even when genuinely new
-        // episodes appear. We now diff the persisted current-window GUIDs against
-        // the downloads table directly. `downloadedByFeed` maps feedUrl → its GUIDs;
-        // legacy rows (feedUrl = '') match any feed, so they're a shared fallback.
-        const dlRows = this.db.prepare('SELECT guid, feedUrl FROM downloads').all() as { guid: string; feedUrl: string }[];
-        const downloadedByFeed = new Map<string, Set<string>>();
-        const legacyDownloaded = new Set<string>();
-        for (const r of dlRows) {
-            if (r.feedUrl === '') { legacyDownloaded.add(r.guid); continue; }
-            let set = downloadedByFeed.get(r.feedUrl);
-            if (!set) { set = new Set(); downloadedByFeed.set(r.feedUrl, set); }
-            set.add(r.guid);
-        }
+        // episodes appear. Legacy download rows (feedUrl = '') match any feed.
+        //
+        // v1.6.0: computed in SQL (json_each + the (guid, feedUrl) primary key)
+        // instead of loading the whole downloads table and parsing every window
+        // in JS. This runs after EVERY completed download, so on a library of
+        // tens of thousands of episodes the old approach made each completion
+        // cost a full table scan.
+        const feeds = this.db.prepare(`
+            SELECT f.url, f.title, f.image, f.lastUpdated, f.episodeCount, f.autoDownload,
+                   CASE WHEN f.currentEpisodeGuids IS NULL OR json_valid(f.currentEpisodeGuids) = 0
+                             OR json_type(f.currentEpisodeGuids) != 'array' THEN NULL ELSE (
+                       SELECT COUNT(DISTINCT j.value) FROM json_each(f.currentEpisodeGuids) j
+                       WHERE j.type = 'text' AND j.value != '' AND NOT EXISTS (
+                           SELECT 1 FROM downloads d
+                           WHERE d.guid = j.value AND (d.feedUrl = f.url OR d.feedUrl = '')
+                       )
+                   ) END AS currentNew
+            FROM feeds f ORDER BY f.rowid
+        `).all() as (Omit<FeedEntry, 'autoDownload'> & { episodeCount: number | null; autoDownload: number | null; currentNew: number | null })[];
 
-        // Fallback maps for feeds that haven't been re-parsed since the M10 upgrade
+        // Fallback for feeds that haven't been re-parsed since the M10 upgrade
         // (currentEpisodeGuids still null): keep the previous count-based estimate.
-        const byUrl = this.db.prepare(
-            "SELECT feedUrl, COUNT(*) AS cnt FROM archive WHERE feedUrl IS NOT NULL AND feedUrl != '' GROUP BY feedUrl"
-        ).all() as { feedUrl: string; cnt: number }[];
-        const urlMap = new Map(byUrl.map(r => [r.feedUrl, r.cnt]));
-        const byTitle = this.db.prepare(
-            "SELECT podcastTitle, COUNT(*) AS cnt FROM archive WHERE feedUrl IS NULL OR feedUrl = '' GROUP BY podcastTitle"
-        ).all() as { podcastTitle: string; cnt: number }[];
-        const titleMap = new Map(byTitle.map(r => [r.podcastTitle, r.cnt]));
+        const needsFallback = feeds.some(f => f.currentNew === null);
+        let urlMap = new Map<string, number>();
+        let titleMap = new Map<string, number>();
+        if (needsFallback) {
+            const byUrl = this.db.prepare(
+                "SELECT feedUrl, COUNT(*) AS cnt FROM archive WHERE feedUrl IS NOT NULL AND feedUrl != '' GROUP BY feedUrl"
+            ).all() as { feedUrl: string; cnt: number }[];
+            urlMap = new Map(byUrl.map(r => [r.feedUrl, r.cnt]));
+            const byTitle = this.db.prepare(
+                "SELECT podcastTitle, COUNT(*) AS cnt FROM archive WHERE feedUrl IS NULL OR feedUrl = '' GROUP BY podcastTitle"
+            ).all() as { podcastTitle: string; cnt: number }[];
+            titleMap = new Map(byTitle.map(r => [r.podcastTitle, r.cnt]));
+        }
         // L15: legacy archive rows (feedUrl = '') are attributed by title. If two
         // feeds share a title, the same legacy rows must not be counted for both —
         // credit them to the first feed with that title only.
@@ -273,11 +297,8 @@ export class DatabaseService {
 
         return feeds.map(f => {
             let newCount: number | null;
-            const currentGuids = this.parseGuidList(f.currentEpisodeGuids);
-            if (currentGuids) {
-                const feedDl = downloadedByFeed.get(f.url);
-                newCount = currentGuids.reduce((acc, g) =>
-                    acc + ((feedDl?.has(g) || legacyDownloaded.has(g)) ? 0 : 1), 0);
+            if (f.currentNew !== null) {
+                newCount = f.currentNew;
             } else {
                 let legacy = 0;
                 if (!legacyTitlesConsumed.has(f.title)) {
@@ -293,19 +314,9 @@ export class DatabaseService {
                 image: f.image,
                 lastUpdated: f.lastUpdated,
                 newCount,
+                autoDownload: !!f.autoDownload,
             };
         });
-    }
-
-    /** M10: parse a stored JSON GUID array; null/corrupt → null (use fallback). */
-    private parseGuidList(raw: string | null): string[] | null {
-        if (!raw) return null;
-        try {
-            const parsed = JSON.parse(raw);
-            return Array.isArray(parsed) ? parsed.filter((g): g is string => typeof g === 'string') : null;
-        } catch {
-            return null;
-        }
     }
 
     updateEpisodeCount(url: string, count: number): void {
@@ -333,8 +344,36 @@ export class DatabaseService {
         `).run(feed.url, feed.title, image, feed.lastUpdated || null);
     }
 
+    /**
+     * v1.6.0 — insert only if the URL is new. OPML import used the upsert above,
+     * so re-importing a list overwrote every existing feed's title with the OPML
+     * text and its cover with NULL. Returns true when a row was added.
+     */
+    addFeedIfMissing(feed: FeedEntry): boolean {
+        const image = typeof feed.image === 'string' ? feed.image : (feed.image?.url || null);
+        return this.db.prepare(
+            'INSERT OR IGNORE INTO feeds (url, title, image, lastUpdated) VALUES (?, ?, ?, ?)'
+        ).run(feed.url, feed.title, image, feed.lastUpdated || null).changes > 0;
+    }
+
     removeFeed(url: string): void {
         this.db.prepare('DELETE FROM feeds WHERE url = ?').run(url);
+    }
+
+    /** v1.6.0 — store the feed's real title/cover after a parse; never blanks either. */
+    updateFeedIdentity(url: string, title?: string, image?: string): void {
+        if (title) this.db.prepare('UPDATE feeds SET title = ? WHERE url = ?').run(title, url);
+        if (image) this.db.prepare('UPDATE feeds SET image = ? WHERE url = ?').run(image, url);
+    }
+
+    /** v1.6.0 — automatic archiving of new episodes for one feed. */
+    setFeedAutoDownload(url: string, enabled: boolean): void {
+        this.db.prepare('UPDATE feeds SET autoDownload = ? WHERE url = ?').run(enabled ? 1 : 0, url);
+    }
+
+    getFeedAutoDownload(url: string): boolean {
+        const row = this.db.prepare('SELECT autoDownload FROM feeds WHERE url = ?').get(url) as { autoDownload: number | null } | undefined;
+        return !!row?.autoDownload;
     }
 
     /**
@@ -364,12 +403,16 @@ export class DatabaseService {
         return !!this.db.prepare('SELECT 1 FROM feeds WHERE url = ?').get(url);
     }
 
-    /** L2: bulk insert for OPML import — one transaction instead of N commits. */
-    addFeedsBulk(feeds: FeedEntry[]): void {
+    /** L2: bulk insert for OPML import — one transaction instead of N commits.
+     *  v1.6.0: feeds already in the library are left untouched; returns how many
+     *  were actually added. */
+    addFeedsBulk(feeds: FeedEntry[]): number {
+        let added = 0;
         const transaction = this.db.transaction((items: FeedEntry[]) => {
-            for (const feed of items) this.addFeed(feed);
+            for (const feed of items) if (this.addFeedIfMissing(feed)) added++;
         });
         transaction(feeds);
+        return added;
     }
 
     // ── HTTP validators (M6: conditional refresh) ────────────────
@@ -501,8 +544,8 @@ export class DatabaseService {
         // pointing at the old name and Health Check reported a ghost missing file.
         this.db.prepare(
             `INSERT INTO archive
-             (guid, podcastTitle, title, pubDate, downloadedAt, filename, fileSize, checksum, bitrate, sampleRate, feedUrl)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             (guid, podcastTitle, title, pubDate, downloadedAt, filename, fileSize, checksum, bitrate, sampleRate, feedUrl, baseDir)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
              ON CONFLICT(guid, feedUrl) DO UPDATE SET
                 podcastTitle = excluded.podcastTitle,
                 title        = excluded.title,
@@ -511,7 +554,8 @@ export class DatabaseService {
                 fileSize     = excluded.fileSize,
                 checksum     = excluded.checksum,
                 bitrate      = excluded.bitrate,
-                sampleRate   = excluded.sampleRate`
+                sampleRate   = excluded.sampleRate,
+                baseDir      = excluded.baseDir`
         ).run(
             entry.guid,
             entry.podcastTitle,
@@ -524,6 +568,7 @@ export class DatabaseService {
             entry.bitrate ?? null,
             entry.sampleRate ?? null,
             entry.feedUrl ?? '',
+            entry.baseDir ?? null,
         );
     }
 
@@ -545,7 +590,7 @@ export class DatabaseService {
     // column is mapped to `undefined` so the renderer sees the optional-field
     // shape declared in ArchiveEntry, never a raw SQL `null`.
     private static readonly ARCHIVE_COLUMNS =
-        'guid, feedUrl, podcastTitle, title, pubDate, downloadedAt, filename, fileSize, checksum, bitrate, sampleRate';
+        'guid, feedUrl, podcastTitle, title, pubDate, downloadedAt, filename, fileSize, checksum, bitrate, sampleRate, baseDir';
 
     private rowToArchiveEntry(r: ArchiveRow): ArchiveEntry {
         return {
@@ -560,6 +605,7 @@ export class DatabaseService {
             checksum: r.checksum ?? undefined,
             bitrate: r.bitrate ?? undefined,
             sampleRate: r.sampleRate ?? undefined,
+            baseDir: r.baseDir ?? undefined,
         };
     }
 
@@ -585,10 +631,72 @@ export class DatabaseService {
         return row?.filename ?? null;
     }
 
+    /**
+     * v1.6.0 — one archive row by identity. Feed-scoped (S6) with the legacy
+     * feedUrl = '' arm as fallback; the feed's own row wins over a legacy one.
+     */
+    getArchiveEntry(guid: string, feedUrl?: string): ArchiveEntry | null {
+        const row = (feedUrl
+            ? this.db.prepare(
+                `SELECT ${DatabaseService.ARCHIVE_COLUMNS} FROM archive
+                 WHERE guid = ? AND feedUrl IN (?, '') ORDER BY (feedUrl = '') ASC LIMIT 1`
+            ).get(guid, feedUrl)
+            : this.db.prepare(
+                `SELECT ${DatabaseService.ARCHIVE_COLUMNS} FROM archive WHERE guid = ? ORDER BY downloadedAt DESC LIMIT 1`
+            ).get(guid)) as ArchiveRow | undefined;
+        return row ? this.rowToArchiveEntry(row) : null;
+    }
+
+    /**
+     * Archive rows of one podcast, newest publication first. v1.6.0: sorted on
+     * the parsed date — `ORDER BY pubDate` compared the raw RFC 822 strings
+     * ("Mon, 02 Jan…"), which orders by weekday name, so exported M3U playlists
+     * came out shuffled.
+     */
     getArchiveByPodcast(podcastTitle: string): ArchiveEntry[] {
-        return (this.db.prepare(
-            `SELECT ${DatabaseService.ARCHIVE_COLUMNS} FROM archive WHERE podcastTitle = ? ORDER BY pubDate DESC`
+        const rows = (this.db.prepare(
+            `SELECT ${DatabaseService.ARCHIVE_COLUMNS} FROM archive WHERE podcastTitle = ?`
         ).all(podcastTitle) as ArchiveRow[]).map(r => this.rowToArchiveEntry(r));
+        const time = (e: ArchiveEntry) => { const t = Date.parse(e.pubDate); return Number.isNaN(t) ? 0 : t; };
+        return rows.sort((a, b) => time(b) - time(a));
+    }
+
+    /** v1.6.0 — archive rows that belong to a feed: its own rows plus legacy
+     *  (feedUrl = '') rows attributed by podcast title. */
+    getArchiveByFeed(feedUrl: string, podcastTitle: string): ArchiveEntry[] {
+        return (this.db.prepare(
+            `SELECT ${DatabaseService.ARCHIVE_COLUMNS} FROM archive
+             WHERE feedUrl = ? OR ((feedUrl IS NULL OR feedUrl = '') AND podcastTitle = ?)`
+        ).all(feedUrl, podcastTitle) as ArchiveRow[]).map(r => this.rowToArchiveEntry(r));
+    }
+
+    /**
+     * v1.6.0 — record where existing files live. Rows written before baseDir
+     * existed resolved against whatever folder was current, so they are pinned
+     * once to the folder in use at upgrade time. Returns the rows updated.
+     */
+    backfillArchiveBaseDir(baseDir: string): number {
+        return this.db.prepare('UPDATE archive SET baseDir = ? WHERE baseDir IS NULL OR baseDir = \'\'').run(baseDir).changes;
+    }
+
+    /** v1.6.0 — re-point rows to a new folder after an archive migration. */
+    setArchiveBaseDir(items: Array<{ guid: string; feedUrl?: string }>, baseDir: string): void {
+        const stmt = this.db.prepare("UPDATE archive SET baseDir = ? WHERE guid = ? AND feedUrl = ?");
+        const tx = this.db.transaction(() => {
+            for (const it of items) stmt.run(baseDir, it.guid, it.feedUrl ?? '');
+        });
+        tx();
+    }
+
+    /**
+     * v1.6.0 — accept the file currently on disk as the new reference (after the
+     * user has checked it): store its size and SHA-256 so the Health Check stops
+     * reporting it. Needed for files tagged by versions that hashed before
+     * writing ID3 tags.
+     */
+    rebaselineArchiveEntry(guid: string, feedUrl: string | undefined, fileSize: number, checksum: string): void {
+        this.db.prepare("UPDATE archive SET fileSize = ?, checksum = ? WHERE guid = ? AND feedUrl = ?")
+            .run(fileSize, checksum, guid, feedUrl ?? '');
     }
 
     exportArchiveCSV(): string {
@@ -598,7 +706,9 @@ export class DatabaseService {
 
         
         // UTF-8 BOM for Excel compatibility
-        let csv = '\uFEFFPodcast,Episode Title,Publish Date,Downloaded At,File Size (bytes),Bitrate (kbps),Sample Rate (Hz),SHA-256 Checksum,Validation Status,GUID\n';
+        // v1.6.0: Feed URL, File and Folder appended (after GUID, so existing
+        // spreadsheets that read the first ten columns keep working).
+        let csv = '\uFEFFPodcast,Episode Title,Publish Date,Downloaded At,File Size (bytes),Bitrate (kbps),Sample Rate (Hz),SHA-256 Checksum,Validation Status,GUID,Feed URL,File,Folder\n';
 
         rows.forEach(r => {
             const escape = (val: string | number | null | undefined) => {
@@ -623,6 +733,9 @@ export class DatabaseService {
                 escape(r.checksum),
                 escape(validationStatus),
                 escape(r.guid),
+                escape(r.feedUrl),
+                escape(r.filename),
+                escape(r.baseDir),
             ].join(',') + '\n';
         });
 
@@ -746,6 +859,54 @@ export class DatabaseService {
         this.setSetting('autoRefreshInterval', String(hours));
     }
 
+    // v1.6.0 — accessibility preferences (Titan standard)
+    getUiZoom(): number {
+        const z = parseFloat(this.getSetting('uiZoom') ?? '');
+        return Number.isFinite(z) && z >= 0.5 && z <= 3 ? z : 1;
+    }
+
+    setUiZoom(zoom: number): void {
+        this.setSetting('uiZoom', String(zoom));
+    }
+
+    getReduceMotion(): boolean {
+        return this.getSetting('reduceMotion') === 'true';
+    }
+
+    setReduceMotion(enabled: boolean): void {
+        this.setSetting('reduceMotion', String(enabled));
+    }
+
+    // ── Pending downloads (v1.6.0) ───────────────────────────
+    // A queued download is written here when accepted and removed when it ends
+    // (done, failed, cancelled). Whatever is left at boot was interrupted by a
+    // quit or a crash, and is offered for resume.
+
+    addPendingDownload(request: DownloadRequest): void {
+        this.db.prepare('INSERT OR REPLACE INTO pending_downloads (url, request, addedAt) VALUES (?, ?, ?)')
+            .run(request.url, JSON.stringify(request), new Date().toISOString());
+    }
+
+    removePendingDownload(url: string): void {
+        this.db.prepare('DELETE FROM pending_downloads WHERE url = ?').run(url);
+    }
+
+    getPendingDownloads(): DownloadRequest[] {
+        const rows = this.db.prepare('SELECT request FROM pending_downloads ORDER BY addedAt, rowid').all() as { request: string }[];
+        const out: DownloadRequest[] = [];
+        for (const r of rows) {
+            try {
+                const req = JSON.parse(r.request) as DownloadRequest;
+                if (req && typeof req.url === 'string' && req.url) out.push(req);
+            } catch { /* corrupt row — skipped, removed by the next clear */ }
+        }
+        return out;
+    }
+
+    clearPendingDownloads(): void {
+        this.db.prepare('DELETE FROM pending_downloads').run();
+    }
+
     getEpisodeCount(url: string): number | null {
         const row = this.db.prepare('SELECT episodeCount FROM feeds WHERE url = ?').get(url) as { episodeCount: number | null } | undefined;
         return row?.episodeCount ?? null;
@@ -833,21 +994,22 @@ export class DatabaseService {
             // Rows are inserted one by one (auto-commit), NOT in a transaction:
             // a single poisoned row must cost only itself, not the whole table.
             const insFeed = this.db.prepare(
-                `INSERT OR IGNORE INTO feeds (url, title, image, lastUpdated, episodeCount, httpEtag, httpLastModified, currentEpisodeGuids)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+                `INSERT OR IGNORE INTO feeds (url, title, image, lastUpdated, episodeCount, httpEtag, httpLastModified, currentEpisodeGuids, autoDownload)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
             );
             for (const r of readRows('feeds')) {
                 const url = s(r.url);
                 if (!url) continue;
                 try {
                     result.feeds += insFeed.run(url, s(r.title) ?? '', s(r.image), s(r.lastUpdated),
-                        num(r.episodeCount), s(r.httpEtag), s(r.httpLastModified), s(r.currentEpisodeGuids)).changes;
+                        num(r.episodeCount), s(r.httpEtag), s(r.httpLastModified), s(r.currentEpisodeGuids),
+                        num(r.autoDownload) ? 1 : 0).changes;
                 } catch { /* poisoned row */ }
             }
 
             const insArchive = this.db.prepare(
-                `INSERT OR IGNORE INTO archive (guid, feedUrl, podcastTitle, title, pubDate, downloadedAt, filename, fileSize, checksum, bitrate, sampleRate)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+                `INSERT OR IGNORE INTO archive (guid, feedUrl, podcastTitle, title, pubDate, downloadedAt, filename, fileSize, checksum, bitrate, sampleRate, baseDir)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
             );
             for (const r of readRows('archive')) {
                 const guid = s(r.guid);
@@ -855,7 +1017,7 @@ export class DatabaseService {
                 try {
                     result.archive += insArchive.run(guid, s(r.feedUrl) ?? '', s(r.podcastTitle) ?? '', s(r.title) ?? '',
                         s(r.pubDate) ?? '', s(r.downloadedAt) ?? '', s(r.filename),
-                        num(r.fileSize), s(r.checksum), num(r.bitrate), num(r.sampleRate)).changes;
+                        num(r.fileSize), s(r.checksum), num(r.bitrate), num(r.sampleRate), s(r.baseDir)).changes;
                 } catch { /* poisoned row */ }
             }
 

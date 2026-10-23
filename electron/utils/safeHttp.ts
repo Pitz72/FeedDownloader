@@ -147,6 +147,13 @@ const secureLookup = ((hostname: string, options: unknown, callback: unknown) =>
     });
 }) as unknown as net.LookupFunction;
 
+/**
+ * v1.6.0 — an honest, identifiable User-Agent on every request. axios' default
+ * ("axios/1.x") is refused outright by a number of podcast CDNs and analytics
+ * redirectors (403), which surfaced as random download failures in large batches.
+ */
+export const USER_AGENT = 'Mozilla/5.0 (compatible; RuntimeFeedDownloader; +https://github.com/Pitz72/FeedDownloader)';
+
 /** http(s) agents that validate every resolved IP before connecting. */
 export const safeHttpAgent = new http.Agent({ lookup: secureLookup });
 export const safeHttpsAgent = new https.Agent({ lookup: secureLookup });

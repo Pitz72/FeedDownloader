@@ -1,5 +1,7 @@
 import { create } from 'zustand';
-import type { Feed, DownloadProgress, QueueItem, FailedDownload, UpdateStatus, DownloadRequest } from '../types';
+import type {
+    Feed, FeedEntry, DownloadProgress, QueueItem, QueueState, FailedDownload, CompletedDownload, UpdateStatus,
+} from '../../shared/types';
 
 const speedCache = new Map<string, { loaded: number; time: number }>();
 
@@ -12,75 +14,75 @@ function cancelCleanup(url: string): void {
     if (t) { clearTimeout(t); cleanupTimers.delete(url); }
 }
 
-// URLs that belong to the CURRENT batch. Module-level (not in state) to avoid
-// re-renders. When set, only completions of these URLs count toward the batch —
-// so a single, non-batch download finishing mid-batch can't inflate the counter.
-let batchUrls: Set<string> | null = null;
+/** How many archived episodes the session list keeps (newest first). */
+const COMPLETED_KEEP = 500;
+
+export type View = 'feed' | 'archive' | 'downloads';
+
+const IDLE_QUEUE: QueueState = { paused: false, pauseReason: null, run: { total: 0, completed: 0, failed: 0, cancelled: 0 } };
 
 export interface AppState {
+    // ── Navigation ──
+    view: View;
+    setView: (view: View) => void;
     currentFeed: Feed | null;
-    feeds: Feed[];
-    // Download progress keyed by enclosure URL. L28 (by design): two episodes that
-    // share the exact same enclosure URL therefore share one progress entry — the
-    // download itself is deduplicated by URL upstream, so this correctly mirrors
-    // that a single transfer is in flight for both rows.
-    downloads: Record<string, DownloadProgress>;
-
     setCurrentFeed: (feed: Feed | null) => void;
-    setFeeds: (feeds: Feed[]) => void;
-    updateDownload: (progress: DownloadProgress) => void;
-
-    batchTotal: number;
-    batchCompleted: number;
-    isBatchDownloading: boolean;
-    startBatch: (total: number, urls?: string[]) => void;
-    incrementBatch: (url?: string) => void;
-    resetBatch: () => void;
-    stopBatch: () => Promise<void>;
-
-    // v1.5.0 — queue-level pause/resume (non-destructive)
-    isQueuePaused: boolean;
-    pauseQueue: () => Promise<void>;
-    resumeQueue: () => Promise<void>;
-
-    // v1.5.0 — re-queue the failed downloads of the last batch
-    retryFailed: () => Promise<void>;
-
-    // E1 — Queue visibility
-    queueItems: QueueItem[];
-    setQueueItems: (items: QueueItem[]) => void;
-
-    // E3 — Failure tracking
-    batchFailed: FailedDownload[];
-    setBatchFailed: (failed: FailedDownload[]) => void;
-
-    // E6 — Download path visible in UI
+    /** The library (sidebar, palette, top bar share it). */
+    feeds: FeedEntry[];
+    setFeeds: (feeds: FeedEntry[]) => void;
+    /** Folder new downloads go to (resolved: the default when none was chosen). */
     downloadPath: string;
     setDownloadPath: (path: string) => void;
 
-    // F1 — Archive view
-    viewMode: 'feeds' | 'archive';
-    setViewMode: (mode: 'feeds' | 'archive') => void;
+    // ── Download progress ──
+    // Keyed by enclosure URL. L28 (by design): two episodes that share the exact
+    // same enclosure URL share one progress entry — the download itself is
+    // deduplicated by URL upstream, so this mirrors that a single transfer is in flight.
+    downloads: Record<string, DownloadProgress>;
+    updateDownload: (progress: DownloadProgress) => void;
 
-    // G1 — Download panel visibility
-    downloadPanelOpen: boolean;
-    setDownloadPanelOpen: (open: boolean) => void;
+    // ── Queue (v1.6.0: the main process is the single source of truth) ──
+    queueItems: QueueItem[];
+    setQueueItems: (items: QueueItem[]) => void;
+    queueState: QueueState;
+    setQueueState: (state: QueueState) => void;
+    pauseQueue: () => Promise<void>;
+    resumeQueue: () => Promise<void>;
+    stopQueue: () => Promise<void>;
 
-    // N1 — auto-update status (persistent in-app banner + Settings)
+    // ── Session results ──
+    failures: FailedDownload[];
+    addFailure: (failure: FailedDownload) => void;
+    dismissFailure: (url: string) => void;
+    clearFailures: () => void;
+    /** Re-queue failed downloads (all, or the given URLs) with their original request. */
+    retryFailures: (urls?: string[]) => Promise<number>;
+    completed: CompletedDownload[];
+    addCompleted: (done: CompletedDownload) => void;
+    clearCompleted: () => void;
+
+    // ── "Check all" progress ──
+    refresh: { done: number; total: number } | null;
+    setRefresh: (p: { done: number; total: number } | null) => void;
+
+    // ── N1: auto-update status (top bar notice + Settings) ──
     updateStatus: UpdateStatus;
     setUpdateStatus: (status: UpdateStatus) => void;
-    // dismissed by the user for the current status episode
-    updateBannerDismissed: boolean;
-    setUpdateBannerDismissed: (dismissed: boolean) => void;
+    updateNoticeDismissed: boolean;
+    setUpdateNoticeDismissed: (dismissed: boolean) => void;
 }
 
 export const useStore = create<AppState>((set, get) => ({
+    view: 'feed',
+    setView: (view) => set({ view }),
     currentFeed: null,
-    feeds: [],
-    downloads: {},
-
     setCurrentFeed: (feed) => set({ currentFeed: feed }),
+    feeds: [],
     setFeeds: (feeds) => set({ feeds }),
+    downloadPath: '',
+    setDownloadPath: (path) => set({ downloadPath: path }),
+
+    downloads: {},
     updateDownload: (progress) => {
         // M32: a cancelled download disappears immediately — no green check, no
         // "archived" tag on an episode that was never downloaded.
@@ -157,121 +159,83 @@ export const useStore = create<AppState>((set, get) => ({
         }
     },
 
-    // Batch Download State
-    batchTotal: 0,
-    batchCompleted: 0,
-    isBatchDownloading: false,
-
-    startBatch: (total, urls) => set((state) => {
-        if (urls) {
-            if (batchUrls && state.isBatchDownloading) {
-                urls.forEach(u => batchUrls!.add(u)); // merge into the running batch
-            } else {
-                batchUrls = new Set(urls);
-            }
-        }
-        if (state.isBatchDownloading) {
-            return { batchTotal: state.batchTotal + total };
-        }
-        return { batchTotal: total, batchCompleted: 0, isBatchDownloading: true, downloadPanelOpen: true };
-    }),
-    incrementBatch: (url) => set((state) => {
-        // B5: ignore completions outside an active batch (e.g. single downloads
-        // while idle), and — when we know the batch's URLs — completions that
-        // don't belong to this batch.
-        if (!state.isBatchDownloading) return {};
-        if (batchUrls && url) {
-            if (!batchUrls.has(url)) return {};
-            batchUrls.delete(url);
-        }
-        const newCompleted = state.batchCompleted + 1;
-        const isFinished = newCompleted >= state.batchTotal;
-        if (isFinished) batchUrls = null;
-        return {
-            batchCompleted: newCompleted,
-            isBatchDownloading: !isFinished
-        };
-    }),
-    resetBatch: () => { batchUrls = null; set({ batchTotal: 0, batchCompleted: 0, isBatchDownloading: false, batchFailed: [] }); },
-    stopBatch: async () => {
-        batchUrls = null;
+    queueItems: [],
+    setQueueItems: (items) => set({ queueItems: items }),
+    queueState: IDLE_QUEUE,
+    setQueueState: (queueState) => set({ queueState }),
+    pauseQueue: async () => {
+        // optimistic; the QUEUE_STATE push confirms it
+        set((s) => ({ queueState: { ...s.queueState, paused: true, pauseReason: 'user' } }));
+        await window.api.pauseQueue();
+    },
+    resumeQueue: async () => {
+        set((s) => ({ queueState: { ...s.queueState, paused: false, pauseReason: null } }));
+        await window.api.resumeQueue();
+    },
+    stopQueue: async () => {
         speedCache.clear();
         cleanupTimers.forEach(clearTimeout);
         cleanupTimers.clear();
         // S11: also drop the per-episode progress entries — aborted in-flight
-        // downloads never send a final progress event, so without this their
+        // downloads may never send a final progress event, so without this their
         // rows stay stuck on a frozen spinner until app restart.
-        set({ isBatchDownloading: false, batchTotal: 0, batchCompleted: 0, queueItems: [], batchFailed: [], downloads: {}, isQueuePaused: false });
+        set({ queueItems: [], downloads: {}, queueState: IDLE_QUEUE });
         await window.api.stopBatch();
     },
 
-    // v1.5.0 — queue-level pause/resume
-    isQueuePaused: false,
-    pauseQueue: async () => {
-        set({ isQueuePaused: true });
-        await window.api.pauseQueue();
-    },
-    resumeQueue: async () => {
-        set({ isQueuePaused: false });
-        await window.api.resumeQueue();
-    },
-
-    // v1.5.0 — re-queue the failed downloads of the last batch with the exact
-    // original request (same pattern as EpisodeList: startBatch first, then the
-    // individual startDownload calls; duplicates advance the counter).
-    retryFailed: async () => {
-        const requests = get().batchFailed
-            .map((f: FailedDownload) => f.request)
-            .filter((r): r is DownloadRequest => !!r);
-        if (requests.length === 0) return;
-        set({ batchFailed: [] });
-        get().startBatch(requests.length, requests.map(r => r.url));
-        for (const req of requests) {
+    failures: [],
+    addFailure: (failure) => set((s) => {
+        const url = failure.request?.url;
+        // the same episode failing again replaces its previous entry
+        const rest = url ? s.failures.filter(f => f.request?.url !== url) : s.failures;
+        return { failures: [failure, ...rest] };
+    }),
+    dismissFailure: (url) => set((s) => ({ failures: s.failures.filter(f => f.request?.url !== url) })),
+    clearFailures: () => set({ failures: [] }),
+    retryFailures: async (urls) => {
+        const wanted = urls ? new Set(urls) : null;
+        const targets = get().failures.filter(f => f.request && (!wanted || wanted.has(f.request.url)));
+        if (targets.length === 0) return 0;
+        const retried = new Set(targets.map(f => f.request!.url));
+        set((s) => ({ failures: s.failures.filter(f => !f.request || !retried.has(f.request.url)) }));
+        let queued = 0;
+        for (const f of targets) {
             try {
-                const result = await window.api.startDownload(req);
-                if (result.status === 'duplicate') get().incrementBatch(req.url);
+                const res = await window.api.startDownload(f.request!);
+                if (res.status === 'queued') queued++;
             } catch {
-                get().incrementBatch(req.url);
+                // refused up front (invalid URL): back into the list
+                get().addFailure(f);
             }
         }
+        return queued;
     },
+    completed: [],
+    addCompleted: (done) => set((s) => ({ completed: [done, ...s.completed.filter(c => c.url !== done.url)].slice(0, COMPLETED_KEEP) })),
+    clearCompleted: () => set({ completed: [] }),
 
-    // E1 — Queue visibility
-    queueItems: [],
-    setQueueItems: (items) => set({ queueItems: items }),
+    refresh: null,
+    setRefresh: (refresh) => set({ refresh }),
 
-    // E3 — Failure tracking
-    batchFailed: [],
-    setBatchFailed: (failed) => set({ batchFailed: failed }),
-
-    // E6 — Download path visible in UI
-    downloadPath: '',
-    setDownloadPath: (path) => set({ downloadPath: path }),
-
-    // F1 — Archive view
-    viewMode: 'feeds',
-    setViewMode: (mode) => set({ viewMode: mode }),
-
-    // G1 — Download panel visibility
-    downloadPanelOpen: false,
-    setDownloadPanelOpen: (open) => set({ downloadPanelOpen: open }),
-
-    // N1 — auto-update status
     updateStatus: { type: 'idle' },
     setUpdateStatus: (status) => set((state) => ({
         updateStatus: status,
-        // Only un-dismiss the banner when the KIND of news changes. Otherwise
+        // Only un-dismiss the notice when the KIND of news changes. Otherwise
         // every 'downloading' percent tick is a fresh setUpdateStatus call that
-        // would resurrect a banner the user just closed mid-download.
-        updateBannerDismissed: status.type === state.updateStatus.type ? state.updateBannerDismissed : false,
+        // would resurrect a notice the user just closed mid-download.
+        updateNoticeDismissed: status.type === state.updateStatus.type ? state.updateNoticeDismissed : false,
     })),
-    updateBannerDismissed: false,
-    setUpdateBannerDismissed: (dismissed) => set({ updateBannerDismissed: dismissed }),
+    updateNoticeDismissed: false,
+    setUpdateNoticeDismissed: (dismissed) => set({ updateNoticeDismissed: dismissed }),
 }));
 
-// L40: the download panel counts as "visible" while a batch runs, or briefly
-// after it finishes (to show the completion summary). This derived flag lived,
-// copy-pasted, in DownloadPanel, EpisodeDetailPanel and ToastContext — now a
-// single selector: `useStore(selectPanelVisible)`.
-export const selectPanelVisible = (s: AppState): boolean =>
-    s.isBatchDownloading || (s.batchCompleted > 0 && s.batchCompleted >= s.batchTotal);
+/** Numbers for the top bar and the Downloads view. */
+export function selectQueueCounts(s: AppState): { active: number; waiting: number; paused: number; total: number } {
+    let active = 0, waiting = 0, paused = 0;
+    for (const q of s.queueItems) {
+        if (q.status === 'downloading') active++;
+        else if (q.status === 'paused') paused++;
+        else waiting++;
+    }
+    return { active, waiting, paused, total: s.queueItems.length };
+}

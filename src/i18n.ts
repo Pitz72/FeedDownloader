@@ -26,11 +26,18 @@ i18n
         },
     });
 
+// The page language follows the chosen one (correct screen-reader pronunciation).
+const syncDocumentLang = (lng: string) => {
+    if (typeof document !== 'undefined') document.documentElement.lang = (lng || 'en').split('-')[0];
+};
+
 i18n.on('languageChanged', (lng: string) => {
+    syncDocumentLang(lng);
     if (typeof window !== 'undefined' && window.api?.setLocale) {
         window.api.setLocale(lng);
     }
 });
+syncDocumentLang(i18n.language);
 
 // N1: push the resolved locale to main once at startup (languageChanged doesn't
 // fire for the initially-detected language). This both localizes OS

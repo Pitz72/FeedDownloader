@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Transform } from 'stream';
-import { createThrottleStream } from '../electron/utils/throttleStream';
+import { createThrottleStream, SharedRateLimiter } from '../electron/utils/throttleStream';
 
 describe('createThrottleStream', () => {
     it('returns null when the rate is 0 (unlimited)', () => {
@@ -31,5 +31,31 @@ describe('createThrottleStream', () => {
         });
 
         expect(Buffer.concat(received).toString()).toBe('hello throttled world');
+    });
+});
+
+// v1.6.0 — one budget for all downloads in flight
+describe('SharedRateLimiter', () => {
+    it('never delays when the rate is 0 (unlimited)', () => {
+        const l = new SharedRateLimiter(0);
+        expect(l.reserve(10_000_000)).toBe(0);
+    });
+
+    it('books chunks from different streams on ONE timeline', () => {
+        const l = new SharedRateLimiter(1000); // 1000 B/s
+        const a = l.reserve(500); // stream A: ~500 ms
+        const b = l.reserve(500); // stream B: queued after A → ~1000 ms
+        expect(a).toBeGreaterThanOrEqual(450);
+        expect(a).toBeLessThanOrEqual(550);
+        expect(b).toBeGreaterThanOrEqual(950);
+        expect(b).toBeLessThanOrEqual(1050);
+    });
+
+    it('applies a new rate at once', () => {
+        const l = new SharedRateLimiter(1000);
+        l.reserve(5000);
+        l.setRate(0);
+        expect(l.reserve(5000)).toBe(0);
+        expect(l.rate).toBe(0);
     });
 });

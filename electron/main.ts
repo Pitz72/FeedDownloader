@@ -118,8 +118,11 @@ function createWindow() {
   win = new BrowserWindow({
     title: "Runtime FeedDownloader Pro",
     icon,
-    backgroundColor: '#0b1120', // Matches Tailwind bg-background (approx)
+    backgroundColor: '#0c0a18', // = canvas in src/theme/palette.css (no white flash)
     show: false,
+    // v1.6.0: below this the sidebar + episode table can't fit (Titan: 880×600)
+    minWidth: 960,
+    minHeight: 620,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     ...(process.platform === 'darwin' ? { titleBarStyle: 'hidden', trafficLightPosition: { x: 16, y: 14 } } : {}),
@@ -273,6 +276,12 @@ app.on('activate', () => {
 
 app.whenReady().then(() => {
   if (!hasSingleInstanceLock) return; // quitting — don't open a second DB/window
+
+  // v1.6.0: no application menu in packaged builds. The default Electron menu
+  // was still there (hidden by autoHideMenuBar): Ctrl+R reloaded the interface
+  // mid-download, Ctrl+Shift+I opened DevTools. Text-field shortcuts keep
+  // working (Chromium handles them); zoom is handled in ipc.ts.
+  if (app.isPackaged) Menu.setApplicationMenu(null);
 
   // S4: opening the DB can fail (corrupted file survives the built-in recovery
   // only if userData itself is unwritable). Fail with a message, not a silent

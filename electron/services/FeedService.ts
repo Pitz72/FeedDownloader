@@ -1,6 +1,6 @@
 import Parser from 'rss-parser';
 import axios from 'axios';
-import { SAFE_AXIOS_CONFIG } from '../utils/safeHttp';
+import { SAFE_AXIOS_CONFIG, USER_AGENT } from '../utils/safeHttp';
 import { hasDangerousDoctype } from '../utils/xmlSafety';
 import { validateUrl } from '../utils/validateUrl';
 
@@ -68,6 +68,7 @@ export class FeedService {
       ...SAFE_AXIOS_CONFIG, // SSRF: validate resolved IP on every hop
       headers: {
         'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*',
+        'User-Agent': USER_AGENT,
         ...conditionalHeaders,
       }
     });
@@ -171,6 +172,7 @@ export class FeedService {
         responseType: 'arraybuffer',
         maxContentLength: 1024 * 1024,
         maxBodyLength: 1024 * 1024,
+        headers: { 'User-Agent': USER_AGENT },
         // accept 2xx and 3xx so a 301/308 doesn't throw
         validateStatus: (s) => s >= 200 && s < 400,
       });
@@ -288,11 +290,8 @@ export class FeedService {
         return true;
       });
 
-      // Replace items with the full aggregated list
-      feed.items = dedupedItems;
-
       // Map 'items' to 'episodes' for UI consistency
-      feed.episodes = feed.items.map((item) => {
+      feed.episodes = dedupedItems.map((item) => {
         // S2: feeds without <guid> exist in the wild — without a fallback those
         // episodes were downloaded but never recorded (no history, no archive,
         // no new-episode detection). The enclosure URL is stable across fetches.
@@ -313,6 +312,10 @@ export class FeedService {
           itunes: item.itunes,
         };
       });
+
+      // v1.6.0: `items` duplicated every episode (with its full HTML show notes)
+      // in the payload serialized worker → main → renderer. Only `episodes` is read.
+      delete (feed as { items?: unknown }).items;
 
       return feed;
     } catch (error: unknown) {

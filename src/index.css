@@ -1,260 +1,206 @@
+/* Font inclusi nell'applicazione (OFL-1.1), importati in main.tsx: niente
+   richieste a Google a ogni avvio, e l'interfaccia ha i suoi caratteri anche
+   senza rete. Fino alla 1.5.x Inter e JetBrains Mono arrivavano da
+   fonts.googleapis.com, con una richiesta di rete (e un indirizzo IP
+   comunicato a terzi) a ogni apertura. */
 @import "tailwindcss";
+@import "./theme/palette.css";
 
-/* ─── Fonts — Inter + JetBrains Mono via Google Fonts (Epilogue + Space Grotesk + Material Symbols bundled in main.tsx) ─── */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+/* ═══════════════════════════════════════════════════════════════════════
+   RUNTIME VIOLET — regole di base (impianto Titan Blue 2.4)
+   ═══════════════════════════════════════════════════════════════════════ */
 
-/* Material Symbols configuration */
-.material-symbols-outlined {
-  font-family: 'Material Symbols Outlined Variable', 'Material Symbols Outlined';
-  font-weight: normal;
-  font-style: normal;
-  font-size: 24px;
-  line-height: 1;
-  letter-spacing: normal;
-  text-transform: none;
-  display: inline-block;
-  white-space: nowrap;
-  word-wrap: normal;
-  direction: ltr;
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-  user-select: none;
-}
-
-.material-symbols-outlined.filled {
-  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-}
-
-/* ──────────────────────────────────────────────────────────────
-   v1.3.0 — refined design tokens · electric azure on deep dark
-   ────────────────────────────────────────────────────────────── */
-:root {
-  /* Surfaces */
-  --bg:          #0a0a0c;
-  --bg-deep:     #060608;
-  --surf-1:      #111116;
-  --surf-2:      #16161d;
-  --surf-3:      #1d1d25;
-  --surf-4:      #25252f;
-  --border:      #25262e;
-  --border-soft: rgba(255,255,255,0.06);
-  --border-hard: rgba(255,255,255,0.12);
-
-  /* Primary — electric azure */
-  --azure:         #4b8eff;
-  --azure-hi:      #75abff;
-  --azure-lo:      #2b6fe6;
-  --azure-soft:    #adc6ff;
-  --azure-glow:    rgba(75,142,255,0.55);
-  --azure-glow-sm: rgba(75,142,255,0.25);
-
-  /* Status */
-  --ok:     #4ade80;
-  --warn:   #ffb770;
-  --danger: #ff6b6b;
-
-  /* Text */
-  --fg:   #f5f6fb;
-  --fg-2: #c8cbd8;
-  --fg-3: #888c9c;
-  --fg-4: #5a5d6c;
-
-  /* Type */
-  --font-display: 'Epilogue', system-ui, sans-serif;
-  --font-body:    'Inter', system-ui, sans-serif;
-  --font-mono:    'JetBrains Mono', 'Space Grotesk Variable', ui-monospace, monospace;
-  --font-headline: var(--font-display);
-  --font-label:    var(--font-mono);
-
-  /* Radii */
-  --r-sm: 4px;
-  --r-md: 8px;
-  --r-lg: 12px;
-  --r-xl: 16px;
-  --r-pill: 999px;
-}
-
-/* ─── Tailwind @theme mapping (so existing utilities keep working) ─── */
-@theme {
-  /* Surfaces */
-  --color-background:               #0a0a0c;
-  --color-surface:                  #0a0a0c;
-  --color-surface-dim:              #060608;
-  --color-surface-container-lowest: #060608;
-  --color-surface-container-low:    #111116;
-  --color-surface-container:        #16161d;
-  --color-surface-container-high:   #1d1d25;
-  --color-surface-container-highest:#25252f;
-  --color-surface-bright:           #25252f;
-  --color-surface-variant:          #1d1d25;
-
-  /* Primary — azure */
-  --color-primary:                  #adc6ff;
-  --color-primary-fixed:            #d8e2ff;
-  --color-primary-fixed-dim:        #adc6ff;
-  --color-primary-container:        #4b8eff;
-  --color-on-primary:               #001a35;
-  --color-on-primary-fixed:         #001a35;
-  --color-on-primary-container:     #001533;
-  --color-inverse-primary:          #2b6fe6;
-
-  /* Secondary (kept neon-purple accent for legacy code paths) */
-  --color-secondary:                #e9b3ff;
-  --color-secondary-container:      #7d01b1;
-  --color-on-secondary:             #510074;
-  --color-on-secondary-container:   #e5a9ff;
-  --color-secondary-fixed:          #f6d9ff;
-  --color-secondary-fixed-dim:      #e9b3ff;
-
-  /* Tertiary */
-  --color-tertiary:                 #75abff;
-  --color-tertiary-container:       #2b6fe6;
-
-  /* Text */
-  --color-on-surface:               #f5f6fb;
-  --color-on-surface-variant:       #c8cbd8;
-  --color-on-background:            #f5f6fb;
-
-  /* Outlines */
-  --color-outline:                  #5a5d6c;
-  --color-outline-variant:          #25262e;
-
-  /* Error */
-  --color-error:                    #ff6b6b;
-  --color-error-container:          rgba(255,107,107,0.18);
-  --color-on-error:                 #001a35;
-
-  /* Warning */
-  --color-warning:                  #ffb770;
-  --color-warning-container:        rgba(255,183,112,0.18);
-  --color-on-warning:               #1a0f00;
-
-  /* Misc */
-  --color-surface-tint:             #4b8eff;
-  --color-inverse-surface:          #f5f6fb;
-  --color-inverse-on-surface:       #16161d;
-
-  /* Legacy aliases */
-  --color-foreground:               #f5f6fb;
-  --color-card:                     #111116;
-  --color-card-foreground:          #f5f6fb;
-  --color-popover:                  #16161d;
-  --color-popover-foreground:       #f5f6fb;
-  --color-muted:                    #1d1d25;
-  --color-muted-foreground:         #c8cbd8;
-  --color-accent:                   #1d1d25;
-  --color-accent-foreground:        #f5f6fb;
-  --color-destructive:              #ff6b6b;
-  --color-destructive-foreground:   #f5f6fb;
-  --color-border:                   #25262e;
-  --color-input:                    #16161d;
-  --color-ring:                     #4b8eff;
-
-  /* Typography */
-  --font-headline: 'Epilogue', system-ui, sans-serif;
-  --font-body:     'Inter', system-ui, sans-serif;
-  --font-label:    'JetBrains Mono', 'Space Grotesk Variable', ui-monospace, monospace;
-
-  /* Border radius */
-  --radius:    4px;
-  --radius-lg: 8px;
-  --radius-xl: 12px;
-}
-
-/* ─── Base ────────────────────────────────────────────────── */
 @layer base {
-  * {
-    box-sizing: border-box;
-  }
+    :root {
+        color-scheme: dark;
+    }
 
-  html, body {
-    height: 100%;
-    margin: 0;
-    overflow: hidden;
-  }
+    html,
+    body,
+    #root {
+        height: 100%;
+    }
 
-  body {
-    background: var(--bg);
-    color: var(--fg);
-    font-family: var(--font-body);
-    font-size: 13px;
-    line-height: 1.45;
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-  }
+    body {
+        margin: 0;
+        overflow: hidden;
+        background: var(--color-canvas);
+        color: var(--color-fg);
+        font-family: var(--font-sans);
+        font-size: var(--text-base);
+        line-height: var(--text-base--line-height);
+        -webkit-font-smoothing: antialiased;
+        font-feature-settings: 'cv11', 'ss01';
+    }
+
+    /* Il focus da tastiera si vede sempre, ovunque. È un `outline` e non un
+       box-shadow: nella modalità a contrasto elevato di Windows le ombre
+       spariscono, gli outline no. */
+    :focus-visible {
+        outline: 2px solid var(--color-focus);
+        outline-offset: 2px;
+        border-radius: 4px;
+    }
+
+    :focus:not(:focus-visible) {
+        outline: none;
+    }
+
+    ::selection {
+        background: var(--color-primary);
+        color: var(--color-on-primary);
+    }
+
+    button {
+        cursor: pointer;
+    }
+
+    button:disabled {
+        cursor: not-allowed;
+    }
+
+    /* Barre di scorrimento sottili ma visibili: 3:1 sullo sfondo, come ogni componente */
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: var(--color-surface-4);
+        border: 2px solid transparent;
+        background-clip: padding-box;
+        border-radius: 999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--color-line-strong);
+        background-clip: padding-box;
+    }
+    ::-webkit-scrollbar-corner {
+        background: transparent;
+    }
+
+    input[type='date'],
+    input[type='time'],
+    input[type='number'] {
+        color-scheme: dark;
+    }
 }
 
-/* ─── Legacy utility classes (kept for compatibility) ─────── */
+@layer components {
+    /* Etichetta di sezione: maiuscoletto leggibile (12px), non il vecchio 9px monospace */
+    .eyebrow {
+        font-size: var(--text-xs);
+        line-height: var(--text-xs--line-height);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--color-fg-3);
+    }
 
-.bento-card {
-  background-color: var(--surf-1);
-  box-shadow: inset 0 0 0 1px var(--border-soft);
+    /* Le cifre che cambiano (contatori, percentuali) non fanno ballare il layout */
+    .tabular {
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* Collegamento «salta al contenuto»: invisibile finché non riceve il focus */
+    .skip-link {
+        position: absolute;
+        left: 12px;
+        top: 12px;
+        z-index: 200;
+        transform: translateY(-64px);
+        border-radius: var(--radius-md);
+        background: var(--color-primary);
+        color: var(--color-on-primary);
+        padding: 8px 16px;
+        font-weight: 600;
+        transition: transform 150ms;
+    }
+    .skip-link:focus {
+        transform: translateY(0);
+    }
+
+    /* Note dell'episodio e guida: testo lungo, leggibile */
+    .prose-notes p {
+        margin: 0 0 10px;
+    }
+    .prose-notes a {
+        color: var(--color-accent);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+
+    .markdown h1 { font-size: var(--text-2xl); line-height: var(--text-2xl--line-height); font-weight: 600; margin: 0 0 12px; color: var(--color-fg); }
+    .markdown h2 { font-size: var(--text-xl); line-height: var(--text-xl--line-height); font-weight: 600; margin: 24px 0 8px; color: var(--color-fg); }
+    .markdown h3 { font-size: var(--text-lg); line-height: var(--text-lg--line-height); font-weight: 600; margin: 20px 0 6px; color: var(--color-fg); }
+    .markdown p { margin: 0 0 10px; color: var(--color-fg-2); }
+    .markdown ul, .markdown ol { margin: 0 0 12px; padding-left: 22px; color: var(--color-fg-2); }
+    .markdown ul { list-style: disc; }
+    .markdown ol { list-style: decimal; }
+    .markdown li { margin: 2px 0; }
+    .markdown strong { color: var(--color-fg); font-weight: 600; }
+    .markdown a { color: var(--color-accent); text-decoration: underline; text-underline-offset: 2px; }
+    .markdown code { font-family: var(--font-mono); font-size: var(--text-sm); background: var(--color-surface-3); border-radius: 4px; padding: 1px 5px; color: var(--color-accent-strong); }
+    .markdown pre { background: var(--color-surface-2); border: 1px solid var(--color-line); border-radius: var(--radius-md); padding: 12px; overflow-x: auto; }
+    .markdown pre code { background: none; padding: 0; }
+    .markdown table { border-collapse: collapse; margin: 0 0 12px; width: 100%; }
+    .markdown th, .markdown td { border: 1px solid var(--color-line); padding: 6px 8px; text-align: left; color: var(--color-fg-2); }
+    .markdown blockquote { border-left: 2px solid var(--color-accent); padding-left: 12px; color: var(--color-fg-2); margin: 0 0 12px; }
+    .markdown hr { border: 0; border-top: 1px solid var(--color-line); margin: 20px 0; }
 }
 
-.glass-panel {
-  background: rgba(22, 22, 29, 0.6);
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--border-soft);
+/* ═══════════════════════════════════════════════════════════════════════
+   MOVIMENTO
+   Chi chiede al sistema meno animazioni le ha tolte anche qui; «Riduci
+   animazioni» nelle impostazioni (classe .reduce-motion) fa lo stesso a mano.
+   ═══════════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }
 
-.glass {
-  background: rgba(17, 17, 22, 0.85);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--border);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+body.reduce-motion *,
+body.reduce-motion *::before,
+body.reduce-motion *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
 }
 
-.glass-card {
-  background: rgba(17, 17, 22, 0.85);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--border);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
-  border-radius: var(--r-md);
+body.reduce-motion .backdrop-blur-sm,
+body.reduce-motion .backdrop-blur {
+    backdrop-filter: none !important;
 }
 
-.btn-primary-gradient {
-  background: linear-gradient(180deg, var(--azure-hi), var(--azure));
-  color: #001a35;
-  font-family: var(--font-mono);
-  font-weight: 700;
-  font-size: 10.5px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  border-radius: var(--r-md);
-  transition: filter 150ms cubic-bezier(0.2, 0, 0, 1), transform 150ms cubic-bezier(0.2, 0, 0, 1);
-  box-shadow: 0 2px 12px var(--azure-glow-sm), inset 0 1px 0 rgba(255,255,255,0.3);
+/* ═══════════════════════════════════════════════════════════════════════
+   CONTRASTO ELEVATO DI WINDOWS (forced-colors)
+   Il sistema sostituisce i colori: servono bordi veri dove prima c'erano
+   solo sfondi, così pulsanti, interruttori e pannelli restano distinguibili.
+   ═══════════════════════════════════════════════════════════════════════ */
+@media (forced-colors: active) {
+    .panel,
+    button,
+    [role='switch'],
+    [role='tab'],
+    [role='checkbox'],
+    input,
+    select,
+    textarea {
+        border: 1px solid CanvasText;
+    }
+    [role='switch'][aria-checked='true'],
+    [role='checkbox'][aria-checked='true'] {
+        background: Highlight;
+    }
+    :focus-visible {
+        outline-color: Highlight;
+    }
 }
-.btn-primary-gradient:hover  { filter: brightness(1.08); transform: translateY(-1px); }
-.btn-primary-gradient:active { transform: scale(0.97); }
-
-/* ─── Hover utilities (legacy compat) ─────────────────────── */
-.hover-text-primary:hover            { color: var(--azure-soft); }
-.hover-text-surface:hover            { color: var(--fg); }
-.hover-text-warning:hover            { color: var(--warn); }
-.hover-bg-primary-tinted:hover       { background: rgba(75,142,255,0.10); }
-.hover-bg-surface-high:hover         { background: var(--surf-3); color: var(--fg); }
-.hover-bg-bright:hover               { background: var(--surf-4); }
-.hover-bg-container:hover            { background: var(--surf-2) !important; }
-.hover-bg-highest:hover              { background: var(--surf-4) !important; }
-.hover-secondary-tinted:hover        { background: rgba(125, 1, 177, 0.2) !important; }
-.hover-primary-tinted-strong:hover   { background: rgba(75,142,255,0.22) !important; }
-.hover-error-tinted-strong:hover     { background: rgba(255,107,107,0.22) !important; }
-.hover-opacity-dim:hover             { opacity: 0.85; }
-.hover-stop:hover                    { color: var(--danger); background: rgba(255,107,107,0.15); }
-.hover-danger:hover                  { background: rgba(255,107,107,0.15); color: var(--danger); }
-.lang-btn-hover:hover:not(.lang-btn-active) {
-  opacity: 1 !important;
-  background: var(--surf-3) !important;
-}
-.episode-row { transition: background 150ms ease; }
-.episode-row:hover { background: var(--surf-2) !important; }
-
-/* ─── Scrollbar ───────────────────────────────────────────── */
-::-webkit-scrollbar         { width: 6px; height: 6px; }
-::-webkit-scrollbar-track   { background: transparent; }
-::-webkit-scrollbar-thumb   { background: var(--surf-4); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: var(--fg-4); }
-
-.custom-scrollbar::-webkit-scrollbar         { width: 6px; }
-.custom-scrollbar::-webkit-scrollbar-track   { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb   { background: var(--surf-4); border-radius: 10px; }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--fg-4); }

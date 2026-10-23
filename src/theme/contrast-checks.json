@@ -1,0 +1,20 @@
+{
+    "$comment": "Coppie di colori che l'interfaccia usa davvero (nomi da src/theme/palette.css). text = testo normale (4.5:1, WCAG 1.4.3); ui = bordi di controlli, icone e indicatori (3:1, 1.4.11); ui-fill = riempimento di un controllo rispetto allo sfondo (3:1); decorative = solo riportata (testo disabilitato, esente). Verifica: npm run check:contrast.",
+    "checks": [
+        { "fg": "fg", "bg": ["canvas", "surface-1", "surface-2", "surface-3", "surface-4"], "kind": "text" },
+        { "fg": "fg-2", "bg": ["canvas", "surface-1", "surface-2", "surface-3", "surface-4"], "kind": "text" },
+        { "fg": "fg-3", "bg": ["canvas", "surface-1", "surface-2", "surface-3", "surface-4"], "kind": "text" },
+        { "fg": "accent", "bg": ["canvas", "surface-1", "surface-2", "surface-3", "surface-4"], "kind": "text" },
+        { "fg": "accent-strong", "bg": ["surface-3", "surface-4"], "kind": "text" },
+        { "fg": "on-primary", "bg": ["primary", "primary-hover", "primary-pressed"], "kind": "text" },
+        { "fg": "on-danger", "bg": ["danger-fill", "danger-fill-hover"], "kind": "text" },
+        { "fg": "success", "bg": ["canvas", "surface-1", "surface-2", "surface-3", "success-soft"], "kind": "text" },
+        { "fg": "warning", "bg": ["canvas", "surface-1", "surface-2", "surface-3", "warning-soft"], "kind": "text" },
+        { "fg": "danger", "bg": ["canvas", "surface-1", "surface-2", "surface-3", "danger-soft"], "kind": "text" },
+        { "fg": "line-strong", "bg": ["canvas", "surface-1", "surface-2", "surface-3"], "kind": "ui" },
+        { "fg": "focus", "bg": ["canvas", "surface-1", "surface-2", "surface-3", "surface-4", "primary"], "kind": "ui" },
+        { "fg": "accent", "bg": ["surface-3", "surface-4"], "kind": "ui" },
+        { "fg": "primary", "bg": ["canvas", "surface-1", "surface-2"], "kind": "ui-fill" },
+        { "fg": "fg-disabled", "bg": ["surface-1", "surface-2"], "kind": "decorative" }
+    ]
+}

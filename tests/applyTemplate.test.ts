@@ -91,8 +91,8 @@ describe('applyTemplate', () => {
         });
 
         it('should leave unknown tokens as-is', () => {
-            expect(applyTemplate('{episode}-{title}', { title: 'x', podcast: 'P' }))
-                .toBe('{episode}-x');
+            expect(applyTemplate('{guid}-{title}', { title: 'x', podcast: 'P' }))
+                .toBe('{guid}-x');
         });
 
         it('should return an empty template unchanged', () => {
@@ -126,6 +126,31 @@ describe('applyTemplate', () => {
             // the title is itself expanded by the following replace pass.
             expect(applyTemplate('{title}', { title: 'see {podcast} here', podcast: 'POD' }))
                 .toBe('see POD here');
+        });
+    });
+
+    // ── v1.6.0: season / episode tokens ───────────────────────
+    describe('{season} and {episode}', () => {
+        it('pads the iTunes numbers to two digits', () => {
+            expect(applyTemplate('S{season}E{episode} - {title}', { title: 'Pilot', podcast: 'P', season: '1', episode: '3' }))
+                .toBe('S01E03 - Pilot');
+        });
+
+        it('keeps numbers wider than two digits', () => {
+            expect(applyTemplate('{episode}', { title: 'x', podcast: 'P', episode: '123' })).toBe('123');
+        });
+
+        it('uses 00 when the feed has no number', () => {
+            expect(applyTemplate('S{season}E{episode}', { title: 'x', podcast: 'P' })).toBe('S00E00');
+        });
+
+        it('uses 00 for non-numeric values (feeds put text there)', () => {
+            expect(applyTemplate('{episode}', { title: 'x', podcast: 'P', episode: 'Bonus' })).toBe('00');
+            expect(applyTemplate('{season}', { title: 'x', podcast: 'P', season: '-2' })).toBe('00');
+        });
+
+        it('is case-insensitive like the other tokens', () => {
+            expect(applyTemplate('{SEASON}x{Episode}', { title: 'x', podcast: 'P', season: '2', episode: '10' })).toBe('02x10');
         });
     });
 

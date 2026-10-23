@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { extractExtension } from '../electron/utils/extractExtension';
+import { extractExtension, extensionForMime } from '../electron/utils/extractExtension';
 
 describe('extractExtension', () => {
 
@@ -100,5 +100,32 @@ describe('extractExtension', () => {
 
     it('should handle URL-encoded characters in path', () => {
         expect(extractExtension('https://cdn.example.com/my%20podcast/ep%2001.ogg')).toBe('.ogg');
+    });
+
+    // ── v1.6.0: the enclosure's MIME type decides when the URL has no extension ──
+    describe('MIME type fallback', () => {
+        it('uses the declared type for an extension-less URL', () => {
+            expect(extractExtension('https://cdn.example.com/download/ep/12345', 'audio/x-m4a')).toBe('.m4a');
+            expect(extractExtension('https://cdn.example.com/download/ep/12345', 'video/mp4')).toBe('.mp4');
+            expect(extractExtension('https://cdn.example.com/play?id=9', 'audio/ogg')).toBe('.ogg');
+        });
+
+        it('ignores MIME parameters and case', () => {
+            expect(extractExtension('https://cdn.example.com/x', 'Audio/MP4; codecs="mp4a.40.2"')).toBe('.m4a');
+        });
+
+        it('lets a known URL extension win over the declared type', () => {
+            expect(extractExtension('https://cdn.example.com/ep.mp3', 'audio/x-m4a')).toBe('.mp3');
+        });
+
+        it('falls back to .mp3 for an unknown type', () => {
+            expect(extractExtension('https://cdn.example.com/x', 'application/octet-stream')).toBe('.mp3');
+        });
+
+        it('exposes the mapping for other callers', () => {
+            expect(extensionForMime('audio/mpeg')).toBe('.mp3');
+            expect(extensionForMime(undefined)).toBeUndefined();
+            expect(extensionForMime('text/html')).toBeUndefined();
+        });
     });
 });

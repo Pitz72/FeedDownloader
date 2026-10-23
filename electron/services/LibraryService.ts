@@ -2,7 +2,7 @@ import { XMLParser, XMLBuilder } from 'fast-xml-parser';
 import { DatabaseService } from './DatabaseService';
 import { hasDangerousDoctype } from '../utils/xmlSafety';
 import { validateUrl } from '../utils/validateUrl';
-import type { FeedEntry, ArchiveEntry, ArchiveStats } from '../../shared/types';
+import type { FeedEntry, ArchiveEntry, ArchiveStats, DownloadRequest } from '../../shared/types';
 
 /**
  * LibraryService — high-level persistence API.
@@ -44,6 +44,12 @@ export class LibraryService {
     hasFeed(url: string): boolean {
         return this.db.hasFeed(url);
     }
+
+    updateFeedIdentity(url: string, title?: string, image?: string): void { this.db.updateFeedIdentity(url, title, image); }
+
+    // v1.6.0 — automatic archiving per feed
+    setFeedAutoDownload(url: string, enabled: boolean): void { this.db.setFeedAutoDownload(url, enabled); }
+    getFeedAutoDownload(url: string): boolean { return this.db.getFeedAutoDownload(url); }
 
     getFeedValidators(url: string): { etag?: string; lastModified?: string } | null {
         return this.db.getFeedValidators(url);
@@ -138,6 +144,15 @@ export class LibraryService {
         return this.db.getArchiveFilename(podcastTitle, title);
     }
 
+    // v1.6.0
+    getArchiveEntry(guid: string, feedUrl?: string): ArchiveEntry | null { return this.db.getArchiveEntry(guid, feedUrl); }
+    getArchiveByFeed(feedUrl: string, podcastTitle: string): ArchiveEntry[] { return this.db.getArchiveByFeed(feedUrl, podcastTitle); }
+    backfillArchiveBaseDir(baseDir: string): number { return this.db.backfillArchiveBaseDir(baseDir); }
+    setArchiveBaseDir(items: Array<{ guid: string; feedUrl?: string }>, baseDir: string): void { this.db.setArchiveBaseDir(items, baseDir); }
+    rebaselineArchiveEntry(guid: string, feedUrl: string | undefined, fileSize: number, checksum: string): void {
+        this.db.rebaselineArchiveEntry(guid, feedUrl, fileSize, checksum);
+    }
+
     getArchiveStats(): ArchiveStats {
         return this.db.getArchiveStats();
     }
@@ -194,6 +209,18 @@ export class LibraryService {
     // v1.5.0 — "What's new" tracking (Titan pattern)
     getLastSeenVersion(): string | null { return this.db.getLastSeenVersion(); }
     setLastSeenVersion(version: string): void { this.db.setLastSeenVersion(version); }
+
+    // v1.6.0 — accessibility preferences
+    getUiZoom(): number { return this.db.getUiZoom(); }
+    setUiZoom(zoom: number): void { this.db.setUiZoom(zoom); }
+    getReduceMotion(): boolean { return this.db.getReduceMotion(); }
+    setReduceMotion(enabled: boolean): void { this.db.setReduceMotion(enabled); }
+
+    // v1.6.0 — downloads that survive a restart
+    addPendingDownload(request: DownloadRequest): void { this.db.addPendingDownload(request); }
+    removePendingDownload(url: string): void { this.db.removePendingDownload(url); }
+    getPendingDownloads(): DownloadRequest[] { return this.db.getPendingDownloads(); }
+    clearPendingDownloads(): void { this.db.clearPendingDownloads(); }
 
     getAutoRefreshInterval(): number { return this.db.getAutoRefreshInterval(); }
     setAutoRefreshInterval(hours: number): void { this.db.setAutoRefreshInterval(hours); }
@@ -254,8 +281,9 @@ export class LibraryService {
             traverse(result.opml.body.outline);
         }
 
-        this.db.addFeedsBulk(collected);
-        return collected.length;
+        // v1.6.0: the count is what was actually ADDED — feeds already in the
+        // library are skipped untouched (their title and cover are not reset).
+        return this.db.addFeedsBulk(collected);
     }
 
     exportOPML(): string {

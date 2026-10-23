@@ -1,7 +1,7 @@
 import axios from 'axios';
 import fs from 'fs-extra';
-import { createThrottleStream } from '../utils/throttleStream';
-import { SAFE_AXIOS_CONFIG } from '../utils/safeHttp';
+import { createLimitedStream, createThrottleStream, SharedRateLimiter } from '../utils/throttleStream';
+import { SAFE_AXIOS_CONFIG, USER_AGENT } from '../utils/safeHttp';
 
 /** Timeout for the initial HTTP connection (ms) */
 const CONNECTION_TIMEOUT_MS = 30_000; // 30s
@@ -16,8 +16,11 @@ export const PAUSE_REASONS = new Set(['PAUSE', 'PAUSE_QUEUE']);
 const isPauseSignal = (signal?: AbortSignal): boolean =>
     !!signal?.aborted && PAUSE_REASONS.has(signal.reason as string);
 
+/** Per-file cap in KB/s (legacy), or the limiter shared by every download (v1.6.0). */
+export type SpeedLimit = number | SharedRateLimiter | undefined;
+
 export class DownloadService {
-    async downloadFile(url: string, outputPath: string, onProgress: (loaded: number, total: number) => void, speedLimitKBps?: number, attempts = 3, signal?: AbortSignal, maxSizeBytes?: number) {
+    async downloadFile(url: string, outputPath: string, onProgress: (loaded: number, total: number) => void, speedLimitKBps?: SpeedLimit, attempts = 3, signal?: AbortSignal, maxSizeBytes?: number) {
         for (let i = 0; i < attempts; i++) {
             try {
                 await this.attemptDownload(url, outputPath, onProgress, speedLimitKBps, signal, maxSizeBytes);
@@ -76,7 +79,7 @@ export class DownloadService {
         }
     }
 
-    private async attemptDownload(url: string, outputPath: string, onProgress: (loaded: number, total: number) => void, speedLimitKBps?: number, signal?: AbortSignal, maxSizeBytes?: number) {
+    private async attemptDownload(url: string, outputPath: string, onProgress: (loaded: number, total: number) => void, speedLimitKBps?: SpeedLimit, signal?: AbortSignal, maxSizeBytes?: number) {
         const tempPath = `${outputPath}.part`;
         // S1: resuming blindly can splice bytes of a *changed* remote file onto a
         // stale prefix — silent audio corruption. The validator (ETag or
@@ -132,6 +135,7 @@ export class DownloadService {
                     // from Content-Length, tripping the size check on every attempt
                     // (INTEGRITY_CHECK_FAILED) and corrupting the resume validator.
                     'Accept-Encoding': 'identity',
+                    'User-Agent': USER_AGENT,
                     ...(resumedBytes > 0 ? { Range: `bytes=${resumedBytes}-`, 'If-Range': resumeValidator! } : {}),
                 },
             });
@@ -211,9 +215,9 @@ export class DownloadService {
 
             let loaded = resumedBytes; // Start progress counter from resume offset
 
-            const throttle = speedLimitKBps && speedLimitKBps > 0
-                ? createThrottleStream(speedLimitKBps * 1024)
-                : null;
+            const throttle = speedLimitKBps instanceof SharedRateLimiter
+                ? (speedLimitKBps.rate > 0 ? createLimitedStream(speedLimitKBps) : null)
+                : (speedLimitKBps && speedLimitKBps > 0 ? createThrottleStream(speedLimitKBps * 1024) : null);
 
             return await new Promise<void>((resolve, reject) => {
                 // ── Single-settle guard + centralized teardown ───

@@ -1,391 +1,196 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useStore, AppState } from '../store/useStore';
-import type { FeedEntry } from '../../shared/types';
+import {
+    Archive, BookOpen, Download, FileUp, Headphones, Loader2, Plus, RefreshCw, Search, Settings, ShieldCheck, type LucideIcon,
+} from 'lucide-react';
+import { Dialog } from './ui/Dialog';
+import { Kbd } from './ui/Controls';
 import { CoverImage } from './CoverImage';
-import { useFocusTrap } from '../hooks/useFocusTrap';
+import { useStore } from '../store/useStore';
+import { useToast } from './ui/Toast';
+import { feedErrorKey, openFeed, episodeKey } from '../lib/actions';
+import { formatDate } from '../lib/dates';
+import { cn } from '../lib/cn';
 
 const isMac = window.api?.platform === 'darwin';
+const MOD = isMac ? '⌘' : 'Ctrl';
 
-type ActionItem = {
-    kind: 'action';
-    id: string;
-    label: string;
-    description?: string;
-    shortcut?: string[];
-    iconPath: React.ReactNode;
-    onSelect: () => void;
-};
-
-type FeedItem = {
-    kind: 'feed';
-    url: string;
-    title: string;
-    image?: string;
-};
-
-// v1.5.0 — episodes of the currently open feed, searchable from the palette
-type EpisodeItem = {
-    kind: 'episode';
-    key: string;
-    title: string;
-    pubDate?: string;
-};
-
-type ResultItem = ActionItem | FeedItem | EpisodeItem;
-
-interface CommandPaletteProps {
-    onClose: () => void;
-    onOpenSettings: () => void;
+export interface PaletteCommands {
+    addFeed: () => void;
+    checkAll: () => void;
+    openSettings: () => void;
+    openGuide: () => void;
+    openHealthCheck: () => void;
+    importOpml: () => void;
 }
 
-// Tint hash (must match Sidebar)
-function tintFor(seed: string): number {
-    let h = 0;
-    for (let i = 0; i < seed.length; i++) h = ((h << 5) - h + seed.charCodeAt(i)) | 0;
-    return (Math.abs(h) % 6) + 1;
-}
+type Item =
+    | { kind: 'action'; id: string; label: string; hint?: string; icon: LucideIcon; keys?: string[]; run: () => void }
+    | { kind: 'feed'; id: string; label: string; image?: string; url: string }
+    | { kind: 'episode'; id: string; label: string; hint?: string };
 
-function initialsFor(title: string | undefined | null): string {
-    if (!title) return '?';
-    const parts = title.trim().split(/\s+/).filter(Boolean);
-    if (parts.length === 0) return '?';
-    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-}
-
-export const CommandPalette: React.FC<CommandPaletteProps> = ({ onClose, onOpenSettings }) => {
-    const { t } = useTranslation();
+/**
+ * Command palette (Ctrl+K): azioni, feed della libreria, episodi del feed
+ * aperto. Combobox ARIA: le frecce scorrono i risultati, Invio esegue, Esc chiude.
+ */
+export function CommandPalette({ open, onClose, commands }: { open: boolean; onClose: () => void; commands: PaletteCommands }) {
+    const { t, i18n } = useTranslation();
+    const toast = useToast();
+    const feeds = useStore(s => s.feeds);
+    const currentFeed = useStore(s => s.currentFeed);
+    const setView = useStore(s => s.setView);
     const [query, setQuery] = useState('');
-    const [feeds, setFeeds] = useState<FeedEntry[]>([]);
-    const [loadingFeedUrl, setLoadingFeedUrl] = useState<string | null>(null);
-    const [activeIdx, setActiveIdx] = useState(0);
+    const [active, setActive] = useState(0);
+    const [loadingUrl, setLoadingUrl] = useState<string | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
-    const listRef = useRef<HTMLDivElement>(null);
-    // Mounted only while open, so the trap is always active here.
-    const trapRef = useFocusTrap<HTMLDivElement>(true);
-    // S9: only the latest parseFeed request may update state (stale responses are dropped)
-    const latestRequestRef = useRef<string | null>(null);
+    const listRef = useRef<HTMLUListElement>(null);
 
-    const setViewMode = useStore((s: AppState) => s.setViewMode);
-    const setCurrentFeed = useStore((s: AppState) => s.setCurrentFeed);
-    const currentFeed = useStore((s: AppState) => s.currentFeed);
+    useEffect(() => { if (open) { setQuery(''); setActive(0); } }, [open]);
 
-    useEffect(() => {
-        window.api.getFeeds().then(setFeeds).catch(() => {});
-        setTimeout(() => inputRef.current?.focus(), 50);
-    }, []);
+    const close = (then?: () => void) => { onClose(); if (then) setTimeout(then, 60); };
 
-    const handleSelectFeed = useCallback(async (feed: FeedEntry) => {
-        // M27: a load is already in flight (Enter path is not covered by the disabled buttons)
-        if (loadingFeedUrl) return;
-        latestRequestRef.current = feed.url;
-        setLoadingFeedUrl(feed.url);
-        try {
-            const parsed = await window.api.parseFeed(feed.url);
-            if (latestRequestRef.current !== feed.url) return;
-            setCurrentFeed({ ...parsed, url: feed.url });
-            setViewMode('feeds');
-            onClose();
-        } catch {
-            if (latestRequestRef.current === feed.url) setLoadingFeedUrl(null);
-        }
-    }, [loadingFeedUrl, setCurrentFeed, setViewMode, onClose]);
+    const actions: Item[] = useMemo(() => [
+        { kind: 'action', id: 'add', label: t('palette.add_feed'), hint: t('palette.add_feed_hint'), icon: Plus, keys: [MOD, 'N'], run: () => close(commands.addFeed) },
+        { kind: 'action', id: 'check', label: t('palette.check_all'), hint: t('palette.check_all_hint'), icon: RefreshCw, keys: [MOD, 'S'], run: () => close(commands.checkAll) },
+        { kind: 'action', id: 'downloads', label: t('palette.downloads'), icon: Download, keys: [MOD, '2'], run: () => close(() => setView('downloads')) },
+        { kind: 'action', id: 'archive', label: t('palette.archive'), icon: Archive, keys: [MOD, '3'], run: () => close(() => setView('archive')) },
+        { kind: 'action', id: 'verify', label: t('palette.verify'), icon: ShieldCheck, run: () => close(commands.openHealthCheck) },
+        { kind: 'action', id: 'opml', label: t('sidebar.import_opml'), icon: FileUp, run: () => close(commands.importOpml) },
+        { kind: 'action', id: 'settings', label: t('settings.title'), icon: Settings, keys: [MOD, ','], run: () => close(commands.openSettings) },
+        { kind: 'action', id: 'guide', label: t('help.title'), icon: BookOpen, run: () => close(commands.openGuide) },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    ], [t, commands, setView]);
 
-    const modKey = isMac ? '⌘' : 'Ctrl';
+    const q = query.trim().toLowerCase();
 
-    const actions: ActionItem[] = useMemo(() => [
-        {
-            kind: 'action', id: 'sync_all',
-            label: t('cmd.action_sync_all', 'Sincronizza tutti i feed'),
-            description: t('cmd.action_sync_all_desc', 'Controlla nuovi episodi in tutti i feed salvati'),
-            shortcut: [modKey, 'S'],
-            iconPath: (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/>
-                    <path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/>
-                </svg>
-            ),
-            onSelect: () => { window.dispatchEvent(new CustomEvent('feeddownloader:syncall')); onClose(); },
-        },
-        {
-            kind: 'action', id: 'add_feed',
-            label: t('cmd.action_add_feed', 'Aggiungi feed'),
-            description: t('cmd.action_add_feed_desc', 'Apri il campo URL per analizzare un nuovo feed'),
-            iconPath: (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/>
-                </svg>
-            ),
-            onSelect: () => {
-                setViewMode('feeds');
-                onClose();
-                setTimeout(() => document.getElementById('url-feed-input')?.focus(), 150);
-            },
-        },
-        {
-            kind: 'action', id: 'view_archive',
-            label: t('cmd.action_view_archive', 'Apri archivio'),
-            description: t('cmd.action_view_archive_desc', 'Mostra tutti gli episodi archiviati'),
-            shortcut: [modKey, 'A'],
-            iconPath: (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="2" y="4" width="20" height="5" rx="1"/>
-                    <path d="M4 9v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9"/>
-                    <path d="M10 13h4"/>
-                </svg>
-            ),
-            onSelect: () => { setViewMode('archive'); onClose(); },
-        },
-        {
-            kind: 'action', id: 'view_feeds',
-            label: t('cmd.action_view_feeds', 'Torna ai feed'),
-            iconPath: (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M4 11a9 9 0 0 1 9 9"/>
-                    <path d="M4 4a16 16 0 0 1 16 16"/>
-                    <circle cx="5" cy="19" r="1.6" fill="currentColor"/>
-                </svg>
-            ),
-            onSelect: () => { setViewMode('feeds'); onClose(); },
-        },
-        {
-            kind: 'action', id: 'settings',
-            label: t('cmd.action_settings', 'Apri impostazioni'),
-            description: t('cmd.action_settings_desc', 'Concorrenza, cartella, lingua, integrità'),
-            shortcut: [modKey, ','],
-            iconPath: (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="3"/>
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-                </svg>
-            ),
-            onSelect: () => { onClose(); onOpenSettings(); },
-        },
-    ], [t, onClose, onOpenSettings, setViewMode, modKey]);
-
-    const q = query.toLowerCase().trim();
-    const filteredActions = useMemo(
-        () => q ? actions.filter(a => a.label.toLowerCase().includes(q)) : actions,
-        [q, actions]
-    );
-
-    const filteredFeeds: FeedItem[] = useMemo(() => {
-        if (!feeds.length) return [];
-        const list = q
-            ? feeds.filter(f => (f.title || '').toLowerCase().includes(q))
-            : feeds.slice(0, 5);
-        return list.map(f => ({
-            kind: 'feed' as const,
-            url: f.url,
-            title: f.title || '—',
-            image: typeof f.image === 'string' ? f.image : (f.image as { url?: string } | undefined)?.url,
+    const groups = useMemo(() => {
+        const acts = q ? actions.filter(a => a.label.toLowerCase().includes(q)) : actions;
+        const feedItems: Item[] = (q ? feeds.filter(f => (f.title || '').toLowerCase().includes(q)) : feeds.slice(0, 6)).slice(0, 12).map(f => ({
+            kind: 'feed', id: `feed:${f.url}`, label: f.title || f.url, url: f.url,
+            image: typeof f.image === 'string' ? f.image : f.image?.url,
         }));
-    }, [q, feeds]);
+        const episodes: Item[] = q && currentFeed
+            ? currentFeed.episodes.filter(ep => (ep.title || '').toLowerCase().includes(q)).slice(0, 8).map((ep, i) => ({
+                kind: 'episode', id: `ep:${episodeKey(ep) || i}`, label: ep.title || '—', hint: formatDate(ep.pubDate || ep.isoDate, i18n.language),
+            }))
+            : [];
+        return [
+            { key: 'actions', label: t('palette.group_actions'), items: acts },
+            { key: 'feeds', label: t('palette.group_feeds'), items: feedItems },
+            { key: 'episodes', label: t('palette.group_episodes', { podcast: currentFeed?.title ?? '' }), items: episodes },
+        ].filter(g => g.items.length > 0);
+    }, [q, actions, feeds, currentFeed, t, i18n.language]);
 
-    // v1.5.0 — the placeholder has always promised "episodio": search the open
-    // feed's episodes by title and hand the query off to the list filter.
-    const filteredEpisodes: EpisodeItem[] = useMemo(() => {
-        if (!q || !currentFeed?.episodes?.length) return [];
-        return currentFeed.episodes
-            .filter(ep => (ep.title || '').toLowerCase().includes(q))
-            .slice(0, 8)
-            .map((ep, i) => ({
-                kind: 'episode' as const,
-                key: ep.guid || ep.enclosure?.url || `${ep.title}-${i}`,
-                title: ep.title || '—',
-                pubDate: ep.pubDate,
-            }));
-    }, [q, currentFeed]);
-
-    const handleSelectEpisode = useCallback((item: EpisodeItem) => {
-        setViewMode('feeds');
-        window.dispatchEvent(new CustomEvent('feeddownloader:search-episode', { detail: { query: item.title } }));
-        onClose();
-    }, [setViewMode, onClose]);
-
-    const allResults: ResultItem[] = useMemo(
-        () => [...filteredActions, ...filteredFeeds, ...filteredEpisodes],
-        [filteredActions, filteredFeeds, filteredEpisodes]
-    );
-
-    useEffect(() => { setActiveIdx(0); }, [allResults.length]);
-
+    const flat = useMemo(() => groups.flatMap(g => g.items), [groups]);
+    useEffect(() => { setActive(0); }, [flat.length]);
     useEffect(() => {
-        const onKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') { onClose(); return; }
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                setActiveIdx(i => Math.min(i + 1, allResults.length - 1));
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                setActiveIdx(i => Math.max(i - 1, 0));
-            } else if (e.key === 'Enter') {
-                e.preventDefault();
-                const item = allResults[activeIdx];
-                if (!item) return;
-                if (item.kind === 'action') {
-                    item.onSelect();
-                } else if (item.kind === 'episode') {
-                    handleSelectEpisode(item);
-                } else {
-                    const feed = feeds.find(f => f.url === item.url);
-                    if (feed) handleSelectFeed(feed);
-                }
-            }
-        };
-        window.addEventListener('keydown', onKeyDown);
-        return () => window.removeEventListener('keydown', onKeyDown);
-    }, [allResults, activeIdx, feeds, handleSelectFeed, handleSelectEpisode, onClose]);
+        listRef.current?.querySelector(`[data-idx="${active}"]`)?.scrollIntoView({ block: 'nearest' });
+    }, [active]);
 
-    useEffect(() => {
-        const el = listRef.current?.querySelector(`[data-idx="${activeIdx}"]`) as HTMLElement | null;
-        el?.scrollIntoView({ block: 'nearest' });
-    }, [activeIdx]);
+    const run = async (item: Item) => {
+        if (item.kind === 'action') { item.run(); return; }
+        if (item.kind === 'episode') {
+            close(() => {
+                setView('feed');
+                window.dispatchEvent(new CustomEvent('feeddownloader:search-episode', { detail: { query: item.label } }));
+            });
+            return;
+        }
+        setLoadingUrl(item.url);
+        try {
+            await openFeed(item.url);
+            close();
+        } catch (e) {
+            toast.error(t(feedErrorKey(e)), item.label);
+        } finally {
+            setLoadingUrl(null);
+        }
+    };
+
+    const onKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'ArrowDown') { e.preventDefault(); setActive(i => Math.min(i + 1, flat.length - 1)); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(i => Math.max(i - 1, 0)); }
+        else if (e.key === 'Home') { e.preventDefault(); setActive(0); }
+        else if (e.key === 'End') { e.preventDefault(); setActive(flat.length - 1); }
+        else if (e.key === 'Enter') { e.preventDefault(); const item = flat[active]; if (item) void run(item); }
+    };
+
+    let idx = -1;
+    const optionId = (i: number) => `palette-opt-${i}`;
 
     return (
-        <div className="palette-bg" onClick={onClose}>
-            <motion.div
-                ref={trapRef}
-                className="palette"
-                initial={{ opacity: 0, scale: 0.96, y: -8 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.96, y: -8 }}
-                transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-                onClick={e => e.stopPropagation()}
-                role="dialog"
-                aria-modal="true"
-                aria-label={t('cmd.placeholder', 'Cerca azione, feed, episodio…')}
-                tabIndex={-1}
-            >
-                <div className="palette-search">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
-                    </svg>
-                    <input
-                        ref={inputRef}
-                        type="text"
-                        value={query}
-                        onChange={e => setQuery(e.target.value)}
-                        placeholder={t('cmd.placeholder', 'Cerca azione, feed, episodio…')}
-                    />
-                    <span className="esc">esc</span>
-                </div>
+        <Dialog open={open} onClose={onClose} title={t('palette.title')} bare size="md" initialFocusRef={inputRef}>
+            <div className="flex items-center gap-3 border-b border-line px-4">
+                <Search size={17} className="shrink-0 text-fg-3" aria-hidden="true" />
+                <input
+                    ref={inputRef}
+                    role="combobox"
+                    aria-expanded={flat.length > 0}
+                    aria-controls="palette-list"
+                    aria-activedescendant={flat.length > 0 ? optionId(active) : undefined}
+                    aria-autocomplete="list"
+                    aria-label={t('palette.title')}
+                    value={query}
+                    onChange={e => setQuery(e.target.value)}
+                    onKeyDown={onKeyDown}
+                    placeholder={t('palette.placeholder')}
+                    className="h-14 min-w-0 flex-1 bg-transparent text-md text-fg placeholder:text-fg-3 focus:outline-none"
+                />
+                <Kbd>Esc</Kbd>
+            </div>
 
-                <div ref={listRef} className="palette-list custom-scrollbar">
-                    {allResults.length === 0 && (
-                        <div className="palette-section">
-                            <p className="palette-section-label" style={{ textAlign: 'center', padding: '24px 22px' }}>
-                                {t('cmd.no_results', 'Nessun risultato')}
-                            </p>
-                        </div>
-                    )}
-
-                    {filteredActions.length > 0 && (
-                        <div className="palette-section">
-                            <p className="palette-section-label">{t('cmd.group_actions', 'Azioni rapide')}</p>
-                            {filteredActions.map((item, i) => (
-                                <button
-                                    type="button"
-                                    key={item.id}
-                                    data-idx={i}
-                                    onClick={item.onSelect}
-                                    onMouseEnter={() => setActiveIdx(i)}
-                                    className={`palette-item ${activeIdx === i ? 'active' : ''}`}
-                                >
-                                    {item.iconPath}
-                                    <div className="text">
-                                        {item.label}
-                                        {item.description && <small>{item.description}</small>}
-                                    </div>
-                                    {item.shortcut && (
-                                        <div className="shortcut">
-                                            {item.shortcut.map((k, ki) => <kbd key={ki}>{k}</kbd>)}
-                                        </div>
-                                    )}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-
-                    {filteredFeeds.length > 0 && (
-                        <div className="palette-section">
-                            <p className="palette-section-label">{t('cmd.group_feeds', 'Salta al feed')}</p>
-                            {filteredFeeds.map((item, i) => {
-                                const globalIdx = filteredActions.length + i;
-                                const isLoading = loadingFeedUrl === item.url;
-                                const tint = tintFor(item.url);
+            <ul ref={listRef} id="palette-list" role="listbox" aria-label={t('palette.results')} className="max-h-[52vh] overflow-y-auto p-2">
+                {flat.length === 0 && <li className="px-3 py-8 text-center text-sm text-fg-3">{t('palette.no_results')}</li>}
+                {groups.map(g => (
+                    <li key={g.key} role="presentation">
+                        <p className="eyebrow px-3 pb-1 pt-3" aria-hidden="true">{g.label}</p>
+                        <ul role="group" aria-label={g.label}>
+                            {g.items.map(item => {
+                                idx++;
+                                const i = idx;
+                                const selected = i === active;
+                                let lead: ReactNode;
+                                if (item.kind === 'action') {
+                                    const Icon = item.icon;
+                                    lead = <Icon size={16} aria-hidden="true" />;
+                                } else if (item.kind === 'feed') {
+                                    lead = loadingUrl === item.url
+                                        ? <Loader2 size={16} className="animate-spin" aria-hidden="true" />
+                                        : <span className="flex h-6 w-6 items-center justify-center overflow-hidden rounded bg-surface-3 text-[10px] font-semibold" aria-hidden="true"><CoverImage src={item.image} className="h-full w-full object-cover" fallback={<span>{item.label.slice(0, 2).toUpperCase()}</span>} /></span>;
+                                } else {
+                                    lead = <Headphones size={16} aria-hidden="true" />;
+                                }
                                 return (
-                                    <button
-                                        type="button"
-                                        key={item.url}
-                                        data-idx={globalIdx}
-                                        onClick={() => {
-                                            const feed = feeds.find(f => f.url === item.url);
-                                            if (feed) handleSelectFeed(feed);
-                                        }}
-                                        onMouseEnter={() => setActiveIdx(globalIdx)}
-                                        disabled={!!loadingFeedUrl}
-                                        className={`palette-item ${activeIdx === globalIdx ? 'active' : ''}`}
+                                    <li
+                                        key={item.id}
+                                        id={optionId(i)}
+                                        role="option"
+                                        aria-selected={selected}
+                                        data-idx={i}
+                                        onMouseEnter={() => setActive(i)}
+                                        onMouseDown={e => e.preventDefault()}
+                                        onClick={() => void run(item)}
+                                        className={cn('flex cursor-pointer items-center gap-3 rounded-md px-3 py-2', selected ? 'bg-surface-4 text-fg' : 'text-fg-2')}
                                     >
-                                        <span
-                                            className={`feed-thumb tint-${tint}`}
-                                            style={{ width: 24, height: 24, fontSize: 11, borderRadius: 4 }}
-                                            aria-hidden="true"
-                                        >
-                                            {isLoading ? (
-                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ animation: 'feedSyncSpin 1s linear infinite' }}>
-                                                    <path d="M21 12a9 9 0 1 1-6.2-8.5"/>
-                                                </svg>
-                                            ) : (
-                                                <CoverImage src={item.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} fallback={<span>{initialsFor(item.title)}</span>} />
-                                            )}
+                                        <span className={cn('flex h-7 w-7 shrink-0 items-center justify-center', selected ? 'text-accent' : 'text-fg-3')}>{lead}</span>
+                                        <span className="min-w-0 flex-1">
+                                            <span className="block truncate text-base">{item.label}</span>
+                                            {'hint' in item && item.hint && <span className="block truncate text-xs text-fg-3">{item.hint}</span>}
                                         </span>
-                                        <div className="text">{item.title}</div>
-                                    </button>
+                                        {item.kind === 'action' && item.keys && <span className="flex shrink-0 gap-1" aria-hidden="true">{item.keys.map(k => <Kbd key={k}>{k}</Kbd>)}</span>}
+                                    </li>
                                 );
                             })}
-                        </div>
-                    )}
-                    {filteredEpisodes.length > 0 && (
-                        <div className="palette-section">
-                            <p className="palette-section-label">{t('cmd.group_episodes', 'Episodi (feed corrente)')}</p>
-                            {filteredEpisodes.map((item, i) => {
-                                const globalIdx = filteredActions.length + filteredFeeds.length + i;
-                                return (
-                                    <button
-                                        type="button"
-                                        key={item.key}
-                                        data-idx={globalIdx}
-                                        onClick={() => handleSelectEpisode(item)}
-                                        onMouseEnter={() => setActiveIdx(globalIdx)}
-                                        className={`palette-item ${activeIdx === globalIdx ? 'active' : ''}`}
-                                    >
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                                            <circle cx="12" cy="12" r="10"/>
-                                            <polygon points="10 8 16 12 10 16" fill="currentColor" stroke="none"/>
-                                        </svg>
-                                        <div className="text">
-                                            {item.title}
-                                            {item.pubDate && <small>{new Date(item.pubDate).toLocaleDateString()}</small>}
-                                        </div>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    )}
-                </div>
+                        </ul>
+                    </li>
+                ))}
+            </ul>
 
-                <div className="palette-footer">
-                    <div className="nav">
-                        <span><kbd>↑</kbd><kbd>↓</kbd> {t('cmd.hint_navigate', 'per navigare')}</span>
-                        <span><kbd>↵</kbd> {t('cmd.hint_select', 'per eseguire')}</span>
-                        <span><kbd>esc</kbd> {t('cmd.hint_close', 'per chiudere')}</span>
-                    </div>
-                    <span>Runtime Command</span>
-                </div>
-            </motion.div>
-        </div>
+            <div className="flex items-center gap-4 border-t border-line bg-surface-2 px-4 py-2 text-xs text-fg-3" aria-hidden="true">
+                <span className="inline-flex items-center gap-1"><Kbd>↑</Kbd><Kbd>↓</Kbd> {t('palette.hint_move')}</span>
+                <span className="inline-flex items-center gap-1"><Kbd>↵</Kbd> {t('palette.hint_run')}</span>
+                <span className="inline-flex items-center gap-1"><Kbd>Esc</Kbd> {t('palette.hint_close')}</span>
+            </div>
+        </Dialog>
     );
-};
+}

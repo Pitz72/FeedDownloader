@@ -16,7 +16,7 @@ export interface Episode {
     guid?: string;
     isoDate?: string;
     description?: string;
-    itunes?: { duration?: string; image?: string };
+    itunes?: { duration?: string; image?: string; season?: string; episode?: string; episodeType?: string };
 }
 
 export interface Feed {
@@ -24,6 +24,11 @@ export interface Feed {
     title: string;
     image?: string | { url: string };
     description?: string;
+    link?: string;
+    language?: string;
+    creator?: string;
+    copyright?: string;
+    itunes?: { author?: string; image?: string; categories?: string[]; owner?: { name?: string; email?: string } };
     episodes: Episode[];
     lastUpdated?: string;
 }
@@ -35,6 +40,17 @@ export interface FeedEntry {
     image?: string | { url: string };
     lastUpdated?: string;
     newCount?: number | null;  // undownloaded episodes — computed server-side
+    /** v1.6.0 — "archivio automatico": new episodes found by a refresh are
+     *  downloaded without asking. */
+    autoDownload?: boolean;
+}
+
+/** v1.6.0 — per-feed archive figures for the feed header. */
+export interface FeedStats {
+    archivedCount: number;
+    archivedBytes: number;
+    /** Folder that holds this podcast's files (resolved, absolute). */
+    folder: string;
 }
 
 export interface DownloadProgress {
@@ -62,6 +78,38 @@ export interface QueueItem {
     status: 'pending' | 'downloading' | 'paused';
 }
 
+/**
+ * v1.6.0 — queue-wide state pushed by the main process (single source of truth:
+ * the renderer no longer keeps its own batch counters).
+ *
+ * A "run" starts when work is queued while the queue is idle and ends when the
+ * queue drains; its counters drive the overall progress bar.
+ */
+export interface QueueState {
+    paused: boolean;
+    /** Why the queue is paused: by the user, or automatically while offline. */
+    pauseReason: 'user' | 'offline' | null;
+    run: { total: number; completed: number; failed: number; cancelled: number };
+}
+
+/** v1.6.0 — downloads interrupted by a quit/crash, offered for resume at boot. */
+export interface PendingDownloads {
+    count: number;
+    podcasts: string[];
+}
+
+/** v1.6.0 — a successfully archived episode, pushed for the session list. */
+export interface CompletedDownload {
+    url: string;
+    guid: string;
+    feedUrl?: string;
+    title: string;
+    podcastTitle: string;
+    filename: string;
+    fileSize?: number;
+    completedAt: string;
+}
+
 export interface FailedDownload {
     title: string;
     podcastTitle: string;
@@ -69,6 +117,8 @@ export interface FailedDownload {
     /** v1.5.0 — snapshot of the original request, so the renderer can re-queue
      *  the exact same download ("Retry failed"). Optional for backward compat. */
     request?: DownloadRequest;
+    /** v1.6.0 — when it failed (ISO), for the Downloads view. */
+    failedAt?: string;
 }
 
 export interface ArchiveEntry {
@@ -83,6 +133,10 @@ export interface ArchiveEntry {
     checksum?: string;    // v0.7.4 — SHA-256 hex
     bitrate?: number;     // v0.7.4 — kbps
     sampleRate?: number;  // v0.7.4 — Hz
+    /** v1.6.0 — the download folder the file was written to. The archive used to
+     *  resolve every file against the CURRENT folder, so changing it in Settings
+     *  turned the whole library "missing". */
+    baseDir?: string;
 }
 
 export interface ArchiveStats {
@@ -92,16 +146,32 @@ export interface ArchiveStats {
     newestDate: string | null;
 }
 
+/** v1.6.0 — quick = presence + byte size; full = also re-hash every file (SHA-256). */
+export type HealthCheckMode = 'quick' | 'full';
+
+export interface HealthCheckFile { guid: string; feedUrl?: string; title: string; podcast: string; filename: string }
+
 export interface HealthCheckResult {
+    /** v1.6.0 — which verification produced this report. Absent = full (legacy). */
+    mode?: HealthCheckMode;
+    /** v1.6.0 — true when the user stopped the check: counters cover what was examined. */
+    cancelled?: boolean;
     total: number;
     present: number;
     missing: number;
-    /** L10: present files whose stored SHA-256 no longer matches the file on disk. */
+    /** L10: present files whose stored SHA-256 (full) or byte size (quick) no
+     *  longer matches the file on disk. */
     corrupted: number;
     totalSizeBytes: number;
-    missingFiles: { guid: string; feedUrl?: string; title: string; podcast: string; filename: string }[];
-    /** L10: files that exist but fail the SHA-256 re-check (silent corruption / tampering). */
-    corruptedFiles: { guid: string; feedUrl?: string; title: string; podcast: string; filename: string }[];
+    missingFiles: HealthCheckFile[];
+    /** L10: files that exist but fail the re-check (silent corruption / tampering). */
+    corruptedFiles: HealthCheckFile[];
+}
+
+/** v1.6.0 — Health Check progress push. */
+export interface HealthCheckProgress {
+    done: number;
+    total: number;
 }
 
 // v1.5.0 — Guided archive repair: re-link "missing" entries to files found by
@@ -126,6 +196,22 @@ export interface DownloadRequest {
     feedImageUrl?: string;     // URL cover di default del podcast per ID3 (v0.6.4)
     episodeImageUrl?: string;  // URL cover specifica dell'episodio, ha priorità (v1.3.10)
     feedUrl?: string;          // v1.3.5 — URL del feed di origine (B6)
+    /** v1.6.0 — MIME type declared by the feed's <enclosure>: decides the file
+     *  extension when the URL has none (it used to fall back to .mp3 blindly). */
+    enclosureType?: string;
+    /** v1.6.0 — what the archive keeps beside the audio (sidecar JSON, naming tokens). */
+    meta?: EpisodeMeta;
+}
+
+/** v1.6.0 — episode metadata preserved in the sidecar and used by naming tokens. */
+export interface EpisodeMeta {
+    description?: string;
+    link?: string;
+    duration?: string;
+    season?: string;
+    episode?: string;
+    episodeType?: string;
+    enclosureLength?: number;
 }
 
 export interface DownloadResult {
@@ -277,4 +363,41 @@ export const IPC_CHANNELS = {
     OPEN_EXTERNAL: 'open-external',
     // Maintenance (v1.4.0) — remove orphaned .part temp files
     CLEAN_PART_FILES: 'clean-part-files',
+
+    // ── v1.6.0 ──────────────────────────────────────────────
+    // push: queue-wide state (pause, reason, run counters)
+    QUEUE_STATE: 'queue-state',
+    GET_QUEUE_STATE: 'get-queue-state',
+    // push: one failed download (with its request, for "Retry")
+    DOWNLOAD_FAILED: 'download-failed',
+    // push: one archived episode, for the session's "Completed" list
+    DOWNLOAD_COMPLETED: 'download-completed',
+    // renderer → main: connectivity lost (auto-pause the queue)
+    NOTIFY_OFFLINE: 'notify-offline',
+    // downloads left in the queue when the app last quit
+    GET_PENDING_DOWNLOADS: 'get-pending-downloads',
+    RESUME_PENDING_DOWNLOADS: 'resume-pending-downloads',
+    DISCARD_PENDING_DOWNLOADS: 'discard-pending-downloads',
+    // check every feed now (same path as the background refresh) + progress push
+    REFRESH_ALL: 'refresh-all',
+    REFRESH_PROGRESS: 'refresh-progress',
+    // per-feed automatic archiving
+    SET_FEED_AUTO_DOWNLOAD: 'set-feed-auto-download',
+    GET_FEED_STATS: 'get-feed-stats',
+    // one archive row (detail panel) instead of the whole archive
+    GET_ARCHIVE_ENTRY: 'get-archive-entry',
+    // reveal an archived episode by its identity (guid + feed), not by title
+    SHOW_ARCHIVED_EPISODE: 'show-archived-episode',
+    // Health Check progress + cancel, and "accept the file on disk as reference"
+    HEALTH_CHECK_PROGRESS: 'health-check-progress',
+    CANCEL_HEALTH_CHECK: 'cancel-health-check',
+    REBASELINE_ARCHIVE: 'rebaseline-archive',
+    // accessibility preferences (Titan standard): interface zoom, reduced motion
+    GET_UI_ZOOM: 'get-ui-zoom',
+    SET_UI_ZOOM: 'set-ui-zoom',
+    UI_ZOOM_CHANGED: 'ui-zoom-changed',
+    GET_REDUCE_MOTION: 'get-reduce-motion',
+    SET_REDUCE_MOTION: 'set-reduce-motion',
+    // the folder the next downloads go to (resolved default when unset)
+    GET_EFFECTIVE_DOWNLOAD_PATH: 'get-effective-download-path',
 } as const;

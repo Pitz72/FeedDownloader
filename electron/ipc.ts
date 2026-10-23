@@ -14,9 +14,17 @@ import { applyTemplate } from './utils/applyTemplate';
 import { validateUrl } from './utils/validateUrl';
 import { evaluateWhatsNew } from './utils/whatsNew';
 import { validateNetworkPath } from './utils/validateNetworkPath';
+import { SharedRateLimiter } from './utils/throttleStream';
+import { SAFE_AXIOS_CONFIG, USER_AGENT } from './utils/safeHttp';
 import { autoUpdater } from 'electron-updater';
+import axios from 'axios';
 import { IPC_CHANNELS as CH } from '../shared/types';
-import type { FeedEntry, DownloadRequest, HealthCheckResult, DiskSpaceInfo, MigrationResult, MigrationProgress, PathValidationResult, UpdateStatus, QueueItem } from '../shared/types';
+import type {
+    FeedEntry, DownloadRequest, HealthCheckResult, HealthCheckMode, HealthCheckFile, DiskSpaceInfo, MigrationResult,
+    MigrationProgress, PathValidationResult, UpdateStatus, QueueItem, QueueState, ArchiveEntry, FailedDownload,
+    CompletedDownload, Episode, FeedStats, PendingDownloads, ArchiveRepairResult, DownloadResult,
+} from '../shared/types';
+import { buildDownloadRequest, feedImageUrl } from '../shared/buildDownloadRequest';
 import path from 'path';
 import fs from 'fs-extra';
 import { statfs } from 'fs/promises';
@@ -46,7 +54,62 @@ let queueService: QueueService;
 export function initServices(): { recovered: boolean } {
     libraryService = new LibraryService();
     queueService = new QueueService(libraryService.getConcurrency());
+    bandwidth.setRate(libraryService.getSpeedLimit() * 1024);
+    // v1.6.0: pin archive rows written before baseDir existed to the folder in
+    // use now — from here on, changing the download folder no longer "loses"
+    // the files already archived (they stay resolved where they are).
+    try {
+        const pinned = libraryService.backfillArchiveBaseDir(effectiveBaseDir());
+        if (pinned > 0) console.log(`[Archive] Recorded the folder of ${pinned} existing archive rows.`);
+    } catch (e) {
+        console.error('[Archive] baseDir backfill failed:', e);
+    }
+    // Snapshot of the downloads interrupted last time, offered for resume.
+    bootPending = libraryService.getPendingDownloads();
     return { recovered: libraryService.wasRecovered };
+}
+
+// ── Paths (v1.6.0) ───────────────────────────────────────────
+
+/** The folder new downloads go to: the configured one, or the default. */
+function effectiveBaseDir(): string {
+    return libraryService.getDownloadPath() || path.join(app.getPath('documents'), 'FeedDownloader', 'downloads');
+}
+
+/** Every base folder an archived file can live in: its own first, then the current one. */
+function baseCandidates(entry: Pick<ArchiveEntry, 'baseDir'>): string[] {
+    const current = effectiveBaseDir();
+    const list = entry.baseDir ? [entry.baseDir, current] : [current];
+    return list.filter((b, i) => list.findIndex(x => path.resolve(x) === path.resolve(b)) === i);
+}
+
+/**
+ * v1.6.0 — where an archived file is on disk. Tries the folder it was written
+ * to, then the current download folder (the user may have moved the files by
+ * hand and pointed the app at the new place). When neither exists, returns the
+ * expected location so callers can report it.
+ */
+async function resolveArchivedPath(entry: Pick<ArchiveEntry, 'baseDir' | 'podcastTitle' | 'filename'>): Promise<{ path: string; exists: boolean }> {
+    const candidates = baseCandidates(entry).map(b => path.join(b, sanitize(entry.podcastTitle), entry.filename ?? ''));
+    for (const c of candidates) {
+        if (entry.filename && await fs.pathExists(c)) return { path: c, exists: true };
+    }
+    return { path: candidates[0], exists: false };
+}
+
+/** All folders the app may legitimately open: the current base and every base an archive row uses. */
+function knownBaseDirs(): string[] {
+    const set = new Map<string, string>();
+    const add = (p?: string) => { if (p) set.set(path.resolve(p).toLowerCase(), path.resolve(p)); };
+    add(effectiveBaseDir());
+    for (const e of libraryService.getArchive()) add(e.baseDir);
+    return [...set.values()];
+}
+
+/** True when `target` is `base` or inside it. */
+function isWithin(base: string, target: string): boolean {
+    const rel = path.relative(path.resolve(base), path.resolve(target));
+    return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
 }
 
 /**
@@ -181,6 +244,9 @@ const foldTargetKey = (p: string): string =>
 const isTargetReserved = (p: string): boolean => reservedTargets.has(foldTargetKey(p));
 const reserveTarget = (p: string): void => { reservedTargets.add(foldTargetKey(p)); };
 const releaseTarget = (p: string): void => { reservedTargets.delete(foldTargetKey(p)); };
+// v1.6.0: a download also claims its sidecar name ("Ep.json"), see enqueueDownload.
+const sidecarOf = (p: string): string => path.join(path.dirname(p), path.parse(p).name + '.json');
+const releaseTargetAndSidecar = (p: string): void => { releaseTarget(p); releaseTarget(sidecarOf(p)); };
 
 // S3 / TOCTOU: enclosure URLs claimed synchronously the moment a download is
 // accepted — before the first await — so two rapid invocations (double click,
@@ -208,9 +274,27 @@ const taskTargets = new Map<string, { url: string; target: string }>();
 const pausedTaskIds = new Set<string>();
 interface PausedTask { run: () => Promise<void>; url: string; target: string; batchGen: number }
 const pausedTasks = new Map<string, PausedTask>();
-// Queue-level pause flag — also consulted by the task pause path to detect a
+// Queue-level pause — also consulted by the task pause path to detect a
 // resume-all that raced with an in-flight PAUSE_QUEUE abort.
-let queueIsPaused = false;
+// v1.6.0: it carries WHY the queue is paused. 'offline' is set automatically
+// when the connection drops and lifted when it returns; 'user' is only lifted
+// by the user. Before, the offline banner promised "downloads are paused" but
+// nothing paused them: a dropped connection drained a whole batch into
+// failures in about a minute (each episode burning its retries).
+let queuePauseReason: 'user' | 'offline' | null = null;
+const isQueuePaused = () => queuePauseReason !== null;
+
+// v1.6.0 — one bandwidth budget for every download (the limit used to be per file).
+const bandwidth = new SharedRateLimiter(0);
+
+// v1.6.0 — counters of the current "run" (queue idle → work → queue drained).
+const run = { total: 0, completed: 0, failed: 0, cancelled: 0 };
+
+// v1.6.0 — downloads left in the queue when the app last quit, snapshotted at boot.
+let bootPending: DownloadRequest[] = [];
+
+// v1.6.0 — podcast folders whose podcast.json/cover were written this session.
+const podcastMetaWritten = new Set<string>();
 
 async function removePartials(target: string): Promise<void> {
     await fs.remove(`${target}.part`).catch(() => { });
@@ -219,6 +303,15 @@ async function removePartials(target: string): Promise<void> {
 
 function pushQueueUpdated(win: BrowserWindow) {
     pushEvent(win, CH.QUEUE_UPDATED, Array.from(queueItems.values()));
+    pushQueueState(win);
+}
+
+function queueState(): QueueState {
+    return { paused: isQueuePaused(), pauseReason: queuePauseReason, run: { ...run } };
+}
+
+function pushQueueState(win: BrowserWindow) {
+    pushEvent(win, CH.QUEUE_STATE, queueState());
 }
 
 // L17: the autoUpdater emitter is a process-global singleton. Binding its
@@ -287,13 +380,29 @@ function clearAutoRefresh() {
 // M17: set on shutdown so a timer tick can't touch a closed database
 let isShuttingDown = false;
 
-async function runBackgroundRefresh(win: BrowserWindow) {
-    if (isShuttingDown) return;
+/** v1.6.0 — outcome of a refresh pass, returned to "Check all" in the UI. */
+interface RefreshSummary { checked: number; failed: number; newEpisodes: number; queued: number }
+
+// A refresh already running is joined, not started twice (timer + button + reconnect).
+let refreshInFlight: Promise<RefreshSummary> | null = null;
+
+function runBackgroundRefresh(win: BrowserWindow, opts: { manual?: boolean } = {}): Promise<RefreshSummary> {
+    if (refreshInFlight) return refreshInFlight;
+    refreshInFlight = doBackgroundRefresh(win, opts).finally(() => { refreshInFlight = null; });
+    return refreshInFlight;
+}
+
+async function doBackgroundRefresh(win: BrowserWindow, opts: { manual?: boolean }): Promise<RefreshSummary> {
+    const summary: RefreshSummary = { checked: 0, failed: 0, newEpisodes: 0, queued: 0 };
+    if (isShuttingDown) return summary;
     const feeds = libraryService.getFeeds();
-    if (feeds.length === 0) return;
+    if (feeds.length === 0) return summary;
 
     let totalNew = 0;
     const feedsWithNew: { title: string; url: string }[] = [];
+    let done = 0;
+    const progress = () => pushEvent(win, CH.REFRESH_PROGRESS, { done, total: feeds.length });
+    progress();
 
     // Bound the fan-out: a large (OPML-imported) library would otherwise open
     // hundreds/thousands of simultaneous fetches on the single feed-parser worker,
@@ -313,11 +422,12 @@ async function runBackgroundRefresh(win: BrowserWindow) {
             const validators = libraryService.getFeedValidators(feedEntry.url) ?? undefined;
             const feed = await feedParser.parse(feedEntry.url, validators); // M9: off the main thread
             if (isShuttingDown) return;
+            summary.checked++;
             if (feed === null) {
                 libraryService.touchFeed(feedEntry.url, new Date().toISOString());
                 return; // 304 Not Modified
             }
-            const parsed = (feed as unknown) as { episodes?: { guid?: string }[]; httpEtag?: string; httpLastModified?: string };
+            const parsed = (feed as unknown) as ParsedFeed;
             const episodes = parsed.episodes ?? [];
             const currentGuids = episodes.map(e => e.guid).filter((g): g is string => !!g);
 
@@ -325,6 +435,7 @@ async function runBackgroundRefresh(win: BrowserWindow) {
             libraryService.touchFeed(feedEntry.url, new Date().toISOString());
             libraryService.setFeedValidators(feedEntry.url, parsed.httpEtag, parsed.httpLastModified);
             libraryService.setCurrentEpisodeGuids(feedEntry.url, currentGuids); // M10: badge source
+            syncFeedIdentity(feedEntry.url, parsed);
 
             // F3-fix: GUID-based detection — correctly detects new episodes even when
             // the feed removes old ones (rolling window), which broke the old
@@ -342,6 +453,12 @@ async function runBackgroundRefresh(win: BrowserWindow) {
                 if (newGuids.size > 0) {
                     totalNew += newGuids.size;
                     feedsWithNew.push({ title: feedEntry.title, url: feedEntry.url });
+                    // v1.6.0 — automatic archiving: the new episodes of a feed with
+                    // "archivio automatico" on are queued right away, no prompt.
+                    if (feedEntry.autoDownload) {
+                        const fresh = episodes.filter(e => e.guid && newGuids.has(e.guid));
+                        summary.queued += await enqueueEpisodes(win, { url: feedEntry.url, title: parsed.title || feedEntry.title, image: parsed.image, itunes: parsed.itunes }, fresh);
+                    }
                 }
                 // Record all current GUIDs as known for future comparisons
                 libraryService.markGuidsAsKnown(feedEntry.url, currentGuids);
@@ -366,6 +483,10 @@ async function runBackgroundRefresh(win: BrowserWindow) {
             }
         } catch {
             // silently skip feeds that fail in background
+            summary.failed++;
+        } finally {
+            done++;
+            progress();
         }
     });
 
@@ -374,17 +495,23 @@ async function runBackgroundRefresh(win: BrowserWindow) {
     // B7 cap on every cycle.
     pruneFeedCaches(Date.now());
 
-    if (isShuttingDown) return;
+    summary.newEpisodes = totalNew;
+    if (isShuttingDown) return summary;
 
     pushEvent(win, CH.FEEDS_UPDATED, libraryService.getFeeds());
 
-    if (totalNew > 0 && Notification.isSupported()) {
+    // A refresh the user started gets its answer in the app (toast); the OS
+    // notification is for the unattended background passes.
+    if (!opts.manual && totalNew > 0 && Notification.isSupported()) {
         const fp = feedsWithNew.length;
+        const q = summary.queued;
         const notifBodies: Record<string, string> = {
-            en: `${totalNew} new episode${totalNew !== 1 ? 's' : ''} found in ${fp} podcast${fp !== 1 ? 's' : ''}.`,
-            it: totalNew === 1
+            en: `${totalNew} new episode${totalNew !== 1 ? 's' : ''} found in ${fp} podcast${fp !== 1 ? 's' : ''}.`
+                + (q > 0 ? ` ${q} being archived automatically.` : ''),
+            it: (totalNew === 1
                 ? `1 nuovo episodio trovato in ${fp} podcast.`
-                : `${totalNew} nuovi episodi trovati in ${fp} podcast.`,
+                : `${totalNew} nuovi episodi trovati in ${fp} podcast.`)
+                + (q > 0 ? ` ${q} in archiviazione automatica.` : ''),
         };
         const notification = new Notification({
             title: 'Runtime FeedDownloader Pro',
@@ -403,6 +530,50 @@ async function runBackgroundRefresh(win: BrowserWindow) {
         });
         notification.show();
     }
+    return summary;
+}
+
+/** The parsed-feed shape the main process reads (FeedService.parseFeed output). */
+interface ParsedFeed {
+    title?: string;
+    image?: string | { url?: string };
+    itunes?: { image?: string };
+    episodes?: Episode[];
+    httpEtag?: string;
+    httpLastModified?: string;
+}
+
+/**
+ * v1.6.0 — keep the library row in step with the feed itself. Feeds imported by
+ * OPML kept the OPML text as title and no cover forever; a successful parse now
+ * stores the feed's real title and cover (never blanking either).
+ */
+function syncFeedIdentity(url: string, parsed: ParsedFeed): void {
+    if (!libraryService.hasFeed(url)) return;
+    const title = typeof parsed.title === 'string' ? parsed.title.trim() : '';
+    const image = feedImageUrl({ image: parsed.image as string | { url: string } | undefined, itunes: parsed.itunes });
+    libraryService.updateFeedIdentity(url, title || undefined, image || undefined);
+}
+
+/**
+ * v1.6.0 — queue the given episodes of a feed (skipping those already archived).
+ * Shared by automatic archiving and "resume interrupted downloads".
+ * Returns how many were actually queued.
+ */
+async function enqueueEpisodes(win: BrowserWindow, feed: { url: string; title: string; image?: string | { url?: string }; itunes?: { image?: string } }, episodes: Episode[]): Promise<number> {
+    let queued = 0;
+    for (const ep of episodes) {
+        const request = buildDownloadRequest({ url: feed.url, title: feed.title, image: feed.image as string | { url: string } | undefined, itunes: feed.itunes }, ep);
+        if (!request) continue;
+        if (libraryService.isDownloaded(request.guid, request.feedUrl ?? '')) continue;
+        try {
+            const res = await enqueueDownload(win, request);
+            if (res.status === 'queued') queued++;
+        } catch (e) {
+            console.warn('[Queue] Could not queue', request.url, (e as Error).message);
+        }
+    }
+    return queued;
 }
 
 /**
@@ -416,22 +587,19 @@ async function reconcileArchive() {
     try {
         const entries = libraryService.getArchive();
         if (entries.length === 0) return;
-        let baseDir = libraryService.getDownloadPath();
-        if (!baseDir) baseDir = path.join(app.getPath('documents'), 'FeedDownloader', 'downloads');
 
         let missing = 0;
         for (const entry of entries) {
             if (isShuttingDown) return;
             if (!entry.filename) { missing++; continue; }
-            const full = path.join(baseDir, sanitize(entry.podcastTitle), entry.filename);
-            try { await fs.access(full); } catch { missing++; }
+            if (!(await resolveArchivedPath(entry)).exists) missing++;
         }
         if (missing > 0 && Notification.isSupported()) {
             const bodies: Record<string, string> = {
-                en: `${missing} archived file${missing !== 1 ? 's are' : ' is'} missing from disk. Open Settings → Health Check to review.`,
+                en: `${missing} archived file${missing !== 1 ? 's are' : ' is'} missing from disk. Open Archive → Verify archive to review.`,
                 it: missing === 1
-                    ? '1 file archiviato risulta mancante su disco. Apri Impostazioni → Verifica Integrità per controllare.'
-                    : `${missing} file archiviati risultano mancanti su disco. Apri Impostazioni → Verifica Integrità per controllare.`,
+                    ? '1 file archiviato risulta mancante su disco. Apri Archivio → Verifica archivio per controllare.'
+                    : `${missing} file archiviati risultano mancanti su disco. Apri Archivio → Verifica archivio per controllare.`,
             };
             new Notification({
                 title: 'Runtime FeedDownloader Pro',
@@ -453,6 +621,473 @@ function startAutoRefreshTimer(win: BrowserWindow, hours: number) {
     autoRefreshTimer = setInterval(() => {
         runBackgroundRefresh(win).catch(err => console.error('[AutoRefresh]', err));
     }, ms);
+}
+
+/** v1.6.0 — longest show notes kept in a queued request / sidecar (chars). */
+const MAX_DESCRIPTION_CHARS = 200_000;
+
+/** L13: the renderer is trusted, but a malformed field must fail with a clear
+ *  error instead of a TypeError deep inside sanitize()/template. */
+function cleanRequest(request: DownloadRequest): DownloadRequest {
+    const str = (v: unknown): string | undefined => (typeof v === 'string' && v ? v : undefined);
+    const m = (request?.meta ?? {}) as Record<string, unknown>;
+    const description = str(m.description);
+    const length = typeof m.enclosureLength === 'number' && Number.isFinite(m.enclosureLength) && m.enclosureLength > 0
+        ? Math.floor(m.enclosureLength) : undefined;
+    return {
+        url: String(request?.url ?? ''),
+        title: String(request?.title ?? ''),
+        podcastTitle: String(request?.podcastTitle ?? ''),
+        guid: typeof request?.guid === 'string' ? request.guid : '',
+        pubDate: str(request?.pubDate),
+        feedImageUrl: str(request?.feedImageUrl),
+        episodeImageUrl: str(request?.episodeImageUrl),
+        feedUrl: str(request?.feedUrl),
+        enclosureType: str(request?.enclosureType),
+        meta: {
+            description: description && description.length > MAX_DESCRIPTION_CHARS ? description.slice(0, MAX_DESCRIPTION_CHARS) : description,
+            link: str(m.link),
+            duration: str(m.duration),
+            season: str(m.season),
+            episode: str(m.episode),
+            episodeType: str(m.episodeType),
+            enclosureLength: length,
+        },
+    };
+}
+
+/**
+ * v1.6.0 — write podcast.json and the show's cover into its folder, once per
+ * folder per session, when "metadata beside the files" is on. An archive
+ * outlives the feed: without these, the show's description and artwork are
+ * gone the day the publisher takes the feed down.
+ */
+async function writePodcastMetadata(folder: string, request: DownloadRequest): Promise<void> {
+    const key = path.resolve(folder).toLowerCase();
+    if (podcastMetaWritten.has(key)) return;
+    podcastMetaWritten.add(key);
+    const cached = request.feedUrl ? feedCache.get(request.feedUrl)?.feed as (Record<string, unknown> & { itunes?: Record<string, unknown> }) | undefined : undefined;
+    const meta = {
+        schema: 'feeddownloader.podcast/1',
+        title: request.podcastTitle,
+        feedUrl: request.feedUrl ?? null,
+        link: (cached?.link as string | undefined) ?? null,
+        description: (cached?.description as string | undefined) ?? null,
+        author: (cached?.itunes?.author as string | undefined) ?? (cached?.creator as string | undefined) ?? null,
+        language: (cached?.language as string | undefined) ?? null,
+        copyright: (cached?.copyright as string | undefined) ?? null,
+        categories: (cached?.itunes?.categories as string[] | undefined) ?? [],
+        image: request.feedImageUrl ?? null,
+        savedAt: new Date().toISOString(),
+        savedBy: `Runtime FeedDownloader Pro ${app.getVersion()}`,
+    };
+    await fs.writeJSON(path.join(folder, 'podcast.json'), meta, { spaces: 2 }).catch(() => { });
+
+    if (!request.feedImageUrl || !validateUrl(request.feedImageUrl).valid) return;
+    const existing = (await fs.readdir(folder).catch(() => [] as string[])).find(n => /^cover\.(jpe?g|png|webp|gif)$/i.test(n));
+    if (existing) return;
+    try {
+        const res = await axios.get(request.feedImageUrl, {
+            responseType: 'arraybuffer',
+            timeout: 15000,
+            maxContentLength: 15 * 1024 * 1024,
+            ...SAFE_AXIOS_CONFIG,
+            headers: { 'User-Agent': USER_AGENT },
+        });
+        const type = String(res.headers['content-type'] ?? '').split(';')[0].toLowerCase();
+        const ext = type === 'image/png' ? '.png' : type === 'image/webp' ? '.webp' : type === 'image/gif' ? '.gif' : '.jpg';
+        if (!type.startsWith('image/') && type !== '') return;
+        await fs.writeFile(path.join(folder, `cover${ext}`), Buffer.from(res.data));
+    } catch {
+        // a missing cover is not worth failing anything for
+    }
+}
+
+/**
+ * Accept one download into the queue. Used by START_DOWNLOAD (the renderer),
+ * by automatic archiving after a refresh, by "resume interrupted downloads"
+ * and by "retry failed" — every path goes through the same claims, naming,
+ * persistence and post-processing.
+ */
+async function enqueueDownload(win: BrowserWindow, rawRequest: DownloadRequest): Promise<DownloadResult> {
+    const request = cleanRequest(rawRequest);
+    const { url, title, podcastTitle, guid, pubDate, feedImageUrl, episodeImageUrl, feedUrl } = request;
+
+    const check = validateUrl(url);
+    if (!check.valid) {
+        throw new Error(check.error);
+    }
+
+    // S2: feeds without <guid> exist in the wild — fall back to the
+    // enclosure URL so the download is still recorded in history/archive.
+    const effectiveGuid = guid || url;
+
+    // S3 / TOCTOU: reject a second copy of the same enclosure URL. The claim
+    // MUST be taken synchronously — before the first `await` below — otherwise
+    // two rapid calls both pass the check and register only afterwards (once
+    // via `fs.ensureDir` yields), producing a duplicate `_2` file and a second
+    // archive row. `inFlightUrls` closes that window; `queueItems` still covers
+    // tasks already executing.
+    if (inFlightUrls.has(url)) {
+        return { status: 'duplicate' };
+    }
+    for (const item of queueItems.values()) {
+        if (item.url === url) {
+            return { status: 'duplicate' };
+        }
+    }
+    inFlightUrls.add(url);
+
+    // v1.6.0: a new run starts when work arrives on an idle queue.
+    if (queueItems.size === 0) {
+        run.total = 0; run.completed = 0; run.failed = 0; run.cancelled = 0;
+    }
+
+    const taskId = crypto.randomUUID();
+    const controller = new AbortController();
+    let targetFile = '';
+    let batchGen = -1;
+    const baseDir = effectiveBaseDir();
+    try {
+        // v1.6.0: the feed's declared MIME type decides when the URL has no extension.
+        const ext = extractExtension(url, request.enclosureType);
+        const namingTemplate = libraryService.getNamingTemplate();
+        const resolvedName = applyTemplate(namingTemplate, {
+            title,
+            podcast: podcastTitle,
+            pubDate: pubDate,
+            season: request.meta?.season,
+            episode: request.meta?.episode,
+        });
+        const baseSafePath = getSafePath(baseDir, podcastTitle, resolvedName, ext);
+        const targetDir = path.dirname(baseSafePath);
+        await fs.ensureDir(targetDir);
+
+        // Collision check: avoid both a completed file already on disk AND a path
+        // already claimed by another in-flight download (M1). existsSync keeps the
+        // whole selection synchronous, so reserving the result is atomic — no two
+        // concurrent handlers can settle on the same path.
+        // v1.6.0: the sidecar counts too — "Ep.mp3" and "Ep.m4a" would otherwise
+        // share (and overwrite) the same "Ep.json".
+        targetFile = baseSafePath;
+        {
+            const { dir, name, ext: fileExt } = path.parse(baseSafePath);
+            const taken = (candidate: string) => {
+                const sidecar = sidecarOf(candidate);
+                return isTargetReserved(candidate) || fs.existsSync(candidate) || isTargetReserved(sidecar) || fs.existsSync(sidecar);
+            };
+            let i = 1;
+            while (taken(targetFile)) {
+                i++;
+                targetFile = path.join(dir, `${name}_${i}${fileExt}`);
+            }
+        }
+        reserveTarget(targetFile);
+        reserveTarget(sidecarOf(targetFile));
+        taskTargets.set(taskId, { url, target: targetFile });
+
+        batchGen = batchTracker.track();
+        activeDownloads.set(taskId, controller);
+
+        // Register task as pending in the queue
+        queueItems.set(taskId, { taskId, title, podcastTitle, url, status: 'pending' });
+        run.total++;
+        // v1.6.0: survives a quit/crash until the task ends
+        try { libraryService.addPendingDownload(request); } catch (e) { console.warn('[Queue] persist failed', e); }
+        pushQueueUpdated(win);
+    } catch (setupErr) {
+        // Setup failed before the task was queued (e.g. ensureDir on an
+        // unwritable path). Release every claim taken so far so nothing leaks.
+        inFlightUrls.delete(url);
+        if (targetFile) releaseTargetAndSidecar(targetFile);
+        taskTargets.delete(taskId);
+        activeDownloads.delete(taskId);
+        queueItems.delete(taskId);
+        throw setupErr;
+    }
+
+    const releaseClaims = () => {
+        inFlightUrls.delete(url);               // S3: release the URL claim
+        releaseTargetAndSidecar(targetFile);    // M1: release the claimed path (+ sidecar)
+    };
+
+    const runTask = async () => {
+        // A paused task is "parked": it returns early but must NOT release its
+        // claims nor settle the batch — the resume re-queues this same closure.
+        let parkedForResume = false;
+        // Last progress seen — echoed in the `paused` push so the renderer can
+        // freeze the bar at the right spot.
+        let lastLoaded = 0;
+        let lastTotal = 0;
+        // Resolve the controller at run time: a RESUME re-queues this closure
+        // with a *fresh* AbortController under the same taskId.
+        const signal = activeDownloads.get(taskId)?.signal;
+        try {
+            // Task was cancelled before its queue slot opened. Returning here
+            // still runs the finally below (release claims + settle the batch),
+            // which the old early-return-before-try did NOT — leaving the batch
+            // counter and the AbortController leaked forever.
+            if (cancelledTaskIds.has(taskId)) {
+                cancelledTaskIds.delete(taskId);
+                queueItems.delete(taskId);
+                run.cancelled++;
+                pushQueueUpdated(win);
+                // M32: `cancelled` advances the batch counter in the renderer
+                // without painting the row as completed/archived
+                pushEvent(win, CH.DOWNLOAD_PROGRESS, { url, loaded: 0, total: 0, cancelled: true });
+                return;
+            }
+
+            // Paused while still pending: don't run — park for RESUME.
+            if (pausedTaskIds.has(taskId)) {
+                pausedTaskIds.delete(taskId);
+                parkedForResume = true;
+                pausedTasks.set(taskId, { run: runTask, url, target: targetFile, batchGen });
+                const pausedItem = queueItems.get(taskId);
+                if (pausedItem) queueItems.set(taskId, { ...pausedItem, status: 'paused' });
+                pushQueueUpdated(win);
+                return;
+            }
+
+            // Mark as downloading
+            const item = queueItems.get(taskId);
+            if (item) {
+                queueItems.set(taskId, { ...item, status: 'downloading' });
+                pushQueueUpdated(win);
+            }
+
+            // v1.5.0 — configurable per-file cap, same infrastructure as the speed limit
+            const maxSizeBytes = libraryService.getFileSizeLimitMB() * 1024 * 1024;
+            // Throttle progress pushes to ~10 Hz: on a fast link the raw
+            // per-chunk rate is hundreds of IPC messages/sec, each triggering a
+            // store write in the renderer. The terminal states below are always
+            // sent in full.
+            let lastProgressTs = 0;
+            // v1.6.0: one shared bandwidth budget (Settings → Download → speed
+            // limit), and 5 attempts — a mass download meets more transient errors.
+            await downloadService.downloadFile(url, targetFile, (loaded, total) => {
+                lastLoaded = loaded;
+                lastTotal = total;
+                const now = Date.now();
+                if (now - lastProgressTs >= 100 || (total > 0 && loaded >= total)) {
+                    lastProgressTs = now;
+                    pushEvent(win, CH.DOWNLOAD_PROGRESS, { url, loaded, total });
+                }
+            }, bandwidth, 5, signal, maxSizeBytes);
+
+            // v1.6.0 — tags first, THEN the integrity data. The SHA-256 and the
+            // size used to be taken before the ID3 writer rewrote the file, so
+            // every tagged MP3 was later reported as corrupted.
+            if (libraryService.getId3Enabled()) {
+                await writeId3Tags(targetFile, {
+                    title,
+                    podcastTitle,
+                    pubDate,
+                    feedImageUrl,
+                    episodeImageUrl, // v1.3.10 — cover episodio (priorità sul feed)
+                }).catch((e) => console.error('[ID3] Failed to write tags:', e));
+            }
+
+            let fileSize: number | undefined;
+            let checksum: string | undefined;
+            let bitrate: number | undefined;
+            let sampleRate: number | undefined;
+            try {
+                const stat = await fs.stat(targetFile);
+                fileSize = stat.size;
+
+                checksum = await sha256File(targetFile);
+
+                const meta = await parseAudioMetadata(targetFile, { duration: false });
+                bitrate = meta.format.bitrate ? Math.round(meta.format.bitrate / 1000) : undefined;
+                sampleRate = meta.format.sampleRate ?? undefined;
+            } catch (e) {
+                console.warn('[Integrity] Failed to compute metadata:', e);
+            }
+
+            const downloadedAt = new Date().toISOString();
+            // S7: single transaction — a crash between the two writes left
+            // an episode marked downloaded but missing from the archive.
+            libraryService.recordDownload({
+                guid: effectiveGuid,
+                title,
+                podcastTitle,
+                pubDate: pubDate || downloadedAt,
+                downloadedAt,
+                filename: path.basename(targetFile),
+                fileSize,
+                checksum,
+                bitrate,
+                sampleRate,
+                feedUrl: feedUrl ?? '',
+                baseDir,
+            });
+
+            if (libraryService.getSidecarEnabled()) {
+                const sidecarPath = path.join(
+                    path.dirname(targetFile),
+                    path.parse(targetFile).name + '.json'
+                );
+                const m = request.meta ?? {};
+                const sidecar = {
+                    schema: 'feeddownloader.episode/1',
+                    title,
+                    podcast: podcastTitle,
+                    feedUrl: feedUrl ?? null,
+                    guid: effectiveGuid,
+                    pubDate: pubDate || null,
+                    link: m.link ?? null,
+                    description: m.description ?? null,
+                    duration: m.duration ?? null,
+                    season: m.season ?? null,
+                    episode: m.episode ?? null,
+                    episodeType: m.episodeType ?? null,
+                    enclosure: { url, type: request.enclosureType ?? null, length: m.enclosureLength ?? null },
+                    file: { name: path.basename(targetFile), size: fileSize ?? null, sha256: checksum ?? null, bitrateKbps: bitrate ?? null, sampleRateHz: sampleRate ?? null },
+                    downloadedAt,
+                    savedBy: `Runtime FeedDownloader Pro ${app.getVersion()}`,
+                    // pre-1.6 keys, kept for scripts that read them
+                    sourceUrl: url,
+                    filename: path.basename(targetFile),
+                };
+                await fs.writeJSON(sidecarPath, sidecar, { spaces: 2 }).catch(() => { });
+                await writePodcastMetadata(path.dirname(targetFile), request);
+            }
+
+            // Success: remove from queue
+            queueItems.delete(taskId);
+            run.completed++;
+            pushQueueUpdated(win);
+            pushEvent(win, CH.DOWNLOAD_PROGRESS, { url, loaded: 100, total: 100, completed: true });
+            const done: CompletedDownload = {
+                url, guid: effectiveGuid, feedUrl, title, podcastTitle,
+                filename: path.basename(targetFile), fileSize, completedAt: downloadedAt,
+            };
+            pushEvent(win, CH.DOWNLOAD_COMPLETED, done);
+            pushEvent(win, CH.DOWNLOADS_UPDATED);
+            pushEvent(win, CH.FEEDS_UPDATED, libraryService.getFeeds());
+        } catch (error) {
+            const errMsg = (error as Error).message || 'UNKNOWN';
+            const isAborted = errMsg === 'DOWNLOAD_ABORTED';
+            const isPaused = errMsg === 'DOWNLOAD_PAUSED';
+
+            if (isShuttingDown) {
+                // The app is quitting: whatever happened, the request stays in
+                // pending_downloads and is offered again at the next start.
+                parkedForResume = true;
+            } else if (isPaused) {
+                parkedForResume = true;
+                if (signal?.reason === 'PAUSE_QUEUE' && !isQueuePaused()) {
+                    // The queue-wide pause aborted this transfer, but a
+                    // RESUME_QUEUE landed before the abort settled — rejoin
+                    // the queue immediately instead of parking.
+                    activeDownloads.set(taskId, new AbortController());
+                    const item = queueItems.get(taskId);
+                    if (item) queueItems.set(taskId, { ...item, status: 'pending' });
+                    pushQueueUpdated(win);
+                    queueService.add(runTask);
+                } else {
+                    pausedTasks.set(taskId, { run: runTask, url, target: targetFile, batchGen });
+                    const item = queueItems.get(taskId);
+                    if (item) queueItems.set(taskId, { ...item, status: 'paused' });
+                    pushQueueUpdated(win);
+                    pushEvent(win, CH.DOWNLOAD_PROGRESS, { url, loaded: lastLoaded, total: lastTotal, paused: true });
+                }
+            } else if (isAborted) {
+                // Always emit the terminal `cancelled` event — for individual
+                // cancels it advances the batch counter (M32), and for STOP_BATCH
+                // it is what clears the row. The old `if (batchTracker.active)`
+                // guard suppressed it after STOP_BATCH called reset(), leaving the
+                // aborted rows stuck on a frozen spinner (the S11 race). IPC
+                // ordering guarantees it arrives after the last progress tick.
+                queueItems.delete(taskId);
+                run.cancelled++;
+                pushQueueUpdated(win);
+                pushEvent(win, CH.DOWNLOAD_PROGRESS, { url, loaded: 0, total: 0, cancelled: true });
+            } else {
+                console.error('Download error:', error);
+                queueItems.delete(taskId);
+                run.failed++;
+                // v1.5.0: snapshot the original request so the renderer can
+                // offer "Retry failed" with the exact same parameters.
+                const failure: FailedDownload = {
+                    title, podcastTitle, errorCode: errMsg.split(':')[0],
+                    request, failedAt: new Date().toISOString(),
+                };
+                batchTracker.recordFailure(batchGen, failure);
+                pushQueueUpdated(win);
+                pushEvent(win, CH.DOWNLOAD_FAILED, failure);
+                const isNotFound = errMsg === 'EPISODE_NOT_FOUND';
+                pushEvent(win, CH.DOWNLOAD_PROGRESS, {
+                    url, loaded: 0, total: 0, error: true,
+                    ...(isNotFound ? { notFound: true } : {})
+                });
+            }
+        } finally {
+            if (!parkedForResume) {
+                activeDownloads.delete(taskId);
+                // Release the URL/path claims only if this task still owns them — a
+                // CANCEL of a pending task may have already released and handed them
+                // to a re-download (same url/path, different taskId).
+                const owned = taskTargets.get(taskId);
+                if (owned && owned.target === targetFile) {
+                    taskTargets.delete(taskId);
+                    releaseClaims();
+                    try { libraryService.removePendingDownload(url); } catch { /* DB closing */ }
+                }
+                const batchResult = batchTracker.complete(batchGen);
+                if (batchResult !== null) {
+                    emitBatchComplete(batchResult);
+                }
+            }
+            // Parked (paused) tasks keep every claim and their batch slot:
+            // the download is suspended, not finished. RESUME re-queues
+            // runTask; CANCEL of a paused task settles everything instead.
+        }
+    };
+    queueService.add(runTask);
+
+    return { status: 'queued' };
+}
+
+/** v1.6.0 — pause the whole queue: pending tasks are held, active ones parked (keeping their .part). */
+function pauseQueueInternal(win: BrowserWindow, reason: 'user' | 'offline'): void {
+    queuePauseReason = reason;
+    queueService.pause();
+    // Pending tasks won't start while the queue is paused; mark them so the
+    // UI shows them as paused (and so a queue resume knows to unmark them).
+    for (const [taskId, item] of queueItems) {
+        if (item.status === 'pending' && !cancelledTaskIds.has(taskId)) {
+            pausedTaskIds.add(taskId);
+            queueItems.set(taskId, { ...item, status: 'paused' });
+        }
+    }
+    // Active transfers park themselves via the task's pause path.
+    for (const [taskId, controller] of activeDownloads) {
+        if (queueItems.get(taskId)?.status === 'downloading') controller.abort('PAUSE_QUEUE');
+    }
+    pushQueueUpdated(win);
+}
+
+function resumeQueueInternal(win: BrowserWindow): void {
+    queuePauseReason = null;
+    // Unmark items paused while pending — their original tasks are still queued.
+    for (const [taskId, item] of queueItems) {
+        if (item.status === 'paused' && pausedTaskIds.has(taskId)) {
+            pausedTaskIds.delete(taskId);
+            queueItems.set(taskId, { ...item, status: 'pending' });
+        }
+    }
+    // Re-queue parked tasks with fresh controllers.
+    for (const [taskId, parked] of [...pausedTasks]) {
+        pausedTasks.delete(taskId);
+        activeDownloads.set(taskId, new AbortController());
+        const item = queueItems.get(taskId);
+        if (item) queueItems.set(taskId, { ...item, status: 'pending' });
+        queueService.add(parked.run);
+    }
+    queueService.start();
+    pushQueueUpdated(win);
 }
 
 /**
@@ -479,7 +1114,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     let triggerInitialUpdateCheck = () => {};
 
     // ── Feed Parsing ──────────────────────────────────────
-    ipcMain.handle(CH.PARSE_FEED, async (_, url: string) => {
+    ipcMain.handle(CH.PARSE_FEED, async (_, url: string, opts?: { force?: boolean }) => {
         const check = validateUrl(url);
         if (!check.valid) {
             throw new Error(check.error);
@@ -489,8 +1124,9 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         pruneFeedCaches(now); // B7: keep the in-memory maps bounded
 
         // return cached feed if fresh (avoids double HTTP round-trip on repeat clicks)
+        // v1.6.0: `force` ("Aggiorna" on a feed) always goes to the network.
         const cached = feedCache.get(url);
-        if (cached && (now - cached.timestamp) < FEED_CACHE_TTL_MS) {
+        if (!opts?.force && cached && (now - cached.timestamp) < FEED_CACHE_TTL_MS) {
             return cached.feed;
         }
 
@@ -507,27 +1143,42 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
         // Update lastUpdated + episodeCount in DB (fresh network fetch only, not cache hits)
         libraryService.touchFeed(url, new Date().toISOString());
-        const parsed = (feed as unknown) as { episodes?: { guid?: string }[]; httpEtag?: string; httpLastModified?: string };
-        const episodes = parsed.episodes ?? [];
-        libraryService.updateEpisodeCount(url, episodes.length);
-        libraryService.setFeedValidators(url, parsed.httpEtag, parsed.httpLastModified); // M6
-
-        // F3-fix: seed known_episodes on first parse so that the background refresh
-        // has a baseline — without this, the first auto-refresh would report every
-        // existing episode as "new".
-        // M11: only for feeds actually in the library — parsing an URL the user
-        // never saves must not grow known_episodes forever. Feeds added right
-        // after this parse get their baseline from the refresh's silent seeding.
-        if (libraryService.hasFeed(url)) {
-            const guids = episodes.map(e => e.guid).filter((g): g is string => !!g);
-            libraryService.markGuidsAsKnown(url, guids);
-            libraryService.setCurrentEpisodeGuids(url, guids); // M10: badge source
+        const parsedFeed = feed as ParsedFeed;
+        // v1.6.0: opening a feed marks its episodes as "known" (below). For a feed
+        // with automatic archiving that would silently swallow the new episodes
+        // the next background refresh was supposed to download — queue them here.
+        if (libraryService.hasFeed(url) && libraryService.getFeedAutoDownload(url)) {
+            const known = libraryService.getKnownGuids(url);
+            if (known.size > 0) {
+                const fresh = (parsedFeed.episodes ?? []).filter(e => e.guid && !known.has(e.guid));
+                if (fresh.length > 0) {
+                    void enqueueEpisodes(mainWindow, { url, title: parsedFeed.title || libraryService.getFeeds().find(f => f.url === url)?.title || '', image: parsedFeed.image, itunes: parsedFeed.itunes }, fresh);
+                }
+            }
         }
+        seedFeedBaseline(url, parsedFeed);
+        syncFeedIdentity(url, parsedFeed);
 
         pushEvent(mainWindow, CH.FEEDS_UPDATED, libraryService.getFeeds());
 
         return feed;
     });
+
+    /**
+     * Update the per-feed counters from a fresh parse. F3-fix: seed known_episodes
+     * so the background refresh has a baseline — without it, the first refresh
+     * would report every existing episode as "new". M11: only for feeds actually
+     * in the library (a URL parsed and never saved must not grow known_episodes).
+     */
+    function seedFeedBaseline(url: string, parsed: ParsedFeed): void {
+        if (!libraryService.hasFeed(url)) return;
+        const episodes = parsed.episodes ?? [];
+        libraryService.updateEpisodeCount(url, episodes.length);
+        libraryService.setFeedValidators(url, parsed.httpEtag, parsed.httpLastModified); // M6
+        const guids = episodes.map(e => e.guid).filter((g): g is string => !!g);
+        libraryService.markGuidsAsKnown(url, guids);
+        libraryService.setCurrentEpisodeGuids(url, guids); // M10: badge source
+    }
 
     // ── Feed Library ──────────────────────────────────────
     ipcMain.handle(CH.GET_FEEDS, async () => {
@@ -541,11 +1192,39 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         if (!feed || typeof feed.url !== 'string' || !validateUrl(feed.url).valid) {
             throw new Error('INVALID_FEED_URL');
         }
-        libraryService.addFeed(feed);
+        libraryService.addFeed({ url: feed.url, title: String(feed.title ?? ''), image: feed.image, lastUpdated: feed.lastUpdated });
+        // v1.6.0: the feed was parsed just before being added (the parse ran
+        // while it wasn't in the library yet, so nothing was recorded). Seed its
+        // counters and new-episode baseline now, from the cached parse — the
+        // badge used to stay blank and episodes published before the first
+        // refresh were never announced.
+        const cached = feedCache.get(feed.url);
+        if (cached) seedFeedBaseline(feed.url, cached.feed as ParsedFeed);
         const feeds = libraryService.getFeeds();
         pushEvent(mainWindow, CH.FEEDS_UPDATED, feeds);
         return feeds;
     });
+
+    // v1.6.0 — automatic archiving of new episodes, per feed
+    ipcMain.handle(CH.SET_FEED_AUTO_DOWNLOAD, async (_, url: string, enabled: boolean) => {
+        if (typeof url !== 'string' || !libraryService.hasFeed(url)) return false;
+        libraryService.setFeedAutoDownload(url, !!enabled);
+        pushEvent(mainWindow, CH.FEEDS_UPDATED, libraryService.getFeeds());
+        return true;
+    });
+
+    // v1.6.0 — archive figures + folder for the feed header
+    ipcMain.handle(CH.GET_FEED_STATS, async (_, url: string, title: string): Promise<FeedStats> => {
+        const rows = typeof url === 'string' ? libraryService.getArchiveByFeed(url, String(title ?? '')) : [];
+        return {
+            archivedCount: rows.length,
+            archivedBytes: rows.reduce((n, r) => n + (r.fileSize ?? 0), 0),
+            folder: path.join(rows[0]?.baseDir || effectiveBaseDir(), sanitize(String(title ?? ''))),
+        };
+    });
+
+    // v1.6.0 — "Check all": the background refresh, on demand, with progress
+    ipcMain.handle(CH.REFRESH_ALL, async () => runBackgroundRefresh(mainWindow, { manual: true }));
 
     ipcMain.handle(CH.REMOVE_FEED, async (_, url: string) => {
         libraryService.removeFeed(url);
@@ -580,300 +1259,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     });
 
     // ── Download Engine ──────────────────────────────────
-    ipcMain.handle(CH.START_DOWNLOAD, async (_, request: DownloadRequest) => {
-        // L13: the renderer is trusted, but a malformed field must fail with a
-        // clear error instead of a TypeError deep inside sanitize()/template.
-        const url = String(request?.url ?? '');
-        const title = String(request?.title ?? '');
-        const podcastTitle = String(request?.podcastTitle ?? '');
-        const guid = typeof request?.guid === 'string' ? request.guid : '';
-        const pubDate = typeof request?.pubDate === 'string' ? request.pubDate : undefined;
-        const feedImageUrl = typeof request?.feedImageUrl === 'string' ? request.feedImageUrl : undefined;
-        const episodeImageUrl = typeof request?.episodeImageUrl === 'string' ? request.episodeImageUrl : undefined;
-        const feedUrl = typeof request?.feedUrl === 'string' ? request.feedUrl : undefined;
-
-        const check = validateUrl(url);
-        if (!check.valid) {
-            throw new Error(check.error);
-        }
-
-        // S2: feeds without <guid> exist in the wild — fall back to the
-        // enclosure URL so the download is still recorded in history/archive.
-        const effectiveGuid = guid || url;
-
-        // S3 / TOCTOU: reject a second copy of the same enclosure URL. The claim
-        // MUST be taken synchronously — before the first `await` below — otherwise
-        // two rapid calls both pass the check and register only afterwards (once
-        // via `fs.ensureDir` yields), producing a duplicate `_2` file and a second
-        // archive row. `inFlightUrls` closes that window; `queueItems` still covers
-        // tasks already executing.
-        if (inFlightUrls.has(url)) {
-            return { status: 'duplicate' };
-        }
-        for (const item of queueItems.values()) {
-            if (item.url === url) {
-                return { status: 'duplicate' };
-            }
-        }
-        inFlightUrls.add(url);
-
-        const taskId = crypto.randomUUID();
-        const controller = new AbortController();
-        let targetFile = '';
-        let batchGen = -1;
-        try {
-            let baseDir = libraryService.getDownloadPath();
-            if (!baseDir) {
-                baseDir = path.join(app.getPath('documents'), 'FeedDownloader', 'downloads');
-            }
-
-            const ext = extractExtension(url);
-            const namingTemplate = libraryService.getNamingTemplate();
-            const resolvedName = applyTemplate(namingTemplate, {
-                title,
-                podcast: podcastTitle,
-                pubDate: pubDate,
-            });
-            const baseSafePath = getSafePath(baseDir, podcastTitle, resolvedName, ext);
-            const targetDir = path.dirname(baseSafePath);
-            await fs.ensureDir(targetDir);
-
-            // Collision check: avoid both a completed file already on disk AND a path
-            // already claimed by another in-flight download (M1). existsSync keeps the
-            // whole selection synchronous, so reserving the result is atomic — no two
-            // concurrent handlers can settle on the same path.
-            targetFile = baseSafePath;
-            {
-                const { dir, name, ext: fileExt } = path.parse(baseSafePath);
-                let i = 1;
-                while (isTargetReserved(targetFile) || fs.existsSync(targetFile)) {
-                    i++;
-                    targetFile = path.join(dir, `${name}_${i}${fileExt}`);
-                }
-            }
-            reserveTarget(targetFile);
-            taskTargets.set(taskId, { url, target: targetFile });
-
-            batchGen = batchTracker.track();
-            activeDownloads.set(taskId, controller);
-
-            // Register task as pending in the queue
-            queueItems.set(taskId, { taskId, title, podcastTitle, url, status: 'pending' });
-            pushQueueUpdated(mainWindow);
-        } catch (setupErr) {
-            // Setup failed before the task was queued (e.g. ensureDir on an
-            // unwritable path). Release every claim taken so far so nothing leaks.
-            inFlightUrls.delete(url);
-            if (targetFile) releaseTarget(targetFile);
-            taskTargets.delete(taskId);
-            activeDownloads.delete(taskId);
-            queueItems.delete(taskId);
-            throw setupErr;
-        }
-
-        const runTask = async () => {
-            // A paused task is "parked": it returns early but must NOT release its
-            // claims nor settle the batch — the resume re-queues this same closure.
-            let parkedForResume = false;
-            // Last progress seen — echoed in the `paused` push so the renderer can
-            // freeze the bar at the right spot.
-            let lastLoaded = 0;
-            let lastTotal = 0;
-            // Resolve the controller at run time: a RESUME re-queues this closure
-            // with a *fresh* AbortController under the same taskId.
-            const signal = activeDownloads.get(taskId)?.signal;
-            try {
-                // Task was cancelled before its queue slot opened. Returning here
-                // still runs the finally below (release claims + settle the batch),
-                // which the old early-return-before-try did NOT — leaving the batch
-                // counter and the AbortController leaked forever.
-                if (cancelledTaskIds.has(taskId)) {
-                    cancelledTaskIds.delete(taskId);
-                    queueItems.delete(taskId);
-                    pushQueueUpdated(mainWindow);
-                    // M32: `cancelled` advances the batch counter in the renderer
-                    // without painting the row as completed/archived
-                    pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded: 0, total: 0, cancelled: true });
-                    return;
-                }
-
-                // Paused while still pending: don't run — park for RESUME.
-                if (pausedTaskIds.has(taskId)) {
-                    pausedTaskIds.delete(taskId);
-                    parkedForResume = true;
-                    pausedTasks.set(taskId, { run: runTask, url, target: targetFile, batchGen });
-                    const pausedItem = queueItems.get(taskId);
-                    if (pausedItem) queueItems.set(taskId, { ...pausedItem, status: 'paused' });
-                    pushQueueUpdated(mainWindow);
-                    return;
-                }
-
-                // Mark as downloading
-                const item = queueItems.get(taskId);
-                if (item) {
-                    queueItems.set(taskId, { ...item, status: 'downloading' });
-                    pushQueueUpdated(mainWindow);
-                }
-
-                const speedLimitKBps = libraryService.getSpeedLimit();
-                // v1.5.0 — configurable per-file cap, same infrastructure as the speed limit
-                const maxSizeBytes = libraryService.getFileSizeLimitMB() * 1024 * 1024;
-                // Throttle progress pushes to ~10 Hz: on a fast link the raw
-                // per-chunk rate is hundreds of IPC messages/sec, each triggering a
-                // store write in the renderer. The terminal states below are always
-                // sent in full.
-                let lastProgressTs = 0;
-                await downloadService.downloadFile(url, targetFile, (loaded, total) => {
-                    lastLoaded = loaded;
-                    lastTotal = total;
-                    const now = Date.now();
-                    if (now - lastProgressTs >= 100 || (total > 0 && loaded >= total)) {
-                        lastProgressTs = now;
-                        pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded, total });
-                    }
-                }, speedLimitKBps, 3, signal, maxSizeBytes);
-
-                let fileSize: number | undefined;
-                let checksum: string | undefined;
-                let bitrate: number | undefined;
-                let sampleRate: number | undefined;
-                try {
-                    const stat = await fs.stat(targetFile);
-                    fileSize = stat.size;
-
-                    checksum = await sha256File(targetFile);
-
-                    const meta = await parseAudioMetadata(targetFile, { duration: false });
-                    bitrate = meta.format.bitrate ? Math.round(meta.format.bitrate / 1000) : undefined;
-                    sampleRate = meta.format.sampleRate ?? undefined;
-                } catch (e) {
-                    console.warn('[Integrity] Failed to compute metadata:', e);
-                }
-
-                // S7: single transaction — a crash between the two writes left
-                // an episode marked downloaded but missing from the archive.
-                libraryService.recordDownload({
-                    guid: effectiveGuid,
-                    title,
-                    podcastTitle,
-                    pubDate: pubDate || new Date().toISOString(),
-                    downloadedAt: new Date().toISOString(),
-                    filename: path.basename(targetFile),
-                    fileSize,
-                    checksum,
-                    bitrate,
-                    sampleRate,
-                    feedUrl: feedUrl ?? '',
-                });
-
-                if (libraryService.getId3Enabled()) {
-                    await writeId3Tags(targetFile, {
-                        title,
-                        podcastTitle,
-                        pubDate,
-                        feedImageUrl,
-                        episodeImageUrl, // v1.3.10 — cover episodio (priorità sul feed)
-                    }).catch((e) => console.error('[ID3] Failed to write tags:', e));
-                }
-
-                if (libraryService.getSidecarEnabled()) {
-                    const sidecarPath = path.join(
-                        path.dirname(targetFile),
-                        path.parse(targetFile).name + '.json'
-                    );
-                    const sidecar = {
-                        title,
-                        podcast: podcastTitle,
-                        guid: effectiveGuid,
-                        pubDate: pubDate || null,
-                        downloadedAt: new Date().toISOString(),
-                        sourceUrl: url,
-                        filename: path.basename(targetFile),
-                    };
-                    await fs.writeJSON(sidecarPath, sidecar, { spaces: 2 }).catch(() => { });
-                }
-
-                // Success: remove from queue
-                queueItems.delete(taskId);
-                pushQueueUpdated(mainWindow);
-                pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded: 100, total: 100, completed: true });
-                pushEvent(mainWindow, CH.DOWNLOADS_UPDATED);
-                pushEvent(mainWindow, CH.FEEDS_UPDATED, libraryService.getFeeds());
-            } catch (error) {
-                const errMsg = (error as Error).message || 'UNKNOWN';
-                const isAborted = errMsg === 'DOWNLOAD_ABORTED';
-                const isPaused = errMsg === 'DOWNLOAD_PAUSED';
-
-                if (isPaused) {
-                    parkedForResume = true;
-                    if (signal?.reason === 'PAUSE_QUEUE' && !queueIsPaused) {
-                        // The queue-wide pause aborted this transfer, but a
-                        // RESUME_QUEUE landed before the abort settled — rejoin
-                        // the queue immediately instead of parking.
-                        activeDownloads.set(taskId, new AbortController());
-                        const item = queueItems.get(taskId);
-                        if (item) queueItems.set(taskId, { ...item, status: 'pending' });
-                        pushQueueUpdated(mainWindow);
-                        queueService.add(runTask);
-                    } else {
-                        pausedTasks.set(taskId, { run: runTask, url, target: targetFile, batchGen });
-                        const item = queueItems.get(taskId);
-                        if (item) queueItems.set(taskId, { ...item, status: 'paused' });
-                        pushQueueUpdated(mainWindow);
-                        pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded: lastLoaded, total: lastTotal, paused: true });
-                    }
-                } else if (isAborted) {
-                    // Always emit the terminal `cancelled` event — for individual
-                    // cancels it advances the batch counter (M32), and for STOP_BATCH
-                    // it is what clears the row. The old `if (batchTracker.active)`
-                    // guard suppressed it after STOP_BATCH called reset(), leaving the
-                    // aborted rows stuck on a frozen spinner (the S11 race). IPC
-                    // ordering guarantees it arrives after the last progress tick.
-                    queueItems.delete(taskId);
-                    pushQueueUpdated(mainWindow);
-                    pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url, loaded: 0, total: 0, cancelled: true });
-                } else {
-                    console.error('Download error:', error);
-                    queueItems.delete(taskId);
-                    // v1.5.0: snapshot the original request so the renderer can
-                    // offer "Retry failed" with the exact same parameters.
-                    batchTracker.recordFailure(batchGen, {
-                        title, podcastTitle, errorCode: errMsg,
-                        request: { url, title, podcastTitle, guid, pubDate, feedImageUrl, episodeImageUrl, feedUrl },
-                    });
-                    pushQueueUpdated(mainWindow);
-                    const isNotFound = errMsg === 'EPISODE_NOT_FOUND';
-                    pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, {
-                        url, loaded: 0, total: 0, error: true,
-                        ...(isNotFound ? { notFound: true } : {})
-                    });
-                }
-            } finally {
-                if (!parkedForResume) {
-                    activeDownloads.delete(taskId);
-                    // Release the URL/path claims only if this task still owns them — a
-                    // CANCEL of a pending task may have already released and handed them
-                    // to a re-download (same url/path, different taskId).
-                    const owned = taskTargets.get(taskId);
-                    if (owned && owned.target === targetFile) {
-                        taskTargets.delete(taskId);
-                        inFlightUrls.delete(url);       // S3: release the URL claim
-                        releaseTarget(targetFile);      // M1: release the claimed path
-                    }
-                    const batchResult = batchTracker.complete(batchGen);
-                    if (batchResult !== null) {
-                        emitBatchComplete(batchResult);
-                    }
-                }
-                // Parked (paused) tasks keep every claim and their batch slot:
-                // the download is suspended, not finished. RESUME re-queues
-                // runTask; CANCEL of a paused task settles everything instead.
-            }
-        };
-        queueService.add(runTask);
-
-        return { status: 'queued' };
-    });
+    ipcMain.handle(CH.START_DOWNLOAD, async (_, request: DownloadRequest) => enqueueDownload(mainWindow, request));
 
     // ── Pause / Resume (v1.5.0) ───────────────────────────
     ipcMain.handle(CH.PAUSE_DOWNLOAD, async (_, taskId: string) => {
@@ -917,43 +1303,21 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     });
 
     ipcMain.handle(CH.PAUSE_QUEUE, async () => {
-        queueIsPaused = true;
-        queueService.pause();
-        // Pending tasks won't start while the queue is paused; mark them so the
-        // UI shows them as paused (and so a queue resume knows to unmark them).
-        for (const [taskId, item] of queueItems) {
-            if (item.status === 'pending' && !cancelledTaskIds.has(taskId)) {
-                pausedTaskIds.add(taskId);
-                queueItems.set(taskId, { ...item, status: 'paused' });
-            }
-        }
-        // Active transfers park themselves via the task's pause path.
-        for (const controller of activeDownloads.values()) {
-            controller.abort('PAUSE_QUEUE');
-        }
-        pushQueueUpdated(mainWindow);
+        pauseQueueInternal(mainWindow, 'user');
         return true;
     });
 
     ipcMain.handle(CH.RESUME_QUEUE, async () => {
-        queueIsPaused = false;
-        // Unmark items paused while pending — their original tasks are still queued.
-        for (const [taskId, item] of queueItems) {
-            if (item.status === 'paused' && pausedTaskIds.has(taskId)) {
-                pausedTaskIds.delete(taskId);
-                queueItems.set(taskId, { ...item, status: 'pending' });
-            }
-        }
-        // Re-queue parked tasks with fresh controllers.
-        for (const [taskId, parked] of [...pausedTasks]) {
-            pausedTasks.delete(taskId);
-            activeDownloads.set(taskId, new AbortController());
-            const item = queueItems.get(taskId);
-            if (item) queueItems.set(taskId, { ...item, status: 'pending' });
-            queueService.add(parked.run);
-        }
-        queueService.start();
-        pushQueueUpdated(mainWindow);
+        resumeQueueInternal(mainWindow);
+        return true;
+    });
+
+    ipcMain.handle(CH.GET_QUEUE_STATE, async () => queueState());
+
+    // v1.6.0 — connectivity drives an automatic pause. A pause the user chose
+    // is never lifted by the network coming back.
+    ipcMain.handle(CH.NOTIFY_OFFLINE, async () => {
+        if (queuePauseReason === null) pauseQueueInternal(mainWindow, 'offline');
         return true;
     });
 
@@ -977,7 +1341,8 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
             if (owned) {
                 taskTargets.delete(taskId);
                 inFlightUrls.delete(owned.url);
-                releaseTarget(owned.target);
+                releaseTargetAndSidecar(owned.target);
+                try { libraryService.removePendingDownload(owned.url); } catch { /* ignore */ }
             }
         } else if (item.status === 'downloading') {
             const controller = activeDownloads.get(taskId);
@@ -992,7 +1357,8 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                 if (owned) {
                     taskTargets.delete(taskId);
                     inFlightUrls.delete(owned.url);
-                    releaseTarget(owned.target);
+                    releaseTargetAndSidecar(owned.target);
+                    try { libraryService.removePendingDownload(owned.url); } catch { /* ignore */ }
                 }
             } else {
                 const parked = pausedTasks.get(taskId);
@@ -1007,8 +1373,11 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                     if (owned && owned.target === parked.target) {
                         taskTargets.delete(taskId);
                         inFlightUrls.delete(parked.url);
-                        releaseTarget(parked.target);
+                        releaseTargetAndSidecar(parked.target);
                     }
+                    try { libraryService.removePendingDownload(parked.url); } catch { /* ignore */ }
+                    run.cancelled++;
+                    pushQueueState(mainWindow);
                     pushEvent(mainWindow, CH.DOWNLOAD_PROGRESS, { url: parked.url, loaded: 0, total: 0, cancelled: true });
                     const batchResult = batchTracker.complete(parked.batchGen);
                     if (batchResult !== null) emitBatchComplete(batchResult);
@@ -1021,7 +1390,8 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     ipcMain.handle(CH.STOP_BATCH, async () => {
         queueService.clear();
         // A stop while paused must leave the queue runnable for future batches.
-        queueIsPaused = false;
+        // v1.6.0: an offline pause is lifted too — there is nothing left to hold.
+        queuePauseReason = null;
         queueService.start();
         for (const controller of activeDownloads.values()) {
             controller.abort();
@@ -1043,6 +1413,9 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         reservedTargets.clear();
         inFlightUrls.clear();
         taskTargets.clear();
+        // v1.6.0: a stop empties the queue for good — nothing to resume at next boot.
+        try { libraryService.clearPendingDownloads(); } catch { /* ignore */ }
+        run.total = 0; run.completed = 0; run.failed = 0; run.cancelled = 0;
         pushQueueUpdated(mainWindow);
         return true;
     });
@@ -1068,6 +1441,9 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
             const content = await fs.readFile(result.filePaths[0], 'utf-8');
             const count = await libraryService.importOPML(content);
             pushEvent(mainWindow, CH.FEEDS_UPDATED, libraryService.getFeeds());
+            // v1.6.0: fetch the new feeds right away — real titles, covers and
+            // badges instead of the OPML text until the next 6-hour cycle.
+            if (count > 0) void runBackgroundRefresh(mainWindow, { manual: true }).catch(() => { });
             return { count };
         } catch (error) {
             console.error('Import failed', error);
@@ -1138,48 +1514,46 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     ipcMain.handle(CH.OPEN_FOLDER, async (_, dirPath: string) => {
         // M2: only ever open a real, existing directory — never an arbitrary file
         // path handed in from the renderer.
-        if (!dirPath || typeof dirPath !== 'string') return;
+        if (!dirPath || typeof dirPath !== 'string') return false;
         const resolved = path.resolve(dirPath);
 
-        // L18: constrain to the configured download folder (its only legitimate
+        // L18: constrain to the download folders (their only legitimate
         // argument). A compromised renderer can't coax the shell into opening an
-        // arbitrary directory on disk.
-        let baseDir = libraryService.getDownloadPath();
-        if (!baseDir) {
-            baseDir = path.join(app.getPath('documents'), 'FeedDownloader', 'downloads');
-        }
-        const base = path.resolve(baseDir);
-        const rel = path.relative(base, resolved);
-        const withinBase = resolved === base || (!rel.startsWith('..') && !path.isAbsolute(rel));
-        if (!withinBase) return;
+        // arbitrary directory on disk. v1.6.0: every folder the archive uses
+        // counts, not only the current one — older files may live elsewhere.
+        if (!knownBaseDirs().some(base => isWithin(base, resolved))) return false;
 
         const stat = await fs.stat(resolved).catch(() => null);
-        if (!stat || !stat.isDirectory()) return;
+        if (!stat || !stat.isDirectory()) return false;
         await shell.openPath(resolved);
+        return true;
     });
 
-    // ── Show in folder ───────────────────────────────────
-    ipcMain.handle(CH.SHOW_IN_FOLDER, async (_, { podcastTitle, title, enclosureUrl, pubDate }: { podcastTitle: string; title: string; enclosureUrl?: string; pubDate?: string }) => {
-        let baseDir = libraryService.getDownloadPath();
-        if (!baseDir) {
-            baseDir = path.join(app.getPath('documents'), 'FeedDownloader', 'downloads');
-        }
+    ipcMain.handle(CH.GET_EFFECTIVE_DOWNLOAD_PATH, async () => effectiveBaseDir());
 
-        // Prefer the real filename recorded in the archive — recomputing the name
-        // from the current template misses a changed template or a `_2` collision
-        // suffix, and would reveal a path that doesn't exist.
-        const recordedName = libraryService.getArchiveFilename(podcastTitle, title);
-        let safePath: string;
-        if (recordedName) {
-            safePath = path.join(baseDir, sanitize(podcastTitle), recordedName);
-        } else {
-            const ext = enclosureUrl ? extractExtension(enclosureUrl) : '.mp3';
-            const namingTemplate = libraryService.getNamingTemplate();
-            const resolvedName = applyTemplate(namingTemplate, { title, podcast: podcastTitle, pubDate });
-            safePath = getSafePath(baseDir, podcastTitle, resolvedName, ext);
+    // ── Reveal an archived episode (v1.6.0) ──────────────
+    // By identity (guid + feed), resolved through the folder it was written to.
+    // The old SHOW_IN_FOLDER matched podcast + episode TITLE, which picked the
+    // wrong file whenever two episodes shared a title, and recomputed paths
+    // against the current folder only.
+    ipcMain.handle(CH.SHOW_ARCHIVED_EPISODE, async (_, guid: string, feedUrl?: string): Promise<boolean> => {
+        if (typeof guid !== 'string' || !guid) return false;
+        const entry = libraryService.getArchiveEntry(guid, typeof feedUrl === 'string' ? feedUrl : undefined);
+        if (!entry?.filename) return false;
+        const { path: filePath, exists } = await resolveArchivedPath(entry);
+        if (exists) {
+            shell.showItemInFolder(filePath);
+            return true;
         }
+        // The file is gone: at least open its podcast folder, if that still exists.
+        const dir = path.dirname(filePath);
+        if (await fs.pathExists(dir)) { await shell.openPath(dir); }
+        return false;
+    });
 
-        shell.showItemInFolder(safePath);
+    ipcMain.handle(CH.GET_ARCHIVE_ENTRY, async (_, guid: string, feedUrl?: string) => {
+        if (typeof guid !== 'string' || !guid) return null;
+        return libraryService.getArchiveEntry(guid, typeof feedUrl === 'string' ? feedUrl : undefined);
     });
 
     // ── Help ──────────────────────────────────────────────
@@ -1312,9 +1686,6 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         // Refuse while downloads are in flight — a live .part would be deleted
         // out from under the writer. -1 signals "busy" to the renderer.
         if (activeDownloads.size > 0 || queueItems.size > 0) return -1;
-        let baseDir = libraryService.getDownloadPath();
-        if (!baseDir) baseDir = path.join(app.getPath('documents'), 'FeedDownloader', 'downloads');
-        if (!(await fs.pathExists(baseDir))) return 0;
 
         let removed = 0;
         const MAX_DEPTH = 4;
@@ -1334,7 +1705,10 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                 }
             }
         };
-        await walk(baseDir, 0);
+        // v1.6.0: every folder the archive uses, not only the current one.
+        for (const baseDir of knownBaseDirs()) {
+            if (await fs.pathExists(baseDir)) await walk(baseDir, 0);
+        }
         return removed;
     });
 
@@ -1362,24 +1736,11 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         return libraryService.getArchive();
     });
 
-    ipcMain.handle(CH.OPEN_ARCHIVE_FILE, async (_, { podcastTitle, filename }: { podcastTitle: string; filename: string }) => {
-        let baseDir = libraryService.getDownloadPath();
-        if (!baseDir) baseDir = path.join(app.getPath('documents'), 'FeedDownloader', 'downloads');
-        // M2: sanitize the filename too (not just the podcast title) and confirm the
-        // resolved path stays inside baseDir — defends against `..` traversal in a
-        // crafted archive entry.
-        const rootDir = path.resolve(baseDir);
-        const filePath = path.resolve(rootDir, sanitize(podcastTitle), sanitize(filename));
-        if (filePath !== rootDir && !filePath.startsWith(rootDir + path.sep)) {
-            return false;
-        }
-        shell.showItemInFolder(filePath);
-        return true;
-    });
-
     // ── Locale Sync ──────────────────────────────────────
     ipcMain.handle(CH.SET_LOCALE, async (_, locale: string) => {
-        uiLocale = locale;
+        // "it-IT" → "it": notification texts are keyed by language only, and a
+        // regional tag silently fell back to English.
+        uiLocale = String(locale || 'en').split('-')[0].toLowerCase();
         // N1: the UI locale is now known — safe to fire the boot update check.
         triggerInitialUpdateCheck();
         return true;
@@ -1391,7 +1752,9 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     });
 
     ipcMain.handle(CH.SET_NAMING_TEMPLATE, async (_, template: string) => {
-        libraryService.setNamingTemplate(template);
+        // L13-style guard: a template is a short line of text.
+        if (typeof template !== 'string') return false;
+        libraryService.setNamingTemplate(template.slice(0, 300));
         return true;
     });
 
@@ -1421,7 +1784,10 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     });
 
     ipcMain.handle(CH.SET_SPEED_LIMIT, async (_, kbps: number) => {
-        libraryService.setSpeedLimit(kbps);
+        const clean = Number.isFinite(kbps) && kbps >= 0 ? Math.floor(kbps) : 0;
+        libraryService.setSpeedLimit(clean);
+        // v1.6.0: applies at once, to the budget every running download shares.
+        bandwidth.setRate(clean * 1024);
         return true;
     });
 
@@ -1459,58 +1825,127 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     });
 
     // ── Health Check ────────────────────────────────────────
-    ipcMain.handle(CH.RUN_HEALTH_CHECK, async () => {
-        const entries = libraryService.getArchive();
-        let baseDir = libraryService.getDownloadPath();
-        if (!baseDir) {
-            baseDir = path.join(app.getPath('documents'), 'FeedDownloader', 'downloads');
-        }
+    // v1.6.0: two depths. "quick" checks presence and byte size (seconds even on
+    // a big archive); "full" also re-hashes every file (hours on a large NAS
+    // archive, which is why it now reports progress and can be stopped).
+    let healthCheckCancel = false;
+    let healthCheckRunning = false;
 
-        let present = 0;
-        let missing = 0;
-        let corrupted = 0;
-        let totalSizeBytes = 0;
-        const missingFiles: { guid: string; feedUrl?: string; title: string; podcast: string; filename: string }[] = [];
-        const corruptedFiles: { guid: string; feedUrl?: string; title: string; podcast: string; filename: string }[] = [];
+    ipcMain.handle(CH.CANCEL_HEALTH_CHECK, async () => {
+        healthCheckCancel = true;
+        return true;
+    });
 
-        for (const entry of entries) {
-            if (!entry.filename) {
-                missing++;
-                missingFiles.push({ guid: entry.guid, feedUrl: entry.feedUrl, title: entry.title, podcast: entry.podcastTitle, filename: '(no filename)' });
-                continue;
-            }
-            const fullPath = path.join(baseDir, sanitize(entry.podcastTitle), entry.filename);
-            try {
-                const stat = await fs.stat(fullPath);
-                present++;
-                totalSizeBytes += stat.size;
+    ipcMain.handle(CH.RUN_HEALTH_CHECK, async (_, rawMode?: HealthCheckMode): Promise<HealthCheckResult> => {
+        const mode: HealthCheckMode = rawMode === 'quick' ? 'quick' : 'full';
+        if (healthCheckRunning) throw new Error('HEALTH_CHECK_BUSY');
+        healthCheckRunning = true;
+        healthCheckCancel = false;
+        try {
+            const entries = libraryService.getArchive();
+            let present = 0;
+            let missing = 0;
+            let corrupted = 0;
+            let totalSizeBytes = 0;
+            let examined = 0;
+            const missingFiles: HealthCheckFile[] = [];
+            const corruptedFiles: HealthCheckFile[] = [];
+            const describe = (e: ArchiveEntry, filename = e.filename ?? '(no filename)'): HealthCheckFile =>
+                ({ guid: e.guid, feedUrl: e.feedUrl, title: e.title, podcast: e.podcastTitle, filename });
 
-                // L10: the SHA-256 stored at download time is finally put to use.
-                // Re-hash the file on disk and compare — surfacing silent bit-rot
-                // or tampering. Legacy entries without a stored checksum are skipped.
-                if (entry.checksum) {
-                    const actual = await sha256File(fullPath).catch(() => null);
-                    if (actual && actual !== entry.checksum) {
-                        corrupted++;
-                        corruptedFiles.push({ guid: entry.guid, feedUrl: entry.feedUrl, title: entry.title, podcast: entry.podcastTitle, filename: entry.filename });
-                    }
+            let lastPush = 0;
+            const progress = (force = false) => {
+                const now = Date.now();
+                if (force || now - lastPush > 150) {
+                    lastPush = now;
+                    pushEvent(mainWindow, CH.HEALTH_CHECK_PROGRESS, { done: examined, total: entries.length });
                 }
-            } catch {
-                missing++;
-                missingFiles.push({ guid: entry.guid, feedUrl: entry.feedUrl, title: entry.title, podcast: entry.podcastTitle, filename: entry.filename });
-            }
-        }
+            };
+            progress(true);
 
-        const result: HealthCheckResult = {
-            total: entries.length,
-            present,
-            missing,
-            corrupted,
-            totalSizeBytes,
-            missingFiles,
-            corruptedFiles,
-        };
-        return result;
+            for (const entry of entries) {
+                if (healthCheckCancel || isShuttingDown) break;
+                examined++;
+                if (!entry.filename) {
+                    missing++;
+                    missingFiles.push(describe(entry));
+                    progress();
+                    continue;
+                }
+                const { path: fullPath, exists } = await resolveArchivedPath(entry);
+                if (!exists) {
+                    missing++;
+                    missingFiles.push(describe(entry));
+                    progress();
+                    continue;
+                }
+                try {
+                    const stat = await fs.stat(fullPath);
+                    present++;
+                    totalSizeBytes += stat.size;
+                    if (mode === 'quick') {
+                        if (entry.fileSize != null && entry.fileSize !== stat.size) {
+                            corrupted++;
+                            corruptedFiles.push(describe(entry));
+                        }
+                    } else if (entry.checksum) {
+                        // L10: the SHA-256 stored at download time is put to use.
+                        // Re-hash the file on disk and compare — surfacing silent
+                        // bit-rot or tampering. Legacy entries without a stored
+                        // checksum are skipped.
+                        const actual = await sha256File(fullPath).catch(() => null);
+                        if (actual && actual !== entry.checksum) {
+                            corrupted++;
+                            corruptedFiles.push(describe(entry));
+                        }
+                    }
+                } catch {
+                    missing++;
+                    missingFiles.push(describe(entry));
+                }
+                progress();
+            }
+            progress(true);
+
+            return {
+                mode,
+                cancelled: healthCheckCancel || undefined,
+                total: examined,
+                present,
+                missing,
+                corrupted,
+                totalSizeBytes,
+                missingFiles,
+                corruptedFiles,
+            };
+        } finally {
+            healthCheckRunning = false;
+            healthCheckCancel = false;
+        }
+    });
+
+    // v1.6.0 — "this file is fine, make it the reference": store the size and
+    // SHA-256 of what is on disk now. For files the user has checked (typically
+    // MP3s tagged by v1.5.x and earlier, which hashed BEFORE writing ID3 tags).
+    ipcMain.handle(CH.REBASELINE_ARCHIVE, async (_, items: unknown): Promise<number> => {
+        if (!Array.isArray(items)) return 0;
+        let done = 0;
+        for (const it of items) {
+            if (!it || typeof it !== 'object' || typeof (it as { guid?: unknown }).guid !== 'string') continue;
+            const { guid, feedUrl } = it as { guid: string; feedUrl?: string };
+            const entry = libraryService.getArchiveEntry(guid, typeof feedUrl === 'string' ? feedUrl : undefined);
+            if (!entry?.filename) continue;
+            const { path: filePath, exists } = await resolveArchivedPath(entry);
+            if (!exists) continue;
+            try {
+                const stat = await fs.stat(filePath);
+                const checksum = await sha256File(filePath);
+                libraryService.rebaselineArchiveEntry(entry.guid, entry.feedUrl, stat.size, checksum);
+                done++;
+            } catch { /* unreadable — leave it reported */ }
+        }
+        if (done > 0) pushEvent(mainWindow, CH.DOWNLOADS_UPDATED);
+        return done;
     });
 
     // ── Mark Missing as Not Downloaded ──────────────────────
@@ -1530,12 +1965,8 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     // SHA-256 inside the podcast's folder (covers manual renames and naming-
     // template changes) and re-link the row to the found filename. Disk is only
     // read — the repair touches nothing but the DB row.
-    ipcMain.handle(CH.REPAIR_ARCHIVE, async (): Promise<import('../shared/types').ArchiveRepairResult> => {
+    ipcMain.handle(CH.REPAIR_ARCHIVE, async (): Promise<ArchiveRepairResult> => {
         const entries = libraryService.getArchive();
-        let baseDir = libraryService.getDownloadPath();
-        if (!baseDir) {
-            baseDir = path.join(app.getPath('documents'), 'FeedDownloader', 'downloads');
-        }
 
         // Filenames still claimed by entries whose file exists — a repair must
         // never re-link to a file another entry legitimately points to.
@@ -1544,10 +1975,10 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         let unrepairable = 0;
 
         for (const entry of entries) {
-            const dir = path.join(baseDir, sanitize(entry.podcastTitle));
             if (!entry.filename) { unrepairable++; continue; }
-            const exists = await fs.pathExists(path.join(dir, entry.filename));
+            const { path: filePath, exists } = await resolveArchivedPath(entry);
             if (exists) {
+                const dir = path.dirname(filePath);
                 let set = claimed.get(dir);
                 if (!set) { set = new Set(); claimed.set(dir, set); }
                 set.add(entry.filename.toLowerCase());
@@ -1570,47 +2001,56 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         const repairedFiles: { guid: string; title: string; podcast: string; oldFilename: string; newFilename: string }[] = [];
 
         for (const entry of missingWithChecksum) {
-            const dir = path.join(baseDir, sanitize(entry.podcastTitle));
-            let files = dirCache.get(dir);
-            if (!files) {
-                files = [];
-                try {
-                    for (const name of await fs.readdir(dir)) {
-                        // temp/sidecar files can never be the audio we're looking for
-                        if (name.endsWith('.part') || name.endsWith('.part.meta') || name.endsWith('.json')) continue;
-                        try {
-                            const st = await fs.stat(path.join(dir, name));
-                            if (st.isFile()) files.push({ name, size: st.size });
-                        } catch { /* unreadable candidate — skip */ }
-                    }
-                } catch { /* folder itself is gone — no candidates */ }
-                dirCache.set(dir, files);
-            }
-
-            const claimedSet = claimed.get(dir);
-            // Size is a cheap pre-filter: a SHA-256 match implies an identical
-            // byte count, so when the size is known only equal-sized files
-            // need hashing. Legacy entries without fileSize hash everything.
-            const candidates = files.filter(f =>
-                !claimedSet?.has(f.name.toLowerCase()) &&
-                !takenNow.has(path.join(dir, f.name)) &&
-                (entry.fileSize == null || f.size === entry.fileSize));
-
+            // v1.6.0: look in the podcast folder under every base the entry may
+            // live in (its own, then the current download folder).
             let found: string | null = null;
-            for (const cand of candidates) {
-                const full = path.join(dir, cand.name);
-                let hash = hashCache.get(full);
-                if (hash === undefined) {
-                    scanned++;
-                    hash = await sha256File(full).catch(() => null);
-                    hashCache.set(full, hash);
+            let foundBase: string | null = null;
+            for (const base of baseCandidates(entry)) {
+                const dir = path.join(base, sanitize(entry.podcastTitle));
+                let files = dirCache.get(dir);
+                if (!files) {
+                    files = [];
+                    try {
+                        for (const name of await fs.readdir(dir)) {
+                            // temp/sidecar files can never be the audio we're looking for
+                            if (name.endsWith('.part') || name.endsWith('.part.meta') || name.endsWith('.json')) continue;
+                            try {
+                                const st = await fs.stat(path.join(dir, name));
+                                if (st.isFile()) files.push({ name, size: st.size });
+                            } catch { /* unreadable candidate — skip */ }
+                        }
+                    } catch { /* folder itself is gone — no candidates */ }
+                    dirCache.set(dir, files);
                 }
-                if (hash && hash === entry.checksum) { found = cand.name; break; }
+
+                const claimedSet = claimed.get(dir);
+                // Size is a cheap pre-filter: a SHA-256 match implies an identical
+                // byte count, so when the size is known only equal-sized files
+                // need hashing. Legacy entries without fileSize hash everything.
+                const candidates = files.filter(f =>
+                    !claimedSet?.has(f.name.toLowerCase()) &&
+                    !takenNow.has(path.join(dir, f.name)) &&
+                    (entry.fileSize == null || f.size === entry.fileSize));
+
+                for (const cand of candidates) {
+                    const full = path.join(dir, cand.name);
+                    let hash = hashCache.get(full);
+                    if (hash === undefined) {
+                        scanned++;
+                        hash = await sha256File(full).catch(() => null);
+                        hashCache.set(full, hash);
+                    }
+                    if (hash && hash === entry.checksum) { found = cand.name; foundBase = base; break; }
+                }
+                if (found) break;
             }
 
-            if (found) {
+            if (found && foundBase) {
                 libraryService.updateArchiveFilename(entry.guid, entry.feedUrl, found);
-                takenNow.add(path.join(dir, found));
+                if (!entry.baseDir || path.resolve(entry.baseDir) !== path.resolve(foundBase)) {
+                    libraryService.setArchiveBaseDir([{ guid: entry.guid, feedUrl: entry.feedUrl }], foundBase);
+                }
+                takenNow.add(path.join(foundBase, sanitize(entry.podcastTitle), found));
                 repaired++;
                 repairedFiles.push({ guid: entry.guid, title: entry.title, podcast: entry.podcastTitle, oldFilename: entry.filename ?? '', newFilename: found });
             } else {
@@ -1759,6 +2199,8 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
     // Re-check when the renderer reports it regained connectivity (debounced so a
     // flapping connection can't trigger a storm of refreshes).
     ipcMain.handle(CH.NOTIFY_ONLINE, async () => {
+        // v1.6.0: lift the automatic offline pause (never a pause the user chose).
+        if (queuePauseReason === 'offline') resumeQueueInternal(mainWindow);
         if (onlineRefreshDebounce) clearTimeout(onlineRefreshDebounce);
         onlineRefreshDebounce = setTimeout(() => {
             onlineRefreshDebounce = null;
@@ -1778,12 +2220,10 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         });
         if (result.canceled || !result.filePath) return null;
 
-        let baseDir = libraryService.getDownloadPath();
-        if (!baseDir) baseDir = path.join(app.getPath('documents'), 'FeedDownloader', 'downloads');
-
         let content = '#EXTM3U\n';
         for (const entry of entries) {
-            const filePath = path.join(baseDir, sanitize(entry.podcastTitle), entry.filename!);
+            // v1.6.0: the file's real location (its own folder first)
+            const { path: filePath } = await resolveArchivedPath(entry);
             // L12: feed titles are untrusted — a newline would inject M3U lines
             const safeTitle = entry.title.replace(/[\r\n]+/g, ' ');
             content += `#EXTINF:-1,${safeTitle}\n${filePath}\n`;
@@ -1808,9 +2248,11 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
     // ── Archive Migration ────────────────────────────────────
     ipcMain.handle(CH.MIGRATE_ARCHIVE, async (_, newPath: string): Promise<MigrationResult> => {
-        const currentPath = libraryService.getDownloadPath();
+        // v1.6.0: the default folder can be migrated too (it used to refuse
+        // with "no path set" until a folder had been chosen explicitly).
+        const currentPath = effectiveBaseDir();
 
-        if (!currentPath || !newPath) {
+        if (typeof newPath !== 'string' || !path.isAbsolute(newPath)) {
             return { moved: 0, errors: 0, newPath: newPath || '', pathChanged: false };
         }
         if (currentPath === newPath) {
@@ -1851,6 +2293,10 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
 
         let moved = 0;
         let errors = 0;
+        // v1.6.0: archive rows follow the folder they moved with. A partial
+        // migration used to re-point the whole library to the new folder,
+        // turning every podcast that failed to move into "missing" files.
+        const archive = libraryService.getArchive();
 
         for (let i = 0; i < folders.length; i++) {
             const folder = folders[i];
@@ -1867,6 +2313,10 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
                     { overwrite: false }
                 );
                 moved++;
+                const rows = archive.filter(e =>
+                    sanitize(e.podcastTitle) === folder &&
+                    (!e.baseDir || path.resolve(e.baseDir) === path.resolve(currentPath)));
+                if (rows.length > 0) libraryService.setArchiveBaseDir(rows, newPath);
             } catch (e) {
                 console.error(`[Migration] Failed to move "${folder}":`, e);
                 errors++;
@@ -1880,6 +2330,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         const pathChanged = moved > 0 || total === 0;
         if (pathChanged) {
             libraryService.setDownloadPath(newPath);
+            pushEvent(mainWindow, CH.DOWNLOADS_UPDATED);
         }
 
         // Final progress signal
@@ -1890,5 +2341,82 @@ export function registerIpcHandlers(mainWindow: BrowserWindow) {
         } as MigrationProgress);
 
         return { moved, errors, newPath, pathChanged };
+    });
+
+    // ── Interrupted downloads (v1.6.0) ───────────────────────
+    // What was still queued when the app last closed. Offered, never resumed
+    // behind the user's back: the network, the folder or the wish may have changed.
+    const pendingNotQueued = (): DownloadRequest[] => bootPending.filter(r =>
+        !inFlightUrls.has(r.url) && !libraryService.isDownloaded(r.guid || r.url, r.feedUrl ?? ''));
+
+    ipcMain.handle(CH.GET_PENDING_DOWNLOADS, async (): Promise<PendingDownloads> => {
+        const list = pendingNotQueued();
+        return { count: list.length, podcasts: [...new Set(list.map(r => r.podcastTitle).filter(Boolean))] };
+    });
+
+    ipcMain.handle(CH.RESUME_PENDING_DOWNLOADS, async (): Promise<number> => {
+        const list = pendingNotQueued();
+        bootPending = [];
+        let queued = 0;
+        for (const request of list) {
+            try {
+                if ((await enqueueDownload(mainWindow, request)).status === 'queued') queued++;
+            } catch (e) {
+                console.warn('[Pending] could not resume', request.url, (e as Error).message);
+                try { libraryService.removePendingDownload(request.url); } catch { /* ignore */ }
+            }
+        }
+        return queued;
+    });
+
+    ipcMain.handle(CH.DISCARD_PENDING_DOWNLOADS, async (): Promise<boolean> => {
+        for (const r of bootPending) {
+            if (!inFlightUrls.has(r.url)) {
+                try { libraryService.removePendingDownload(r.url); } catch { /* ignore */ }
+            }
+        }
+        bootPending = [];
+        return true;
+    });
+
+    // ── Accessibility (v1.6.0, Titan standard) ───────────────
+    // Interface zoom lives in the main process (Chromium zoom factor) and is
+    // persisted; Ctrl + / Ctrl − / Ctrl 0 step through the same values as the
+    // selector in Settings. There is no application menu in packaged builds,
+    // so the shortcuts are handled here.
+    const ZOOM_STEPS = [0.8, 0.9, 1, 1.1, 1.25, 1.4, 1.6, 1.8];
+    const applyZoom = (zoom: number) => {
+        if (!mainWindow.isDestroyed()) mainWindow.webContents.setZoomFactor(zoom);
+    };
+    const setZoom = (zoom: number): number => {
+        const clean = ZOOM_STEPS.reduce((best, z) => Math.abs(z - zoom) < Math.abs(best - zoom) ? z : best, 1);
+        libraryService.setUiZoom(clean);
+        applyZoom(clean);
+        pushEvent(mainWindow, CH.UI_ZOOM_CHANGED, clean);
+        return clean;
+    };
+    mainWindow.webContents.on('did-finish-load', () => applyZoom(libraryService.getUiZoom()));
+    mainWindow.webContents.on('before-input-event', (event, input) => {
+        if (input.type !== 'keyDown' || !(input.control || input.meta) || input.alt) return;
+        const current = libraryService.getUiZoom();
+        const at = ZOOM_STEPS.indexOf(current);
+        const i = at === -1 ? ZOOM_STEPS.indexOf(1) : at;
+        if (input.key === '+' || input.key === '=' || input.code === 'NumpadAdd') {
+            event.preventDefault();
+            setZoom(ZOOM_STEPS[Math.min(ZOOM_STEPS.length - 1, i + 1)]);
+        } else if (input.key === '-' || input.code === 'NumpadSubtract') {
+            event.preventDefault();
+            setZoom(ZOOM_STEPS[Math.max(0, i - 1)]);
+        } else if (input.key === '0' || input.code === 'Numpad0') {
+            event.preventDefault();
+            setZoom(1);
+        }
+    });
+    ipcMain.handle(CH.GET_UI_ZOOM, async () => libraryService.getUiZoom());
+    ipcMain.handle(CH.SET_UI_ZOOM, async (_, zoom: number) => setZoom(Number(zoom) || 1));
+    ipcMain.handle(CH.GET_REDUCE_MOTION, async () => libraryService.getReduceMotion());
+    ipcMain.handle(CH.SET_REDUCE_MOTION, async (_, enabled: boolean) => {
+        libraryService.setReduceMotion(!!enabled);
+        return true;
     });
 }

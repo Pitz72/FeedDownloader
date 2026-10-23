@@ -1,0 +1,99 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   RUNTIME VIOLET — design system di FeedDownloader Pro (dalla 1.6.0)
+
+   Stesso impianto di «Titan Blue» (Runtime TelegramBot Desktop 2.4), nella
+   catena cromatica viola del marchio FeedDownloader: #9962FC lo stelo della F,
+   #D3BAFE l'anello e il punto, #160925 lo squircle.
+
+   È l'UNICA fonte dei colori: Tailwind ne ricava classi (bg-surface-2,
+   text-fg-3, border-line…) e scripts/check-contrast.mjs misura ogni coppia che
+   l'interfaccia usa davvero contro WCAG 2.2 AA (npm run check:contrast, anche
+   in `npm run build`). Un colore che non regge il contrasto non entra.
+
+   Regola per le trasparenze: `/NN` va bene per sfondi decorativi e bordi, MAI
+   per il colore di un testo o per lo sfondo su cui sta del testo — il
+   controllo del contrasto non le vede.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+@theme {
+  /* La tavolozza predefinita di Tailwind non esiste qui: solo nomi semantici. */
+  --color-*: initial;
+
+  /* Superfici, dalla più profonda alla più alta */
+  --color-canvas: #0c0a18;
+  --color-surface-1: #110e21;
+  --color-surface-2: #17132b;
+  --color-surface-3: #1e1937;
+  --color-surface-4: #2a2249;
+  --color-line: #272042;
+  --color-line-strong: #7d6eab;
+
+  /* Testo */
+  --color-fg: #f3effd;
+  --color-fg-2: #d2cae9;
+  --color-fg-3: #b0a6cf;
+  --color-fg-disabled: #6b6290;
+
+  /* Azione principale e accento (viola del marchio) */
+  --color-primary: #7c3aed;
+  --color-primary-hover: #6d28d9;
+  --color-primary-pressed: #5b21b6;
+  --color-on-primary: #ffffff;
+  --color-accent: #bba0ff;
+  --color-accent-strong: #d3bafe;
+  --color-brand: #9962fc;
+  --color-focus: #e2d5ff;
+
+  /* Stati */
+  --color-success: #4ade80;
+  --color-success-soft: #0f2a1e;
+  --color-warning: #fbbf24;
+  --color-warning-soft: #2c2210;
+  --color-danger: #fb8a8a;
+  --color-danger-soft: #2e1418;
+  --color-danger-fill: #dc2626;
+  --color-danger-fill-hover: #b91c1c;
+  --color-on-danger: #ffffff;
+
+  /* Tipografia: corpo 14px, niente sotto i 12px (l'ingrandimento scala tutto) */
+  --font-sans: 'Inter Variable', Inter, system-ui, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Fira Code Variable', 'Fira Code', ui-monospace, Consolas, monospace;
+
+  --text-xs: 12px;
+  --text-xs--line-height: 16px;
+  --text-sm: 13px;
+  --text-sm--line-height: 20px;
+  --text-base: 14px;
+  --text-base--line-height: 22px;
+  --text-md: 15px;
+  --text-md--line-height: 22px;
+  --text-lg: 17px;
+  --text-lg--line-height: 24px;
+  --text-xl: 20px;
+  --text-xl--line-height: 28px;
+  --text-2xl: 24px;
+  --text-2xl--line-height: 32px;
+  --text-3xl: 30px;
+  --text-3xl--line-height: 36px;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+
+  /* Ombre corte: l'elevazione si legge, non «brilla» */
+  --shadow-raised: 0 1px 0 0 rgba(255, 255, 255, 0.04) inset, 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-overlay: 0 1px 0 0 rgba(255, 255, 255, 0.05) inset, 0 24px 48px -12px rgba(0, 0, 0, 0.6), 0 8px 16px -8px rgba(0, 0, 0, 0.5);
+
+  --animate-pulse-dot: pulse-dot 2s ease-in-out infinite;
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.45; }
+  }
+  --animate-indeterminate: indeterminate 1.4s ease-in-out infinite;
+  @keyframes indeterminate {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(250%); }
+  }
+}
