@@ -10,6 +10,18 @@
 export type ReleaseNotesLang = 'it' | 'en';
 
 export const RELEASE_NOTES: Record<string, Record<ReleaseNotesLang, string[]>> = {
+    '1.6.1': {
+        it: [
+            'La Verifica dell’archivio mostra di nuovo il risultato: nella 1.6.0 arrivava in fondo e la finestra si azzerava.',
+            'Tornano raggiungibili «Accetta i file attuali come riferimento», «Cerca i file spostati» e «Segna i mancanti come da scaricare».',
+            'Cambiare lingua dalle Impostazioni non ricarica più i valori e non riporta alla scheda Generale.',
+        ],
+        en: [
+            'The archive verification shows its result again: in 1.6.0 it reached the end and the window reset itself.',
+            '“Accept the current files as reference”, “Find moved files” and “Mark the missing ones as not downloaded” can be reached again.',
+            'Changing language from Settings no longer reloads the values or jumps back to the General tab.',
+        ],
+    },
     '1.6.0': {
         it: [
             'Interfaccia ridisegnata, nel viola del marchio e impaginata per la finestra orizzontale: pannelli affiancati, ognuno con il suo scorrimento.',

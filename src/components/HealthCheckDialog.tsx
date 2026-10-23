@@ -8,6 +8,7 @@ import { ProgressBar, Segmented, Stat } from './ui/Controls';
 import { ConfirmDialog } from './ui/ConfirmDialog';
 import { useToast } from './ui/Toast';
 import { formatBytes } from '../utils/format';
+import { useOnOpen } from '../hooks/useOnOpen';
 
 const LIST_LIMIT = 50;
 
@@ -43,7 +44,8 @@ export function HealthCheckDialog({ open, onClose }: { open: boolean; onClose: (
     const [confirmMark, setConfirmMark] = useState(false);
 
     useEffect(() => window.api.onHealthCheckProgress(setProgress), []);
-    useEffect(() => { if (open && !running) { setResult(null); setProgress(null); } }, [open, running]);
+    // Azzera solo all'apertura: a fine verifica il risultato deve restare.
+    useOnOpen(open, () => { setResult(null); setProgress(null); });
 
     const run = async (m: HealthCheckMode = mode) => {
         setRunning(true);

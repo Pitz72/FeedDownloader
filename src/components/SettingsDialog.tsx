@@ -17,6 +17,7 @@ import { CONTACT_URL, DONATE_URL, SOURCE_URL, openLink } from '../lib/links';
 import { formatDate } from '../lib/dates';
 import { RuntimeUtilitiesLogo } from './brand/RuntimeUtilitiesLogo';
 import { LanguageChoice } from './LanguageChoice';
+import { useOnOpen } from '../hooks/useOnOpen';
 
 type Tab = 'general' | 'downloads' | 'files' | 'archive' | 'accessibility' | 'about';
 
@@ -69,7 +70,7 @@ export function SettingsDialog({ open, onClose, onOpenHealthCheck, onOpenGuide, 
         }
     }, [t, toast]);
 
-    useEffect(() => { if (open) { setTab('general'); void load(); } }, [open, load]);
+    useOnOpen(open, () => { setTab('general'); void load(); });
 
     // Migration progress is tracked for the whole life of the dialog component,
     // so closing Settings mid-migration can't make a second one look startable.
