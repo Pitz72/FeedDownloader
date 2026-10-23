@@ -1,17 +1,21 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
 
 :root {
-  --night-blue: #0A1128;
-  --accent: #2980B9;
-  --text-main: #2C3E50;
-  --text-muted: #7F8C8D;
-  --bg-light: #F8F9FA;
+  /* Runtime Violet, adattato alla stampa su carta bianca */
+  --ink: #1b1238;            /* titoli: viola quasi nero */
+  --accent: #7c3aed;
+  --accent-deep: #5b21b6;
+  --accent-soft: #f5f0ff;    /* fondo di citazioni e codice */
+  --rule: #e7defc;
+  --text-main: #2a2540;
+  --text-muted: #6b6290;
   --font-body: 'Lora', serif;
   --font-headings: 'Inter', sans-serif;
-  --font-cover: 'Cinzel', serif;
+  --font-mono: 'Fira Code', Consolas, 'Courier New', monospace;
 }
 
+/* PAGINA A5 (formato libretto) */
 @page {
   size: A5;
   margin: 20mm 15mm 20mm 15mm;
@@ -25,157 +29,275 @@
 
 @page cover {
   margin: 0;
-  background-color: var(--night-blue);
+  background-color: #0c0a18;
   @bottom-center { content: normal; }
   @top-left { content: normal; }
   @top-right { content: normal; }
 }
 
-@page :left {
-  margin-left: 15mm;
-  margin-right: 20mm;
-}
-@page :right {
-  margin-left: 20mm;
-  margin-right: 15mm;
-}
-
-@page :blank {
-  @bottom-center { content: normal; }
-}
+/* Margini speculari per la rilegatura */
+@page :left { margin-left: 15mm; margin-right: 20mm; }
+@page :right { margin-left: 20mm; margin-right: 15mm; }
+@page :blank { @bottom-center { content: normal; } }
 
 body {
   font-family: var(--font-body);
   font-size: 9.5pt;
   line-height: 1.6;
   color: var(--text-main);
-  /* Bandiera a destra. Il giustificato, su una colonna A5 stretta, apriva
-     fiumi bianchi fra le parole e obbligava a sillabare. */
+  /* Bandiera a destra: il giustificato, su una colonna A5 stretta, apriva fiumi
+     bianchi fra le parole e obbligava a sillabare. */
   text-align: left;
   hyphens: manual;
 }
 
+/* ── COPERTINA ─────────────────────────────────────────────── */
 section.cover {
   page: cover;
   break-after: page;
-  color: white;
+  position: relative;
+  overflow: hidden;
   width: 100vw;
   height: 100vh;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 14mm 20mm 20mm 20mm;
+  padding: 16mm 15mm 12mm 15mm;
   text-align: center;
+  color: #f3effd;
+  background-color: #0c0a18;
+  font-family: var(--font-headings);
 }
 
-.cover-content { flex-grow: 1; }
-/* Marchio grande, spazi stretti: vedi la nota in build-book.cjs. */
-.cover-logo { width: 220px; margin-bottom: 8mm; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5)); }
+/* L'alone viola che scende dall'alto, come nella schermata d'ingresso */
+.cover-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(85% 48% at 50% 0%, rgba(124, 58, 237, 0.42), rgba(124, 58, 237, 0.10) 58%, transparent 82%),
+    radial-gradient(70% 26% at 50% 104%, rgba(153, 98, 252, 0.22), transparent 72%);
+}
 
-section.cover h1 {
-  font-family: var(--font-cover);
-  font-size: 26pt;
-  line-height: 1.2;
-  margin: 0 0 10mm 0;
-  color: white;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  border-bottom: none;
+.cover-stars {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.cover-content, .cover-footer { position: relative; }
+
+.cover-orbit {
+  display: block;
+  width: 112mm;
+  margin: 8mm auto 2mm auto;
+}
+
+section.cover h1.cover-title {
+  font-family: var(--font-headings);
+  font-size: 21pt;
+  font-weight: 600;
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+  color: #f3effd;
+  margin: 0;
+  padding: 0;
+  border: none;
   break-before: avoid;
-  /* Spegne l'hyphens: auto ereditato dal body, che sulla copertina spezzava il
-     nome del prodotto (FeedDown-loader). */
+  white-space: nowrap;
   hyphens: none;
   text-align: center;
 }
+section.cover h1.cover-title::before { content: none; }
 
-section.cover h2 {
-  font-family: var(--font-headings);
-  font-size: 14pt;
-  font-weight: 300;
-  color: #8bb4e7;
-  letter-spacing: 1px;
-  margin-top: 0;
-  border: none;
+.cover-edition {
+  display: block;
+  margin-top: 1mm;
+  color: #bba0ff;
+  font-weight: 600;
+  letter-spacing: -0.025em;
 }
 
-.cover-meta {
-  margin-top: 12mm;
-  font-family: var(--font-headings);
-  font-size: 9pt;
-  color: #AAB7B8;
+.cover-rule {
+  width: 46mm;
+  height: 0.3mm;
+  margin: 7mm auto 6mm auto;
+  background: linear-gradient(90deg, transparent, rgba(187, 160, 255, 0.85), transparent);
+}
+
+.cover-subtitle {
+  display: inline-block;
+  margin: 0;
+  padding: 1.6mm 4.5mm;
+  border: 0.25mm solid rgba(187, 160, 255, 0.55);
+  border-radius: 10mm;
+  background: rgba(124, 58, 237, 0.16);
+  font-size: 8.5pt;
+  font-weight: 500;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  color: #d3bafe;
 }
 
-.cover-meta p { margin: 0 0 2mm 0; }
-.cover-meta .license { margin-top: 4mm; }
+.cover-version {
+  margin: 4.5mm 0 0 0;
+  font-family: var(--font-mono);
+  font-size: 8.5pt;
+  color: #b0a6cf;
+  letter-spacing: 0.02em;
+}
 
-.cover-footer { padding-bottom: 10mm; }
+.cover-footer { padding-bottom: 2mm; }
 
 .quote-box {
-  border-top: 1px solid rgba(255,255,255,0.2);
-  border-bottom: 1px solid rgba(255,255,255,0.2);
-  padding: 15px 0;
   margin: 0 auto;
-  width: 80%;
+  width: 92%;
+  box-sizing: border-box;
+  padding: 4mm 5.5mm;
+  border: 0.25mm solid #272042;
+  border-radius: 3mm;
+  background: rgba(17, 14, 33, 0.78);
 }
 
 .quote {
   font-family: var(--font-body);
   font-style: italic;
-  font-size: 9pt;
-  color: #D5D8DC;
+  font-size: 8.5pt;
+  line-height: 1.55;
+  color: #d2cae9;
   margin: 0;
-  line-height: 1.5;
 }
 
+.cover-sign {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4mm;
+  margin-top: 7mm;
+}
+.cover-sign-line {
+  flex: 1;
+  max-width: 22mm;
+  height: 0.25mm;
+  background: linear-gradient(90deg, transparent, rgba(125, 110, 171, 0.7));
+}
+.cover-sign-line.right { background: linear-gradient(270deg, transparent, rgba(125, 110, 171, 0.7)); }
+.cover-ru { height: 8mm; opacity: 0.85; }
+
+.cover-company {
+  margin: 3mm 0 0 0;
+  font-size: 7.5pt;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #b0a6cf;
+}
+
+/* ── CAPITOLI E SEZIONI ────────────────────────────────────── */
 h1 {
   font-family: var(--font-headings);
-  color: var(--night-blue);
+  color: var(--ink);
   font-size: 20pt;
   font-weight: 700;
-  break-before: right;
+  letter-spacing: -0.015em;
+  break-before: right; /* ogni capitolo inizia sulla pagina di destra */
   margin-top: 0;
-  margin-bottom: 15mm;
+  margin-bottom: 14mm;
   padding-bottom: 5mm;
-  border-bottom: 2px solid var(--accent);
+  border-bottom: 0.3mm solid var(--rule);
   line-height: 1.2;
+}
+
+/* La barretta viola sopra il titolo del capitolo, dalla scia della copertina */
+h1::before {
+  content: '';
+  display: block;
+  width: 16mm;
+  height: 1.2mm;
+  margin-bottom: 6mm;
+  border-radius: 1mm;
+  background: linear-gradient(90deg, var(--accent), #d3bafe);
 }
 
 h2 {
   font-family: var(--font-headings);
   font-size: 14pt;
   font-weight: 600;
-  color: var(--night-blue);
+  color: var(--ink);
   margin-top: 2em;
   margin-bottom: 0.8em;
-  break-after: avoid;
+  break-after: avoid; /* non separare il titolo dal testo */
 }
 
 h3 {
   font-family: var(--font-headings);
   font-size: 11pt;
   font-weight: 600;
-  color: var(--text-main);
+  color: var(--accent-deep);
   margin-top: 1.5em;
   margin-bottom: 0.5em;
   break-after: avoid;
 }
 
 p { margin-top: 0; margin-bottom: 1em; }
-strong { font-weight: 600; color: var(--night-blue); }
+strong { font-weight: 600; color: var(--ink); }
 a { color: var(--accent); text-decoration: none; }
+
 ul, ol { margin-top: 0; margin-bottom: 1em; padding-left: 20px; }
 li { margin-bottom: 0.3em; }
-code { font-family: 'Consolas', 'Courier New', monospace; background-color: var(--bg-light); padding: 2px 4px; border-radius: 3px; font-size: 8pt; color: #C0392B; }
-pre { background-color: var(--bg-light); padding: 12px; border-left: 3px solid var(--accent); border-radius: 0 4px 4px 0; overflow-x: auto; font-size: 8pt; line-height: 1.4; margin-bottom: 1.5em; break-inside: avoid; }
+li::marker { color: var(--accent); }
+
+/* CODICE (senza legature: Fira Code unirebbe «//» negli indirizzi) */
+code, pre {
+  font-variant-ligatures: none;
+  font-feature-settings: 'liga' 0, 'calt' 0;
+}
+code {
+  font-family: var(--font-mono);
+  background-color: var(--accent-soft);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 7.8pt;
+  color: var(--accent-deep);
+}
+pre {
+  background-color: var(--accent-soft);
+  padding: 12px;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 4px 4px 0;
+  overflow-x: auto;
+  font-size: 7.8pt;
+  line-height: 1.45;
+  margin-bottom: 1.5em;
+  break-inside: avoid; /* niente blocchi di codice spezzati a metà pagina */
+}
 pre code { background-color: transparent; padding: 0; color: var(--text-main); }
-blockquote { margin: 1.5em 0; padding: 10px 15px; background-color: var(--bg-light); border-left: 4px solid var(--accent); color: #34495E; font-style: italic; font-size: 9pt; break-inside: avoid; }
+
+/* CITAZIONI E NOTE */
+blockquote {
+  margin: 1.5em 0;
+  padding: 10px 15px;
+  background-color: var(--accent-soft);
+  border-left: 4px solid var(--accent);
+  color: #3b3357;
+  font-style: italic;
+  font-size: 9pt;
+  break-inside: avoid;
+}
 blockquote p:last-child { margin-bottom: 0; }
-table { width: 100%; border-collapse: collapse; margin: 1.5em 0; font-family: var(--font-headings); font-size: 8.5pt; break-inside: auto; }
+
+/* TABELLE */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5em 0;
+  font-family: var(--font-headings);
+  font-size: 8.3pt;
+  break-inside: auto;
+}
 tr { break-inside: avoid; break-after: auto; }
-th, td { border-bottom: 1px solid #E5E7E9; padding: 8px 10px; text-align: left; }
-th { background-color: var(--night-blue); color: white; font-weight: 500; border-bottom: 2px solid var(--night-blue); }
-hr { border: 0; height: 1px; background: #E5E7E9; margin: 2em 0; }
+th, td { border-bottom: 1px solid var(--rule); padding: 7px 9px; text-align: left; vertical-align: top; }
+th { background-color: #241a45; color: #ffffff; font-weight: 500; border-bottom: 2px solid var(--accent); }
+tbody tr:nth-child(even) td { background-color: #faf8ff; }
+
+hr { border: 0; height: 1px; background: var(--rule); margin: 2em 0; }

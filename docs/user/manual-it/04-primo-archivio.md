@@ -1,10 +1,10 @@
 # Capitolo 4: Il primo archivio, passo passo
 
-## 4.1 Che cosa faremo
+## 4.1 Il percorso
 
-Questo capitolo segue un percorso intero: dall’indirizzo di un podcast a una cartella di file
-audio ordinati sul disco. Lo scenario è il più comune, cioè scaricare per la prima volta il catalogo
-completo di un programma.
+Questo capitolo segue un percorso intero: dall’indirizzo di un podcast a una cartella di file audio
+ordinati sul disco. Lo scenario è il più comune, cioè scaricare per la prima volta il catalogo di un
+programma, tutto oppure solo un periodo.
 
 Conviene leggerlo una volta dall’inizio alla fine. Presa la mano, aprire un archivio nuovo richiede
 meno di un minuto.
@@ -19,15 +19,15 @@ anche quando non lo mostra volentieri.
 
 Dove cercarlo:
 
-*   **Sul sito del podcast.** Un’icona arancione con le onde, oppure le parole RSS, Feed, Subscribe,
-    Podcast Feed. Il clic di solito apre il file XML nel browser: l’indirizzo nella barra è quello
-    che serve.
-*   **In un’app di ascolto.** Pocket Casts, Apple Podcasts e simili mostrano spesso il collegamento
-    RSS nelle informazioni del programma, a volte nascosto sotto la voce Condividi.
-*   **Sulla piattaforma di hosting.** Spreaker, Podbean, Buzzsprout e affini pubblicano l’indirizzo
-    del feed nella pagina del podcast o nel pannello di chi lo produce.
-*   **Con un motore di ricerca.** Cercare `[nome del podcast] RSS feed` porta spesso al risultato
-    giusto al primo colpo.
+* **Sul sito del podcast.** Un’icona arancione con le onde, oppure le parole RSS, Feed, Subscribe,
+  Podcast Feed. Il clic di solito apre il file XML nel browser: l’indirizzo nella barra è quello
+  che serve.
+* **In un’app di ascolto.** Pocket Casts, Apple Podcasts e simili mostrano spesso il collegamento
+  RSS nelle informazioni del programma, a volte sotto la voce Condividi.
+* **Sulla piattaforma di hosting.** Spreaker, Podbean, Buzzsprout e affini pubblicano l’indirizzo
+  del feed nella pagina del podcast o nel pannello di chi lo produce.
+* **Con un motore di ricerca.** Cercare `[nome del podcast] RSS feed` porta spesso al risultato
+  giusto al primo colpo.
 
 Un indirizzo RSS valido di solito finisce per `.xml` o `.rss`, oppure contiene `feed`, `rss` o
 `podcast` nel percorso. Per esempio: `https://www.esempio.it/feed.xml`,
@@ -35,128 +35,185 @@ Un indirizzo RSS valido di solito finisce per `.xml` o `.rss`, oppure contiene `
 
 ---
 
-## 4.3 Preparare la cartella di destinazione
+## 4.3 Scegliere la cartella di download
 
-Prima di analizzare il feed conviene decidere dove finiranno i file, e darsi una struttura fin
-dall’inizio.
+Prima di aggiungere il feed conviene decidere dove finiranno i file. Il programma crea da sé, dentro
+la cartella di download, una sottocartella per ogni podcast, e vi salva i file con i nomi decisi dal
+modello (capitolo 8):
 
-```
+```text
 D:\Archivio Podcast\
     ├── Il Mio Podcast\
     ├── Podcast di Tecnologia\
     └── Radio Talk Show\
 ```
 
-Il programma crea da sé la sottocartella intitolata al podcast dentro la destinazione scelta, e vi
-salva i file con i nomi decisi dal template (capitolo 8).
+Senza una scelta esplicita, la cartella è `Documenti\FeedDownloader\downloads`. Per cambiarla:
 
-Per impostare la destinazione:
+1. Aprire **Impostazioni → Download** (ingranaggio in alto a destra, oppure **Ctrl+,**).
+2. Premere **Cambia cartella** nella sezione **Cartella di download**.
+3. Scegliere la cartella e confermare. Il programma verifica di poterci scrivere e conferma con
+   *Cartella di download aggiornata.*
 
-1.  Premere l’icona **cartella** nella barra di comando in alto, oppure aprire **Impostazioni →
-    Download** e usare l’icona accanto a **Percorso Download**.
-2.  Scegliere la cartella e confermare.
-3.  Il percorso resta visibile in fondo alla barra laterale; un clic lo apre nel gestore file.
+Se l’archivio contiene già degli episodi, il programma chiede che cosa farne: spostarli nella nuova
+cartella oppure lasciarli dove sono e usare la nuova solo per i prossimi download (capitolo 9,
+sezione 9.8). Al primo archivio la domanda non compare.
 
 *Se l’archivio sta su un NAS o su un disco di rete*, il capitolo 7 va letto prima di procedere:
 quei percorsi hanno qualche accortezza in più.
 
 ---
 
-## 4.4 Analizzare il feed
+## 4.4 Aggiungere il feed
 
-Con l’indirizzo pronto e la cartella impostata:
+1. Premere **Aggiungi feed** in fondo alla barra laterale, oppure **Ctrl+N**.
+2. Incollare l’indirizzo nel campo **Indirizzo del feed**. Il prefisso `https://` si può omettere, e
+   gli indirizzi che iniziano con `feed:` o `podcast:` vengono convertiti da soli.
+3. Premere **Analizza**, o semplicemente `Invio`. Per un podcast da 200 o 300 episodi bastano pochi
+   secondi; per cataloghi oltre il migliaio, o divisi in molte pagine, possono servirne quindici o
+   trenta.
+4. Compare l’anteprima: copertina, titolo, numero di episodi e intervallo coperto (*dal … al …*),
+   con l’inizio della descrizione. È il momento di verificare che sia il podcast giusto.
+5. Volendo, accendere qui **Archivio automatico**: i nuovi episodi trovati dai controlli periodici
+   si scaricheranno senza chiedere (capitolo 5, sezione 5.10).
+6. Premere **Aggiungi alla libreria**. Il feed entra nella barra laterale e si apre la sua vista.
 
-1.  Incollare l’indirizzo nel **campo URL** in alto.
-2.  Premere **Analizza**, o semplicemente `Invio`.
-3.  La lista si riempie. Per un podcast da 200 o 300 episodi bastano pochi secondi; per cataloghi
-    oltre il migliaio possono servirne quindici o venti, perché il file XML da leggere è grosso.
+Se il feed è già in libreria, l’anteprima lo dice e il pulsante diventa **Apri il feed**.
 
-Se l’analisi fallisce, in ordine di probabilità: l’indirizzo contiene uno spazio o un carattere di
-troppo; il feed è temporaneamente irraggiungibile, e conviene provarlo nel browser; il server
-risponde con un codice HTTP che il programma riporta nel messaggio d’errore, tipicamente `403
-Forbidden` per i feed che pretendono intestazioni particolari.
+**Due scorciatoie.** Si può trascinare un indirizzo dal browser direttamente sulla finestra del
+programma: si apre **Aggiungi un feed** con l’analisi già avviata. E chi ha già un elenco di
+podcast in un’altra applicazione può importarlo con **Importa da OPML** (capitolo 5, sezione 5.5).
 
----
-
-## 4.5 Leggere i risultati
-
-A analisi finita, la lista mostra il catalogo.
-
-Vale la pena guardare tre cose. Il **numero di episodi**, in cima alla lista: un programma attivo da
-qualche anno ne ha facilmente qualche centinaio. Gli episodi già **ARCHIVIATI**, se il feed era già
-stato lavorato in passato: quelli il database li conosce e non li riscaricherà. Gli episodi **senza
-durata o dimensione**, che semplicemente non le dichiarano nel feed: si scaricano lo stesso, senza
-conseguenze.
+Se l’analisi fallisce, sotto il campo compare il motivo, per esempio *L’indirizzo porta a una
+pagina web, non a un feed RSS.* oppure *Il server non risponde. Controlla la connessione.* Il
+capitolo 11 raccoglie tutti i messaggi e il loro significato.
 
 ---
 
-## 4.6 Avviare il download
+## 4.5 Leggere la vista del feed
 
-Ci sono due strade.
+Aperto il feed, conviene guardare tre cose.
 
-**Tutto il catalogo.** Premere **Scarica Tutto**: il programma chiede conferma, controlla lo spazio
-libero e mette in coda gli episodi mai scaricati. Attenzione a un dettaglio utile: agisce sugli
-episodi **visibili in quel momento**, quindi con un filtro attivo scarica solo quelli. I download
-partono in parallelo, tre alla volta salvo diversa impostazione di **Download Paralleli**
-(capitolo 10).
-
-**Solo alcuni episodi.** Selezionarli con `Ctrl` e un clic ciascuno, oppure con `Maiusc` per prendere
-un intervallo, e premere **Scarica Selezionati (N)** nell’intestazione del feed.
+* **Le cifre** nell’intestazione: **Episodi**, **Archiviati**, **Da scaricare** e **Spazio
+  occupato**. Un programma attivo da qualche anno ha facilmente qualche centinaio di episodi.
+* **Gli episodi già archiviati**, se il feed era già stato lavorato in passato: il database li
+  conosce e non li riscaricherà. Il filtro **Archiviati** li mostra tutti insieme.
+* **Gli episodi senza durata o dimensione**: semplicemente il feed non le dichiara. Si scaricano lo
+  stesso, senza conseguenze; la stima dello spazio, per loro, usa un valore medio.
 
 ---
 
-## 4.7 Seguire l’avanzamento
+## 4.6 Scegliere che cosa scaricare
 
-Il **pannello download** si apre da solo a destra e mostra ogni episodio con percentuale, velocità e
-tempo stimato. Come ordine di grandezza: duecento episodi a 64 kbps occupano fra i due e i tre
-gigabyte.
+Il pulsante principale, sopra l’elenco, prende sempre gli episodi **mostrati** che non sono già
+archiviati né in coda, e lo dice nell’etichetta. Ci sono tre modi di usarlo.
 
-Le righe della lista si aggiornano in tempo reale. Non serve tenere la finestra aperta: chiudendola
-il programma resta nell’area di notifica e continua a lavorare.
+### Tutto il catalogo
+
+Senza filtri attivi il pulsante si chiama **Scarica i N mancanti**: prende tutti gli episodi non
+ancora archiviati.
+
+### Un periodo
+
+Per scaricare «dal giorno X al giorno Y»:
+
+1. Nella fascia dei filtri, aprire il menu **Periodo** e scegliere un intervallo pronto (**Ultimi 30
+   giorni**, **Ultimi 90 giorni**, **Ultimi 12 mesi**, **Quest’anno**, **L’anno scorso**), oppure
+   compilare le date **Dal** e **Al**.
+2. Volendo, combinare altri filtri: lo stato **Da scaricare**, una durata minima, una parola nel
+   titolo.
+3. Il pulsante diventa **Scarica i N filtrati**, e il pannello **Che cosa scaricherà**, a destra,
+   riporta il numero degli episodi, lo spazio stimato e il periodo.
+
+### Una selezione
+
+Spuntare le caselle degli episodi voluti; **Maiusc** + clic su una casella prende un intervallo,
+**Ctrl+A** tutti quelli visibili. Compare **Scarica i N selezionati**.
+
+Per un solo episodio basta l’icona di download sulla sua riga, oppure **Scarica** nel dettaglio.
+
+---
+
+## 4.7 Confermare e avviare
+
+Per più di un episodio il programma chiede conferma. La finestra *Scaricare N episodi?* riporta:
+
+* quanti episodi vanno in coda e di quale podcast;
+* il **Periodo**, se è attivo un filtro per data;
+* lo **Spazio stimato** e lo **Spazio libero** sul disco di destinazione;
+* la **Cartella** in cui finiranno i file.
+
+Se lo spazio libero potrebbe non bastare (meno di una volta e un quinto della stima), la finestra lo
+segnala in giallo. Se sul disco restano meno di 200 MB, il programma non avvia nulla e lo dice:
+*Spazio quasi esaurito (… liberi): download non avviati.*
+
+Premendo **Metti in coda** i download partono, tanti per volta quanti indicati in **Impostazioni →
+Download → Download in parallelo**: tre, salvo diversa scelta (capitolo 6).
+
+La stima dello spazio usa la dimensione dichiarata dal feed; quando manca, la deduce dalla durata
+(a 192 kbps), e in mancanza anche di quella conta 45 minuti per episodio.
+
+---
+
+## 4.8 Seguire l’avanzamento
+
+La barra superiore dice in ogni momento quanti download sono in corso e a che punto è il lavoro
+(*3 in download · 47 di 312*). Le righe dell’elenco degli episodi mostrano la propria barra, con
+percentuale, velocità e tempo stimato.
+
+Per il quadro completo c’è la vista **Download** (**Ctrl+2**, oppure un clic sullo stato della
+coda): la coda con i comandi di pausa e annullamento, i non riusciti con il motivo, i completati
+della sessione.
+
+Non serve tenere la finestra aperta: chiudendola il programma resta nell’area di notifica e
+continua a lavorare. A lotto finito arriva una notifica di sistema (*Download completato: 312 file
+scaricati.*).
 
 Durante il lotto il software si occupa da sé dei tentativi dopo un errore di rete, degli stalli e
-della verifica di ogni file completato. Se il computer va in sospensione i trasferimenti si
-interrompono: al risveglio la sorveglianza degli stalli chiude i trasferimenti fermi e il ciclo dei
-tentativi di solito recupera la situazione, ma gli episodi che avevano già esaurito i tre tentativi
-finiscono in errore. Si rimettono in coda con **Riprova falliti**.
+della verifica di ogni file completato. Se la connessione cade, la coda si mette in pausa da sola e
+riparte al ritorno della rete. Se il computer va in sospensione, al risveglio la sorveglianza degli
+stalli chiude i trasferimenti fermi e il ciclo dei tentativi di solito recupera la situazione; gli
+episodi che avevano già esaurito i cinque tentativi finiscono tra i non riusciti, da cui si
+rimettono in coda con **Riprova tutti**.
 
 ---
 
-## 4.8 Verificare l’archivio
+## 4.9 Verificare il risultato
 
-Quando il pannello dichiara il lotto completato, restano tre cose da fare.
+Quando la coda si svuota, restano tre cose da fare.
 
-**Controllare gli errori.** Il riepilogo in fondo al pannello download elenca gli episodi mancati
-con il relativo codice. Il più frequente è `EPISODE_NOT_FOUND`, cioè un file rimosso dal server
-prima che riuscissimo a prenderlo. Per rimettere in coda tutti i falliti in un colpo solo c’è
-**Riprova falliti**.
+**Controllare i non riusciti.** Nella vista **Download**, la sezione **Non riusciti** elenca gli
+episodi mancati con il motivo. Il più frequente è *Il file non esiste più sul server (404).*, cioè
+un file rimosso prima che il programma riuscisse a prenderlo. **Riprova tutti (N)** li rimette in
+coda in un colpo solo.
 
-**Esportare l’inventario.** Da **Impostazioni → Archivio → Esporta Inventario (CSV)** si ottiene
-l’elenco completo degli episodi archiviati con impronta SHA-256, dimensioni e metadati (capitolo 9).
+**Dare un’occhiata al disco.** **Apri la cartella**, nell’intestazione del feed, apre la cartella
+del podcast. I file portano i nomi decisi dal modello (capitolo 8). Se si trovano dei `.part`,
+quei trasferimenti sono stati interrotti o sospesi: rimettendo in coda gli stessi episodi
+riprendono dal punto raggiunto. Quelli rimasti orfani si eliminano da **Impostazioni → Archivio →
+Pulisci i file temporanei**.
 
-**Dare un’occhiata al disco.** I file stanno nella cartella di destinazione, nominati secondo il
-template (capitolo 8). Se trovi dei `.part` significa che quei trasferimenti sono stati interrotti o
-sospesi: rimettendo in coda gli stessi episodi riprendono dal punto raggiunto. Quelli rimasti orfani
-si eliminano da **Impostazioni → Avanzate → Pulisci file temporanei**.
-
----
-
-## 4.9 Tenere aggiornato l’archivio
-
-Qui l’impostazione database-first si fa sentire: il programma sa sempre cosa possiede.
-
-Per un feed già in libreria basta selezionarlo e premere l’icona di sincronizzazione, oppure
-**Sincronizza Tutti** per l’intera libreria. Gli episodi nuovi compaiono con il tag **NUOVO** e il
-feed espone il badge **DA SCARICARE** nella barra laterale; quelli già presi restano
-**ARCHIVIATO**. A quel punto **Scarica Tutto** prende soltanto i nuovi. In alternativa,
-**Sincronizza Nuovi** fa le due cose insieme: rilegge il feed e mette subito in coda ciò che manca.
-
-Per un feed non ancora in libreria si incolla l’indirizzo nel campo URL e si preme **Analizza**:
-entra in libreria e la lista mostra subito cosa manca.
-
-Lo stesso episodio non viene mai scaricato due volte. Il controllo automatico dei nuovi episodi è
-attivo di serie ogni sei ore (capitolo 10 e sezione 5.9).
+**Esportare l’inventario.** Nella vista **Archivio**, **Esporta CSV** produce l’elenco completo
+degli episodi archiviati con impronta SHA-256, dimensioni, metadati e cartella (capitolo 9).
 
 ---
 
-*Il capitolo 5 entra nel dettaglio della gestione dei feed e dei file OPML.*
+## 4.10 Tenere aggiornato l’archivio
+
+Qui l’impostazione database-first si fa sentire: il programma sa sempre cosa possiede, e lo stesso
+episodio non viene mai scaricato due volte.
+
+* **A mano.** **Controlla i feed** (barra superiore, oppure **Ctrl+S**) rilegge tutta la libreria.
+  I feed con episodi nuovi mostrano *N da scaricare* nella barra laterale e nella Libreria; aprendo
+  il feed, **Scarica i N mancanti** prende soltanto quelli. Per un singolo feed c’è **Aggiorna**
+  nella sua intestazione.
+* **Da solo.** Il programma controlla tutti i feed all’avvio e poi ogni sei ore, anche a finestra
+  chiusa (l’intervallo si cambia in **Impostazioni → Generale**). Quando trova episodi nuovi manda
+  una notifica di sistema.
+* **Senza toccare niente.** Con l’**Archivio automatico** acceso su un feed, gli episodi nuovi
+  trovati dai controlli vanno in coda da soli (capitolo 5, sezione 5.10). È il modo più semplice
+  per seguire un podcast nel tempo.
+
+---
+
+*Il capitolo 5 entra nel dettaglio della gestione dei feed, dei file OPML e dei controlli.*

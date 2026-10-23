@@ -1,6 +1,8 @@
 # Runtime FeedDownloader Pro
+
 ## Manuale d’uso avanzato
-### Versione 1.5.0
+
+### Versione 1.6.0
 
 ---
 
@@ -21,7 +23,7 @@
 
 ---
 
-**Edizione:** agosto 2026
+**Edizione:** ottobre 2026
 **Licenza:** MIT
 **Compatibilità:** Windows 10/11 · Linux (Ubuntu 22.04+)
 **Lingua:** italiano
@@ -41,8 +43,8 @@
 | 5 | Gestione dei feed | — |
 | 6 | Il motore di download | — |
 | 7 | NAS, dischi di rete e percorsi SMB | — |
-| 8 | Organizzazione dei file, template e metadati | — |
-| 9 | Integrità, statistiche e archiviazione | — |
+| 8 | Organizzazione dei file, modelli e metadati | — |
+| 9 | Integrità, verifica e archiviazione | — |
 | 10 | Le impostazioni | — |
 | 11 | Risoluzione dei problemi | — |
 
@@ -53,5 +55,5 @@ usarlo, studiarne il codice, modificarlo e ridistribuirlo. Questo manuale, distr
 in PDF, accompagna il programma alle stesse condizioni.*
 
 *Programma e documentazione sono stati scritti con un uso massiccio di modelli linguistici — Google
-Gemini, dalla 2.5 alla 3.1, e Anthropic Claude, da Sonnet 4.6 a Opus 5 — sotto la direzione
+Gemini, dalla 2.5 alla 3.1, e Anthropic Claude, da Sonnet 4.6 a Opus 5.5 — sotto la direzione
 progettuale di Simone Pizzi, che ha preso, verificato e corretto ogni decisione.*

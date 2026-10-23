@@ -2,165 +2,210 @@
 
 ## 10.1 Come sono organizzate
 
-Il pannello si apre in qualsiasi momento con l’icona dell’ingranaggio in alto a destra, anche
-mentre un download è in corso. Le voci sono divise in cinque schede, nell’ordine: **Generale**,
-**Download**, **Metadati**, **Archivio**, **Avanzate**. Ogni modifica viene salvata subito: non
-esiste un pulsante di conferma perché non serve.
+Il pannello si apre in qualsiasi momento con l’ingranaggio in alto a destra, con **Ctrl+,** o dalla
+palette comandi, anche mentre un download è in corso. Le voci sono divise in sei schede verticali,
+nell’ordine: **Generale**, **Download**, **File e metadati**, **Archivio**, **Accessibilità**,
+**Informazioni**.
 
-Questo capitolo segue le schede una per una. Template, sidecar e tag ID3 (scheda Metadati) sono
-trattati nel capitolo 8; controllo dell’archivio, inventario CSV e migrazione (scheda Archivio) nel
-capitolo 9.
+Ogni modifica viene salvata subito: gli interruttori e i menu al momento della scelta, i campi
+numerici e il modello dei nomi quando si esce dal campo. Il pulsante **Fatto** chiude il pannello.
+
+Questo capitolo segue le schede una per una. Il modello dei nomi, i metadati accanto ai file e i tag
+ID3 sono trattati nel capitolo 8; la verifica dell’archivio, l’inventario CSV e il cambio di cartella
+nel capitolo 9.
 
 ---
 
 ## 10.2 Generale
 
-### Lingua
+### Lingua dell’interfaccia
 
-L’interfaccia parla **italiano** e **inglese**. Il cambio è immediato, senza riavviare. Il programma
-usa un solo tema, scuro: non c’è un tema chiaro né un controllo della densità delle liste.
+L’interfaccia parla **Italiano** ed **English**. La scelta vale anche per le notifiche di sistema e
+cambia tutto all’istante, senza riavviare. La stessa scelta è disponibile nella schermata d’ingresso.
 
-### Aggiornamento automatico dei feed
+### Controllo automatico dei feed
 
-Stabilisce ogni quanto il programma rilegge i feed da solo. Un controllo avviene comunque all’avvio
-e al ritorno della connessione dopo un’interruzione.
+Stabilisce ogni quanto il programma cerca nuovi episodi in tutti i feed, anche con la finestra chiusa
+nell’area di notifica. Un controllo avviene comunque all’avvio e al ritorno della connessione dopo
+un’interruzione.
 
-| Opzione | Comportamento |
-|---------|--------------|
-| Disattivato | Nessun controllo ciclico; resta quello all’avvio. |
-| 6 ore (predefinito) | Rilettura completa ogni sei ore. |
-| 12 ore | Rilettura ogni dodici ore. |
-| 24 ore | Rilettura una volta al giorno. |
+| **Intervallo** | Comportamento |
+|----------------|---------------|
+| **Mai (solo a mano)** | Nessun controllo ciclico; restano quello all’avvio e **Controlla i feed**. |
+| **Ogni 6 ore** (predefinito) | Rilettura di tutti i feed ogni sei ore. |
+| **Ogni 12 ore** | Rilettura ogni dodici ore. |
+| **Ogni 24 ore** | Rilettura una volta al giorno. |
 
-La modifica vale subito. Se il controllo trova episodi nuovi manda una notifica di sistema
-cliccabile, che porta in primo piano il programma e apre il feed interessato quando è uno solo.
-Nessun download parte da sé: la notifica segnala e basta (sezione 5.9).
-
-### Guida e novità
-
-Nella stessa scheda ci sono due scorciatoie: la **guida utente**, che apre la documentazione
-integrata e da lì il manuale completo in PDF, e **Novità di questa versione**, che mostra le note di
-rilascio della versione installata. La stessa finestra compare da sé al primo avvio dopo un
-aggiornamento.
+La modifica vale subito. Quando un controllo trova episodi nuovi, i feed con l’archivio automatico li
+scaricano subito; per gli altri arriva una notifica di sistema cliccabile (capitolo 5, sezione 5.9).
 
 ---
 
 ## 10.3 Download
 
-Qui stanno i comandi del motore. I parametri interni (timeout di connessione, numero di tentativi,
-sorveglianza degli stalli) sono fissi e non si toccano.
+### Cartella di download
 
-### Percorso Download
+Mostra il percorso attuale; di serie `Documenti\FeedDownloader\downloads`. Ogni podcast ha la sua
+sottocartella, e va bene anche un disco esterno o una cartella di rete (NAS, SMB).
 
-La cartella dove finisce tutto, nella sezione **Archiviazione**. Si sceglie con l’icona accanto al
-campo, che apre il selettore di sistema, ed è la stessa cosa che fa l’icona cartella nella barra di
-comando.
+**Cambia cartella** apre il selettore di sistema, verifica che la cartella sia scrivibile (con un
+limite di otto secondi per i percorsi di rete, capitolo 7) e, se l’archivio contiene già degli
+episodi, chiede se **Sposta l’archivio** o usare la nuova cartella **Solo per i nuovi download**
+(capitolo 9, sezione 9.8). Durante uno spostamento il pulsante resta spento e sotto il percorso
+compare l’avanzamento.
 
-### Download Paralleli
+### Trasferimento
 
-Quanti trasferimenti insieme: **1**, **3** o **5**. Il predefinito è 3. Per orientarsi nella scelta,
-si veda il capitolo 6.
+Una riga ricorda il comportamento fisso del motore: ogni download riprova da solo fino a cinque volte
+sugli errori passeggeri e riprende i file parziali dal punto in cui si erano fermati. I parametri
+interni (timeout di connessione, numero di tentativi, sorveglianza degli stalli) non sono
+modificabili.
 
-### Limite Velocità Download
+* **Download in parallelo**: quanti trasferimenti insieme, da **1** a **10**. Il predefinito è 3.
+  Per orientarsi nella scelta, si veda il capitolo 6, sezione 6.2.
+* **Limite di banda (KB/s)**: il tetto complessivo, condiviso da tutti i download insieme. Sotto il
+  campo un promemoria lo ripete (*Totale per tutti i download insieme: 500 KB/s.*). `0` significa
+  nessun limite ed è il predefinito.
+* **Dimensione massima di un file (MB)**: i file più grandi vengono saltati, con un errore
+  definitivo. `0` significa nessun limite ed è il predefinito.
 
-Limita la banda complessiva usata dai download, per non prendersi tutta la linea. Il valore è in
-KB/s; `0` significa nessun limite ed è il predefinito. Per dare un’idea: `500` tiene il consumo
-intorno ai 4 Mbps.
-
-### Dimensione Massima File
-
-Rifiuta i file più grandi del valore indicato, espresso in MB; `0` significa nessun limite. Serve
-contro le anomalie: dimensioni dichiarate per errore, o server che al posto dell’audio spediscono
-tutt’altro. Il file oltre soglia diventa un errore definitivo, senza tentativi ulteriori. Quando il
-server dichiara la dimensione, il rifiuto arriva prima di scrivere un byte; quando non la dichiara,
-il trasferimento viene interrotto appena supera il tetto.
+I dettagli di limite e dimensione massima sono nel capitolo 6, sezione 6.9.
 
 ---
 
-## 10.4 Metadati
+## 10.4 File e metadati
 
-Contiene il **Template Nome File** con la sua anteprima, l’interruttore dei **File Sidecar .json** e
-quello del **tagging ID3**, che cambia etichetta a seconda dello stato. Sono descritti nel
-capitolo 8.
+* **Nomi dei file**: il campo **Modello**, i pulsanti dei **Segnaposto disponibili** e l’**Esempio**
+  del risultato. Il modello vale per i download futuri; i file già presenti non vengono rinominati
+  (capitolo 8, sezioni 8.2–8.7).
+* **Metadati**: gli interruttori **Salva i metadati accanto ai file** (capitolo 8, sezione 8.9) e
+  **Scrivi i tag ID3 negli MP3** (capitolo 8, sezione 8.10), entrambi spenti di serie.
 
 ---
 
 ## 10.5 Archivio
 
-Raccoglie quattro gruppi: le statistiche dell’archivio, **Dati & Portabilità** con importazione ed
-esportazione OPML e l’inventario CSV, l’**Health Check Archivio** con la riparazione per checksum, e
-**Migra Archivio** per spostare i file su un altro disco. Tutto nel capitolo 9, tranne l’OPML che sta
-nel capitolo 5.
+### Archivio
+
+Il riepilogo (*N episodi di M podcast dal …*) e due comandi: **Verifica l’archivio**, che chiude le
+impostazioni e apre la verifica (capitolo 9, sezione 9.5), ed **Esporta CSV** (capitolo 9, sezione
+9.7). Con l’archivio vuoto entrambi restano spenti.
+
+### Elenco dei feed (OPML)
+
+**Importa da OPML** ed **Esporta in OPML**, per portare i feed da o verso un’altra applicazione di
+podcast. L’importazione non modifica i feed già presenti (capitolo 5, sezioni 5.5 e 5.6).
+
+### File temporanei
+
+**Pulisci i file temporanei** elimina i `.part` e i `.part.meta` rimasti da download interrotti che
+non verranno ripresi, in tutte le cartelle usate dall’archivio. Non funziona mentre ci sono download
+in coda, perché quei file potrebbero essere in uso: il pulsante resta spento (*Attendi che la coda
+sia vuota.*). Alla fine riporta quanti file ha rimosso.
+
+### Azzera la cronologia
+
+**Azzera la cronologia dei download** svuota l’archivio e la cronologia dei download, cioè la memoria
+di cosa è già stato preso: ogni episodio torna **Da scaricare**. Il programma chiede conferma
+(*Azzerare la cronologia?*) e l’operazione non si può annullare. I file audio sul disco **restano
+dove sono**, ma il programma non li riconosce più come scaricati: un nuovo download di quegli episodi
+creerebbe copie con il suffisso `_2`.
+
+Ha senso in un caso solo: quando si vuole ripartire con un archivio pulito, per esempio al termine di
+una serie di prove. Il comando resta spento mentre ci sono download in coda. Prima di usarlo conviene
+copiare `feeddownloader.sqlite` in un posto sicuro.
 
 ---
 
-## 10.6 Avanzate
+## 10.6 Accessibilità
+
+### Dimensione dell’interfaccia
+
+Ingrandisce testi e controlli. Il menu **Dimensione** offre 80, 90, 100, 110, 125, 140, 160 e 180%.
+Gli stessi gradini si percorrono da tastiera con **Ctrl +** e **Ctrl −**; **Ctrl 0** torna al 100%.
+La scelta viene ricordata.
+
+Con l’interfaccia ingrandita lo spazio disponibile si riduce, e l’impaginazione passa prima alle
+varianti per finestre strette (capitolo 3, sezione 3.14).
+
+### Movimento
+
+L’interruttore **Riduci animazioni ed effetti** toglie transizioni e animazioni, compresa quella della
+schermata d’ingresso. Chi ha già chiesto movimento ridotto al sistema operativo trova comunque le
+animazioni ridotte, anche con l’interruttore spento.
+
+Il programma rispetta inoltre la modalità a contrasto elevato di Windows. I colori dell’interfaccia
+rispettano i contrasti WCAG 2.2 AA, il testo non scende mai sotto i 12 pixel e il focus della
+tastiera è sempre visibile.
+
+---
+
+## 10.7 Informazioni
 
 ### Aggiornamenti
 
-Il sistema di aggiornamento funziona **col consenso**: niente si scarica e niente si installa da sé.
+Riporta la **Versione installata** e lo stato degli aggiornamenti. Il sistema di aggiornamento
+funziona **col consenso**: niente si scarica e niente si installa da sé.
 
-All’avvio, nella versione installata, il programma interroga il repository delle release. Se trova
-una versione nuova compaiono l’indicatore **Aggiornamento disponibile** nella barra superiore e una
-notifica di sistema, ma il pacchetto **non viene scaricato**. Il pulsante **Controlla Aggiornamenti**
-forza la verifica quando vuoi tu.
+All’avvio, nella versione installata, il programma interroga la pagina delle release del progetto.
+Se trova una versione nuova compaiono l’avviso **Disponibile la versione X.Y.Z** nella barra superiore
+e una notifica di sistema, ma il pacchetto **non viene scaricato**. Il pulsante cambia con lo stato:
 
-Lo scaricamento parte premendo **Scarica** sull’indicatore o **Scarica aggiornamento** qui nelle
-impostazioni. A pacchetto pronto compare **Riavvia e Installa**, e nemmeno quello scatta da solo:
-l’installazione avviene quando lo decidi, mai alla chiusura del programma.
+* **Cerca aggiornamenti** forza la verifica; durante la ricerca compare *Ricerca aggiornamenti…*, poi
+  *È installata l’ultima versione.* oppure la versione disponibile;
+* **Scarica** avvia lo scaricamento, con *Scaricamento aggiornamento N%*;
+* **Riavvia e installa**, a pacchetto pronto, chiude il programma, applica l’aggiornamento e lo
+  riapre. Nemmeno l’installazione scatta da sola, e non avviene alla chiusura del programma.
 
-Gli stati che vedrai, nell’ordine: *Ricerca aggiornamenti…*, poi *Hai già la versione più recente*
-oppure *Aggiornamento disponibile: vX.Y.Z*, quindi *Download aggiornamento… N%* e infine
-*Aggiornamento scaricato — riavvia per installare*.
+Se il controllo fallisce compare *Non è stato possibile controllare gli aggiornamenti.*
 
-### Manutenzione
+Accanto, **Novità** riapre le note di rilascio della versione installata.
 
-**Pulisci file temporanei** elimina i `.part` orfani rimasti nella cartella di destinazione da
-sessioni interrotte. Non funziona mentre ci sono download attivi, perché quei file sono in uso: in
-quel caso il programma lo dice invece di procedere. Alla fine riporta quanti file ha rimosso.
+### Documentazione
 
-### Zona Pericolo
+**Guida** apre la documentazione integrata; **Manuale completo (PDF)** apre nel browser questo
+manuale, nella lingua dell’interfaccia.
 
-**Resetta Storico Download** cancella dal database la cronologia dei download, cioè la memoria di
-cosa è già stato preso. Il programma chiede conferma. I file audio sul disco **restano dove sono**:
-dopo il reset gli episodi tornano a mostrarsi come da scaricare, e un nuovo download li
-sovrascriverebbe.
+### Il progetto
 
-Ha senso in un caso solo: quando si vuole ripartire con una cronologia pulita, per esempio dopo aver
-spostato tutto su un altro sistema o al termine di una serie di prove.
+La licenza, l’autore e i collegamenti **Contatti**, **Codice sorgente** e **Sostieni il progetto**,
+che si aprono nel browser.
 
 ---
 
-## 10.7 Come vengono filtrati gli indirizzi (informativo)
+## 10.8 Come vengono filtrati gli indirizzi (informativo)
 
 Questa sezione spiega qualcosa che il programma fa da solo e che non è configurabile.
 
 Un feed è contenuto che arriva dall’esterno, e gli indirizzi che contiene potrebbero puntare a
-risorse della tua rete locale invece che a un file audio pubblico: il pannello del router, un NAS,
-un servizio interno. È la famiglia di attacchi chiamata SSRF. Un archiviatore che segue ciecamente
-gli indirizzi di un feed diventa lo strumento con cui qualcuno bussa alle porte di casa tua.
+risorse della rete locale invece che a un file audio pubblico: il pannello del router, un NAS, un
+servizio interno. È la famiglia di attacchi chiamata SSRF. Un archiviatore che segue ciecamente gli
+indirizzi di un feed diventerebbe lo strumento con cui raggiungere la rete di chi lo usa.
 
-Ogni indirizzo passa quindi cinque filtri:
+Ogni indirizzo, del feed, delle sue pagine, dei file audio e delle copertine, passa quindi cinque
+filtri:
 
-1.  **Sintassi**: deve essere un URL valido.
-2.  **Protocollo**: solo `http://` e `https://`. Roba come `file://`, `ftp://`, `data:` o
-    `javascript:` viene respinta subito.
-3.  **Nomi interni**: `localhost` e i nomi di loopback vengono rifiutati.
-4.  **Indirizzi privati e riservati**: le reti RFC 1918 (`10.0.0.0/8`, `172.16.0.0/12`,
-    `192.168.0.0/16`), il loopback `127.0.0.0/8`, il link-local `169.254.0.0/16`, e per IPv6 `::1`
-    e `fc00::/7`.
-5.  **Verifica al momento della connessione**: l’indirizzo IP a cui il nome è stato risolto viene
-    ricontrollato a ogni connessione e a ogni redirezione. È il filtro che chiude le scappatoie più
-    astute, cioè un dominio pubblico che risolve verso un indirizzo privato o una redirezione che a
-    metà strada punta all’interno della rete.
+1. **Sintassi**: deve essere un indirizzo valido.
+2. **Protocollo**: solo `http://` e `https://`. Schemi come `file://`, `ftp://`, `data:` o
+   `javascript:` vengono respinti subito.
+3. **Nomi interni**: `localhost` e i nomi di loopback vengono rifiutati.
+4. **Indirizzi privati e riservati**: le reti RFC 1918 (`10.0.0.0/8`, `172.16.0.0/12`,
+   `192.168.0.0/16`), il loopback `127.0.0.0/8`, il link-local `169.254.0.0/16`, lo spazio CGNAT, e
+   per IPv6 `::1`, `fc00::/7` e gli indirizzi IPv4 incapsulati.
+5. **Verifica al momento della connessione**: l’indirizzo IP a cui il nome è stato risolto viene
+   ricontrollato a ogni connessione e a ogni redirezione. È il filtro che chiude le scappatoie più
+   astute, cioè un dominio pubblico che risolve verso un indirizzo privato o una redirezione che a
+   metà strada punta all’interno della rete.
 
-*Un limite dichiarato.* Se nella tua rete esiste un server di podcast interno raggiungibile a un
-indirizzo privato, quei filtri lo bloccheranno, e non c’è modo di fare un’eccezione: non esiste una
-lista di indirizzi consentiti da configurare. È una scelta deliberata, perché un’eccezione
-configurabile è esattamente ciò che un feed ostile cercherebbe di sfruttare. Per quei contenuti
-serve un percorso diverso, per esempio scaricarli con un altro strumento e importarli come file
-locali.
+Quando un filtro interviene, il messaggio è *Gli indirizzi della rete locale non sono ammessi.* per
+un feed, *L’indirizzo porta alla rete locale: bloccato per sicurezza.* per un download.
+
+*Un limite dichiarato.* Se nella rete esiste un server di podcast interno raggiungibile a un indirizzo
+privato, quei filtri lo bloccheranno, e non c’è modo di fare un’eccezione: non esiste una lista di
+indirizzi consentiti da configurare. È una scelta deliberata, perché un’eccezione configurabile è
+esattamente ciò che un feed ostile cercherebbe di sfruttare. Per quei contenuti serve un percorso
+diverso, per esempio scaricarli con un altro strumento.
 
 ---
 
-*Il capitolo 11 raccoglie i problemi più comuni e come uscirne.*
+*Il capitolo 11 raccoglie i problemi più comuni e come risolverli.*

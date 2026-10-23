@@ -1,159 +1,213 @@
 # Chapter 4: Your first archive, step by step
 
-## 4.1 What we are going to do
+## 4.1 The route
 
-This chapter follows a whole run: from a podcast’s address to a folder of tidy audio files on disk.
-The scenario is the most common one — downloading a programme’s complete catalogue for the first
-time.
+This chapter follows a whole route: from a podcast’s address to a folder of tidy audio files on
+disk. The scenario is the most common one: downloading a programme’s catalogue for the first time,
+all of it or just a period.
 
-It is worth reading once from beginning to end. Once you have the hang of it, opening a new archive
-takes under a minute.
+It is worth reading once from start to finish. Once you have the hang of it, starting a new archive
+takes less than a minute.
 
 ---
 
 ## 4.2 Finding the feed address
 
-Everything starts from the podcast’s RSS address. An RSS feed is a text file in XML format that the
-publisher puts online to list the available episodes: every podcast has one, even when it is not
-advertised.
+You start from the podcast’s RSS address. An RSS feed is an XML text file that the publisher puts
+online to list the available episodes: every podcast has one, even when it does not advertise it.
 
 Where to look:
 
-*   **On the podcast website.** An orange icon with waves, or the words RSS, Feed, Subscribe,
-    Podcast Feed. Clicking it usually opens the XML file in the browser: the address in the bar is
-    the one you need.
-*   **In a listening app.** Pocket Casts, Apple Podcasts and the like often show the RSS link in
-    the programme information, sometimes tucked under Share.
-*   **On the hosting platform.** Spreaker, Podbean, Buzzsprout and similar services publish the
-    feed address on the podcast page or in the producer’s dashboard.
-*   **With a search engine.** Searching `[podcast name] RSS feed` often gets you there first time.
+* **On the podcast’s website.** An orange icon with waves, or the words RSS, Feed, Subscribe,
+  Podcast Feed. Clicking usually opens the XML file in the browser: the address in the bar is the
+  one you need.
+* **In a listening app.** Pocket Casts, Apple Podcasts and the like often show the RSS link in the
+  programme’s information, sometimes under Share.
+* **On the hosting platform.** Spreaker, Podbean, Buzzsprout and similar services publish the feed
+  address on the podcast page or in the producer’s dashboard.
+* **With a search engine.** Searching for `[podcast name] RSS feed` often finds it first time.
 
-A valid RSS address usually ends in `.xml` or `.rss`, or contains `feed`, `rss` or `podcast` in the
-path. For example: `https://www.example.com/feed.xml`,
-`https://feeds.spreaker.com/podcast/12345`, `https://anchor.fm/s/abc123/podcast/rss`.
+A valid RSS address usually ends in `.xml` or `.rss`, or has `feed`, `rss` or `podcast` in its
+path. For example: `https://www.example.com/feed.xml`, `https://feeds.spreaker.com/podcast/12345`,
+`https://anchor.fm/s/abc123/podcast/rss`.
 
 ---
 
-## 4.3 Preparing the destination folder
+## 4.3 Choosing the download folder
 
-Before analysing the feed it is worth deciding where the files will go, and giving yourself a
-structure from the start.
+Before adding the feed, decide where the files will go. Inside the download folder the program
+creates a subfolder for each podcast by itself, and saves the files there with the names set by the
+template (chapter 8):
 
-```
+```text
 D:\Podcast Archive\
     ├── My Podcast\
-    ├── Technology Podcast\
+    ├── Tech Podcast\
     └── Radio Talk Show\
 ```
 
-The program creates the subfolder named after the podcast inside your chosen destination, and saves
-the files there under the names the template decides (chapter 8).
+Without an explicit choice, the folder is `Documents\FeedDownloader\downloads`. To change it:
 
-To set the destination:
+1. Open **Settings → Downloads** (the gear at the top right, or **Ctrl+,**).
+2. Press **Change folder** in the **Download folder** section.
+3. Choose the folder and confirm. The program checks it can write there and confirms with
+   *Download folder updated.*
 
-1.  Press the **folder** icon in the command bar at the top, or open **Settings → Download** and
-    use the icon next to **Download Path**.
-2.  Choose the folder and confirm.
-3.  The path stays visible at the bottom of the sidebar; a click opens it in the file manager.
+If the archive already holds episodes, the program asks what to do with them: move them to the new
+folder, or leave them where they are and use the new one only for future downloads (chapter 9,
+section 9.8). For a first archive the question does not appear.
 
-*If the archive lives on a NAS or a network drive*, read chapter 7 before going further: those
-paths need a little more care.
-
----
-
-## 4.4 Analysing the feed
-
-With the address ready and the folder set:
-
-1.  Paste the address into the **URL field** at the top.
-2.  Press **Analyze**, or simply `Enter`.
-3.  The list fills up. A podcast of 200 or 300 episodes takes a few seconds; catalogues past the
-    thousand mark can need fifteen or twenty, because the XML file to read is big.
-
-If the analysis fails, in order of likelihood: the address contains a stray space or character; the
-feed is temporarily unreachable, which is worth testing in a browser; the server answers with an
-HTTP code that the program reports in the error message, typically `403 Forbidden` for feeds that
-demand particular headers.
+*If the archive lives on a NAS or a network drive*, read chapter 7 before going on: those paths
+need a little extra care.
 
 ---
 
-## 4.5 Reading the results
+## 4.4 Adding the feed
 
-Once the analysis is done, the list shows the catalogue.
+1. Press **Add feed** at the bottom of the sidebar, or **Ctrl+N**.
+2. Paste the address into the **Feed address** field. The `https://` prefix may be left out, and
+   addresses starting with `feed:` or `podcast:` are converted automatically.
+3. Press **Analyse**, or just `Enter`. For a 200- or 300-episode podcast a few seconds are enough;
+   catalogues of over a thousand, or split across many pages, can take fifteen to thirty.
+4. The preview appears: cover, title, number of episodes and the range covered (*from … to …*),
+   with the start of the description. This is the moment to check it is the right podcast.
+5. If you like, switch on **Automatic archiving** here: new episodes found by the periodic checks
+   will download without asking (chapter 5, section 5.10).
+6. Press **Add to library**. The feed joins the sidebar and its view opens.
 
-Three things are worth a look. The **episode count**, at the top of the list: a programme running
-for a few years easily has a few hundred. The episodes already **ARCHIVED**, if the feed had been
-worked through before: the database knows those and will not fetch them again. And the episodes
-**without duration or size**, which simply do not declare them in the feed: they download the same
-as any other, with no consequences.
+If the feed is already in the library, the preview says so and the button becomes **Open feed**.
 
----
+**Two shortcuts.** You can drag an address from the browser straight onto the program’s window:
+**Add a feed** opens with the analysis already running. And if you already have a podcast list in
+another application, you can bring it in with **Import from OPML** (chapter 5, section 5.5).
 
-## 4.6 Starting the download
-
-There are two routes.
-
-**The whole catalogue.** Press **Download All**: the program asks for confirmation, checks free
-space and queues every episode never downloaded. Note one useful detail: it acts on the episodes
-**visible at that moment**, so with a filter active it downloads only those. Downloads run in
-parallel, three at a time unless **Parallel Downloads** says otherwise (chapter 10).
-
-**A few episodes only.** Select them with `Ctrl` and a click on each, or with `Shift` for a range,
-and press **Download Selected (N)** in the feed header.
-
----
-
-## 4.7 Following progress
-
-The **download panel** opens by itself on the right and shows each episode with its percentage,
-speed and estimated time. As an order of magnitude: two hundred episodes at 64 kbps take between
-two and three gigabytes.
-
-The rows in the list update in real time. There is no need to keep the window open: close it and
-the program stays in the notification area and carries on working.
-
-During the batch the software handles retries after network errors, stalls and the verification of
-each completed file by itself. If the computer suspends, transfers are cut off: on waking, stall
-detection closes the frozen transfers and the retry cycle usually recovers, but any episode that
-had already used up its three attempts ends in error. Put those back in the queue with **Retry
-failed**.
+If the analysis fails, the reason appears under the field, for instance *The address leads to a web
+page, not to an RSS feed.* or *The server is not answering. Check the connection.* Chapter 11 lists
+every message and what it means.
 
 ---
 
-## 4.8 Checking the archive
+## 4.5 Reading the feed view
 
-When the panel declares the batch complete, three things remain.
+With the feed open, look at three things.
 
-**Check the errors.** The summary at the bottom of the download panel lists the missed episodes
-with their codes. The most frequent is `EPISODE_NOT_FOUND`, meaning a file pulled from the server
-before we could get it. To requeue every failure in one go there is **Retry failed**.
-
-**Export the inventory.** **Settings → Archive → Export Inventory (CSV)** gives you the full list
-of archived episodes with SHA-256 checksums, sizes and metadata (chapter 9).
-
-**Take a look at the disk.** The files sit in the destination folder, named according to the
-template (chapter 8). If you find `.part` files, those transfers were interrupted or suspended:
-requeue the same episodes and they resume from where they stopped. Orphaned ones can be cleared
-from **Settings → Advanced → Clean temporary files**.
+* **The figures** in the header: **Episodes**, **Archived**, **To download** and **Space used**. A
+  programme that has been running for a few years easily has a few hundred episodes.
+* **Episodes already archived**, if the feed was worked on in the past: the database knows them and
+  will not download them again. The **Archived** filter shows them all together.
+* **Episodes with no duration or size**: the feed simply does not declare them. They download just
+  the same, with no consequence; the space estimate uses an average value for them.
 
 ---
 
-## 4.9 Keeping the archive up to date
+## 4.6 Choosing what to download
 
-This is where the database-first design earns its keep: the program always knows what it holds.
+The main button, above the list, always takes the episodes **shown** that are neither archived nor
+already queued, and says so on its label. There are three ways to use it.
 
-For a feed already in the library, select it and press the sync icon, or use **Sync All** for the
-whole library. New episodes appear with the **NEW** tag and the feed shows the **TO DOWNLOAD**
-badge in the sidebar; the ones you already have stay **ARCHIVED**. At that point **Download All**
-takes only the new ones. Alternatively, **Sync New** does both at once: it re-reads the feed and
-immediately queues what is missing.
+### The whole catalogue
 
-For a feed not yet in the library, paste the address into the URL field and press **Analyze**: it
-joins the library and the list shows straight away what is missing.
+With no filters active the button reads **Download the N missing**: it takes every episode not yet
+archived.
 
-The same episode is never downloaded twice. The automatic check for new episodes runs every six
-hours out of the box (chapter 10 and section 5.9).
+### A period
+
+To download “from day X to day Y”:
+
+1. In the filter strip, open the **Period** menu and choose a ready-made range (**Last 30 days**,
+   **Last 90 days**, **Last 12 months**, **This year**, **Last year**), or fill in the **From** and
+   **To** dates.
+2. If you like, combine other filters: the **To download** status, a minimum duration, a word in the
+   title.
+3. The button becomes **Download the N filtered**, and the **What will be downloaded** panel on the
+   right shows the number of episodes, the estimated space and the period.
+
+### A selection
+
+Tick the checkboxes of the episodes you want; **Shift** + click on a checkbox takes a range,
+**Ctrl+A** every visible one. **Download the N selected** appears.
+
+For a single episode, the download icon on its row is enough, or **Download** in the details.
 
 ---
 
-*Chapter 5 goes into feed management and OPML files in detail.*
+## 4.7 Confirming and starting
+
+For more than one episode the program asks for confirmation. The *Download N episodes?* window
+shows:
+
+* how many episodes go into the queue and from which podcast;
+* the **Period**, if a date filter is active;
+* the **Estimated space** and the **Free space** on the destination disk;
+* the **Folder** the files will go to.
+
+If the free space may not be enough (less than one and a fifth times the estimate), the window says
+so in yellow. If less than 200 MB is left on the disk, the program starts nothing and says so:
+*Almost no space left (… free): downloads not started.*
+
+Pressing **Queue** starts the downloads, as many at a time as set in **Settings → Downloads →
+Parallel downloads**: three unless you change it (chapter 6).
+
+The space estimate uses the size declared by the feed; where that is missing, it works it out from
+the duration (at 192 kbps), and without that either it counts 45 minutes per episode.
+
+---
+
+## 4.8 Following progress
+
+The top bar always tells you how many downloads are running and how far the run has got (*3
+downloading · 47 of 312*). Rows in the episode list show their own bar, with percentage, speed and
+time left.
+
+For the full picture there is the **Downloads** view (**Ctrl+2**, or click the queue status): the
+queue with its pause and cancel controls, the failed downloads with their reason, this session’s
+completed ones.
+
+You do not need to keep the window open: close it and the program stays in the notification area
+and keeps working. When the batch ends, a system notification arrives (*Download complete: 312 files
+downloaded.*).
+
+During the batch the software handles retries after network errors, stalls and the check of every
+completed file. If the connection drops, the queue pauses by itself and starts again when the
+network is back. If the computer goes to sleep, on waking the stall watch closes the frozen
+transfers and the retry cycle usually recovers; episodes that had already used up their five
+attempts end up among the failed ones, from where **Retry all** puts them back in the queue.
+
+---
+
+## 4.9 Checking the result
+
+When the queue empties, three things remain.
+
+**Check the failed downloads.** In the **Downloads** view, the **Failed** section lists the missed
+episodes with their reason. The most common is *The file no longer exists on the server (404).*, a
+file removed before the program could fetch it. **Retry all (N)** puts them back in the queue in one
+go.
+
+**Look at the disk.** **Open folder**, in the feed header, opens the podcast’s folder. The files
+carry the names set by the template (chapter 8). If you find `.part` files, those transfers were
+interrupted or paused: queue the same episodes again and they resume where they stopped. Orphaned
+ones are removed from **Settings → Archive → Clean temporary files**.
+
+**Export the inventory.** In the **Archive** view, **Export CSV** produces the full list of archived
+episodes with SHA-256 fingerprint, sizes, metadata and folder (chapter 9).
+
+---
+
+## 4.10 Keeping the archive up to date
+
+This is where the database-first approach pays off: the program always knows what it owns, and the
+same episode is never downloaded twice.
+
+* **By hand.** **Check feeds** (top bar, or **Ctrl+S**) reads the whole library again. Feeds with new
+  episodes show *N to download* in the sidebar and in the Library; open the feed and **Download the N
+  missing** takes only those. For a single feed there is **Refresh** in its header.
+* **By itself.** The program checks every feed at launch and then every six hours, even with the
+  window closed (change the interval in **Settings → General**). When it finds new episodes it sends
+  a system notification.
+* **Hands-off.** With **Automatic archiving** on for a feed, new episodes found by the checks queue
+  themselves (chapter 5, section 5.10). It is the simplest way to follow a podcast over time.
+
+---
+
+*Chapter 5 goes into managing feeds, OPML files and checks in detail.*
