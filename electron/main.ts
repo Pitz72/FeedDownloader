@@ -171,14 +171,15 @@ function createWindow() {
   });
 
   // B8: Content-Security-Policy. Applied only to packaged builds — the Vite dev
-  // server needs inline/eval and a websocket for HMR. Allows Google Fonts (used
-  // via @import in index.css) and remote feed images.
+  // server needs inline/eval and a websocket for HMR. Allows remote feed images.
+  // v1.6.0: Inter and Fira Code ship with the app, so Google Fonts is no longer
+  // allowed — the interface makes no third-party request at startup.
   if (!VITE_DEV_SERVER_URL) {
     const csp = [
       "default-src 'self'",
       "script-src 'self'",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "font-src 'self' https://fonts.gstatic.com data:",
+      "style-src 'self' 'unsafe-inline'",
+      "font-src 'self' data:",
       "img-src 'self' https: data:",
       "connect-src 'self'",
       "object-src 'none'",

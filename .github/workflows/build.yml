@@ -60,6 +60,17 @@ jobs:
       - name: Type-check (main process, no DOM)
         run: npx tsc -p tsconfig.electron.json
 
+      # v1.6.0: IT/EN keys aligned with the code, every colour pair WCAG 2.2 AA,
+      # and the browser preview's fake window.api still matching the real Api type.
+      - name: Locales (IT/EN)
+        run: npm run check:locales
+
+      - name: Contrast (WCAG 2.2 AA)
+        run: npm run check:contrast
+
+      - name: Type-check (UI preview mock)
+        run: npm run check:preview
+
       - name: Tests (blocking)
         run: npx vitest run
 

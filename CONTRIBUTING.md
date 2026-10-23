@@ -51,6 +51,50 @@ This runs `predev` (Electron ABI rebuild) then `vite`, which starts the dev
 server and launches Electron with hot reload for the renderer and the main/preload
 entries. The CSP is relaxed in dev to allow Vite HMR.
 
+> **Careful: `npm run dev` uses the same data folder as an installed copy.** The
+> app name comes from `package.json` (`runtime-feeddownloader-pro`), so the dev
+> build opens `%APPDATA%untime-feeddownloader-proeeddownloader.sqlite` — the
+> real library — and migrates it to the new schema. To try changes on a throwaway
+> profile, launch Electron with `--user-data-dir=<some folder>` (Chromium's switch,
+> honoured by `app.getPath('userData')`), and point the download folder somewhere
+> disposable before downloading anything.
+
+### Interface preview in the browser
+
+```bash
+npm run preview:ui    # http://localhost:5198
+```
+
+Mounts the real React app with a fake `window.api` (`scripts/ui-preview/mock-api.ts`):
+a realistic library, an archive, and a queue that really advances, pauses and
+fails. No Electron, no network. Query parameters: `?empty` (empty library),
+`?skipintro`, `?offline`, `?pending` (downloads left over from a previous
+session), `?whatsnew`, `?reduce` (reduced motion). The mock implements the `Api`
+type exported by `electron/preload.ts`, so `npm run check:preview` fails when the
+two drift apart.
+
+## Interface rules (since v1.6.0)
+
+The interface follows the Runtime desktop standard (the same structure as *Runtime
+TelegramBot Desktop Titan Edition*, in FeedDownloader's violet).
+
+* **Desktop, landscape.** Views are panels side by side, each scrolling on its own
+  (`min-h-0 flex-1 overflow-y-auto`); the page itself doesn't scroll at normal
+  sizes. Below 1280 px of width side panels become tabs or dialogs and figures
+  compact — never a vertical, web-page-style stack. Check 960×620 (the minimum
+  window), 1366×768 and 1920×1080.
+* **One palette.** Colours live only in `src/theme/palette.css` as semantic names
+  (`bg-surface-2`, `text-fg-3`, `border-line`…); Tailwind's default palette is
+  switched off. Every text/background pair the UI uses is listed in
+  `src/theme/contrast-checks.json` and checked against WCAG 2.2 AA by
+  `npm run check:contrast`. Never put opacity (`/NN`) on a text colour or on the
+  background behind text — the check can't see it.
+* **Primitives first.** Buttons, fields, switches, tabs, dialogs, toasts and
+  virtualised lists are in `src/components/ui/`; they carry the accessibility
+  wiring (focus trap, `inert`, roles, keyboard). Reuse them.
+* **Text never below 12 px**, keyboard focus always visible, every action reachable
+  from the keyboard and never shown only on hover.
+
 ## Project dev rules
 
 These conventions are already in force in this repo. Follow them.
@@ -62,10 +106,9 @@ These conventions are already in force in this repo. Follow them.
   in Italian, grouped by area such as *Download*, *Feed*, *Database*, *Interfaccia*,
   *Build*, *Test*, and reference issue tags like `M6`/`S1`/`L7` from the audits).
   Bump `version` in `package.json` to match.
-* **All i18n keys must exist in all 8 languages.** Translations live in
-  `src/locales/{it,en,fr,de,es,pt,ru,zh}.json`. If you add a key, add it to every
-  one of the eight files — never leave a language missing a key. Keep the key set
-  aligned across all locales (orphan keys should be removed everywhere).
+* **Every i18n key exists in both languages.** Since v1.4.2 the app speaks Italian
+  and English only: `src/locales/{it,en}.json`. `npm run check:locales` fails when
+  a key used in the code is missing, or when the two files don't have the same keys.
 * **TypeScript strict, zero `any`.** Both `tsconfig.json` (renderer/preload) and
   `tsconfig.electron.json` (main) run under `strict` with `noUnusedLocals` and
   `noUnusedParameters`. ESLint runs with `--max-warnings 0`. Prefer precise types,
@@ -89,8 +132,9 @@ npm run test:coverage # v8 coverage over services / utils / store
 ```
 
 The suite is a **blocking quality gate**: the CI `verify` job
-(`.github/workflows/build.yml`) runs lint, both type-checks, and `vitest run`,
-and the Windows/Linux build jobs only start after it passes. A red test blocks
+(`.github/workflows/build.yml`) runs lint, both type-checks, the locale, contrast
+and preview checks, and `vitest run`, and the Windows/Linux build jobs only start
+after it passes. A red test blocks
 the release — do not merge or bump a version with failing tests. Security-critical
 utilities (`validateUrl`, `safeHttp`, `xmlSafety`, `applyTemplate`, `getSafePath`,
 the database and download services) have dedicated specs; add tests alongside any
@@ -99,7 +143,7 @@ change to that logic.
 ## Build
 
 ```bash
-npm run build     # lint + tsc + tsc -p tsconfig.electron.json + vite build + electron-builder --publish never
+npm run build     # lint + check:locales + check:contrast + tsc + tsc -p tsconfig.electron.json + vite build + electron-builder --publish never
 ```
 
 The build lints, then **type-checks twice** — once with `tsc` for the renderer

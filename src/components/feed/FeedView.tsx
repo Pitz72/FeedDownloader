@@ -10,14 +10,14 @@ import { useStore } from '../../store/useStore';
 import { useOnlineStatus } from '../../hooks/useOnlineStatus';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { useToast } from '../ui/Toast';
-import { Button } from '../ui/Button';
+import { Button, IconButton } from '../ui/Button';
 import { Badge, Checkbox, EmptyState, INPUT_CLASS, Segmented, Stat, Switch } from '../ui/Controls';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { CoverImage } from '../CoverImage';
 import { EpisodeRow } from './EpisodeRow';
 import { EpisodeDialog, EpisodePanel } from './EpisodeDetail';
 import { episodeKey, estimateBytes, feedErrorKey, openFeed, queueEpisodes } from '../../lib/actions';
-import { formatDate, inRange, presetRange, timeOf, type PeriodPreset } from '../../lib/dates';
+import { formatDate, inRange, parseLocalDate, presetRange, timeOf, type PeriodPreset } from '../../lib/dates';
 import { parseDurationMinutes } from '../../utils/duration';
 import { formatBytes } from '../../utils/format';
 import { stripHtml } from '../../lib/text';
@@ -29,6 +29,8 @@ type SortOrder = 'feed' | 'date-desc' | 'date-asc' | 'dur-desc' | 'dur-asc' | 't
 const CRITICAL_FREE_BYTES = 200 * 1024 * 1024;
 /** Sopra questa larghezza il dettaglio sta fisso a destra; sotto si apre come finestra. */
 const WIDE_QUERY = '(min-width: 1280px)';
+/** Da qui in su i comandi del feed hanno l'etichetta scritta; sotto, solo l'icona (con nome e suggerimento). */
+const ROOMY_QUERY = '(min-width: 1600px)';
 
 interface PendingConfirm {
     kind: 'download' | 'remove' | 'reset' | 'auto';
@@ -48,9 +50,11 @@ export function FeedView({ feed }: { feed: Feed }) {
     const toast = useToast();
     const isOnline = useOnlineStatus();
     const wide = useMediaQuery(WIDE_QUERY);
+    const roomy = useMediaQuery(ROOMY_QUERY);
     const queueItems = useStore(s => s.queueItems);
     const feedEntry = useStore(s => s.feeds.find(f => f.url === feed.url));
     const setCurrentFeed = useStore(s => s.setCurrentFeed);
+    const setView = useStore(s => s.setView);
 
     // ── Stato archivio del feed ─────────────────────────────────
     const [downloaded, setDownloaded] = useState<Set<string>>(new Set());
@@ -204,8 +208,11 @@ export function FeedView({ feed }: { feed: Feed }) {
     }, []);
 
     // ── Download ────────────────────────────────────────────────
-    const periodText = from || to
-        ? t('filters.period_text', { from: from ? formatDate(from, i18n.language) : '…', to: to ? formatDate(to, i18n.language) : '…' })
+    // date dei campi lette come giorni locali (L22), e frase senza «…» quando un estremo è aperto
+    const day = (v: string) => formatDate(new Date(parseLocalDate(v)).toISOString(), i18n.language);
+    const periodText = from && to ? t('filters.period_text', { from: day(from), to: day(to) })
+        : from ? t('filters.period_since', { from: day(from) })
+        : to ? t('filters.period_until', { to: day(to) })
         : null;
 
     const runDownload = async (episodes: Episode[]) => {
@@ -279,6 +286,8 @@ export function FeedView({ feed }: { feed: Feed }) {
         }
     };
 
+    const copyUrl = () => { void navigator.clipboard.writeText(feed.url).then(() => toast.success(t('common.copied'))); };
+
     const exportM3U = async () => {
         const res = await window.api.exportM3U(feed.title);
         if (res === true) toast.success(t('toast.m3u_done'));
@@ -311,6 +320,7 @@ export function FeedView({ feed }: { feed: Feed }) {
         await window.api.removeFeed(feed.url);
         setConfirm(null);
         setCurrentFeed(null);
+        setView('home');
         toast.success(t('toast.feed_removed'));
     };
 
@@ -360,13 +370,14 @@ export function FeedView({ feed }: { feed: Feed }) {
     } : null;
 
     return (
-        <div className="flex min-h-[600px] flex-1 flex-col">
-            {/* ── Fascia 1: intestazione del feed, su una riga ── */}
-            <section aria-labelledby="feed-heading" className="flex items-center gap-5 border-b border-line px-6 py-4">
+        <div className="flex min-h-[480px] flex-1 flex-col">
+            {/* ── Fascia 1: intestazione del feed, su una riga (le cifre vanno a capo
+                 solo se la finestra è stretta: non schiacciano mai titolo e pulsanti) ── */}
+            <section aria-labelledby="feed-heading" className="flex flex-wrap items-center gap-x-5 gap-y-3 border-b border-line px-6 py-4">
                 <span className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-line bg-surface-3 text-lg font-semibold text-accent" aria-hidden="true">
                     <CoverImage src={img} className="h-full w-full object-cover" fallback={<span>{(feed.title || '?').slice(0, 2).toUpperCase()}</span>} />
                 </span>
-                <div className="min-w-0 flex-1">
+                <div className="min-w-[280px] flex-1">
                     <div className="flex min-w-0 items-center gap-2">
                         <h1 id="feed-heading" className="truncate text-xl font-semibold text-fg">{feed.title}</h1>
                         {feedEntry?.autoDownload && <Badge tone="success" icon={Zap}>{t('feed.auto_badge')}</Badge>}
@@ -375,27 +386,38 @@ export function FeedView({ feed }: { feed: Feed }) {
                         {lastCheck && <span className="inline-flex shrink-0 items-center gap-1.5"><Clock size={14} aria-hidden="true" />{t('feed.last_check', { date: lastCheck })}</span>}
                         {stats && <span className="inline-flex min-w-0 items-center gap-1.5"><FolderOpen size={14} className="shrink-0" aria-hidden="true" /><span className="truncate font-mono text-xs" title={stats.folder}>{stats.folder}</span></span>}
                     </p>
-                    <div className="mt-2 flex flex-wrap gap-1.5">
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
                         <Button size="sm" icon={RefreshCw} loading={refreshing} disabled={!isOnline} onClick={() => void refresh()}>{t('feed.refresh')}</Button>
-                        <Button size="sm" variant="ghost" icon={FolderOpen} onClick={() => void openFolder()}>{t('feed.open_folder')}</Button>
-                        <Button size="sm" variant="ghost" icon={ListMusic} onClick={() => void exportM3U()}>{t('feed.export_m3u')}</Button>
-                        <Button size="sm" variant="ghost" icon={Link2} onClick={() => navigator.clipboard.writeText(feed.url).then(() => toast.success(t('common.copied')))}>{t('feed.copy_url')}</Button>
-                        <Button size="sm" variant="danger-ghost" icon={Trash2} onClick={() => setConfirm({ kind: 'remove' })}>{t('feed.remove')}</Button>
+                        {roomy ? (
+                            <>
+                                <Button size="sm" variant="ghost" icon={FolderOpen} onClick={() => void openFolder()}>{t('feed.open_folder')}</Button>
+                                <Button size="sm" variant="ghost" icon={ListMusic} onClick={() => void exportM3U()}>{t('feed.export_m3u')}</Button>
+                                <Button size="sm" variant="ghost" icon={Link2} onClick={copyUrl}>{t('feed.copy_url')}</Button>
+                                <Button size="sm" variant="danger-ghost" icon={Trash2} onClick={() => setConfirm({ kind: 'remove' })}>{t('feed.remove')}</Button>
+                            </>
+                        ) : (
+                            <>
+                                <IconButton size="sm" icon={FolderOpen} label={t('feed.open_folder')} onClick={() => void openFolder()} />
+                                <IconButton size="sm" icon={ListMusic} label={t('feed.export_m3u')} onClick={() => void exportM3U()} />
+                                <IconButton size="sm" icon={Link2} label={t('feed.copy_url')} onClick={copyUrl} />
+                                <IconButton size="sm" variant="danger-ghost" icon={Trash2} label={t('feed.remove')} onClick={() => setConfirm({ kind: 'remove' })} />
+                            </>
+                        )}
                     </div>
-                    {/* finestre strette: senza pannello laterale l'archivio automatico sta qui */}
-                    {!wide && <div className="mt-3 max-w-2xl rounded-lg border border-line bg-surface-2 px-4 py-3">{autoSwitch}</div>}
                 </div>
+                {/* Nelle finestre strette resta solo lo spazio occupato: episodi, archiviati e
+                    da scaricare sono già scritti nei filtri di stato, subito sotto. */}
                 <dl className="flex shrink-0 gap-2" aria-label={t('feed.stats_label')}>
-                    <Stat label={t('feed.stat_episodes')} value={totals.total.toLocaleString(i18n.language)} />
-                    <Stat label={t('feed.stat_archived')} value={totals.archived.toLocaleString(i18n.language)} tone={totals.archived > 0 ? 'success' : undefined} />
-                    <Stat label={t('feed.stat_missing')} value={totals.missing.toLocaleString(i18n.language)} tone={totals.missing > 0 ? 'accent' : undefined} />
+                    {wide && <Stat label={t('feed.stat_episodes')} value={totals.total.toLocaleString(i18n.language)} />}
+                    {wide && <Stat label={t('feed.stat_archived')} value={totals.archived.toLocaleString(i18n.language)} tone={totals.archived > 0 ? 'success' : undefined} />}
+                    {wide && <Stat label={t('feed.stat_missing')} value={totals.missing.toLocaleString(i18n.language)} tone={totals.missing > 0 ? 'accent' : undefined} />}
                     <Stat label={t('feed.stat_space')} value={stats ? formatBytes(stats.archivedBytes, i18n.language) : '—'} />
                 </dl>
             </section>
 
             {/* ── Fascia 2: filtri, su una riga ── */}
             <div role="search" aria-label={t('filters.more')} className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-line bg-surface-1 px-6 py-3">
-                <div className="relative min-w-[200px] flex-1">
+                <div className="relative min-w-[180px] flex-1">
                     <Search size={15} aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-fg-3" />
                     <input
                         id="episode-filter-input"
@@ -411,7 +433,7 @@ export function FeedView({ feed }: { feed: Feed }) {
                     label={t('filters.status')}
                     value={status}
                     onChange={setStatus}
-                    size="md"
+                    size={wide ? 'md' : 'sm'}
                     options={[
                         { value: 'all', label: t('filters.status_all'), count: totals.total },
                         { value: 'missing', label: t('filters.status_missing'), count: totals.missing },
@@ -419,23 +441,25 @@ export function FeedView({ feed }: { feed: Feed }) {
                     ]}
                 />
                 <div className="h-6 w-px bg-line" aria-hidden="true" />
-                <span className="inline-flex items-center gap-1.5 text-sm font-medium text-fg-2"><CalendarRange size={15} className="text-accent" aria-hidden="true" />{t('filters.period')}</span>
-                <select aria-label={t('filters.period_preset')} value={period} onChange={e => choosePeriod(e.target.value as PeriodPreset)} className={SELECT_CLASS}>
-                    <option value="all">{t('filters.period_all')}</option>
-                    <option value="30d">{t('filters.period_30d')}</option>
-                    <option value="90d">{t('filters.period_90d')}</option>
-                    <option value="12m">{t('filters.period_12m')}</option>
-                    <option value="thisYear">{t('filters.period_this_year')}</option>
-                    <option value="lastYear">{t('filters.period_last_year')}</option>
-                    <option value="custom">{t('filters.period_custom')}</option>
-                </select>
+                <span className="inline-flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 text-sm font-medium text-fg-2"><CalendarRange size={15} className="text-accent" aria-hidden="true" /><span className="max-xl:sr-only">{t('filters.period')}</span></span>
+                    <select aria-label={t('filters.period_preset')} value={period} onChange={e => choosePeriod(e.target.value as PeriodPreset)} className={SELECT_CLASS}>
+                        <option value="all">{t('filters.period_all')}</option>
+                        <option value="30d">{t('filters.period_30d')}</option>
+                        <option value="90d">{t('filters.period_90d')}</option>
+                        <option value="12m">{t('filters.period_12m')}</option>
+                        <option value="thisYear">{t('filters.period_this_year')}</option>
+                        <option value="lastYear">{t('filters.period_last_year')}</option>
+                        <option value="custom">{t('filters.period_custom')}</option>
+                    </select>
+                </span>
                 <label className="inline-flex items-center gap-1.5 text-sm text-fg-2">
                     {t('filters.from')}
-                    <input type="date" value={from} max={to || undefined} onChange={e => { setFrom(e.target.value); setPeriod('custom'); }} className={cn(INPUT_CLASS, 'h-9 w-[150px]')} />
+                    <input type="date" value={from} max={to || undefined} onChange={e => { setFrom(e.target.value); setPeriod('custom'); }} className={cn(INPUT_CLASS, 'h-9 w-[150px] max-xl:w-[136px]')} />
                 </label>
                 <label className="inline-flex items-center gap-1.5 text-sm text-fg-2">
                     {t('filters.to')}
-                    <input type="date" value={to} min={from || undefined} onChange={e => { setTo(e.target.value); setPeriod('custom'); }} className={cn(INPUT_CLASS, 'h-9 w-[150px]')} />
+                    <input type="date" value={to} min={from || undefined} onChange={e => { setTo(e.target.value); setPeriod('custom'); }} className={cn(INPUT_CLASS, 'h-9 w-[150px] max-xl:w-[136px]')} />
                 </label>
                 <div className="h-6 w-px bg-line" aria-hidden="true" />
                 <div role="group" aria-label={t('filters.duration')} className="inline-flex items-center gap-1.5 text-sm text-fg-2">
@@ -458,7 +482,7 @@ export function FeedView({ feed }: { feed: Feed }) {
 
             {/* ── Area di lavoro: elenco | pannello ── */}
             <div className="flex min-h-0 flex-1">
-                <section aria-labelledby="feed-heading" className="flex min-w-0 flex-1 flex-col">
+                <div className="flex min-w-0 flex-1 flex-col">
                     {/* barra di azione: dice cosa scaricherà */}
                     <div className="flex items-center gap-3 border-b border-line px-6 py-2.5">
                         <p className="tabular min-w-0 flex-1 truncate text-sm text-fg-2" aria-live="polite">
@@ -473,6 +497,15 @@ export function FeedView({ feed }: { feed: Feed }) {
                                     {t('actions.download_selected', { count: selectedDownloadable.length })}
                                 </Button>
                             </>
+                        )}
+                        {/* finestre strette: senza pannello laterale l'archivio automatico sta qui, accanto al download */}
+                        {!wide && (
+                            <Switch
+                                className="shrink-0 items-center"
+                                checked={!!feedEntry?.autoDownload}
+                                onChange={onToggleAuto}
+                                label={<span className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm"><Zap size={14} className="text-accent" aria-hidden="true" />{t('feed.auto_title')}</span>}
+                            />
                         )}
                         <Button variant="primary" icon={Download} loading={busy} disabled={!isOnline || visibleDownloadable.length === 0} onClick={() => void askDownload(visibleDownloadable)}>
                             {primaryLabel}
@@ -523,7 +556,7 @@ export function FeedView({ feed }: { feed: Feed }) {
                             </div>
                         </>
                     )}
-                </section>
+                </div>
 
                 {wide && (
                     <aside aria-label={t('feed.panel_label')} className="flex w-[400px] shrink-0 flex-col border-l border-line bg-surface-1">

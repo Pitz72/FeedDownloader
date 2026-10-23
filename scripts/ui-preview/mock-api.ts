@@ -90,7 +90,11 @@ for (const s of SEEDS) {
 
 const library = (): FeedEntry[] => params.has('empty') ? [] : [...feeds.values()].map(f => {
     const set = downloaded.get(f.url)!
-    return { url: f.url, title: f.title, image: f.image, lastUpdated: f.lastUpdated, newCount: f.episodes.filter(e => !set.has(e.guid!)).length, autoDownload: !!f.autoDownload }
+    const mine = archive.filter(a => a.feedUrl === f.url)
+    return {
+        url: f.url, title: f.title, image: f.image, lastUpdated: f.lastUpdated, newCount: f.episodes.filter(e => !set.has(e.guid!)).length, autoDownload: !!f.autoDownload,
+        episodeCount: f.episodes.length, archivedCount: mine.length, archivedBytes: mine.reduce((n, a) => n + (a.fileSize ?? 0), 0),
+    }
 })
 
 // ── Coda simulata ──────────────────────────────────────────────

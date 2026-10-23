@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-    Archive, BookOpen, Download, FileUp, Headphones, Loader2, Plus, RefreshCw, Search, Settings, ShieldCheck, type LucideIcon,
+    Archive, BookOpen, Download, FileUp, Headphones, LayoutDashboard, Loader2, Plus, RefreshCw, Search, Settings, ShieldCheck, type LucideIcon,
 } from 'lucide-react';
 import { Dialog } from './ui/Dialog';
 import { Kbd } from './ui/Controls';
@@ -52,6 +52,7 @@ export function CommandPalette({ open, onClose, commands }: { open: boolean; onC
     const actions: Item[] = useMemo(() => [
         { kind: 'action', id: 'add', label: t('palette.add_feed'), hint: t('palette.add_feed_hint'), icon: Plus, keys: [MOD, 'N'], run: () => close(commands.addFeed) },
         { kind: 'action', id: 'check', label: t('palette.check_all'), hint: t('palette.check_all_hint'), icon: RefreshCw, keys: [MOD, 'S'], run: () => close(commands.checkAll) },
+        { kind: 'action', id: 'home', label: t('palette.home'), icon: LayoutDashboard, keys: [MOD, '1'], run: () => close(() => setView('home')) },
         { kind: 'action', id: 'downloads', label: t('palette.downloads'), icon: Download, keys: [MOD, '2'], run: () => close(() => setView('downloads')) },
         { kind: 'action', id: 'archive', label: t('palette.archive'), icon: Archive, keys: [MOD, '3'], run: () => close(() => setView('archive')) },
         { kind: 'action', id: 'verify', label: t('palette.verify'), icon: ShieldCheck, run: () => close(commands.openHealthCheck) },

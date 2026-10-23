@@ -215,18 +215,25 @@ export interface TabItem<T extends string> {
 }
 
 /**
- * Schede WAI-ARIA: `tablist`/`tab`/`tabpanel`, frecce sinistra e destra, Home e Fine.
+ * Schede WAI-ARIA: `tablist`/`tab`/`tabpanel`, Home e Fine, e le frecce
+ * dell'orientamento — sinistra/destra in orizzontale, su/giù in verticale
+ * (`aria-orientation`; la colonna di schede delle Impostazioni).
  * Solo la scheda attiva è raggiungibile con Tab (roving tabindex).
  */
-export function Tabs<T extends string>({ items, value, onChange, label, idBase, className }: {
+export function Tabs<T extends string>({ items, value, onChange, label, idBase, className, orientation = 'horizontal', autoFocus = false }: {
     items: TabItem<T>[];
     value: T;
     onChange: (id: T) => void;
     label: string;
     idBase: string;
     className?: string;
+    orientation?: 'horizontal' | 'vertical';
+    /** Dentro una finestra di dialogo: la scheda attiva riceve il focus all'apertura */
+    autoFocus?: boolean;
 }) {
     const refs = useRef<Record<string, HTMLButtonElement | null>>({});
+    const vertical = orientation === 'vertical';
+    const [prevKey, nextKey] = vertical ? ['ArrowUp', 'ArrowDown'] : ['ArrowLeft', 'ArrowRight'];
 
     const move = (delta: number | 'first' | 'last') => {
         const index = items.findIndex(i => i.id === value);
@@ -239,10 +246,11 @@ export function Tabs<T extends string>({ items, value, onChange, label, idBase, 
         <div
             role="tablist"
             aria-label={label}
-            className={cn('flex gap-1 border-b border-line', className)}
+            aria-orientation={orientation}
+            className={cn(vertical ? 'flex flex-col gap-0.5' : 'flex gap-1 border-b border-line', className)}
             onKeyDown={(e) => {
-                if (e.key === 'ArrowRight') { e.preventDefault(); move(1); }
-                else if (e.key === 'ArrowLeft') { e.preventDefault(); move(-1); }
+                if (e.key === nextKey) { e.preventDefault(); move(1); }
+                else if (e.key === prevKey) { e.preventDefault(); move(-1); }
                 else if (e.key === 'Home') { e.preventDefault(); move('first'); }
                 else if (e.key === 'End') { e.preventDefault(); move('last'); }
             }}
@@ -259,14 +267,18 @@ export function Tabs<T extends string>({ items, value, onChange, label, idBase, 
                         aria-selected={selected}
                         aria-controls={`${idBase}-panel-${id}`}
                         tabIndex={selected ? 0 : -1}
+                        data-autofocus={autoFocus && selected ? true : undefined}
                         onClick={() => onChange(id)}
                         className={cn(
-                            '-mb-px inline-flex h-10 items-center gap-2 border-b-2 px-3 text-base font-medium transition-colors',
-                            selected ? 'border-accent text-fg' : 'border-transparent text-fg-3 hover:text-fg',
+                            'items-center gap-2 text-base font-medium transition-colors',
+                            vertical
+                                ? cn('relative flex h-10 w-full rounded-md px-3 text-left', selected ? 'bg-surface-4 text-fg' : 'text-fg-2 hover:bg-surface-3 hover:text-fg')
+                                : cn('-mb-px inline-flex h-10 border-b-2 px-3', selected ? 'border-accent text-fg' : 'border-transparent text-fg-3 hover:text-fg'),
                         )}
                     >
-                        {Icon && <Icon size={16} aria-hidden="true" />}
-                        {itemLabel}
+                        {vertical && selected && <span aria-hidden="true" className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-accent" />}
+                        {Icon && <Icon size={16} aria-hidden="true" className={vertical && selected ? 'text-accent' : undefined} />}
+                        <span className={vertical ? 'min-w-0 flex-1 truncate' : undefined}>{itemLabel}</span>
                         {count !== undefined && (
                             <span className={cn('tabular rounded-full px-1.5 text-xs', selected ? 'bg-surface-4 text-accent-strong' : 'bg-surface-3 text-fg-3')}>{count}</span>
                         )}
@@ -390,13 +402,13 @@ export function ProgressBar({ value, label, tone = 'primary', className, size = 
 
 /* ───────────────────────────── Cifre ───────────────────────────── */
 
-/** Riquadro numerico delle intestazioni (dentro un <dl>). */
+/** Riquadro numerico delle intestazioni (dentro un <dl>). Sotto i 1280 px è più basso: l'intestazione resta compatta. */
 export function Stat({ label, value, hint, tone }: { label: string; value: React.ReactNode; hint?: string; tone?: 'accent' | 'success' | 'warning' | 'danger' }) {
     const color = tone === 'accent' ? 'text-accent' : tone === 'success' ? 'text-success' : tone === 'warning' ? 'text-warning' : tone === 'danger' ? 'text-danger' : 'text-fg';
     return (
-        <div className="min-w-[104px] rounded-md border border-line bg-surface-2 px-4 py-2.5" title={hint}>
+        <div className="min-w-[104px] rounded-md border border-line bg-surface-2 px-4 py-2.5 max-xl:min-w-[80px] max-xl:px-3 max-xl:py-1.5" title={hint}>
             <dt className="text-xs font-medium text-fg-3">{label}</dt>
-            <dd className={cn('tabular text-2xl font-semibold leading-8', color)}>{value}</dd>
+            <dd className={cn('tabular text-2xl font-semibold leading-8 max-xl:text-lg max-xl:leading-6', color)}>{value}</dd>
         </div>
     );
 }

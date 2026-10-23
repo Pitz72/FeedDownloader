@@ -1,23 +1,27 @@
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
-import { Virtuoso } from 'react-virtuoso';
 import {
-    AlertTriangle, CheckCircle2, Clock, Download, FolderOpen, Loader2, Pause, Play, RotateCw, Square, Trash2, WifiOff, X,
+    AlertTriangle, CheckCircle2, Clock, Download, FolderOpen, History, Loader2, Pause, Play, RotateCw, Square, Trash2, X, type LucideIcon,
 } from 'lucide-react';
 import type { CompletedDownload, FailedDownload, PendingDownloads, QueueItem } from '../../shared/types';
 import { useStore, selectQueueCounts } from '../store/useStore';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useToast } from './ui/Toast';
 import { Button, IconButton } from './ui/Button';
 import { EmptyState, ProgressBar, Stat, TabPanel, Tabs } from './ui/Controls';
 import { ConfirmDialog } from './ui/ConfirmDialog';
+import { VirtualList } from './ui/VirtualList';
 import { errorKey } from '../lib/actions';
 import { formatDate, formatEta } from '../lib/dates';
 import { formatBytes, formatSpeed } from '../utils/format';
 import { cn } from '../lib/cn';
 
 type Tab = 'queue' | 'failed' | 'done';
+
+/** Sopra questa larghezza coda ed esiti stanno affiancati; sotto, a schede. */
+const WIDE_QUERY = '(min-width: 1280px)';
 
 /** Una riga della coda: si abbona solo al proprio avanzamento. */
 function QueueRow({ item }: { item: QueueItem }) {
@@ -28,7 +32,7 @@ function QueueRow({ item }: { item: QueueItem }) {
     const percent = progress && progress.total > 0 ? Math.round((progress.loaded / progress.total) * 100) : null;
 
     return (
-        <div role="listitem" className="flex items-center gap-3 border-b border-line px-4 py-2.5">
+        <div role="listitem" className="flex items-center gap-3 border-b border-line px-5 py-2.5">
             <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-md', active ? 'bg-surface-4 text-accent' : paused ? 'bg-warning-soft text-warning' : 'bg-surface-3 text-fg-3')} aria-hidden="true">
                 {active ? <Loader2 size={15} className="animate-spin" /> : paused ? <Pause size={15} /> : <Clock size={15} />}
             </span>
@@ -64,13 +68,16 @@ function FailureRow({ failure }: { failure: FailedDownload }) {
     const dismiss = useStore(s => s.dismissFailure);
     const url = failure.request?.url;
     return (
-        <div role="listitem" className="flex items-center gap-3 border-b border-line px-4 py-2.5">
+        <div role="listitem" className="flex items-center gap-3 border-b border-line px-5 py-2.5">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-danger-soft text-danger" aria-hidden="true"><AlertTriangle size={15} /></span>
             <div className="min-w-0 flex-1">
-                <p className="truncate text-base font-medium text-fg">{failure.title}</p>
+                <p className="truncate text-base font-medium text-fg" title={failure.title}>{failure.title}</p>
                 <p className="truncate text-sm text-fg-3">
-                    {failure.podcastTitle} · <span className="text-danger">{t(errorKey(failure.errorCode))}</span>
+                    <span className="text-danger">{t(errorKey(failure.errorCode))}</span>
                     <span className="font-mono text-xs"> ({failure.errorCode})</span>
+                </p>
+                <p className="truncate text-xs text-fg-3">
+                    {failure.podcastTitle}
                     {failure.failedAt && <> · {formatDate(failure.failedAt, i18n.language, { hour: '2-digit', minute: '2-digit' })}</>}
                 </p>
             </div>
@@ -84,10 +91,10 @@ function CompletedRow({ done }: { done: CompletedDownload }) {
     const { t, i18n } = useTranslation();
     const toast = useToast();
     return (
-        <div role="listitem" className="flex items-center gap-3 border-b border-line px-4 py-2.5">
+        <div role="listitem" className="flex items-center gap-3 border-b border-line px-5 py-2.5">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-success-soft text-success" aria-hidden="true"><CheckCircle2 size={15} /></span>
             <div className="min-w-0 flex-1">
-                <p className="truncate text-base font-medium text-fg">{done.title}</p>
+                <p className="truncate text-base font-medium text-fg" title={done.title}>{done.title}</p>
                 <p className="tabular truncate text-sm text-fg-3">
                     {done.podcastTitle}
                     {done.fileSize != null && <> · {formatBytes(done.fileSize, i18n.language)}</>}
@@ -104,15 +111,42 @@ function CompletedRow({ done }: { done: CompletedDownload }) {
     );
 }
 
+/** Barra del titolo di un pannello: nome, conteggio e le azioni che lo riguardano. */
+function PaneHeader({ id, icon: Icon, title, count, tone, children }: {
+    id: string;
+    icon: LucideIcon;
+    title: string;
+    count: number;
+    tone?: 'danger' | 'success';
+    children?: React.ReactNode;
+}) {
+    return (
+        <div className="flex h-12 shrink-0 items-center gap-2 border-b border-line px-5">
+            <Icon size={16} className={tone === 'danger' && count > 0 ? 'text-danger' : tone === 'success' && count > 0 ? 'text-success' : 'text-accent'} aria-hidden="true" />
+            <h2 id={id} className="text-base font-semibold text-fg">{title}</h2>
+            <span className="tabular rounded-full bg-surface-3 px-1.5 text-xs text-fg-2">{count}</span>
+            <div className="ml-auto flex items-center gap-1">{children}</div>
+        </div>
+    );
+}
+
+/** Stato vuoto compatto per i pannelli della colonna destra. */
+function PaneEmpty({ children }: { children: React.ReactNode }) {
+    return <p className="px-5 py-4 text-sm text-fg-3">{children}</p>;
+}
+
 /**
- * Vista Download: la coda per intero (attivi, in attesa, in pausa), i non
- * riusciti con il motivo e «Riprova», i completati della sessione, e i
- * download rimasti in sospeso dall'ultima chiusura.
+ * Vista Download, impaginata per una finestra desktop orizzontale (modello
+ * Titan): intestazione su una riga; poi la coda a sinistra e, in una colonna
+ * fissa a destra, gli interrotti alla chiusura precedente, i non riusciti e i
+ * completati. Ogni pannello scorre per conto suo. Sotto i 1280 px le tre liste
+ * diventano schede.
  */
 export function DownloadsView() {
     const { t, i18n } = useTranslation();
     const toast = useToast();
     const isOnline = useOnlineStatus();
+    const wide = useMediaQuery(WIDE_QUERY);
     const queueItems = useStore(s => s.queueItems);
     const counts = useStore(useShallow(selectQueueCounts));
     const queueState = useStore(s => s.queueState);
@@ -136,10 +170,11 @@ export function DownloadsView() {
         return queueItems.map((q, i) => ({ q, i })).sort((a, b) => rank(a.q) - rank(b.q) || a.i - b.i).map(x => x.q);
     }, [queueItems]);
 
+    const completedBytes = useMemo(() => completed.reduce((n, c) => n + (c.fileSize ?? 0), 0), [completed]);
+
     const { run } = queueState;
     const settled = run.completed + run.failed + run.cancelled;
     const runPercent = run.total > 0 ? (settled / run.total) * 100 : 0;
-    const scrollParent = document.getElementById('main-content');
 
     const resumePending = async () => {
         const n = await window.api.resumePendingDownloads();
@@ -150,111 +185,144 @@ export function DownloadsView() {
         await window.api.discardPendingDownloads();
         setPending(null);
     };
+    const retryAll = async () => {
+        const n = await retryFailures();
+        toast.success(t('toast.queued', { count: n }));
+    };
+
+    // ── Contenuti dei pannelli (gli stessi, affiancati o a schede) ──
+    const queueList = ordered.length === 0
+        ? <EmptyState icon={Download} title={t('downloads.empty_queue')} text={t('downloads.empty_queue_text')} />
+        : <VirtualList label={t('downloads.tab_queue')} data={ordered} itemKey={q => q.taskId} renderItem={q => <QueueRow item={q} />} />;
+
+    const failureActions = failures.length > 0 && (
+        <>
+            <Button size="sm" variant="ghost" icon={Trash2} onClick={clearFailures}>{t('downloads.clear_list')}</Button>
+            <Button size="sm" variant="primary" icon={RotateCw} disabled={!isOnline} onClick={() => void retryAll()}>{t('downloads.retry_all', { count: failures.length })}</Button>
+        </>
+    );
+    const failureList = failures.length > 0 && (
+        <div role="list" aria-label={t('downloads.tab_failed')} className="min-h-0 flex-1 overflow-y-auto">
+            {failures.map(f => <FailureRow key={f.request?.url ?? `${f.title}-${f.failedAt}`} failure={f} />)}
+        </div>
+    );
+
+    const completedActions = completed.length > 0 && (
+        <Button size="sm" variant="ghost" icon={Trash2} onClick={clearCompleted}>{t('downloads.clear_list')}</Button>
+    );
+    const completedNote = completed.length > 0 && (
+        <p className="tabular shrink-0 border-b border-line px-5 py-2 text-sm text-fg-3">
+            {t('downloads.done_note', { total: completedBytes > 0 ? formatBytes(completedBytes, i18n.language) : '—' })}
+        </p>
+    );
+    const completedList = completed.length > 0 && (
+        <VirtualList label={t('downloads.tab_done')} data={completed} itemKey={c => c.url} renderItem={c => <CompletedRow done={c} />} />
+    );
+
+    const pendingCard = pending && (
+        <section aria-labelledby="dl-pending" className={cn('shrink-0 bg-surface-3 px-5 py-4', wide ? 'border-b border-line' : 'mx-6 mt-4 rounded-lg border border-line-strong')}>
+            <h2 id="dl-pending" className="flex items-center gap-2 text-base font-semibold text-fg"><History size={16} className="text-accent" aria-hidden="true" />{t('downloads.pending_title')}</h2>
+            <p className="mt-1 text-sm text-fg-2">{t('downloads.pending_body', { count: pending.count, podcasts: pending.podcasts.slice(0, 3).join(', ') + (pending.podcasts.length > 3 ? '…' : '') })}</p>
+            <div className="mt-3 flex flex-wrap justify-end gap-2">
+                <Button size="sm" variant="ghost" onClick={() => void discardPending()}>{t('downloads.pending_discard')}</Button>
+                <Button size="sm" variant="primary" icon={Play} disabled={!isOnline} onClick={() => void resumePending()}>{t('downloads.pending_resume')}</Button>
+            </div>
+        </section>
+    );
 
     return (
-        <div className="flex min-h-full flex-col">
-            <section aria-labelledby="downloads-heading" className="flex flex-wrap items-end justify-between gap-4 border-b border-line px-6 pb-5 pt-5">
-                <div className="min-w-0">
-                    <h1 id="downloads-heading" className="text-2xl font-semibold text-fg">{t('downloads.title')}</h1>
-                    <p className="mt-1 text-sm text-fg-3">
+        <div className="flex min-h-[480px] flex-1 flex-col">
+            {/* ── Intestazione su una riga: titolo e stato, comandi della coda, cifre.
+                 Completati e non riusciti hanno il loro pannello e la barra del lavoro. ── */}
+            <section aria-labelledby="downloads-heading" className="flex flex-wrap items-center gap-x-6 gap-y-3 border-b border-line px-6 py-4">
+                <div className="min-w-[240px] flex-1 max-xl:basis-full">
+                    <h1 id="downloads-heading" className="text-xl font-semibold text-fg">{t('downloads.title')}</h1>
+                    <p className="mt-0.5 text-sm text-fg-3">
                         {!isOnline ? t('downloads.subtitle_offline')
                             : queueState.paused && counts.total > 0 ? t('downloads.subtitle_paused')
                             : counts.total > 0 ? t('downloads.subtitle_running')
                             : t('downloads.subtitle_idle')}
                     </p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                        {queueState.paused
-                            ? <Button size="sm" variant="primary" icon={Play} disabled={counts.total === 0} onClick={() => void resumeQueue()}>{t('downloads.resume_all')}</Button>
-                            : <Button size="sm" icon={Pause} disabled={counts.total === 0} onClick={() => void pauseQueue()}>{t('downloads.pause_all')}</Button>}
-                        <Button size="sm" variant="danger-ghost" icon={Square} disabled={counts.total === 0} onClick={() => setConfirmStop(true)}>{t('downloads.stop_all')}</Button>
-                    </div>
                 </div>
-                <dl className="flex flex-wrap gap-2" aria-label={t('downloads.stats_label')}>
+                <div className="flex shrink-0 flex-wrap gap-2">
+                    {queueState.paused
+                        ? <Button variant="primary" icon={Play} disabled={counts.total === 0} onClick={() => void resumeQueue()}>{t('downloads.resume_all')}</Button>
+                        : <Button icon={Pause} disabled={counts.total === 0} onClick={() => void pauseQueue()}>{t('downloads.pause_all')}</Button>}
+                    <Button variant="danger-ghost" icon={Square} disabled={counts.total === 0} onClick={() => setConfirmStop(true)}>{t('downloads.stop_all')}</Button>
+                </div>
+                <dl className="flex shrink-0 gap-2" aria-label={t('downloads.stats_label')}>
                     <Stat label={t('downloads.stat_active')} value={counts.active} tone={counts.active > 0 ? 'accent' : undefined} />
                     <Stat label={t('downloads.stat_waiting')} value={counts.waiting + counts.paused} />
-                    <Stat label={t('downloads.stat_done')} value={run.completed} tone={run.completed > 0 ? 'success' : undefined} hint={t('downloads.stat_run_hint')} />
-                    <Stat label={t('downloads.stat_failed')} value={run.failed} tone={run.failed > 0 ? 'danger' : undefined} hint={t('downloads.stat_run_hint')} />
                 </dl>
             </section>
 
+            {/* ── Avanzamento del lavoro, su una riga ── */}
             {run.total > 0 && (
-                <div className="border-b border-line px-6 py-3">
-                    <div className="flex items-center justify-between text-sm">
-                        <span className="text-fg-2">{t('downloads.run_progress', { done: settled, total: run.total })}</span>
-                        <span className="tabular font-medium text-fg">{Math.round(runPercent)}%</span>
+                <div className="flex items-center gap-4 border-b border-line bg-surface-1 px-6 py-2.5">
+                    <span className="tabular shrink-0 text-sm text-fg-2">{t('downloads.run_progress', { done: settled, total: run.total })}</span>
+                    <ProgressBar className="flex-1" value={runPercent} label={t('downloads.run_progress', { done: settled, total: run.total })} tone={counts.total === 0 ? 'success' : 'primary'} />
+                    <span className="tabular w-12 shrink-0 text-right text-sm font-medium text-fg">{Math.round(runPercent)}%</span>
+                </div>
+            )}
+
+            {wide ? (
+                <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_420px] divide-x divide-line">
+                    <section aria-labelledby="dl-queue" className="flex min-h-0 flex-col">
+                        <PaneHeader id="dl-queue" icon={Download} title={t('downloads.tab_queue')} count={counts.total} />
+                        {queueList}
+                    </section>
+
+                    <div className="flex min-h-0 flex-col bg-surface-1">
+                        {pendingCard}
+                        <section aria-labelledby="dl-failed" className={cn('flex min-h-0 flex-col border-b border-line', failures.length > 0 ? 'max-h-[50%] shrink' : 'shrink-0')}>
+                            <PaneHeader id="dl-failed" icon={AlertTriangle} title={t('downloads.tab_failed')} count={failures.length} tone="danger" />
+                            {failures.length > 0 ? (
+                                <>
+                                    <div className="flex shrink-0 justify-end gap-2 border-b border-line px-5 py-2">{failureActions}</div>
+                                    {failureList}
+                                </>
+                            ) : <PaneEmpty>{t('downloads.empty_failed')}</PaneEmpty>}
+                        </section>
+                        <section aria-labelledby="dl-done" className="flex min-h-0 flex-1 flex-col">
+                            <PaneHeader id="dl-done" icon={CheckCircle2} title={t('downloads.tab_done')} count={completed.length} tone="success">{completedActions}</PaneHeader>
+                            {completed.length > 0 ? <>{completedNote}{completedList}</> : <PaneEmpty>{t('downloads.empty_done_text')}</PaneEmpty>}
+                        </section>
                     </div>
-                    <ProgressBar className="mt-2" value={runPercent} label={t('downloads.run_progress', { done: settled, total: run.total })} tone={counts.total === 0 ? 'success' : 'primary'} />
+                </div>
+            ) : (
+                <div className="flex min-h-0 flex-1 flex-col">
+                    {pendingCard}
+                    <Tabs
+                        idBase="downloads"
+                        label={t('downloads.tabs_label')}
+                        value={tab}
+                        onChange={setTab}
+                        className="mt-2 px-6"
+                        items={[
+                            { id: 'queue', label: t('downloads.tab_queue'), icon: Download, count: counts.total },
+                            { id: 'failed', label: t('downloads.tab_failed'), icon: AlertTriangle, count: failures.length },
+                            { id: 'done', label: t('downloads.tab_done'), icon: CheckCircle2, count: completed.length },
+                        ]}
+                    />
+                    <TabPanel idBase="downloads" id={tab} className="flex min-h-0 flex-1 flex-col">
+                        {tab === 'queue' && queueList}
+                        {tab === 'failed' && (failures.length === 0
+                            ? <EmptyState icon={CheckCircle2} title={t('downloads.empty_failed')} />
+                            : <><div className="flex shrink-0 justify-end gap-2 border-b border-line px-6 py-2.5">{failureActions}</div>{failureList}</>)}
+                        {tab === 'done' && (completed.length === 0
+                            ? <EmptyState icon={CheckCircle2} title={t('downloads.empty_done')} text={t('downloads.empty_done_text')} />
+                            : (
+                                <>
+                                    <div className="flex shrink-0 items-center justify-between gap-3 border-b border-line px-6 py-2">
+                                        <span className="tabular text-sm text-fg-3">{t('downloads.done_note', { total: completedBytes > 0 ? formatBytes(completedBytes, i18n.language) : '—' })}</span>
+                                        {completedActions}
+                                    </div>
+                                    {completedList}
+                                </>
+                            ))}
+                    </TabPanel>
                 </div>
             )}
-
-            {!isOnline && counts.total > 0 && (
-                <div role="status" className="mx-6 mt-4 flex items-center gap-3 rounded-lg border border-line bg-warning-soft px-4 py-3 text-sm text-warning">
-                    <WifiOff size={16} aria-hidden="true" />
-                    {t('downloads.offline_notice')}
-                </div>
-            )}
-
-            {pending && (
-                <div role="region" aria-label={t('downloads.pending_title')} className="mx-6 mt-4 flex flex-wrap items-center gap-3 rounded-lg border border-line-strong bg-surface-3 px-4 py-3">
-                    <Download size={18} className="text-accent" aria-hidden="true" />
-                    <div className="min-w-0 flex-1">
-                        <p className="text-base font-medium text-fg">{t('downloads.pending_title')}</p>
-                        <p className="truncate text-sm text-fg-3">{t('downloads.pending_body', { count: pending.count, podcasts: pending.podcasts.slice(0, 3).join(', ') + (pending.podcasts.length > 3 ? '…' : '') })}</p>
-                    </div>
-                    <Button size="sm" variant="ghost" onClick={() => void discardPending()}>{t('downloads.pending_discard')}</Button>
-                    <Button size="sm" variant="primary" icon={Play} disabled={!isOnline} onClick={() => void resumePending()}>{t('downloads.pending_resume')}</Button>
-                </div>
-            )}
-
-            <Tabs
-                idBase="downloads"
-                label={t('downloads.tabs_label')}
-                value={tab}
-                onChange={setTab}
-                className="mt-2 px-6"
-                items={[
-                    { id: 'queue', label: t('downloads.tab_queue'), icon: Download, count: counts.total },
-                    { id: 'failed', label: t('downloads.tab_failed'), icon: AlertTriangle, count: failures.length },
-                    { id: 'done', label: t('downloads.tab_done'), icon: CheckCircle2, count: completed.length },
-                ]}
-            />
-
-            <TabPanel idBase="downloads" id={tab} className="flex-1">
-                {tab === 'queue' && (ordered.length === 0
-                    ? <EmptyState icon={Download} title={t('downloads.empty_queue')} text={t('downloads.empty_queue_text')} />
-                    : <div role="list" aria-label={t('downloads.tab_queue')}><Virtuoso customScrollParent={scrollParent ?? undefined} data={ordered} computeItemKey={(_, q) => q.taskId} itemContent={(_, q) => <QueueRow item={q} />} /></div>)}
-
-                {tab === 'failed' && (failures.length === 0
-                    ? <EmptyState icon={CheckCircle2} title={t('downloads.empty_failed')} />
-                    : (
-                        <>
-                            <div className="flex flex-wrap items-center justify-end gap-2 px-6 py-3">
-                                <Button size="sm" variant="ghost" icon={Trash2} onClick={clearFailures}>{t('downloads.clear_list')}</Button>
-                                <Button size="sm" variant="primary" icon={RotateCw} disabled={!isOnline} onClick={async () => {
-                                    const n = await retryFailures();
-                                    toast.success(t('toast.queued', { count: n }));
-                                }}>{t('downloads.retry_all', { count: failures.length })}</Button>
-                            </div>
-                            <div role="list" aria-label={t('downloads.tab_failed')} className="border-t border-line">
-                                {failures.map(f => <FailureRow key={f.request?.url ?? `${f.title}-${f.failedAt}`} failure={f} />)}
-                            </div>
-                        </>
-                    ))}
-
-                {tab === 'done' && (completed.length === 0
-                    ? <EmptyState icon={CheckCircle2} title={t('downloads.empty_done')} text={t('downloads.empty_done_text')} />
-                    : (
-                        <>
-                            <div className="flex items-center justify-between px-6 py-3 text-sm text-fg-3">
-                                <span>{t('downloads.done_note', { total: completed.reduce((n, c) => n + (c.fileSize ?? 0), 0) > 0 ? formatBytes(completed.reduce((n, c) => n + (c.fileSize ?? 0), 0), i18n.language) : '—' })}</span>
-                                <Button size="sm" variant="ghost" icon={Trash2} onClick={clearCompleted}>{t('downloads.clear_list')}</Button>
-                            </div>
-                            <div role="list" aria-label={t('downloads.tab_done')} className="border-t border-line">
-                                <Virtuoso customScrollParent={scrollParent ?? undefined} data={completed} computeItemKey={(_, c) => c.url} itemContent={(_, c) => <CompletedRow done={c} />} />
-                            </div>
-                        </>
-                    ))}
-            </TabPanel>
 
             <ConfirmDialog
                 open={confirmStop}

@@ -10,6 +10,38 @@
 export type ReleaseNotesLang = 'it' | 'en';
 
 export const RELEASE_NOTES: Record<string, Record<ReleaseNotesLang, string[]>> = {
+    '1.6.0': {
+        it: [
+            'Interfaccia ridisegnata, nel viola del marchio e impaginata per la finestra orizzontale: pannelli affiancati, ognuno con il suo scorrimento.',
+            'Nuova vista Libreria: tutti i feed in una tabella con archiviati, da scaricare, spazio occupato e ultimo controllo.',
+            'Scaricare un periodo è finalmente chiaro: il filtro Periodo è sempre visibile e il pulsante dice «Scarica i 23 filtrati».',
+            'Con i tag ID3 attivi gli MP3 non risultano più «corrotti» alla Verifica: l’impronta si calcola dopo i tag. Per i file già colpiti c’è «Accetta i file attuali come riferimento».',
+            'I tag dell’editore (capitoli, commenti, copertina) non vengono più cancellati.',
+            'Cambiare cartella non rende più «mancante» l’archivio: ogni episodio ricorda dove sta.',
+            'Senza rete la coda si mette in pausa da sola e riparte al ritorno della connessione.',
+            'La coda sopravvive a chiusure e blocchi: al riavvio si propone di riprenderla.',
+            'Nuova vista Download con coda, non riusciti e completati, anche per i download singoli.',
+            'Archivio automatico per feed: i nuovi episodi trovati dai controlli si scaricano da soli.',
+            'Verifica Rapida o Completa, con avanzamento e pulsante per fermarla.',
+            'Accessibilità: contrasti verificati WCAG 2.2 AA, interfaccia dall’80 al 180%, «Riduci animazioni».',
+            'Nessuna richiesta a Google all’avvio: i caratteri sono inclusi nell’app.',
+        ],
+        en: [
+            'Redesigned interface, in the brand’s violet and laid out for a landscape window: side-by-side panels, each scrolling on its own.',
+            'New Library view: every feed in one table with archived, to download, space used and last check.',
+            'Downloading a period is finally clear: the Period filter is always visible and the button says “Download the 23 filtered”.',
+            'With ID3 tags on, MP3s no longer show up as “corrupted” in the verification: the fingerprint is taken after the tags. Files already affected can be accepted as the new reference.',
+            'The publisher’s tags (chapters, comments, cover) are no longer wiped.',
+            'Changing folder no longer makes the archive “missing”: every episode remembers where it is.',
+            'Without a network the queue pauses by itself and restarts when the connection is back.',
+            'The queue survives closing and crashes: on restart the app offers to resume it.',
+            'New Downloads view with queue, failed and completed — single downloads included.',
+            'Automatic archiving per feed: new episodes found by the checks download by themselves.',
+            'Quick or Full verification, with progress and a button to stop it.',
+            'Accessibility: contrast checked against WCAG 2.2 AA, interface from 80 to 180%, “Reduce animations”.',
+            'No requests to Google at startup: the fonts ship with the app.',
+        ],
+    },
     '1.5.1': {
         it: [
             'La schermata iniziale perde la finta riga di stato in alto a sinistra: non diceva niente di vero.',

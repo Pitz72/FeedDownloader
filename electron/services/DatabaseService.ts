@@ -275,39 +275,36 @@ export class DatabaseService {
             FROM feeds f ORDER BY f.rowid
         `).all() as (Omit<FeedEntry, 'autoDownload'> & { episodeCount: number | null; autoDownload: number | null; currentNew: number | null })[];
 
-        // Fallback for feeds that haven't been re-parsed since the M10 upgrade
-        // (currentEpisodeGuids still null): keep the previous count-based estimate.
-        const needsFallback = feeds.some(f => f.currentNew === null);
-        let urlMap = new Map<string, number>();
-        let titleMap = new Map<string, number>();
-        if (needsFallback) {
-            const byUrl = this.db.prepare(
-                "SELECT feedUrl, COUNT(*) AS cnt FROM archive WHERE feedUrl IS NOT NULL AND feedUrl != '' GROUP BY feedUrl"
-            ).all() as { feedUrl: string; cnt: number }[];
-            urlMap = new Map(byUrl.map(r => [r.feedUrl, r.cnt]));
-            const byTitle = this.db.prepare(
-                "SELECT podcastTitle, COUNT(*) AS cnt FROM archive WHERE feedUrl IS NULL OR feedUrl = '' GROUP BY podcastTitle"
-            ).all() as { podcastTitle: string; cnt: number }[];
-            titleMap = new Map(byTitle.map(r => [r.podcastTitle, r.cnt]));
-        }
+        // Archive totals per feed (v1.6.0: the library dashboard shows them; the
+        // count also feeds the fallback below). Two indexed GROUP BYs — cheap
+        // even on large archives, unlike loading the rows into JS.
+        type Totals = { cnt: number; bytes: number };
+        const byUrl = this.db.prepare(
+            "SELECT feedUrl AS k, COUNT(*) AS cnt, COALESCE(SUM(fileSize), 0) AS bytes FROM archive WHERE feedUrl IS NOT NULL AND feedUrl != '' GROUP BY feedUrl"
+        ).all() as ({ k: string } & Totals)[];
+        const urlMap = new Map<string, Totals>(byUrl.map(r => [r.k, r]));
+        const byTitle = this.db.prepare(
+            "SELECT podcastTitle AS k, COUNT(*) AS cnt, COALESCE(SUM(fileSize), 0) AS bytes FROM archive WHERE feedUrl IS NULL OR feedUrl = '' GROUP BY podcastTitle"
+        ).all() as ({ k: string } & Totals)[];
+        const titleMap = new Map<string, Totals>(byTitle.map(r => [r.k, r]));
         // L15: legacy archive rows (feedUrl = '') are attributed by title. If two
         // feeds share a title, the same legacy rows must not be counted for both —
         // credit them to the first feed with that title only.
         const legacyTitlesConsumed = new Set<string>();
 
         return feeds.map(f => {
-            let newCount: number | null;
-            if (f.currentNew !== null) {
-                newCount = f.currentNew;
-            } else {
-                let legacy = 0;
-                if (!legacyTitlesConsumed.has(f.title)) {
-                    legacy = titleMap.get(f.title) ?? 0;
-                    legacyTitlesConsumed.add(f.title);
-                }
-                const downloaded = (urlMap.get(f.url) ?? 0) + legacy;
-                newCount = f.episodeCount != null ? Math.max(0, f.episodeCount - downloaded) : null;
+            let legacy: Totals = { cnt: 0, bytes: 0 };
+            if (!legacyTitlesConsumed.has(f.title)) {
+                legacy = titleMap.get(f.title) ?? legacy;
+                legacyTitlesConsumed.add(f.title);
             }
+            const own = urlMap.get(f.url) ?? { cnt: 0, bytes: 0 };
+            const archivedCount = own.cnt + legacy.cnt;
+            // Fallback for feeds that haven't been re-parsed since the M10 upgrade
+            // (currentEpisodeGuids still null): keep the previous count-based estimate.
+            const newCount = f.currentNew !== null
+                ? f.currentNew
+                : f.episodeCount != null ? Math.max(0, f.episodeCount - archivedCount) : null;
             return {
                 url: f.url,
                 title: f.title,
@@ -315,6 +312,9 @@ export class DatabaseService {
                 lastUpdated: f.lastUpdated,
                 newCount,
                 autoDownload: !!f.autoDownload,
+                episodeCount: f.episodeCount,
+                archivedCount,
+                archivedBytes: own.bytes + legacy.bytes,
             };
         });
     }

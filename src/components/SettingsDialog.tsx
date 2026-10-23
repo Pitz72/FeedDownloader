@@ -135,11 +135,13 @@ export function SettingsDialog({ open, onClose, onOpenHealthCheck, onOpenGuide, 
                 icon={Settings}
                 title={t('settings.title')}
                 description={t('settings.subtitle')}
-                size="lg"
-                header={<Tabs idBase="settings" label={t('settings.title')} value={tab} onChange={setTab} items={tabs} className="overflow-x-auto px-6 pt-1" />}
+                size="xl"
+                // altezza fissa: la finestra non cambia misura passando da una scheda all'altra
+                panelClassName="h-[min(760px,calc(100vh-2rem))]"
+                sidebar={<Tabs idBase="settings" orientation="vertical" autoFocus label={t('settings.title')} value={tab} onChange={setTab} items={tabs} />}
                 footer={<Button variant="primary" onClick={onClose}>{t('common.done')}</Button>}
             >
-                <TabPanel idBase="settings" id={tab} className="space-y-4">
+                <TabPanel idBase="settings" id={tab} className="max-w-3xl space-y-4">
                     {tab === 'general' && (
                         <>
                             <Section icon={Globe} title={t('settings.language')} text={t('settings.language_desc')}>
@@ -176,7 +178,7 @@ export function SettingsDialog({ open, onClose, onOpenHealthCheck, onOpenGuide, 
                                 )}
                             </Section>
                             <Section icon={Gauge} title={t('settings.transfer_title')} text={t('settings.transfer_desc')}>
-                                <div className="grid gap-4 sm:grid-cols-3">
+                                <div className="grid grid-cols-3 gap-4">
                                     <SelectField label={t('settings.concurrency')} value={concurrency} onChange={async e => { const n = Number(e.target.value); setConcurrency(n); await window.api.setConcurrency(n); }}>
                                         {Array.from({ length: 10 }, (_, i) => i + 1).map(n => <option key={n} value={n}>{n}</option>)}
                                     </SelectField>

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
-import { ArrowDownAZ, Archive, Download, FileUp, Loader2, Plus, Rss, Search, Zap, X } from 'lucide-react';
+import { ArrowDownAZ, Archive, Download, FileUp, LayoutDashboard, Loader2, Plus, Rss, Search, Zap, X } from 'lucide-react';
 import { useStore, selectQueueCounts } from '../store/useStore';
 import { useToast } from './ui/Toast';
 import { Button, IconButton } from './ui/Button';
@@ -63,6 +63,8 @@ export function Sidebar({ onAddFeed, onImportOpml }: Props) {
 
     useEffect(() => { try { localStorage.setItem('sidebarSortAlpha', sortAlpha ? '1' : '0'); } catch { /* private mode */ } }, [sortAlpha]);
 
+    const toDownload = useMemo(() => feeds.reduce((n, f) => n + (f.newCount ?? 0), 0), [feeds]);
+
     const shown = useMemo(() => {
         let list = feeds;
         const q = query.trim().toLowerCase();
@@ -72,7 +74,8 @@ export function Sidebar({ onAddFeed, onImportOpml }: Props) {
     }, [feeds, query, sortAlpha, i18n.language]);
 
     const select = async (feed: FeedEntry) => {
-        if (view === 'feed' && currentUrl === feed.url) return;
+        // il feed già aperto si ritrova senza rileggerlo
+        if (currentUrl === feed.url) { setView('feed'); return; }
         setLoadingUrl(feed.url);
         try {
             await openFeed(feed.url);
@@ -83,7 +86,7 @@ export function Sidebar({ onAddFeed, onImportOpml }: Props) {
         }
     };
 
-    const navItem = (id: 'downloads' | 'archive', Icon: typeof Download, label: string, meta: ReactNode) => {
+    const navItem = (id: 'home' | 'downloads' | 'archive', Icon: typeof Download, label: string, meta: ReactNode) => {
         const selected = view === id;
         return (
             <li>
@@ -103,8 +106,10 @@ export function Sidebar({ onAddFeed, onImportOpml }: Props) {
     };
 
     return (
-        <nav aria-label={t('sidebar.label')} className="flex w-72 shrink-0 flex-col border-r border-line bg-surface-1">
+        <nav aria-label={t('sidebar.label')} className="flex w-72 shrink-0 flex-col border-r border-line bg-surface-1 max-xl:w-64">
             <ul className="space-y-0.5 px-2 pt-3">
+                {navItem('home', LayoutDashboard, t('nav.home'),
+                    toDownload > 0 ? <span className="tabular text-xs font-medium text-accent">{t('sidebar.to_download', { count: toDownload })}</span> : null)}
                 {navItem('downloads', Download, t('nav.downloads'),
                     counts.total > 0
                         ? <span className="tabular rounded-full bg-surface-4 px-2 text-xs font-semibold text-accent-strong">{counts.total}</span>

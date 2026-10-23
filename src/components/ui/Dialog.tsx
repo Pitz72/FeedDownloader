@@ -82,13 +82,17 @@ export interface DialogProps {
     bodyClassName?: string;
     /** Contenuto sopra il corpo, fuori dallo scorrimento (es. le schede) */
     header?: React.ReactNode;
+    /** Colonna a sinistra del corpo, con scorrimento suo (es. le schede verticali delle Impostazioni) */
+    sidebar?: React.ReactNode;
+    /** Classi aggiuntive per il pannello (es. un'altezza fissa, che non cambia da una scheda all'altra) */
+    panelClassName?: string;
     /** Solo il contenuto, senza intestazione visibile (la command palette): il titolo resta per i lettori di schermo */
     bare?: boolean;
 }
 
 export function Dialog({
     open, onClose, title, description, icon: Icon, tone = 'accent', size = 'md', placement = 'center', footer, children,
-    role = 'dialog', dismissible = true, initialFocusRef, bodyClassName, header, bare = false,
+    role = 'dialog', dismissible = true, initialFocusRef, bodyClassName, header, sidebar, panelClassName, bare = false,
 }: DialogProps) {
     const { t } = useTranslation();
     const id = useId();
@@ -219,6 +223,7 @@ export function Dialog({
                         className={cn(
                             'relative flex w-full flex-col overflow-hidden border border-line bg-surface-1 shadow-overlay focus:outline-none',
                             right ? 'h-full max-w-[520px] border-y-0 border-r-0' : cn('max-h-[calc(100vh-2rem)] rounded-xl', SIZES[size]),
+                            panelClassName,
                         )}
                         initial={right ? { x: 40, opacity: 0 } : { opacity: 0, y: 8, scale: 0.98 }}
                         animate={right ? { x: 0, opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
@@ -246,16 +251,21 @@ export function Dialog({
 
                         {!bare && header}
 
-                        {!bare && <div
-                            ref={bodyRef}
-                            data-dialog-body
-                            tabIndex={scrollable ? 0 : undefined}
-                            role={scrollable ? 'region' : undefined}
-                            aria-labelledby={scrollable ? titleId : undefined}
-                            className={cn('min-h-0 flex-1 overflow-y-auto px-6 py-5 focus-visible:outline-offset-[-2px]', bodyClassName)}
-                        >
-                            <div ref={contentRef}>{children}</div>
-                        </div>}
+                        {!bare && (
+                            <div className={cn('flex min-h-0 flex-1', !sidebar && 'flex-col')}>
+                                {sidebar && <div className="w-56 shrink-0 overflow-y-auto border-r border-line bg-surface-2 p-3">{sidebar}</div>}
+                                <div
+                                    ref={bodyRef}
+                                    data-dialog-body
+                                    tabIndex={scrollable ? 0 : undefined}
+                                    role={scrollable ? 'region' : undefined}
+                                    aria-labelledby={scrollable ? titleId : undefined}
+                                    className={cn('min-h-0 min-w-0 flex-1 overflow-y-auto px-6 py-5 focus-visible:outline-offset-[-2px]', bodyClassName)}
+                                >
+                                    <div ref={contentRef}>{children}</div>
+                                </div>
+                            </div>
+                        )}
 
                         {!bare && footer && (
                             <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-line bg-surface-2 px-6 py-3.5">

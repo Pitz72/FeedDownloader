@@ -130,7 +130,42 @@ esportazione JSON del catalogo, autenticazione per feed privati con utente/passw
   NB: nel pannello browser il ridimensionamento a 1440×900 fa sembrare la pagina «piccola in
   alto a sinistra»: è un effetto dello screenshot, il layout misura correttamente (verificato via JS).
 
-### Da fare (in quest'ordine)
+### Fatto nella seconda sessione (23 ottobre 2026)
+
+- **Layout orizzontale** di tutte le viste, misurato a 960×620, 1093×614 (= 1366×768 al 125 %),
+  1366×768 e 1920×1080 (iframe a misura fissa nel banco di prova: nessuno scorrimento della pagina
+  né laterale, ogni pannello scorre per conto suo):
+  - `DownloadsView`: intestazione su una riga; ≥1280 px coda | colonna 420 px con interrotti,
+    non riusciti, completati; sotto, schede (come Titan).
+  - `ArchiveView`: ≥1360 px colonna 264 px (ricerca, periodo, podcast con conteggi cliccabili) |
+    tabella; sotto, fascia filtri e tabella senza Dimensione/Qualità.
+  - `LibraryHome`: cruscotto con tabella ordinabile di tutti i feed + colonna 320 px (≥1320 px)
+    con coda, archivio, scorciatoie; benvenuto sempre a due colonne. `getFeeds()` ora restituisce
+    `episodeCount`, `archivedCount`, `archivedBytes` (SQL, test in `DatabaseV16.test.ts`).
+  - **Vista `'home'` nello store** + voce «Libreria» nella barra laterale e nella palette, Ctrl+1:
+    prima, aperto un feed, al cruscotto non si tornava più.
+  - `SettingsDialog`: `size="xl"`, schede verticali (`Tabs orientation="vertical"`, frecce su/giù,
+    `aria-orientation`, focus iniziale sulla scheda attiva), colonna laterale nel `Dialog`.
+  - `FeedView` (era dato per fatto ma sotto i 1280 px l'intestazione arrivava a 860 px e l'elenco
+    a 0): cifre che vanno a capo invece di schiacciare il titolo, comandi a sola icona sotto i
+    1600 px, archivio automatico nella barra d'azione quando manca il pannello.
+  - `Stat` compatto sotto i 1280 px, barra laterale 256 px sotto i 1280 px, nessun breakpoint
+    «mobile» (`sm:`/`md:`) rimasto.
+- `tests/useStore.test.ts` riscritto (27 casi). **Suite 440/440.** Lint, tsc ×2, `check:locales`,
+  `check:contrast`, nuovo `check:preview` (tsconfig del banco di prova): verdi.
+- CSP senza Google Fonts.
+- **Prova nell'app vera** con profilo separato (`.claude/vite.devprobe.config.ts`, gitignorato:
+  `--user-data-dir` + porta DevTools 9333; il DB della 1.5.1 installata NON è stato toccato):
+  feed reale NPR News Now, periodo «ultimi 30 giorni» → 3 episodi, pausa/ripresa coda, ID3 +
+  sidecar + `podcast.json`, impronte su disco = registrate, Verifica rapida e completa 0 corrotti,
+  pausa automatica offline e ripresa dal punto, crash con download a metà → proposta di ripresa
+  e ripartenza dal 10 %, cambio cartella «solo per i nuovi» (Verifica trova anche i vecchi).
+- Testo del periodo senza «…» (`period_since` / `period_until`), avviso offline non più triplicato.
+- Documentazione 1.6.0: `package.json`/lock, `docs/changelog/1.6.0.md`, note in-code, guide
+  `README_MASTER.md`/`README_EN.md` (riscritte sulla nuova interfaccia; niente tabelle: la guida
+  in-app non ha remark-gfm), `README.md`, `CONTRIBUTING.md`, `ROADMAP.md`, job `verify` della CI.
+
+### Da fare (in quest'ordine) — elenco originale della prima sessione
 1. **Layout orizzontale delle viste restanti** (richiesta esplicita dell'utente):
    - `DownloadsView`: intestazione compatta su una riga; corpo a due colonne — coda (attivi +
      in attesa, scorrimento proprio) a sinistra; a destra colonna fissa (~420 px) con

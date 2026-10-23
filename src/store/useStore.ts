@@ -17,7 +17,8 @@ function cancelCleanup(url: string): void {
 /** How many archived episodes the session list keeps (newest first). */
 const COMPLETED_KEEP = 500;
 
-export type View = 'feed' | 'archive' | 'downloads';
+/** 'home' è il cruscotto della libreria; 'feed' mostra `currentFeed`. */
+export type View = 'home' | 'feed' | 'archive' | 'downloads';
 
 const IDLE_QUEUE: QueueState = { paused: false, pauseReason: null, run: { total: 0, completed: 0, failed: 0, cancelled: 0 } };
 
@@ -73,7 +74,7 @@ export interface AppState {
 }
 
 export const useStore = create<AppState>((set, get) => ({
-    view: 'feed',
+    view: 'home',
     setView: (view) => set({ view }),
     currentFeed: null,
     setCurrentFeed: (feed) => set({ currentFeed: feed }),

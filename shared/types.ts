@@ -43,6 +43,11 @@ export interface FeedEntry {
     /** v1.6.0 — "archivio automatico": new episodes found by a refresh are
      *  downloaded without asking. */
     autoDownload?: boolean;
+    /** v1.6.0 — episodes in the feed at the last parse (null: never parsed). */
+    episodeCount?: number | null;
+    /** v1.6.0 — archived episodes and bytes for this feed (legacy rows by title). */
+    archivedCount?: number;
+    archivedBytes?: number;
 }
 
 /** v1.6.0 — per-feed archive figures for the feed header. */

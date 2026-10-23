@@ -5,7 +5,7 @@
 
   **Il modo più potente per archiviare i tuoi podcast.**
 
-  ![Version](https://img.shields.io/badge/Version-1.5.1-38bdf8?style=for-the-badge)
+  ![Version](https://img.shields.io/badge/Version-1.6.0-9962fc?style=for-the-badge)
   ![License](https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge)
   ![Platform](https://img.shields.io/badge/Platform-Win%20%7C%20Linux-emerald?style=for-the-badge)
   ![Stack](https://img.shields.io/badge/Stack-Electron%20%7C%20React%20%7C%20SQLite-475569?style=for-the-badge)
@@ -22,40 +22,44 @@
 
 Nasce nel 2026 come strumento interno di [Runtime Radio](https://runtimeradio.com) per conservare cataloghi di podcast prima che spariscano dai server di chi li pubblica. È stato distribuito come prodotto commerciale fino all'agosto 2026, quando è stato ritirato dalla vendita e aperto sotto licenza MIT.
 
-> **Stato del progetto.** Funzionalmente completo e in produzione. Non ci sono sviluppi pianificati: viene mantenuto per correzioni. Le pull request sono benvenute — vedi [CONTRIBUTING.md](CONTRIBUTING.md).
+> **Stato del progetto.** Funzionalmente completo e in produzione. La v1.6.0 ha portato un audit completo con la correzione di tutte le criticità trovate, funzioni nuove per l'archiviazione e un'interfaccia ridisegnata. Le pull request sono benvenute — vedi [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ### ✨ Caratteristiche principali
 
 **Feed e libreria**
-- **Libreria permanente** — barra laterale ridimensionabile, ricerca, ordinamento A–Z; i feed restano fra le sessioni
-- **Badge DA SCARICARE** — quanti episodi mancano all'archivio, riconosciuti per GUID e non per conteggio (v1.3.12)
+- **Libreria** — cruscotto con tutti i feed: episodi, archiviati, da scaricare, spazio occupato, ultimo controllo (v1.6.0)
+- **Nuovi episodi riconosciuti per GUID**, non per conteggio (v1.3.12)
 - **Feed paginati RFC 5005** — segue i link `rel="next"` e ricompone il catalogo, fino a 20 pagine (v1.3.12)
-- **Aggiornamento automatico** — all'avvio, ogni 6/12/24 ore e al ritorno della connessione, con notifica di sistema cliccabile (v1.4.0, v1.5.0)
+- **Controllo automatico** ogni 6/12/24 ore, anche dall'area di notifica, con notifica di sistema cliccabile; **Controlla i feed** su richiesta (v1.4.0, v1.6.0)
+- **Archivio automatico per feed** — i nuovi episodi trovati dai controlli si scaricano da soli (v1.6.0)
 
 **Download**
-- **Batch con coda gestita** — 1, 3 o 5 trasferimenti paralleli, selezione multipla, annullamento singolo
-- **Pausa e Riprendi** — singolo download o intera coda, senza perdere l'avanzamento: la ripresa usa HTTP Range + If-Range (v1.5.0)
-- **Riprova falliti** — rimette in coda in un clic tutti gli episodi in errore di un lotto (v1.5.0)
-- **Limiti configurabili** — velocità complessiva e dimensione massima per file (v1.5.0)
-- **Trasferimenti resilienti** — timeout 30s, stall detection 60s, 3 tentativi con backoff, `Retry-After` rispettato, file `.part`
+- **Per periodo** — filtro Periodo sempre visibile (preset o date Dal/Al), pulsante che dice cosa scaricherà, conferma con stima dello spazio (v1.6.0)
+- **Coda gestita** — da 1 a 10 trasferimenti paralleli, selezione con caselle e intervalli, vista Download dedicata (v1.6.0)
+- **Pausa e Riprendi** — singolo download o intera coda: la ripresa usa HTTP Range + If-Range (v1.5.0)
+- **Pausa automatica senza rete** e **coda persistente** ripresa dopo chiusura o blocco (v1.6.0)
+- **Limiti** — banda complessiva condivisa e dimensione massima per file (v1.5.0, v1.6.0)
+- **Trasferimenti resilienti** — timeout 30s, stall detection 60s, 5 tentativi con backoff, `Retry-After` rispettato, file `.part`
 
 **Integrità**
-- **SHA-256 su ogni file**, con bitrate e sample rate estratti dal file stesso (v0.7.4)
-- **Health Check** — verifica presenza e ricalcola le impronte, segnalando i file alterati (v1.4.1)
-- **Ripara archivio** — ritrova per checksum i file rinominati a mano e li riaggancia (v1.5.0)
+- **SHA-256 su ogni file**, calcolato dopo i tag ID3, con bitrate e sample rate (v0.7.4, v1.6.0)
+- **Verifica dell'archivio** Rapida o Completa, con avanzamento e stop; «Accetta come riferimento» (v1.6.0)
+- **Cerca i file spostati** — ritrova per checksum i file rinominati a mano, in tutte le cartelle dell'archivio (v1.5.0, v1.6.0)
+- **Ogni episodio ricorda la sua cartella**: cambiare cartella non rende «mancante» l'archivio (v1.6.0)
 - **Ripristino guidato del database** dal backup automatico in caso di corruzione (v1.5.0)
-- **Rifiuto dei contenuti non audio** quando il server risponde con una pagina web (v1.5.0)
 
 **Interfaccia**
-- **Palette comandi (Ctrl+K)** — azioni, feed e ricerca fra gli episodi del feed aperto (v1.2.4, v1.5.0)
-- **Pannello download** e **pannello di dettaglio episodio** con metadati e dati d'archivio
-- **Vista Archivio**, **export M3U**, **riduzione nell'area di notifica**, **changelog in-app**
+- **Design system «Runtime Violet»** (gemello di Titan Blue), contrasti verificati WCAG 2.2 AA da script (v1.6.0)
+- **Impaginazione orizzontale da scrivania** — pannelli affiancati, ognuno con il suo scorrimento (v1.6.0)
+- **Palette comandi (Ctrl+K)**, interfaccia dall'80 al 180%, «Riduci animazioni», contrasto elevato di Windows
+- **Export M3U e CSV**, metadati `.json` accanto ai file, riduzione nell'area di notifica, changelog in-app
 
 **Sistema**
 - **Aggiornamenti col consenso** — nessun download né installazione automatici (v1.5.0)
+- **Nessuna richiesta a terzi all'avvio** — caratteri inclusi, CSP senza domini esterni (v1.6.0)
 - **Anti-SSRF a 5 livelli**, con ri-verifica dell'IP a ogni connessione e redirect
 - **NAS/SMB** con validazione a timeout, senza bloccare l'interfaccia
-- **394 test automatici** con Vitest, gate bloccante in CI
+- **440 test automatici** con Vitest, gate bloccante in CI, più i controlli di traduzioni e contrasto
 - **Due lingue**: italiano e inglese
 
 ### 🌐 Documentazione
@@ -89,7 +93,7 @@ I build sono prodotti da GitHub Actions con trigger manuale (workflow dispatch).
 > **Code-signing (limite noto L6):** i binari Windows/Linux non sono firmati con un
 > certificato commerciale — SmartScreen può mostrare un avviso al primo avvio.
 > La firma richiede un certificato OV/EV a pagamento con verifica d'identità;
-> la valutazione resta aperta ma non è pianificata per la v1.5.0.
+> la valutazione resta aperta ma non è pianificata.
 
 ## Quick Start (sviluppo)
 
@@ -99,6 +103,16 @@ npm install
 
 # Avvia in modalità sviluppo
 npm run dev
+
+# Anteprima dell'interfaccia nel browser, con dati finti (http://localhost:5198)
+npm run preview:ui
+
+# Controlli: test, lint, traduzioni, contrasto, tipi del banco di prova
+npm test
+npm run lint
+npm run check:locales
+npm run check:contrast
+npm run check:preview
 
 # Build locale (no publish)
 npm run build

@@ -37,6 +37,24 @@ describe('DatabaseService v1.6.0', () => {
         });
     });
 
+    describe('archive totals per feed (library dashboard)', () => {
+        it('counts archived episodes and bytes by feedUrl, legacy rows by title once', () => {
+            db.addFeed({ url: 'https://a.com/f', title: 'Show' });
+            db.addFeed({ url: 'https://b.com/f', title: 'Show' });
+            db.addFeed({ url: 'https://c.com/f', title: 'Empty' });
+            db.updateEpisodeCount('https://a.com/f', 10);
+            db.addArchiveEntry({ guid: 'a1', feedUrl: 'https://a.com/f', podcastTitle: 'Show', title: '1', pubDate: '', downloadedAt: '', fileSize: 100 });
+            db.addArchiveEntry({ guid: 'a2', feedUrl: 'https://a.com/f', podcastTitle: 'Show', title: '2', pubDate: '', downloadedAt: '' });
+            db.addArchiveEntry({ guid: 'b1', feedUrl: 'https://b.com/f', podcastTitle: 'Show', title: '3', pubDate: '', downloadedAt: '', fileSize: 7 });
+            db.addArchiveEntry({ guid: 'x1', feedUrl: '', podcastTitle: 'Show', title: 'old', pubDate: '', downloadedAt: '', fileSize: 50 });
+
+            const byUrl = new Map(db.getFeeds().map(f => [f.url, f]));
+            expect(byUrl.get('https://a.com/f')).toMatchObject({ archivedCount: 3, archivedBytes: 150, episodeCount: 10 });
+            expect(byUrl.get('https://b.com/f')).toMatchObject({ archivedCount: 1, archivedBytes: 7, episodeCount: null });
+            expect(byUrl.get('https://c.com/f')).toMatchObject({ archivedCount: 0, archivedBytes: 0 });
+        });
+    });
+
     describe('feed identity', () => {
         it('stores the real title and cover, never blanking them', () => {
             db.addFeed({ url: 'https://a.com/f', title: 'Imported Feed' });

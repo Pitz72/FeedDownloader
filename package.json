@@ -1,7 +1,7 @@
 {
   "name": "runtime-feeddownloader-pro",
   "private": true,
-  "version": "1.5.1",
+  "version": "1.6.0",
   "description": "Professional podcast archiving tool — batch download, network resilience, SHA-256 integrity",
   "author": {
     "name": "Simone Pizzi",
@@ -23,6 +23,7 @@
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "check:locales": "node scripts/check-locales.mjs",
     "check:contrast": "node scripts/check-contrast.mjs",
+    "check:preview": "tsc --noEmit -p scripts/ui-preview/tsconfig.json",
     "preview:ui": "vite --config scripts/ui-preview/vite.config.ts",
     "preview": "vite preview",
     "test": "vitest run",

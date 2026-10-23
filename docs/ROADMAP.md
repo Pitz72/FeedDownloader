@@ -1,9 +1,22 @@
 # Roadmap FeedDownloader Pro — Fonte di Verità
 
-**Versione di riferimento:** 1.5.1
-**Ultimo aggiornamento:** 18 agosto 2026 — release v1.5.1
+**Versione di riferimento:** 1.6.0
+**Ultimo aggiornamento:** 23 ottobre 2026 — v1.6.0 pronta sul ramo `feat/v1.6.0`
 
-> **Stato release:** **v1.5.1 pubblicata il 18 ago 2026 su `Pitz72/FeedDownloader`** — rifinitura
+> **v1.6.0 (23 ott 2026, non ancora pubblicata)** — audit completo con tutte le criticità
+> corrette (5 gravi, 19 medie, 10 lievi: elenco in [changelog/1.6.0.md](changelog/1.6.0.md) e
+> [PIANO-1.6.0.md](PIANO-1.6.0.md)), funzioni d'archivio (archivio automatico per feed, coda
+> persistente, pausa automatica offline, Verifica Rapida/Completa, metadati arricchiti,
+> `{season}`/`{episode}`, cartella ricordata per episodio) e interfaccia ridisegnata: design
+> system «Runtime Violet» (impianto Titan Blue nel viola del marchio, contrasti WCAG 2.2 AA
+> verificati da script), impaginazione orizzontale da scrivania con pannelli affiancati, vista
+> Libreria. Restano da rivedere i manuali PDF in `docs/user/` (descrivono l'interfaccia 1.5).
+>
+> **Suggerite, non ancora fatte** (dall'audit 1.6.0): finestra oraria di download (es. solo di
+> notte), deduplica tra feed per impronta, sottocartelle per anno nel modello dei nomi,
+> esportazione JSON del catalogo, autenticazione per feed privati (utente/password).
+>
+> **Stato release precedente:** **v1.5.1 pubblicata il 18 ago 2026 su `Pitz72/FeedDownloader`** — rifinitura
 > della schermata iniziale (via la finta riga di stato, blocco alzato) e banner in testata al
 > README. La **v1.5.0**, del giorno prima, è stata la prima release
 > da progetto aperto (licenza MIT, sorgente pubblico). Da questa versione le release escono

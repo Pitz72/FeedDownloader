@@ -132,11 +132,11 @@ function Workspace() {
                 return;
             }
             if (isAnyDialogOpen()) return;
-            const { setView, currentFeed: feed } = useStore.getState();
+            const { setView } = useStore.getState();
             if (key === 'n') { e.preventDefault(); setAddFeed({ open: true }); }
             else if (key === ',') { e.preventDefault(); setSettingsOpen(true); }
             else if (key === 's' && !isEditable(e.target)) { e.preventDefault(); void checkAll(); }
-            else if (key === '1' && feed) { e.preventDefault(); setView('feed'); }
+            else if (key === '1') { e.preventDefault(); setView('home'); }
             else if (key === '2') { e.preventDefault(); setView('downloads'); }
             else if (key === '3') { e.preventDefault(); setView('archive'); }
             else if (key === 'f') {
@@ -192,7 +192,7 @@ function Workspace() {
                     )}
                     {view === 'downloads' ? <DownloadsView />
                         : view === 'archive' ? <ArchiveView onOpenHealthCheck={() => setHealthOpen(true)} />
-                        : currentFeed ? <FeedView key={currentFeed.url} feed={currentFeed} />
+                        : view === 'feed' && currentFeed ? <FeedView key={currentFeed.url} feed={currentFeed} />
                         : <LibraryHome onAddFeed={() => setAddFeed({ open: true })} onImportOpml={() => void importOpml()} onCheckAll={() => void checkAll()} />}
                 </main>
             </div>
